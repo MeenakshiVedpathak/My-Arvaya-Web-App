@@ -1,69 +1,54 @@
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, ChevronRight, Filter } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getDoctors } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
-import Steps from "../components/common/Steps";
+import { useAuth } from "../context/AuthContext";
 import DoctorCard from "../components/doctors/DoctorCard";
-import SelectBranch from "../components/doctors/SelectBranch";
-import SelectSpecialty from "../components/doctors/SelectSpecialty";
-import SelectVisitType from "../components/doctors/SelectVisitType";
 import SelectSlotUI from "../components/doctors/SelectSlotUI";
+import Modal from "../components/common/Modal";
 
-const PAGE_SIZE = 50; // Load a large batch to filter locally for the demo
+const PAGE_SIZE = 50;
 
 export default function Doctors() {
   const go = useNavigate();
   const { setDoctor, setDate, setSlot, setBookingId } = useBooking();
-  const [step, setStep] = useState(0); // 0: Branch, 1: Specialty, 2: Visit Type, 3: Doctor, 4: Slot
+  const { user, openLoginModal } = useAuth();
   
-  // Booking State
-  const [booking, setBooking] = useState({
-    branch: null,
-    specialty: null,
-    visitType: null,
-    doctor: null,
-    slot: null
-  });
+  // Filter State
+  const [branch, setBranch] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [visitType, setVisitType] = useState("Initial consultation");
+  const [q, setQ] = useState("");
+  
+  // Modal State
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   // Doctor Data State
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
 
   const fetchPage = useCallback((page) => {
     setLoading(true);
     getDoctors({ pageIndex: page, pageSize: PAGE_SIZE })
-      .then(res => {
-        setDoctors(res.list || []);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .then(res => setDoctors(res.list || []))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     fetchPage(1);
   }, [fetchPage]);
 
-  // Derived Data for Steps
+  // Derived Data for Filters
   const branches = useMemo(() => {
-    // Generate unique branches from doctors + some mock ones matching screenshot
     const map = new Map();
     doctors.forEach(d => {
-      if (d.hospital) {
-        map.set(d.hospital, {
-          name: d.hospital,
-          address: d.city ? `${d.city} Main Road` : "Shivaji Park, Kohlapur",
-          phone: "0231-252530"
-        });
-      }
+      if (d.hospital) map.set(d.hospital, d.hospital);
     });
-    // Add mocks if not enough
     if (map.size < 2) {
-      map.set("APEX", { name: "APEX Hospital", address: "CS No: 517, A/13 Plot No: 27, Shivaji Park, Kohlapur", phone: "0231-252530" });
-      map.set("Hospital1", { name: "Hospital", address: "Isarappanavar I-kon Building, Plot No 50...", phone: "7026200055" });
-      map.set("SeCURE", { name: "SeCURE HOSPITALS", address: "499/1/2. Plot No : 3/125/126, Avanti Nagar...", phone: "0217-2745050" });
+      map.set("APEX", "APEX Hospital");
+      map.set("Hospital1", "Hospital");
+      map.set("SeCURE", "SeCURE HOSPITALS");
     }
     return Array.from(map.values());
   }, [doctors]);
@@ -73,7 +58,6 @@ export default function Doctors() {
     doctors.forEach(d => {
       if (d.specialty) d.specialty.split(", ").forEach(s => s.trim() && set.add(s.trim()));
     });
-    // Add mocks if not enough
     if (set.size < 4) {
       ["Anaesthetist", "Anesthesiologist", "Cardiologist", "Dental Surgeon", "Dermatologist", "ENT", "Gastroenterologist", "General Medicine"].forEach(s => set.add(s));
     }
@@ -82,122 +66,112 @@ export default function Doctors() {
 
   const filteredDoctors = useMemo(() => {
     return doctors.filter(d => {
-      const matchSpecialty = !booking.specialty || (d.specialty || "").toLowerCase().includes(booking.specialty.toLowerCase());
-      // we can also filter by branch if we strictly map them, but since we mock branches, let's keep it relaxed or check include
+      const matchSpecialty = !specialty || (d.specialty || "").toLowerCase().includes(specialty.toLowerCase());
+      const matchBranch = !branch || (d.hospital || "").toLowerCase().includes(branch.toLowerCase());
       const matchQ = (d.name + (d.specialty || "")).toLowerCase().includes(q.toLowerCase());
-      return matchSpecialty && matchQ;
+      return matchSpecialty && matchBranch && matchQ;
     });
-  }, [doctors, booking.specialty, q]);
+  }, [doctors, specialty, branch, q]);
 
-  // Handlers
-  const handleBack = () => {
-    if (step > 0) setStep(step - 1);
-    else go(-1);
-  };
-
-  const updateBooking = (key, value) => {
-    setBooking(prev => ({ ...prev, [key]: value }));
-  };
-
-  const getHeaderTitle = () => {
-    if (step === 0) return "Book Appointment";
-    if (step === 1) return booking.branch?.name || "Select Specialty";
-    if (step === 2) return booking.specialty || "Select Visit Type";
-    if (step === 3) return booking.visitType || "Select Doctor";
-    if (step === 4) return "Book Appointment";
-    return "Book Appointment";
+  const handleBookSlot = (slotData) => {
+    setDoctor(selectedDoctor);
+    setDate(new Date(slotData.date));
+    setSlot(slotData.time);
+    if (!user) return openLoginModal("/confirmed");
+    setBookingId("APMNT" + Math.floor(Math.random() * 100000000));
+    go("/confirmed");
   };
 
   return (
-    <main className="container page booking-wizard">
-      {/* Header Area */}
-      <div className="wizard-header">
-        <h1 className="header-title" onClick={handleBack}>
-          <ArrowLeft /> {getHeaderTitle()}
-        </h1>
-        <Steps current={step} total={5} />
+    <main className="page">
+      <div className="internal-page-hero">
+        <div className="container">
+          <div className="internal-breadcrumbs">
+            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>Consult Doctors</span>
+          </div>
+          <h1 className="internal-hero-title">Consult Top Doctors</h1>
+          <p className="internal-hero-subtitle">Find experienced doctors and book your appointment instantly.</p>
+        </div>
       </div>
 
-      {/* Step 0: Branch Selection */}
-      {step === 0 && (
-        <SelectBranch 
-          branches={branches} 
-          onSelect={(b) => { updateBooking("branch", b); setStep(1); }} 
-        />
-      )}
-
-      {/* Step 1: Specialty Selection */}
-      {step === 1 && (
-        <>
-          <div className="wizard-breadcrumbs">
-            <span>{booking.branch?.name}</span>
-          </div>
-          <SelectSpecialty 
-            specialties={specialties} 
-            onSelect={(s) => { updateBooking("specialty", s); setStep(2); }} 
-          />
-        </>
-      )}
-
-      {/* Step 2: Visit Type Selection */}
-      {step === 2 && (
-        <>
-          <div className="wizard-breadcrumbs">
-            <span>{booking.branch?.name}</span> • <span>{booking.specialty}</span>
-          </div>
-          <SelectVisitType 
-            selected={booking.visitType} 
-            onSelect={(id, title) => updateBooking("visitType", title)} 
-            onContinue={() => setStep(3)}
-          />
-        </>
-      )}
-
-      {/* Step 3: Doctor Selection */}
-      {step === 3 && (
-        <div className="select-doctor-container">
-          <div className="wizard-breadcrumbs">
-            <span>{booking.branch?.name}</span> • <span>{booking.specialty}</span> • <span>{booking.visitType}</span>
-          </div>
+      <div className="container web-dashboard-layout">
+        {/* Sidebar Filters */}
+        <aside className="web-sidebar">
+          <h3>Filters</h3>
           
-          <div className="search wide" style={{ marginBottom: "16px", marginTop: "16px" }}>
+          <div className="filter-group">
+            <label>Branch</label>
+            <select className="filter-select" value={branch} onChange={e => setBranch(e.target.value)}>
+              <option value="">All Branches</option>
+              {branches.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Specialty</label>
+            <select className="filter-select" value={specialty} onChange={e => setSpecialty(e.target.value)}>
+              <option value="">All Specialties</option>
+              {specialties.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Visit Type</label>
+            <div className="filter-radio-list">
+              {["Initial consultation", "Follow-up", "Other"].map(vt => (
+                <label key={vt} className="filter-radio-label">
+                  <input 
+                    type="radio" 
+                    name="visitType" 
+                    value={vt} 
+                    checked={visitType === vt} 
+                    onChange={e => setVisitType(e.target.value)}
+                  />
+                  {vt}
+                </label>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <section>
+          <div className="search wide" style={{ marginBottom: "24px" }}>
             <Search />
             <input
               value={q}
               onChange={e => setQ(e.target.value)}
-              placeholder="Search doctors..."
+              placeholder="Search doctors by name or specialty..."
             />
           </div>
-
-          <p className="step-prompt" style={{ fontSize: "14px", color: "#64748b" }}>
-            {filteredDoctors.length} doctor{filteredDoctors.length !== 1 ? 's' : ''} in {booking.specialty}
-          </p>
 
           <div className="doctorlist-grid">
             {filteredDoctors.map(d => (
               <DoctorCard 
                 key={d.id} 
                 d={d} 
-                onClickBook={() => { updateBooking("doctor", d); setStep(4); }}
+                onClickBook={() => setSelectedDoctor(d)}
               />
             ))}
+            {filteredDoctors.length === 0 && !loading && (
+              <p style={{ color: "var(--muted)" }}>No doctors found matching your criteria.</p>
+            )}
           </div>
-        </div>
-      )}
+        </section>
+      </div>
 
-      {/* Step 4: Slot Selection */}
-      {step === 4 && (
+      {/* Booking Modal */}
+      <Modal 
+        isOpen={!!selectedDoctor} 
+        onClose={() => setSelectedDoctor(null)}
+        title="Select Appointment Slot"
+        maxWidth="700px"
+      >
         <SelectSlotUI 
-          doctor={booking.doctor} 
-          onConfirm={(slotData) => {
-            setDoctor(booking.doctor);
-            setDate(new Date(slotData.date));
-            setSlot(slotData.time);
-            setBookingId("APMNT" + Math.floor(Math.random() * 100000000));
-            go("/confirmed"); // Go to confirmation page
-          }} 
+          doctor={selectedDoctor} 
+          onConfirm={handleBookSlot} 
         />
-      )}
+      </Modal>
     </main>
   );
 }

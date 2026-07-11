@@ -14,7 +14,7 @@ export default function Confirmed() {
   return (
     <main className="container page">
       <Steps current={4} />
-      <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <section className="mockup-card" style={{ textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px 0', position: 'relative' }}>

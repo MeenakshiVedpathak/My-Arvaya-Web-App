@@ -1,11 +1,13 @@
 import { Star, MapPin, Check, Heart, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
+import { useAuth } from "../context/AuthContext";
 import Steps from "../components/common/Steps";
 import Avatar from "../components/common/Avatar";
 export default function DoctorProfile() {
-  let { doctor } = useBooking(),
-    go = useNavigate();
+  const { doctor } = useBooking();
+  const { user, openLoginModal } = useAuth();
+  const go = useNavigate();
   return (
     <main className="container page">
       <Steps current={1} />
@@ -48,7 +50,7 @@ export default function DoctorProfile() {
 
           <button
             className="primary full"
-            onClick={() => go("/slot")}
+            onClick={() => user ? go("/slot") : openLoginModal("/slot")}
             style={{ marginTop: "16px", fontSize: '15px', padding: '14px' }}
           >
             Book Appointment

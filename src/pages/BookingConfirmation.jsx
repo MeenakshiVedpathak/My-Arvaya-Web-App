@@ -24,7 +24,7 @@ export default function BookingConfirmation() {
         Your appointment has been successfully scheduled. We have sent a confirmation email with details.
       </p>
 
-      <div className="branch-card" style={{ textAlign: "left", maxWidth: "400px", margin: "0 auto", cursor: "default" }}>
+      <div className="branch-card" style={{ textAlign: "left", maxWidth: "800px", margin: "0 auto", cursor: "default" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}>
           <div className="branch-icon"><CalendarIcon size={24} /></div>
           <div>

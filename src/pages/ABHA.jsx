@@ -1,17 +1,23 @@
 import { Link2, Share2, ShieldCheck, ChevronRight, ArrowLeft, QrCode } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 export default function ABHA() {
   let go = useNavigate();
   return (
-    <main className="container page">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        
-        {/* Left Column */}
-        <section>
-          <h1 className="header-title" onClick={() => go(-1)}>
-            <ArrowLeft /> ABHA Hub
-          </h1>
+    <main className="page">
+      <div className="internal-page-hero">
+        <div className="container">
+          <div className="internal-breadcrumbs">
+            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>ABHA Hub</span>
+          </div>
+          <h1 className="internal-hero-title">Your ABHA Profile</h1>
+          <p className="internal-hero-subtitle">Manage your Ayushman Bharat Health Account and consents securely.</p>
+        </div>
+      </div>
+      <div className="container" style={{ paddingBottom: '60px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           
+          {/* Left Column */}
+          <section>
           <div className="mockup-card" style={{ padding: '24px', position: 'relative' }}>
             <b style={{ fontSize: '13px', color: '#4e4e4d', display: 'block', marginBottom: '16px' }}>Your ABHA Card</b>
             
@@ -62,7 +68,7 @@ export default function ABHA() {
             <span style={{ color: '#3182ce', fontSize: '14px', cursor: 'pointer' }}>Learn more about ABHA</span>
           </div>
         </aside>
-
+      </div>
       </div>
     </main>
   );

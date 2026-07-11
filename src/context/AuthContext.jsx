@@ -15,6 +15,18 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("arvaya_token"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState(null);
+
+  function openLoginModal(redirectPath = null) {
+    if (redirectPath) setPendingRedirect(redirectPath);
+    setLoginModalOpen(true);
+  }
+
+  function closeLoginModal() {
+    setLoginModalOpen(false);
+    setTimeout(() => setPendingRedirect(null), 300); // clear after animation
+  }
 
   function saveSession(data) {
     localStorage.setItem("arvaya_token", data.token);
@@ -61,7 +73,11 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, error, login, register, logout, setError }}>
+    <AuthContext.Provider value={{ 
+      user, token, loading, error, 
+      login, register, logout, setError,
+      isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal
+    }}>
       {children}
     </AuthContext.Provider>
   );

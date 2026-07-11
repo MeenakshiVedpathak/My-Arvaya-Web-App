@@ -1,6 +1,6 @@
-import { ArrowLeft, Gift, Clock, Wallet, Check, Plus, Users } from "lucide-react";
+import { ArrowLeft, Gift, Clock, Wallet, Check, Plus, Users, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Rewards() {
   const go = useNavigate();
@@ -46,58 +46,63 @@ export default function Rewards() {
   ];
 
   return (
-    <main className="container page booking-wizard">
-      <div className="wizard-header" style={{ marginBottom: "32px" }}>
-        <h1 className="header-title" onClick={() => go(-1)}>
-          <ArrowLeft /> My Rewards
-        </h1>
-      </div>
-
-      <div className="reward-hero-card">
-        <div className="rh-top">
-          <div>
-            <p className="rh-subtitle">Your Reward Points</p>
-            <h2 className="rh-points">{points}</h2>
+    <main className="page">
+      <div className="internal-page-hero">
+        <div className="container">
+          <div className="internal-breadcrumbs">
+            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>Rewards</span>
           </div>
-          <div className="rh-icon-box">
-            <Gift size={32} color="#fff" />
-          </div>
-        </div>
-        
-        <div className="rh-bottom">
-          <Wallet size={18} />
-          Redeem on your next booking
+          <h1 className="internal-hero-title">Your Rewards</h1>
+          <p className="internal-hero-subtitle">Earn points and redeem them for exclusive offers.</p>
         </div>
       </div>
-
-      <div className="rewards-section-header">
-        <h2>Your Rewards</h2>
-        <span className="rewards-pill-badge">6 offers</span>
-      </div>
-
-      <div className="rewards-grid">
-        {offers.map(offer => (
-          <div key={offer.id} className="reward-offer-card" onClick={() => alert("Offer selected: " + offer.title)} style={{ cursor: 'pointer' }}>
-            <div className="roc-image-container">
-              <img src={offer.image} alt={offer.title} className="roc-image" />
-              
-              <div className="roc-badge-tr">
-                <offer.badgeIcon size={12} />
-                {offer.badge}
-              </div>
-              
-              <div className="roc-badge-bl">
-                <Plus size={14} strokeWidth={3} />
-                {offer.points} pts
-              </div>
+      <div className="container" style={{ paddingBottom: '60px' }}>
+        <div className="rewards-balance-card" style={{ marginBottom: '24px' }}>
+          <div className="rh-top">
+            <div>
+              <p className="rh-subtitle">Your Reward Points</p>
+              <h2 className="rh-points">{points}</h2>
             </div>
-            
-            <div className="roc-content">
-              <h3>{offer.title}</h3>
-              <p>{offer.subtitle}</p>
+            <div className="rh-icon-box">
+              <Gift size={32} color="#fff" />
             </div>
           </div>
-        ))}
+          
+          <div className="rh-bottom">
+            <Wallet size={18} />
+            Redeem on your next booking
+          </div>
+        </div>
+
+        <div className="rewards-section-header">
+          <h2>Your Rewards</h2>
+          <span className="rewards-pill-badge">6 offers</span>
+        </div>
+
+        <div className="rewards-grid">
+          {offers.map(offer => (
+            <div key={offer.id} className="reward-offer-card" onClick={() => alert("Offer selected: " + offer.title)} style={{ cursor: 'pointer' }}>
+              <div className="roc-image-container">
+                <img src={offer.image} alt={offer.title} className="roc-image" />
+                
+                <div className="roc-badge-tr">
+                  <offer.badgeIcon size={12} />
+                  {offer.badge}
+                </div>
+                
+                <div className="roc-badge-bl">
+                  <Plus size={14} strokeWidth={3} />
+                  {offer.points} pts
+                </div>
+              </div>
+              
+              <div className="roc-content">
+                <h3>{offer.title}</h3>
+                <p>{offer.subtitle}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
   );

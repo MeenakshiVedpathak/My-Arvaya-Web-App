@@ -43,7 +43,7 @@ export default function Signup() {
     }}>
       <div style={{
         width: "100%",
-        maxWidth: "380px",
+        maxWidth: "440px",
         background: "#fff",
         borderRadius: "20px",
         boxShadow: "0 16px 48px rgba(46, 102, 110,0.1), 0 2px 12px rgba(0,0,0,0.05)",

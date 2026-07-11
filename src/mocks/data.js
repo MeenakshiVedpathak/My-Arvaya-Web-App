@@ -79,8 +79,8 @@ export const slots = {
   Evening: ["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM"],
 };
 export const packages = [
-  ["🧑‍⚕️", "Full Body Checkup", "80+ tests", "₹1,499", "20% OFF"],
-  ["🩸", "Diabetes Profile", "30+ tests", "₹799", "30% OFF"],
-  ["❤️", "Heart Health", "40+ tests", "₹1,199", "33% OFF"],
-  ["🦋", "Thyroid Profile", "24+ tests", "₹649", "20% OFF"],
+  { img: "/checkup_fullbody.png", title: "Full Body Checkup", tests: "80+ tests", price: "₹1,499", oldPrice: "₹2,300", discount: "20% OFF" },
+  { img: "/checkup_diabetes.png", title: "Diabetes Profile", tests: "30+ tests", price: "₹799", oldPrice: "₹1,200", discount: "33% OFF" },
+  { img: "/checkup_heart.png", title: "Heart Health", tests: "40+ tests", price: "₹1,199", oldPrice: "₹1,800", discount: "33% OFF" },
+  { img: "/checkup_thyroid.png", title: "Thyroid Profile", tests: "24+ tests", price: "₹649", oldPrice: "₹900", discount: "28% OFF" },
 ];

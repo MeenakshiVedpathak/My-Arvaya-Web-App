@@ -1,6 +1,6 @@
-import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload } from "lucide-react";
+import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getRecords } from "../services/dataService";
 
 const iconMap = {
@@ -40,12 +40,18 @@ export default function Records() {
 
   if (view === "add") {
     return (
-      <main className="container page">
-        <div className="reports-header-row" style={{ marginBottom: '16px' }}>
-          <h1 className="header-title" onClick={() => setView("list")} style={{ margin: 0, cursor: 'pointer' }}>
-            <ArrowLeft /> Upload Report
-          </h1>
+      <main className="page">
+        <div className="internal-page-hero">
+          <div className="container">
+            <div className="internal-breadcrumbs">
+              <Link to="/">Home</Link> <ChevronRight size={14} /> <span style={{ cursor: 'pointer', color: 'var(--primary)' }} onClick={() => setView("list")}>Records</span> <ChevronRight size={14} /> <span>Upload</span>
+            </div>
+            <h1 className="internal-hero-title">Upload Health Record</h1>
+            <p className="internal-hero-subtitle">Securely store your medical documents.</p>
+          </div>
         </div>
+        
+        <div className="container" style={{ paddingBottom: '60px' }}>
         
         <div className="upload-view-container">
           <img src="/upload_illustration.png" alt="Upload Illustration" className="upload-view-illustration" />
@@ -56,27 +62,36 @@ export default function Records() {
             <p>Supported formats: JPEG, PNG, PDF, DICOM</p>
           </div>
         </div>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="container page">
-      {/* Top Actions Row */}
-      <div className="reports-header-row">
-        <h1 className="header-title" onClick={() => go(-1)} style={{ margin: 0 }}>
-          <ArrowLeft /> Reports
-        </h1>
-        
-        <div className="reports-actions">
-          <button className="filter-btn" onClick={() => alert("Filter drawer opened")}>
-            <Filter size={20} />
-          </button>
-          <button className="pro-btn-primary" style={{ gap: '8px' }} onClick={() => setView("add")}>
-            <Plus size={18} /> Add Report
-          </button>
+    <main className="page">
+      <div className="internal-page-hero">
+        <div className="container">
+          <div className="internal-breadcrumbs">
+            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>Health Records</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 className="internal-hero-title">Your Health Records</h1>
+              <p className="internal-hero-subtitle">Access and manage all your medical history.</p>
+            </div>
+            <div className="reports-actions">
+              <button className="filter-btn" onClick={() => alert("Filter drawer opened")}>
+                <Filter size={20} />
+              </button>
+              <button className="pro-btn-primary" style={{ gap: '8px' }} onClick={() => setView("add")}>
+                <Plus size={18} /> Add Record
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div className="container" style={{ paddingBottom: '60px' }}>
 
       {/* Tabs */}
       <div className="reports-tabs-container">
@@ -160,6 +175,7 @@ export default function Records() {
           )}
         </>
       )}
+      </div>
     </main>
   );
 }

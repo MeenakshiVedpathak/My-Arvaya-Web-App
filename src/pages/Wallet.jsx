@@ -1,6 +1,6 @@
-import { Wallet as W, ArrowLeft, Plus } from "lucide-react";
+import { Wallet as W, ArrowLeft, Plus, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getWallet } from "../services/dataService";
 
 export default function Wallet() {
@@ -27,15 +27,21 @@ export default function Wallet() {
   }
 
   return (
-    <main className="container page">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        
-        {/* Left Column */}
-        <section>
-          <h1 className="header-title" onClick={() => go(-1)}>
-            <ArrowLeft /> My Wallet
-          </h1>
+    <main className="page">
+      <div className="internal-page-hero">
+        <div className="container">
+          <div className="internal-breadcrumbs">
+            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>Wallet</span>
+          </div>
+          <h1 className="internal-hero-title">Your Digital Wallet</h1>
+          <p className="internal-hero-subtitle">Manage your balances and recent transactions.</p>
+        </div>
+      </div>
+      <div className="container" style={{ paddingBottom: '60px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
           
+          {/* Left Column */}
+          <section>
           <div className="wallet-card" style={{ marginBottom: '16px' }}>
             <small style={{ color: '#4e4e4d', fontSize: '13px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>Total Balance</small>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -78,6 +84,7 @@ export default function Wallet() {
           </div>
         </aside>
 
+      </div>
       </div>
     </main>
   );
