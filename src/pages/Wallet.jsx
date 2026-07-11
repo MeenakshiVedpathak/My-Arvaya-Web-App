@@ -39,7 +39,7 @@ export default function Wallet() {
           <div className="wallet-card" style={{ marginBottom: '16px' }}>
             <small style={{ color: '#4e4e4d', fontSize: '13px', display: 'block', marginBottom: '8px', fontWeight: '500' }}>Total Balance</small>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <b style={{ color: '#fb913f', fontSize: '28px' }}>₹{wallet?.balance?.toLocaleString() || 0}</b>
+              <b style={{ color: 'var(--accent)', fontSize: '28px' }}>₹{wallet?.balance?.toLocaleString() || 0}</b>
               <button className="pro-btn-primary" style={{ padding: '10px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }} onClick={() => alert("Add money flow initiated")}>
                 <Plus size={16} /> Add Money
               </button>
@@ -66,7 +66,7 @@ export default function Wallet() {
                   <b style={{ fontSize: '14px', color: '#4e4e4d', display: 'block' }}>{tx.title}</b>
                   <small style={{ fontSize: '12px', color: '#718096' }}>{tx.date}</small>
                 </div>
-                <strong style={{ fontSize: '14px', color: tx.type === 'credit' ? '#fb913f' : '#4e4e4d' }}>{tx.amount}</strong>
+                <strong style={{ fontSize: '14px', color: tx.type === 'credit' ? 'var(--accent)' : '#4e4e4d' }}>{tx.amount}</strong>
               </div>
             ))}
           </div>

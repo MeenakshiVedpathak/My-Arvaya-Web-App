@@ -18,7 +18,7 @@ export default function Confirmed() {
         <section className="mockup-card" style={{ textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '24px 0', position: 'relative' }}>
-            <div style={{ background: '#fb913f', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+            <div style={{ background: 'var(--accent)', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
               <CheckCircle2 color="white" size={40} />
             </div>
             {/* Simple confetti dots using absolute positioning */}

@@ -59,7 +59,7 @@ export default function Login() {
         </div>
         
         <div className="split-visual-content">
-          <img src="/logo.png" alt="Arvaya" className="split-visual-logo" />
+          <img src="/logo.png" alt="Arvaya" className="split-visual-logo" style={{ mixBlendMode: 'multiply' }} />
           <h1 className="split-visual-title">Healthcare<br/>reimagined.</h1>
           <p className="split-visual-sub">
             Experience a new standard of care with Arvaya's seamless patient portal. Connect with specialists and manage your health journey in one place.
@@ -71,7 +71,7 @@ export default function Login() {
       <div className="split-form-panel">
         <div className="split-form-inner">
           <div className="split-form-header">
-            <img src="/logo.png" alt="Arvaya" className="split-mobile-logo" />
+            <img src="/logo.png" alt="Arvaya" className="split-mobile-logo" style={{ mixBlendMode: 'multiply' }} />
           </div>
           
           <div className="split-card-content">

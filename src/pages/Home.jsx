@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import {
   CalendarDays,
   Wallet,
-  ArrowRight,
   PhoneCall,
-  Clock,
   ChevronLeft,
   ChevronRight,
   FileText
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import HealthAnalytics from "../components/analytics/HealthAnalytics";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
-  let go = useNavigate();
+  const go = useNavigate();
+  const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const banners = [
@@ -32,8 +32,38 @@ export default function Home() {
   return (
     <main className="container web-dashboard">
       
-      {/* 1. Image Carousel Banner */}
-      <section className="web-carousel">
+      {/* Concierge Greeting */}
+      <div style={{ marginBottom: '48px', paddingTop: '24px' }}>
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '48px', color: 'var(--blue)', margin: '0 0 16px', lineHeight: '1.1', fontWeight: '600' }}>
+          Good morning, {user?.name ? user.name.split(' ')[0] : 'User'}.
+        </h1>
+        <p style={{ fontSize: '18px', color: 'var(--muted)', margin: 0, maxWidth: '600px' }}>
+          Welcome to your personal health concierge. How can we support your wellness journey today?
+        </p>
+      </div>
+
+      {/* 2. Quick Actions Row (Moved up for immediate access) */}
+      <div className="pro-actions-row">
+        <div className="pro-action-card" onClick={() => go("/doctors")}>
+          <div className="pro-action-icon-large"><CalendarDays size={28} /></div>
+          <span>Book Visit</span>
+        </div>
+        <div className="pro-action-card" onClick={() => go("/labs")}>
+          <div className="pro-action-icon-large"><FileText size={28} /></div>
+          <span>Lab Tests</span>
+        </div>
+        <div className="pro-action-card" onClick={() => go("/wallet")}>
+          <div className="pro-action-icon-large"><Wallet size={28} /></div>
+          <span>Wallet</span>
+        </div>
+        <div className="pro-action-card emergency" onClick={() => alert("Calling Emergency...")}>
+          <div className="pro-action-icon-large"><PhoneCall size={28} /></div>
+          <span>Emergency</span>
+        </div>
+      </div>
+
+      {/* 1. Image Carousel Banner (Now an elegant arch/pill shape) */}
+      <section className="web-carousel" style={{ borderRadius: '64px', height: '400px' }}>
         <button className="carousel-btn left" onClick={() => setCurrentSlide(s => s === 0 ? banners.length - 1 : s - 1)}>
           <ChevronLeft size={24} />
         </button>
@@ -41,7 +71,7 @@ export default function Home() {
           {banners.map((b, i) => (
             <div className="carousel-slide" key={i}>
               <div className="carousel-image">
-                <img src={b.src} alt="Healthcare Banner" />
+                <img src={b.src} alt="Healthcare Banner" style={{ filter: 'contrast(0.95) saturate(0.9)' }} />
               </div>
             </div>
           ))}
@@ -56,151 +86,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. Quick Actions Row */}
-      <div className="pro-actions-row">
-        <div className="pro-action-card" onClick={() => go("/doctors")}>
-          <div className="pro-action-icon-large"><CalendarDays size={24} /></div>
-          <span>Book Appointment</span>
-        </div>
-        <div className="pro-action-card" onClick={() => go("/wallet")}>
-          <div className="pro-action-icon-large"><Wallet size={24} /></div>
-          <span>Wallet History</span>
-        </div>
-        <div className="pro-action-card" onClick={() => go("/records")}>
-          <div className="pro-action-icon-large"><FileText size={24} /></div>
-          <span>Upload Record</span>
-        </div>
-        <div className="pro-action-card emergency" onClick={() => alert("Calling Emergency...")}>
-          <div className="pro-action-icon-large"><PhoneCall size={24} /></div>
-          <span>Emergency Assistance</span>
-        </div>
-      </div>
-
       {/* 3. Top Metrics Row */}
+      <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--blue)', margin: '0 0 24px', fontWeight: '600' }}>Your Overview</h2>
       <div className="pro-metrics-row">
         <div className="pro-metric-card">
           <div className="pro-metric-header">
             <span>Next Appointment</span>
-            <CalendarDays size={18} color="#64748b" />
+            <CalendarDays size={20} color="var(--primary)" />
           </div>
-          <div className="pro-metric-value">Oct 24, 10:30 AM</div>
-          <div className="pro-metric-subtext">Dr. Sarah Jenkins • Cardiology</div>
+          <div className="pro-metric-value" style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginTop: '16px' }}>Oct 24</div>
+          <div className="pro-metric-subtext">Dr. Sarah Jenkins • 10:30 AM</div>
         </div>
         <div className="pro-metric-card">
           <div className="pro-metric-header">
             <span>Wallet Balance</span>
-            <Wallet size={18} color="#64748b" />
+            <Wallet size={20} color="var(--primary)" />
           </div>
-          <div className="pro-metric-value">₹ 1,250</div>
-          <div className="pro-metric-subtext text-green">+₹200 earned this month</div>
+          <div className="pro-metric-value" style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginTop: '16px' }}>₹ 1,250</div>
+          <div className="pro-metric-subtext" style={{ color: 'var(--primary)' }}>+₹200 earned this month</div>
         </div>
         <div className="pro-metric-card">
           <div className="pro-metric-header">
             <span>ABHA Status</span>
-            <img src="/abha.svg" alt="ABHA" style={{ width: 18, filter: 'grayscale(1) opacity(0.6)' }} />
+            <img src="/abha.svg" alt="ABHA" style={{ width: 24, filter: 'grayscale(1) opacity(0.6)' }} />
           </div>
-          <div className="pro-metric-value">Linked</div>
-          <div className="pro-metric-subtext">Profile sync active</div>
+          <div className="pro-metric-value" style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginTop: '16px', color: 'var(--primary)' }}>Linked</div>
+          <div className="pro-metric-subtext">14-digit ID active</div>
         </div>
       </div>
 
-      {/* 4. Main Data Area */}
-      <div className="pro-dashboard-grid">
+      {/* 4. Analytics Section */}
+      <div style={{ marginTop: '64px' }}>
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--blue)', margin: '0 0 24px', fontWeight: '600' }}>Health Insights</h2>
         <HealthAnalytics />
-        <div className="pro-main-col">
-          <div className="pro-card">
-            <div className="pro-card-header">
-              <h3>Recent Medical Records</h3>
-              <button className="pro-btn-outline" onClick={() => go("/records")}>View All</button>
-            </div>
-            <div className="cr-list">
-              <div className="cr-item verified">
-                <div className="cr-left">
-                  <div className="cr-icon"><FileText size={20} /></div>
-                  <div className="cr-info">
-                    <h4>Complete Blood Count (CBC)</h4>
-                    <p>Apollo Diagnostics</p>
-                  </div>
-                </div>
-                <div className="cr-right">
-                  <div className="cr-meta">
-                    <span className="cr-date">Oct 12, 2026</span>
-                    <span className="pro-badge success">Verified</span>
-                  </div>
-                  <ArrowRight size={20} color="#cbd5e1" />
-                </div>
-              </div>
-
-              <div className="cr-item">
-                <div className="cr-left">
-                  <div className="cr-icon"><FileText size={20} /></div>
-                  <div className="cr-info">
-                    <h4>Cardiology Consultation</h4>
-                    <p>Dr. Sarah Jenkins</p>
-                  </div>
-                </div>
-                <div className="cr-right">
-                  <div className="cr-meta">
-                    <span className="cr-date">Sep 28, 2026</span>
-                    <span className="pro-badge neutral">Stored</span>
-                  </div>
-                  <ArrowRight size={20} color="#cbd5e1" />
-                </div>
-              </div>
-
-              <div className="cr-item">
-                <div className="cr-left">
-                  <div className="cr-icon"><FileText size={20} /></div>
-                  <div className="cr-info">
-                    <h4>Prescription (Refill)</h4>
-                    <p>City General Hospital</p>
-                  </div>
-                </div>
-                <div className="cr-right">
-                  <div className="cr-meta">
-                    <span className="cr-date">Aug 15, 2026</span>
-                    <span className="pro-badge neutral">Stored</span>
-                  </div>
-                  <ArrowRight size={20} color="#cbd5e1" />
-                </div>
-              </div>
-
-              <div className="cr-item verified">
-                <div className="cr-left">
-                  <div className="cr-icon"><FileText size={20} /></div>
-                  <div className="cr-info">
-                    <h4>Lipid Profile Test</h4>
-                    <p>HealthCore Labs</p>
-                  </div>
-                </div>
-                <div className="cr-right">
-                  <div className="cr-meta">
-                    <span className="cr-date">Jul 02, 2026</span>
-                    <span className="pro-badge success">Verified</span>
-                  </div>
-                  <ArrowRight size={20} color="#cbd5e1" />
-                </div>
-              </div>
-
-              <div className="cr-item">
-                <div className="cr-left">
-                  <div className="cr-icon"><FileText size={20} /></div>
-                  <div className="cr-info">
-                    <h4>Dental X-Ray</h4>
-                    <p>Smile Care Clinic</p>
-                  </div>
-                </div>
-                <div className="cr-right">
-                  <div className="cr-meta">
-                    <span className="cr-date">Jun 18, 2026</span>
-                    <span className="pro-badge neutral">Stored</span>
-                  </div>
-                  <ArrowRight size={20} color="#cbd5e1" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
     </main>

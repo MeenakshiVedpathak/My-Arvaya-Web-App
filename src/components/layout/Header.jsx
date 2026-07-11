@@ -34,9 +34,9 @@ export default function Header() {
               to={x[1]} 
               style={({ isActive }) => ({ 
                 color: isActive ? "var(--primary)" : "var(--blue)", 
-                fontWeight: "600", 
+                fontWeight: isActive ? "600" : "500", 
                 fontSize: "14px",
-                borderBottom: isActive ? "2px solid #fb913f" : "2px solid transparent",
+                borderBottom: isActive ? "2px solid var(--primary)" : "2px solid transparent",
                 paddingBottom: "4px"
               })}
             >
@@ -47,17 +47,17 @@ export default function Header() {
         <div className="navicons" style={{ gap: "20px", alignItems: "center" }}>
           {user && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '8px' }}>
-              <span style={{ fontWeight: '700', color: '#1a202c', fontSize: '15px' }}>
+              <span style={{ fontWeight: '600', color: 'var(--blue)', fontSize: '15px' }}>
                 Hi, {user.name ? user.name.split(' ')[0] : 'User'}
               </span>
-              <span style={{ fontSize: '12px', color: '#fb913f', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
+              <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 Sangli Miraj Kupwad
               </span>
             </div>
           )}
 
-          <div style={{ position: "relative", display: "flex", background: '#fff', borderRadius: '50%', padding: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
+          <div style={{ position: "relative", display: "flex", background: 'var(--surface)', borderRadius: '50%', padding: '8px', cursor: 'pointer' }}>
             <Bell size={20} color="#4e4e4d" />
             <span style={{ position: "absolute", top: "0px", right: "0px", background: "#ff5b5b", color: "#fff", fontSize: "10px", width: "16px", height: "16px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>3</span>
           </div>

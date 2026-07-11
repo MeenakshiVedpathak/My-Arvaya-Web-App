@@ -78,7 +78,7 @@ export default function DoctorProfile() {
               "Root Canal Treatment",
             ].map((x) => (
               <p key={x} style={{ fontSize: '14px', color: '#4a5568', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <Check size={16} color="#fb913f" /> {x}
+                <Check size={16} color="var(--accent)" /> {x}
               </p>
             ))}
           </div>

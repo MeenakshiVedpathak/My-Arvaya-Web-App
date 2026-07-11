@@ -53,11 +53,11 @@ export default function Signup() {
       }}>
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: "3px",
-          background: "linear-gradient(90deg, #fb913f, #2e666e)",
+          background: "linear-gradient(90deg, var(--accent), var(--primary))",
         }} />
 
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <img src="/logo.png" alt="Arvaya" style={{ height: "36px", marginBottom: "14px" }} />
+          <img src="/logo.png" alt="Arvaya" style={{ height: "36px", marginBottom: "14px", mixBlendMode: "multiply" }} />
           <h1 style={{ fontSize: "20px", color: "#4e4e4d", margin: "0 0 4px", fontWeight: "700" }}>
             Create Account
           </h1>
@@ -126,7 +126,7 @@ export default function Signup() {
           )}
 
           <button type="submit" disabled={loading} style={{
-            background: "linear-gradient(135deg, #fb913f, #e07a2a)",
+            background: "linear-gradient(135deg, var(--accent), var(--accent-dark))",
             color: "#fff", border: "none", padding: "11px", borderRadius: "10px",
             fontSize: "14px", fontWeight: "600", cursor: loading ? "wait" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
