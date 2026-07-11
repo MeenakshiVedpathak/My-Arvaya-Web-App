@@ -1,0 +1,42 @@
+import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "../components/common/ProtectedRoute";
+import Login from "../pages/Login";
+import Signup from "../pages/Signup";
+import Home from "../pages/Home";
+import Doctors from "../pages/Doctors";
+import DoctorProfile from "../pages/DoctorProfile";
+import SelectSlot from "../pages/SelectSlot";
+import Review from "../pages/Review";
+import Confirmed from "../pages/Confirmed";
+import ABHA from "../pages/ABHA";
+import Records from "../pages/Records";
+import Labs from "../pages/Labs";
+import Wallet from "../pages/Wallet";
+import Rewards from "../pages/Rewards";
+
+function P({ children }) {
+  return <ProtectedRoute>{children}</ProtectedRoute>;
+}
+
+export default function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+
+      {/* Protected */}
+      <Route path="/" element={<P><Home /></P>} />
+      <Route path="/doctors" element={<P><Doctors /></P>} />
+      <Route path="/doctor" element={<P><DoctorProfile /></P>} />
+      <Route path="/slot" element={<P><SelectSlot /></P>} />
+      <Route path="/review" element={<P><Review /></P>} />
+      <Route path="/confirmed" element={<P><Confirmed /></P>} />
+      <Route path="/abha" element={<P><ABHA /></P>} />
+      <Route path="/records" element={<P><Records /></P>} />
+      <Route path="/labs" element={<P><Labs /></P>} />
+      <Route path="/wallet" element={<P><Wallet /></P>} />
+      <Route path="/rewards" element={<P><Rewards /></P>} />
+    </Routes>
+  );
+}
