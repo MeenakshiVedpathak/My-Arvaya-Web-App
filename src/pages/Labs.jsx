@@ -55,7 +55,7 @@ export default function Labs() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px', display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
+      <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px', display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
         
         {/* ── Sidebar ── */}
         <aside>

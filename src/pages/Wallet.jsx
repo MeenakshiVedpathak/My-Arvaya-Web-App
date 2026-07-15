@@ -38,14 +38,14 @@ export default function Wallet() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px' }}>
+      <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }} className="wallet-grid">
 
           {/* Main Column */}
           <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* Balance Card */}
-            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '48px', height: '48px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -88,8 +88,8 @@ export default function Wallet() {
             </div>
 
             {/* Transactions List */}
-            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+            <div style={{ marginTop: '24px' }}>
+              <div style={{ padding: '16px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <History size={18} /> Transaction History
                 </h3>
@@ -98,10 +98,10 @@ export default function Wallet() {
               
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {(wallet?.transactions || []).map((tx, idx) => (
-                  <div key={tx.id} style={{ display: 'flex', alignItems: 'center', padding: '20px 24px', borderBottom: idx !== wallet.transactions.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div key={tx.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: idx !== wallet.transactions.length - 1 ? '1px solid var(--border)' : 'none' }}>
                     
                     <div style={{ 
-                      background: tx.type === 'credit' ? '#dcfce7' : '#f1f5f9', 
+                      background: tx.type === 'credit' ? '#dcfce7' : '#e2e8f0', 
                       color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', 
                       width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px', flexShrink: 0 
                     }}>
@@ -129,7 +129,7 @@ export default function Wallet() {
 
           {/* Right Sidebar */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div className="card" style={{ padding: '20px', background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+            <div className="card" style={{ padding: '24px', background: '#f0fdf4' }}>
               <ShieldCheck size={32} color="#16a34a" style={{ marginBottom: '16px' }} />
               <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#166534', marginBottom: '8px' }}>100% Safe & Secure</h3>
               <p style={{ fontSize: '13px', color: '#15803d', lineHeight: 1.5, margin: 0 }}>Your Arvaya Cash is protected by RBI guidelines and bank-grade security protocols.</p>

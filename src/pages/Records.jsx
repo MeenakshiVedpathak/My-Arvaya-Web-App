@@ -51,7 +51,7 @@ export default function Records() {
           </div>
         </div>
 
-        <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px' }}>
+        <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
           <div style={{ maxWidth: '600px', margin: '0 auto', background: 'var(--bg-surface)', padding: '48px 40px', borderRadius: '24px', border: '1px dashed var(--primary)', textAlign: 'center', boxShadow: 'var(--shadow-sm)', cursor: 'pointer' }} onClick={() => alert("File explorer opened")} className="hover-lift">
             <div style={{ width: '100px', height: '100px', background: 'var(--primary-light)', borderRadius: '50%', margin: '0 auto 24px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CloudUpload size={48} color="var(--primary)" />
@@ -95,22 +95,22 @@ export default function Records() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px' }}>
+      <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
 
           {/* ── Left Sidebar (Filters) ── */}
           <aside style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '100px' }} className="vault-sidebar">
 
             {/* Search */}
-            <div className="glass-panel" style={{ padding: '16px', marginBottom: '24px', background: 'var(--surface)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-alt)', padding: '10px 16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <Search size={18} color="var(--muted)" />
                 <input type="text" placeholder="Search records..." style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', marginLeft: '12px', color: 'var(--text-main)' }} />
               </div>
             </div>
 
             {/* Filter Group: Members */}
-            <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px', background: 'var(--surface)' }}>
+            <div style={{ marginBottom: '32px' }}>
               <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><User size={16} /> Family Members</h3>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {['Self (Rahul)', 'Spouse (Priya)', 'Child (Aarav)'].map((member, i) => (
@@ -125,7 +125,7 @@ export default function Records() {
             </div>
 
             {/* Filter Group: Record Type */}
-            <div className="glass-panel" style={{ padding: '20px', background: 'var(--surface)' }}>
+            <div>
               <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileJson size={16} /> Record Type</h3>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {['All Records', 'Prescriptions', 'Lab Reports', 'Diagnostic Scans'].map((type, i) => (
@@ -174,11 +174,11 @@ export default function Records() {
                     <p style={{ marginTop: '16px' }}>Decrypting vault...</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {records.map((rec) => {
                       const { Icon, color, bg } = iconMap[rec.type] || iconMap["Lab Report"];
                       return (
-                        <article className="glass-panel hover-lift" key={rec.id} style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', padding: '20px', gap: '24px', transition: 'box-shadow 0.2s', cursor: 'pointer' }} onClick={() => alert("Opening record...")}>
+                        <article className="hover-lift" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '20px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer' }} onClick={() => alert("Opening record...")}>
 
                           {/* Icon Block */}
                           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

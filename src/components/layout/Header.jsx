@@ -85,6 +85,7 @@ export default function Header() {
       <div style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
         <div className="container flex items-center gap-6" style={{ height: '48px', overflowX: 'auto' }}>
           {[
+            ["Home", "/"],
             ["Consult Doctors", "/doctors"],
             ["Lab Tests", "/labs"],
             ["ABHA Hub", "/abha"],

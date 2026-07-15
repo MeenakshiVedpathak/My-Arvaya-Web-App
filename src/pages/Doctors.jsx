@@ -27,7 +27,7 @@ export default function Doctors() {
         </div>
       </div>
 
-      <div className="container" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px', paddingTop: '24px', paddingBottom: '80px' }}>
+      <div className="container" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px', paddingTop: '24px', paddingBottom: '40px' }}>
         
         {/* ── Sidebar Filters ── */}
         <aside>

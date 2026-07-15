@@ -82,7 +82,7 @@ export default function Home() {
       </section>
 
       {/* ── Arvaya Ecosystem ── */}
-      <section style={{ padding: '60px 24px 0 24px' }} className="container">
+      <section style={{ padding: '40px 24px 0 24px' }} className="container">
         <style>{`
           .ecosystem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
           @media (max-width: 900px) { .ecosystem-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -119,7 +119,7 @@ export default function Home() {
       </section>
 
       {/* ── Top Specialties ── */}
-      <section className="container" style={{ padding: '60px 24px' }}>
+      <section className="container" style={{ padding: '40px 24px' }}>
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-h2">Consult Top Specialties</h2>
@@ -148,7 +148,7 @@ export default function Home() {
       </section>
 
       {/* ── Featured Lab Packages ── */}
-      <section style={{ background: 'var(--bg-surface)', padding: '60px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+      <section style={{ padding: '40px 0' }}>
         <div className="container">
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -189,7 +189,7 @@ export default function Home() {
       </section>
 
       {/* ── Emergency Promo ── */}
-      <section className="container" style={{ padding: '0 24px 60px' }}>
+      <section className="container" style={{ padding: '0 24px 40px' }}>
         <div className="card text-center" style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '40px', borderRadius: 'var(--radius-lg)' }}>
           <div className="badge mb-4" style={{ background: '#ef4444', color: 'white' }}>🚨 24/7 EMERGENCY</div>
           <h2 className="text-h2" style={{ color: '#991b1b', marginBottom: '16px' }}>Need an Ambulance Instantly?</h2>
@@ -201,7 +201,7 @@ export default function Home() {
       </section>
 
       {/* ── App Download Banner ── */}
-      <section className="container" style={{ padding: '80px 24px' }}>
+      <section className="container" style={{ padding: '40px 24px' }}>
         <div className="flex justify-between items-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '48px', boxShadow: 'var(--shadow-md)' }}>
           <div className="flex flex-col gap-4" style={{ maxWidth: '500px' }}>
             <h2 className="text-h2">Download the Arvaya App</h2>

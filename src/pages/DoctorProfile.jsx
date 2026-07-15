@@ -14,7 +14,7 @@ export default function DoctorProfile() {
 
   return (
     <main className="page" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-      <div className="container" style={{ paddingBottom: '80px' }}>
+      <div className="container" style={{ paddingBottom: '40px' }}>
 
         {/* Navigation Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '32px 0', cursor: 'pointer', color: 'var(--text-main)', fontWeight: '600' }} onClick={() => go(-1)}>

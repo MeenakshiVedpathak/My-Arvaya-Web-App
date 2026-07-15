@@ -19,7 +19,7 @@ export default function ABHA() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: '40px', paddingBottom: '80px' }}>
+      <div className="container" style={{ paddingTop: '40px', paddingBottom: '40px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
 
           {/* Left Column: ID Card */}

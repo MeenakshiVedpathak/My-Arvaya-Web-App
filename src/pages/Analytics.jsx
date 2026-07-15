@@ -23,7 +23,7 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px' }}>
+      <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         {/* KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
           

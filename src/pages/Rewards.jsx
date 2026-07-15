@@ -57,14 +57,14 @@ export default function Rewards() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px' }}>
+      <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }} className="rewards-grid">
 
           {/* Main Content */}
           <section>
             {/* Membership Header */}
-            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: '#f5f3ff', border: '1px solid #ddd6fe', marginBottom: '24px' }}>
+            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: '#f5f3ff', marginBottom: '32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <div style={{ width: '56px', height: '56px', background: '#8b5cf6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(139, 92, 246, 0.3)' }}>
@@ -86,7 +86,7 @@ export default function Rewards() {
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
               {offers.map(offer => (
-                <div key={offer.id} className="hover-lift" style={{ cursor: 'pointer', display: 'flex', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-surface)', position: 'relative', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }} onClick={() => alert("Redeeming offer: " + offer.title)}>
+                <div key={offer.id} className="hover-lift" style={{ cursor: 'pointer', display: 'flex', borderRadius: '12px', background: 'var(--bg-surface)', position: 'relative', overflow: 'hidden' }} onClick={() => alert("Redeeming offer: " + offer.title)}>
                   
                   {/* Left Perforated Section (Icon) */}
                   <div style={{ width: '80px', background: `${offer.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '2px dashed var(--border)', position: 'relative' }}>
