@@ -76,7 +76,8 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{ 
       user, token, loading, error, 
       login, register, logout, setError,
-      isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal
+      isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal,
+      saveSession
     }}>
       {children}
     </AuthContext.Provider>

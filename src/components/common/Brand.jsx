@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
+
 export default function Brand() {
   return (
     <Link className="brand" to="/" style={{ display: "flex", alignItems: "center" }}>
-      <img src="/logo.png" alt="Arvaya Health & Wellness" style={{ height: "40px", mixBlendMode: "multiply" }} />
+      <div style={{ background: '#ffffff', padding: '6px 12px', borderRadius: '12px', display: 'flex', alignItems: 'center' }}>
+        <img src="/logo.png" alt="Arvaya Health & Wellness" style={{ height: "36px", objectFit: 'contain' }} />
+      </div>
     </Link>
   );
 }

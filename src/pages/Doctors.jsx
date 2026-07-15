@@ -1,177 +1,118 @@
-import { ArrowLeft, Search, ChevronRight, Filter } from "lucide-react";
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { getDoctors } from "../services/dataService";
+import { useState } from "react";
+import { Search, ChevronRight, ThumbsUp, MapPin, Calendar, CheckCircle2, Clock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
-import { useAuth } from "../context/AuthContext";
-import DoctorCard from "../components/doctors/DoctorCard";
-import SelectSlotUI from "../components/doctors/SelectSlotUI";
-import Modal from "../components/common/Modal";
-
-const PAGE_SIZE = 50;
+import { doctors } from "../mocks/data";
+import Avatar from "../components/common/Avatar";
 
 export default function Doctors() {
-  const go = useNavigate();
-  const { setDoctor, setDate, setSlot, setBookingId } = useBooking();
-  const { user, openLoginModal } = useAuth();
-  
-  // Filter State
-  const [branch, setBranch] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [visitType, setVisitType] = useState("Initial consultation");
   const [q, setQ] = useState("");
-  
-  // Modal State
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const { setDoctor } = useBooking();
+  const go = useNavigate();
 
-  // Doctor Data State
-  const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchPage = useCallback((page) => {
-    setLoading(true);
-    getDoctors({ pageIndex: page, pageSize: PAGE_SIZE })
-      .then(res => setDoctors(res.list || []))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetchPage(1);
-  }, [fetchPage]);
-
-  // Derived Data for Filters
-  const branches = useMemo(() => {
-    const map = new Map();
-    doctors.forEach(d => {
-      if (d.hospital) map.set(d.hospital, d.hospital);
-    });
-    if (map.size < 2) {
-      map.set("APEX", "APEX Hospital");
-      map.set("Hospital1", "Hospital");
-      map.set("SeCURE", "SeCURE HOSPITALS");
-    }
-    return Array.from(map.values());
-  }, [doctors]);
-
-  const specialties = useMemo(() => {
-    const set = new Set();
-    doctors.forEach(d => {
-      if (d.specialty) d.specialty.split(", ").forEach(s => s.trim() && set.add(s.trim()));
-    });
-    if (set.size < 4) {
-      ["Anaesthetist", "Anesthesiologist", "Cardiologist", "Dental Surgeon", "Dermatologist", "ENT", "Gastroenterologist", "General Medicine"].forEach(s => set.add(s));
-    }
-    return Array.from(set).sort();
-  }, [doctors]);
-
-  const filteredDoctors = useMemo(() => {
-    return doctors.filter(d => {
-      const matchSpecialty = !specialty || (d.specialty || "").toLowerCase().includes(specialty.toLowerCase());
-      const matchBranch = !branch || (d.hospital || "").toLowerCase().includes(branch.toLowerCase());
-      const matchQ = (d.name + (d.specialty || "")).toLowerCase().includes(q.toLowerCase());
-      return matchSpecialty && matchBranch && matchQ;
-    });
-  }, [doctors, specialty, branch, q]);
-
-  const handleBookSlot = (slotData) => {
-    setDoctor(selectedDoctor);
-    setDate(new Date(slotData.date));
-    setSlot(slotData.time);
-    if (!user) return openLoginModal("/confirmed");
-    setBookingId("APMNT" + Math.floor(Math.random() * 100000000));
-    go("/confirmed");
+  const handleSelect = (doc) => {
+    setDoctor(doc);
+    go("/doctor");
   };
 
   return (
-    <main className="page">
-      <div className="internal-page-hero">
+    <main className="page" style={{ padding: 0, background: 'var(--bg-app)' }}>
+      {/* ── Breadcrumb & Title ── */}
+      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
-          <div className="internal-breadcrumbs">
-            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>Consult Doctors</span>
+          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
+            <Link to="/" className="hover:text-primary">Home</Link> <ChevronRight size={12} /> <span>Doctors in Bangalore</span>
           </div>
-          <h1 className="internal-hero-title">Consult Top Doctors</h1>
-          <p className="internal-hero-subtitle">Find experienced doctors and book your appointment instantly.</p>
+          <h1 className="text-h2" style={{ fontSize: '24px' }}>Top Doctors to Consult in Bangalore</h1>
         </div>
       </div>
 
-      <div className="container web-dashboard-layout">
-        {/* Sidebar Filters */}
-        <aside className="web-sidebar">
-          <h3>Filters</h3>
-          
-          <div className="filter-group">
-            <label>Branch</label>
-            <select className="filter-select" value={branch} onChange={e => setBranch(e.target.value)}>
-              <option value="">All Branches</option>
-              {branches.map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
+      <div className="container" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px', paddingTop: '24px', paddingBottom: '80px' }}>
+        
+        {/* ── Sidebar Filters ── */}
+        <aside>
+          <div className="card">
+            <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <b style={{ fontSize: '15px' }}>Filters</b>
+              <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }}>RESET</span>
+            </div>
+            
+            <div className="flex flex-col gap-6">
+              <div>
+                <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Gender</b>
+                <div className="flex gap-2">
+                  <button className="badge" style={{ background: 'var(--bg-app)', border: '1px solid var(--border)', padding: '6px 12px', fontWeight: 'normal', color: 'var(--text-main)' }}>Male Doctor</button>
+                  <button className="badge" style={{ background: 'var(--bg-app)', border: '1px solid var(--border)', padding: '6px 12px', fontWeight: 'normal', color: 'var(--text-main)' }}>Female Doctor</button>
+                </div>
+              </div>
 
-          <div className="filter-group">
-            <label>Specialty</label>
-            <select className="filter-select" value={specialty} onChange={e => setSpecialty(e.target.value)}>
-              <option value="">All Specialties</option>
-              {specialties.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Visit Type</label>
-            <div className="filter-radio-list">
-              {["Initial consultation", "Follow-up", "Other"].map(vt => (
-                <label key={vt} className="filter-radio-label">
-                  <input 
-                    type="radio" 
-                    name="visitType" 
-                    value={vt} 
-                    checked={visitType === vt} 
-                    onChange={e => setVisitType(e.target.value)}
-                  />
-                  {vt}
-                </label>
-              ))}
+              <div>
+                <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Consultation Fee</b>
+                <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
+                  <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Free</label>
+                  <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> ₹1 - ₹500</label>
+                  <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> ₹500+</label>
+                </div>
+              </div>
             </div>
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* ── Doctor List ── */}
         <section>
-          <div className="search wide" style={{ marginBottom: "24px" }}>
-            <Search />
-            <input
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder="Search doctors by name or specialty..."
-            />
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-main" style={{ fontSize: '14px', fontWeight: '600' }}>{doctors.length} Doctors available in Bangalore</p>
+            <div className="flex items-center gap-2">
+              <span className="text-muted" style={{ fontSize: '13px' }}>Sort By:</span>
+              <select className="input-field" style={{ width: 'auto', padding: '6px 12px', height: 'auto' }}>
+                <option>Relevance</option>
+                <option>Experience - High to Low</option>
+                <option>Fee - Low to High</option>
+              </select>
+            </div>
           </div>
 
-          <div className="doctorlist-grid">
-            {filteredDoctors.map(d => (
-              <DoctorCard 
-                key={d.id} 
-                d={d} 
-                onClickBook={() => setSelectedDoctor(d)}
-              />
+          <div className="flex flex-col gap-4">
+            {doctors.map(d => (
+              <div key={d.id} className="card card-hover flex gap-6" style={{ padding: '20px' }}>
+                <Avatar doctor={d} size="80px" />
+                
+                <div className="flex flex-col flex-1 border-r" style={{ borderRight: '1px solid var(--border)', paddingRight: '24px' }}>
+                  <b className="text-primary cursor-pointer hover:underline" style={{ fontSize: '18px', marginBottom: '4px' }} onClick={() => handleSelect(d)}>{d.name}</b>
+                  <p className="text-muted mb-1" style={{ fontSize: '14px' }}>{d.specialty}</p>
+                  <p className="text-main mb-3" style={{ fontSize: '13px', fontWeight: '500' }}>{d.experience} Experience overall</p>
+                  
+                  <div className="flex items-center gap-2 text-main mb-1" style={{ fontSize: '13px', fontWeight: '500' }}>
+                    <b style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>{d.hospital}</b>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted mb-4" style={{ fontSize: '12px' }}>
+                    <MapPin size={12} /> Bangalore
+                  </div>
+
+                  <div className="flex items-center gap-4 text-muted" style={{ fontSize: '13px', marginTop: 'auto' }}>
+                    <span className="badge badge-success flex items-center gap-1"><ThumbsUp size={12} /> {d.rating * 20}%</span>
+                    <span className="flex items-center gap-1 hover:underline cursor-pointer"><b>{d.reviews}</b> Patient Stories</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-end" style={{ minWidth: '220px', paddingLeft: '8px' }}>
+                  <div className="flex items-center gap-2 mb-4 text-main" style={{ fontSize: '14px' }}>
+                    <CheckCircle2 size={16} className="text-success" />
+                    <b>₹{d.fee}</b> Consultation fee at clinic
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-4" style={{ fontSize: '13px', color: 'var(--success)' }}>
+                     <Clock size={16} /> Available Today
+                  </div>
+
+                  <button className="btn btn-accent full" onClick={() => handleSelect(d)}>Book Appointment</button>
+                  <p className="text-muted text-center mt-2" style={{ fontSize: '11px' }}>No booking fee</p>
+                </div>
+              </div>
             ))}
-            {filteredDoctors.length === 0 && !loading && (
-              <p style={{ color: "var(--muted)" }}>No doctors found matching your criteria.</p>
-            )}
           </div>
         </section>
       </div>
-
-      {/* Booking Modal */}
-      <Modal 
-        isOpen={!!selectedDoctor} 
-        onClose={() => setSelectedDoctor(null)}
-        title="Select Appointment Slot"
-        maxWidth="700px"
-      >
-        <SelectSlotUI 
-          doctor={selectedDoctor} 
-          onConfirm={handleBookSlot} 
-        />
-      </Modal>
     </main>
   );
 }

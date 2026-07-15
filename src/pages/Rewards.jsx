@@ -1,10 +1,10 @@
-import { ArrowLeft, Gift, Clock, Wallet, Check, Plus, Users, ChevronRight } from "lucide-react";
+import { Gift, Clock, CheckCircle2, ChevronRight, Crown, Sparkles, Percent, Plus } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function Rewards() {
   const go = useNavigate();
-  const [points] = useState(100);
+  const [points] = useState(1250);
 
   const offers = [
     {
@@ -12,98 +12,145 @@ export default function Rewards() {
       title: "Flat ₹100 off",
       subtitle: "On your first appointment booking",
       points: 120,
-      badge: "2d left",
-      badgeIcon: Clock,
-      image: "/reward_doctor.png"
+      badge: "Ending Soon",
+      icon: Clock,
+      color: "#3b82f6"
     },
     {
       id: 2,
       title: "Free Consultation",
       subtitle: "Redeem for any specialist visit",
       points: 250,
-      badge: "12d left",
-      badgeIcon: Clock,
-      image: "/reward_wellness.png"
+      badge: "Most Popular",
+      icon: Sparkles,
+      color: "#f59e0b"
     },
     {
       id: 3,
       title: "20% Pharmacy Discount",
       subtitle: "On all medicine orders",
       points: 180,
-      badge: "47k used",
-      badgeIcon: Users,
-      image: "/reward_pharmacy.png"
+      badge: "Trending",
+      icon: Percent,
+      color: "#10b981"
     },
     {
       id: 4,
       title: "Premium Health Package",
       subtitle: "Full body checkup at partner labs",
       points: 320,
-      badge: "14k used",
-      badgeIcon: Users,
-      image: "/reward_lab.png"
+      badge: "Plus Exclusive",
+      icon: Crown,
+      color: "#8b5cf6"
     }
   ];
 
   return (
-    <main className="page">
-      <div className="internal-page-hero">
+    <main className="page" style={{ background: 'var(--bg-app)' }}>
+      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
-          <div className="internal-breadcrumbs">
-            <Link to="/">Home</Link> <ChevronRight size={14} /> <span>Rewards</span>
+          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
+            <Link to="/" className="hover:text-primary">Home</Link> <ChevronRight size={12} /> <span>Rewards</span>
           </div>
-          <h1 className="internal-hero-title">Your Rewards</h1>
-          <p className="internal-hero-subtitle">Earn points and redeem them for exclusive offers.</p>
+          <h1 className="text-h2" style={{ fontSize: '24px' }}>Arvaya Rewards</h1>
+          <p className="text-muted mt-2" style={{ fontSize: '15px' }}>Redeem your points for exclusive healthcare benefits.</p>
         </div>
       </div>
-      <div className="container" style={{ paddingBottom: '60px' }}>
-        <div className="rewards-balance-card" style={{ marginBottom: '24px' }}>
-          <div className="rh-top">
-            <div>
-              <p className="rh-subtitle">Your Reward Points</p>
-              <h2 className="rh-points">{points}</h2>
-            </div>
-            <div className="rh-icon-box">
-              <Gift size={32} color="#fff" />
-            </div>
-          </div>
-          
-          <div className="rh-bottom">
-            <Wallet size={18} />
-            Redeem on your next booking
-          </div>
-        </div>
 
-        <div className="rewards-section-header">
-          <h2>Your Rewards</h2>
-          <span className="rewards-pill-badge">6 offers</span>
-        </div>
+      <div className="container" style={{ paddingBottom: '80px', paddingTop: '24px' }}>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }} className="rewards-grid">
 
-        <div className="rewards-grid">
-          {offers.map(offer => (
-            <div key={offer.id} className="reward-offer-card" onClick={() => alert("Offer selected: " + offer.title)} style={{ cursor: 'pointer' }}>
-              <div className="roc-image-container">
-                <img src={offer.image} alt={offer.title} className="roc-image" />
-                
-                <div className="roc-badge-tr">
-                  <offer.badgeIcon size={12} />
-                  {offer.badge}
+          {/* Main Content */}
+          <section>
+            {/* Membership Header */}
+            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: '#f5f3ff', border: '1px solid #ddd6fe', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '56px', height: '56px', background: '#8b5cf6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(139, 92, 246, 0.3)' }}>
+                    <Crown size={28} color="#fff" />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#4c1d95', margin: '0 0 4px 0' }}>Arvaya Plus</h2>
+                    <p style={{ color: '#7c3aed', fontSize: '14px', margin: 0, fontWeight: '500' }}>Gold Tier Member</p>
+                  </div>
                 </div>
-                
-                <div className="roc-badge-bl">
-                  <Plus size={14} strokeWidth={3} />
-                  {offer.points} pts
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ color: '#7c3aed', fontSize: '13px', margin: '0 0 4px 0', fontWeight: '600', textTransform: 'uppercase' }}>Total Points</p>
+                  <b style={{ fontSize: '32px', color: '#4c1d95', lineHeight: 1 }}>{points.toLocaleString()}</b>
                 </div>
               </div>
+            </div>
+
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '16px' }}>Coupons & Scratch Cards</h2>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+              {offers.map(offer => (
+                <div key={offer.id} className="hover-lift" style={{ cursor: 'pointer', display: 'flex', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-surface)', position: 'relative', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }} onClick={() => alert("Redeeming offer: " + offer.title)}>
+                  
+                  {/* Left Perforated Section (Icon) */}
+                  <div style={{ width: '80px', background: `${offer.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '2px dashed var(--border)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-app)', border: '1px solid var(--border)', borderTop: 'none', borderRight: 'none' }}></div>
+                    <div style={{ position: 'absolute', bottom: '-10px', right: '-10px', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-app)', border: '1px solid var(--border)', borderBottom: 'none', borderRight: 'none' }}></div>
+                    <offer.icon size={32} color={offer.color} />
+                  </div>
+
+                  {/* Right Content Section */}
+                  <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: offer.color, background: `${offer.color}20`, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>{offer.badge}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: '700', fontSize: '14px' }}>
+                        <Gift size={14} /> {offer.points}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0' }}>{offer.title}</h3>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0, lineHeight: 1.4 }}>{offer.subtitle}</p>
+                    </div>
+
+                    <div style={{ marginTop: 'auto', paddingTop: '12px', color: 'var(--primary)', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      Redeem Now <ChevronRight size={14} />
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Right Sidebar: Benefits */}
+          <aside>
+            <div className="card" style={{ padding: '24px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '20px' }}>Your Plus Benefits</h3>
               
-              <div className="roc-content">
-                <h3>{offer.title}</h3>
-                <p>{offer.subtitle}</p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[
+                  "Free delivery on pharmacy orders above ₹499",
+                  "Extra 5% cashback on all lab tests",
+                  "Priority customer support 24/7",
+                  "Zero cancellation fees for doctor appointments"
+                ].map((benefit, i) => (
+                  <li key={i} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                    <CheckCircle2 size={18} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: 1.5 }}>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
+                <Link to="/" style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: '600' }}>View Membership Details</Link>
               </div>
             </div>
-          ))}
+          </aside>
+
         </div>
       </div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 900px) {
+          .rewards-grid { grid-template-columns: 1fr !important; }
+        }
+      `}} />
     </main>
   );
 }

@@ -1,127 +1,118 @@
-import { Bell, LogOut, Wallet, Award } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import Brand from "../common/Brand";
+import { HeartPulse, Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Header() {
-  const { user, logout, openLoginModal } = useAuth();
-  const [showMenu, setShowMenu] = useState(false);
+  const { user, openLoginModal, logout } = useAuth();
   const go = useNavigate();
 
-  function handleLogout() {
-    logout();
-    go("/");
-  }
-
-  const initials = user?.name
-    ? user.name.split(" ").map(w => w[0]).join("").toUpperCase()
-    : "U";
-
   return (
-    <header className="platform-header">
-      <div className="container nav" style={{ justifyContent: "space-between", height: '100%' }}>
-        <Brand />
+    <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+      {/* ── Top Bar ── */}
+      <div style={{ background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
+        <div className="container flex justify-between items-center" style={{ height: '32px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
+          <div className="flex gap-4">
+            <span className="flex items-center gap-1 cursor-pointer hover:text-primary"><Smartphone size={14}/> Download App</span>
+            <span className="flex items-center gap-1 cursor-pointer hover:text-primary"><HelpCircle size={14}/> Help Center</span>
+          </div>
+          <div className="flex gap-4">
+            <span className="cursor-pointer hover:text-primary">For Providers</span>
+            <span className="cursor-pointer hover:text-primary">Corporate Health</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Header ── */}
+      <div className="container flex justify-between items-center" style={{ height: '76px', padding: '0 24px' }}>
         
-        {/* Main Platform Navigation */}
-        <nav style={{ display: 'flex', gap: "32px", alignItems: 'center' }}>
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2" style={{ marginRight: '32px' }}>
+           <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
+        </Link>
+        
+        {/* Universal Search Bar */}
+        <div className="flex-1 flex items-center" style={{ maxWidth: '600px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', height: '44px' }}>
+          
+          {/* Location Selector */}
+          <div className="flex items-center gap-1" style={{ padding: '0 16px', borderRight: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', background: 'var(--bg-app)', height: '100%' }}>
+            <MapPin size={16} className="text-muted" />
+            <span>Bangalore</span>
+            <ChevronDown size={16} className="text-muted" />
+          </div>
+
+          {/* Search Input */}
+          <div className="flex-1 flex items-center gap-2" style={{ padding: '0 16px', background: 'var(--bg-surface)' }}>
+            <Search size={18} className="text-muted" />
+            <input 
+              placeholder="Search doctors, clinics, hospitals, diseases..." 
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px' }}
+            />
+          </div>
+        </div>
+        
+        {/* Right Auth / Cart CTA */}
+        <div className="flex items-center gap-6" style={{ marginLeft: '32px' }}>
+          
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end">
+                <span className="text-muted" style={{ fontSize: '12px' }}>Welcome,</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{user.name.split(" ")[0]}</span>
+              </div>
+              <button 
+                className="btn btn-secondary flex items-center gap-2"
+                style={{ padding: '8px 12px' }}
+                onClick={() => {
+                  logout();
+                  go("/");
+                }}
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button className="btn btn-primary" onClick={() => openLoginModal()} style={{ fontSize: '14px' }}>
+                Login / Sign Up
+              </button>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* ── Secondary Navigation ── */}
+      <div style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+        <div className="container flex items-center gap-6" style={{ height: '48px', overflowX: 'auto' }}>
           {[
             ["Consult Doctors", "/doctors"],
             ["Lab Tests", "/labs"],
-            ["Find Hospitals", "/hospitals"],
-            ["Records & ABHA", "/records"],
+            ["ABHA Hub", "/abha"],
+            ["Patient Portal", "/records"],
+            ["Wallet", "/wallet"],
+            ["Rewards", "/rewards"],
+            ["Analytics", "/analytics"],
+            ["🚨 24/7 Ambulance", "/ambulance"],
           ].map((x) => (
             <NavLink 
               key={x[0]} 
-              to={x[1]} 
-              style={({ isActive }) => ({ 
-                color: isActive ? "var(--primary)" : "#334155", 
-                fontWeight: isActive ? "600" : "500", 
-                fontSize: "15px",
-                textDecoration: 'none',
-                position: 'relative',
+              to={x[1]}
+              style={({ isActive }) => ({
+                color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                fontWeight: isActive ? '600' : '500',
+                fontSize: '14px',
+                borderBottom: isActive ? '3px solid var(--primary)' : '3px solid transparent',
+                height: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                height: '80px', // Full header height
-                borderBottom: isActive ? "3px solid var(--primary)" : "3px solid transparent",
-                transition: 'all 0.2s'
+                padding: '0 4px',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
               })}
             >
               {x[0]}
             </NavLink>
           ))}
-        </nav>
-
-        {/* User Actions */}
-        <div className="navicons" style={{ gap: "20px", alignItems: "center", display: 'flex' }}>
-          {user ? (
-            <>
-              <div style={{ display: 'flex', gap: '16px', marginRight: '8px' }}>
-                <NavLink to="/wallet" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#64748b' }}>
-                  <Wallet size={20} />
-                  <span style={{ fontSize: '11px', fontWeight: '600', marginTop: '2px' }}>Wallet</span>
-                </NavLink>
-                <NavLink to="/rewards" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#64748b' }}>
-                  <Award size={20} />
-                  <span style={{ fontSize: '11px', fontWeight: '600', marginTop: '2px' }}>Rewards</span>
-                </NavLink>
-              </div>
-
-              <div style={{ width: '1px', height: '32px', background: '#e2e8f0' }} />
-
-              <div style={{ position: "relative", display: "flex", background: '#f8fafc', borderRadius: '50%', padding: '10px', cursor: 'pointer', transition: 'background 0.2s' }}>
-                <Bell size={20} color="#475569" />
-                <span style={{ position: "absolute", top: "-2px", right: "-2px", background: "#ef4444", color: "#fff", fontSize: "10px", width: "18px", height: "18px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", border: '2px solid #fff' }}>3</span>
-              </div>
-              
-              <div style={{ position: "relative" }}>
-                <div
-                  onClick={() => setShowMenu(!showMenu)}
-                  style={{
-                    width: 44, height: 44, borderRadius: "50%",
-                    background: "linear-gradient(135deg, var(--primary), var(--primary-dark))",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "#fff", fontWeight: "700", fontSize: "16px",
-                    cursor: "pointer", userSelect: "none", boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
-                  }}
-                >
-                  {initials}
-                </div>
-                {showMenu && (
-                  <div style={{
-                    position: "absolute", top: "54px", right: 0, background: "#fff",
-                    borderRadius: "16px", boxShadow: "0 10px 40px rgba(0,0,0,0.12)",
-                    padding: "8px 0", minWidth: "220px", zIndex: 100, border: '1px solid #e2e8f0'
-                  }}>
-                    <div style={{ padding: "16px", borderBottom: "1px solid #f1f5f9" }}>
-                      <b style={{ fontSize: "15px", color: "#0f172a", display: "block" }}>{user?.name}</b>
-                      <small style={{ fontSize: "13px", color: "#64748b" }}>{user?.email}</small>
-                    </div>
-                    <div style={{ padding: '8px' }}>
-                      <button
-                        onClick={handleLogout}
-                        style={{
-                          display: "flex", alignItems: "center", gap: "10px",
-                          width: "100%", padding: "12px", border: "none",
-                          background: "#fef2f2", borderRadius: '8px', cursor: "pointer", fontSize: "14px",
-                          color: "#dc2626", fontWeight: "600", transition: 'background 0.2s'
-                        }}
-                      >
-                        <LogOut size={16} /> Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <button 
-              onClick={() => openLoginModal()}
-              style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '999px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              Login / Signup
-            </button>
-          )}
         </div>
       </div>
     </header>

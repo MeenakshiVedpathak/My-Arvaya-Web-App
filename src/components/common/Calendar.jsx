@@ -9,7 +9,7 @@ export default function Calendar({ selectedDate, onSelectDate }) {
 
   const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-  
+
   const startDay = startOfMonth.getDay(); // 0-6 (Sun-Sat)
   const daysInMonth = endOfMonth.getDate();
 
@@ -52,7 +52,7 @@ export default function Calendar({ selectedDate, onSelectDate }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
         {days.map((date, i) => {
           if (!date) return <div key={i} />;
-          
+
           const isPast = date < today;
           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
           const isToday = date.toDateString() === today.toDateString();

@@ -1,296 +1,221 @@
+import { ChevronRight, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+
 import { useState, useEffect } from "react";
-import {
-  Search,
-  Stethoscope,
-  Building2,
-  FlaskConical,
-  Fingerprint,
-  HeartPulse,
-  Brain,
-  Baby,
-  Bone,
-  Activity,
-  CalendarDays,
-  Phone,
-  FileText,
-  Route,
-  Pill,
-  ClipboardList,
-  Users,
-  BellRing,
-  Heart,
-  Footprints,
-  Moon,
-  ChevronRight,
-  ChevronLeft,
-  MapPin,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { doctors, packages } from "../mocks/data";
 
 export default function Home() {
   const go = useNavigate();
-  const { user } = useAuth();
-  const doc = doctors[0]; // Dr. Priya Sharma for upcoming appointment
-
   const [currentSlide, setCurrentSlide] = useState(0);
-  const banners = [
-    { src: "/banner_healthcare_1.png" },
-    { src: "/banner_healthcare_3.png" },
-    { src: "/banner_healthcare_2.png" }
+  const slides = [
+    "/banner_healthcare_1.png",
+    "/banner_healthcare_2.png",
+    "/banner_healthcare_3.png"
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 5000);
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4000);
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [slides.length]);
 
   return (
-    <main className="platform-home">
-
-      {/* ── Banner Carousel Section ── */}
-      <section className="home-banner-carousel" style={{ position: 'relative', width: '100%', height: '400px', overflow: 'hidden', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-        {banners.map((banner, index) => (
-          <div 
-            key={index} 
+    <main className="page" style={{ padding: 0 }}>
+      {/* ── Carousel Banner ── */}
+      <section style={{ position: 'relative', width: '100%', height: '400px', overflow: 'hidden' }}>
+        {slides.map((src, idx) => (
+          <img 
+            key={src}
+            src={src} 
+            alt={`Banner ${idx + 1}`} 
             style={{ 
               position: 'absolute', 
               top: 0, 
               left: 0, 
               width: '100%', 
               height: '100%', 
-              opacity: currentSlide === index ? 1 : 0, 
-              transition: 'opacity 0.8s ease-in-out',
-              zIndex: currentSlide === index ? 1 : 0
-            }}
-          >
-            <img 
-              src={banner.src} 
-              alt={`Banner ${index + 1}`} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', cursor: 'pointer' }}
-              onClick={() => go("/doctors")}
-            />
-          </div>
+              objectFit: 'cover', 
+              opacity: idx === currentSlide ? 1 : 0, 
+              transition: 'opacity 1s ease-in-out',
+              zIndex: idx === currentSlide ? 1 : 0
+            }} 
+          />
         ))}
-
-        {/* Indicator Dots */}
-        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '12px', zIndex: 10 }}>
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
+        {/* Navigation Dots */}
+        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
+          {slides.map((_, idx) => (
+            <button 
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
               style={{
-                width: '12px',
-                height: '12px',
+                width: '10px',
+                height: '10px',
                 borderRadius: '50%',
+                background: idx === currentSlide ? 'white' : 'rgba(255, 255, 255, 0.5)',
                 border: 'none',
-                background: currentSlide === index ? 'var(--primary)' : 'rgba(255, 255, 255, 0.6)',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                transition: 'background 0.3s'
               }}
-              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
       </section>
 
-      {/* ── Quick Services Banner ── */}
-      <div className="container" style={{ marginTop: '40px', position: 'relative', zIndex: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+      {/* ── Value Props ── */}
+      <section style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
+        <div className="container flex justify-between">
           {[
-            { icon: <Stethoscope size={28}/>, title: "Consult Doctors", desc: "Online or in-clinic", path: "/doctors", color: "#3b82f6", bg: "#eff6ff" },
-            { icon: <FlaskConical size={28}/>, title: "Lab Tests", desc: "Home sample pickup", path: "/labs", color: "#8b5cf6", bg: "#f3e8ff" },
-            { icon: <Building2 size={28}/>, title: "Find Hospitals", desc: "Top rated centers", path: "/hospitals", color: "#ef4444", bg: "#fef2f2" },
-            { icon: <Fingerprint size={28}/>, title: "ABHA Card", desc: "Create your health ID", path: "/abha", color: "#10b981", bg: "#ecfdf5" },
-          ].map((s, i) => (
-            <div key={i} onClick={() => go(s.path)} style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer', border: '1px solid #e2e8f0', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)'; }}>
-              <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {s.icon}
+            { icon: <Star size={24} className="text-accent" />, title: "4.9/5 Rating", sub: "From 1M+ Users" },
+            { icon: <ShieldCheck size={24} className="text-success" />, title: "NABH Accredited", sub: "Quality Assured" },
+            { icon: <PhoneCall size={24} className="text-primary" />, title: "24/7 Support", sub: "Always here for you" },
+            { icon: <Pill size={24} className="text-accent" />, title: "100% Genuine", sub: "Medicines & Tests" }
+          ].map((v, i) => (
+            <div key={i} className="flex items-center gap-4">
+              {v.icon}
+              <div className="flex flex-col">
+                <b style={{ fontSize: '15px' }}>{v.title}</b>
+                <span className="text-muted" style={{ fontSize: '13px' }}>{v.sub}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Arvaya Ecosystem ── */}
+      <section style={{ padding: '60px 24px 0 24px' }} className="container">
+        <style>{`
+          .ecosystem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+          @media (max-width: 900px) { .ecosystem-grid { grid-template-columns: repeat(2, 1fr); } }
+          @media (max-width: 600px) { .ecosystem-grid { grid-template-columns: 1fr; } }
+        `}</style>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-h2">Your Health Ecosystem</h2>
+            <p className="text-muted mt-2">Manage everything from one place</p>
+          </div>
+        </div>
+        
+        <div className="ecosystem-grid">
+          {[
+            { title: "ABHA Hub", sub: "Create & link ABHA ID", icon: <CreditCard size={32} strokeWidth={1.5} />, link: "/abha", color: "#3b82f6", bg: "#eff6ff" },
+            { title: "Arvaya Rewards", sub: "View points & offers", icon: <Gift size={32} strokeWidth={1.5} />, link: "/rewards", color: "#f59e0b", bg: "#fef3c7" },
+            { title: "Digital Wallet", sub: "Fast, secure payments", icon: <Wallet size={32} strokeWidth={1.5} />, link: "/wallet", color: "#10b981", bg: "#ecfdf5" },
+            { title: "Health Records", sub: "Your medical history", icon: <FileText size={32} strokeWidth={1.5} />, link: "/records", color: "#8b5cf6", bg: "#f5f3ff" },
+          ].map((item) => (
+            <div key={item.title} className="card-elevated card-hover flex flex-col gap-4 cursor-pointer" style={{ padding: '24px', borderTop: `4px solid ${item.color}` }} onClick={() => go(item.link)}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {item.icon}
               </div>
               <div>
-                <b style={{ display: 'block', fontSize: '16px', color: '#0f172a' }}>{s.title}</b>
-                <small style={{ color: '#64748b', fontSize: '13px' }}>{s.desc}</small>
+                <b style={{ fontSize: '18px', display: 'block', marginBottom: '6px', color: 'var(--text-main)' }}>{item.title}</b>
+                <span className="text-muted" style={{ fontSize: '14px', lineHeight: 1.4, display: 'block' }}>{item.sub}</span>
+              </div>
+              <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '4px', color: item.color, fontSize: '14px', fontWeight: '700' }}>
+                Explore <ArrowRight size={16} />
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* ── Top Specialties ── */}
-      <section style={{ padding: '80px 0 40px' }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0' }}>Consult top doctors by specialty</h2>
-              <p style={{ color: '#64748b', margin: 0 }}>Find experienced doctors across all specialties</p>
+      <section className="container" style={{ padding: '60px 24px' }}>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-h2">Consult Top Specialties</h2>
+            <p className="text-muted mt-2">Consult with India's best specialists</p>
+          </div>
+          <button className="btn btn-secondary flex items-center gap-2" onClick={() => go("/doctors")}>View All <ArrowRight size={16} /></button>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '20px' }}>
+          {[
+            { name: "Cardiology", icon: <Heart size={32} strokeWidth={1.5} /> },
+            { name: "Neurology", icon: <Brain size={32} strokeWidth={1.5} /> },
+            { name: "Pediatrics", icon: <Baby size={32} strokeWidth={1.5} /> },
+            { name: "Orthopedics", icon: <Bone size={32} strokeWidth={1.5} /> },
+            { name: "General Medicine", icon: <Activity size={32} strokeWidth={1.5} /> },
+            { name: "Dermatology", icon: <Eye size={32} strokeWidth={1.5} /> },
+          ].map((spec) => (
+            <div key={spec.name} className="card card-hover flex flex-col items-center justify-center gap-4 cursor-pointer" style={{ padding: '24px 16px', textAlign: 'center' }} onClick={() => go("/doctors")}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {spec.icon}
+              </div>
+              <b style={{ fontSize: '14px', color: 'var(--text-main)' }}>{spec.name}</b>
             </div>
-            <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '600', cursor: 'pointer', fontSize: '15px' }} onClick={() => go("/doctors")}>View all specialties &rarr;</button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Featured Lab Packages ── */}
+      <section style={{ background: 'var(--bg-surface)', padding: '60px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <div className="container">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-h2">Featured Health Packages</h2>
+              <p className="text-muted mt-2">Comprehensive checkups with home sample collection</p>
+            </div>
+            <button className="btn btn-secondary flex items-center gap-2" onClick={() => go("/labs")}>View All <ArrowRight size={16} /></button>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
             {[
-              { icon: <HeartPulse size={32}/>, name: "Cardiology" },
-              { icon: <Brain size={32}/>, name: "Neurology" },
-              { icon: <Baby size={32}/>, name: "Pediatrics" },
-              { icon: <Bone size={32}/>, name: "Orthopedics" },
-              { icon: <Activity size={32}/>, name: "General Medicine" },
-              { icon: <Stethoscope size={32}/>, name: "Dermatology" },
-            ].map((spec, i) => (
-              <div key={i} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = '#f8fafc'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }} onClick={() => go("/doctors")}>
-                <div style={{ color: 'var(--primary)' }}>{spec.icon}</div>
-                <span style={{ fontSize: '14px', fontWeight: '600', color: '#334155', textAlign: 'center' }}>{spec.name}</span>
+              { title: "Full Body Checkup", tests: "80+ tests included", price: "₹1,499", oldPrice: "₹2,300", discount: "35% OFF", tags: ["Fasting Required"] },
+              { title: "Diabetes Profile", tests: "30+ tests included", price: "₹799", oldPrice: "₹1,200", discount: "33% OFF", tags: [] },
+              { title: "Heart Health", tests: "40+ tests included", price: "₹1,199", oldPrice: "₹1,800", discount: "33% OFF", tags: [] },
+              { title: "Thyroid Profile", tests: "24+ tests included", price: "₹649", oldPrice: "₹900", discount: "28% OFF", tags: [] },
+            ].map((pkg) => (
+              <div key={pkg.title} className="card-elevated card-hover flex flex-col" style={{ padding: '20px' }}>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', lineHeight: 1.3 }}>{pkg.title}</h3>
+                  <div className="badge badge-accent" style={{ fontSize: '11px' }}>{pkg.discount}</div>
+                </div>
+                <p className="text-muted mb-4" style={{ fontSize: '13px' }}>{pkg.tests}</p>
+                <div className="flex gap-2 mb-6">
+                  {pkg.tags.map(t => <span key={t} className="badge" style={{ background: 'var(--bg-app)', color: 'var(--text-muted)' }}>{t}</span>)}
+                </div>
+                
+                <div className="flex justify-between items-center mt-auto" style={{ paddingTop: '16px', borderTop: '1px dashed var(--border)' }}>
+                  <div className="flex flex-col">
+                    <s className="text-muted" style={{ fontSize: '12px' }}>{pkg.oldPrice}</s>
+                    <b style={{ fontSize: '18px', color: 'var(--text-main)' }}>{pkg.price}</b>
+                  </div>
+                  <button className="btn btn-accent" onClick={() => go("/labs")}>Book</button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Popular Health Packages ── */}
-      <section style={{ padding: '40px 0 80px', background: '#f8fafc' }}>
-        <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0' }}>Comprehensive Health Packages</h2>
-              <p style={{ color: '#64748b', margin: 0 }}>Get comprehensive checkups at the comfort of your home</p>
-            </div>
-            <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '600', cursor: 'pointer', fontSize: '15px' }} onClick={() => go("/labs")}>View all packages &rarr;</button>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-            {packages.map((pkg, i) => (
-              <article key={i} style={{ background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'none'} onClick={() => go("/labs")}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  <img src={pkg.img} alt={pkg.title} style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover' }} />
-                  <span style={{ background: '#fef2f2', color: '#ef4444', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>{pkg.discount} OFF</span>
-                </div>
-                <b style={{ display: 'block', fontSize: '16px', color: '#0f172a', marginBottom: '4px' }}>{pkg.title}</b>
-                <small style={{ display: 'block', color: '#64748b', marginBottom: '16px' }}>{pkg.tests}</small>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <b style={{ fontSize: '18px', color: '#0f172a' }}>{pkg.price}</b>
-                    <s style={{ display: 'block', fontSize: '12px', color: '#94a3b8' }}>{pkg.oldPrice}</s>
-                  </div>
-                  <button style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Book</button>
-                </div>
-              </article>
-            ))}
-          </div>
+      {/* ── Emergency Promo ── */}
+      <section className="container" style={{ padding: '0 24px 60px' }}>
+        <div className="card text-center" style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '40px', borderRadius: 'var(--radius-lg)' }}>
+          <div className="badge mb-4" style={{ background: '#ef4444', color: 'white' }}>🚨 24/7 EMERGENCY</div>
+          <h2 className="text-h2" style={{ color: '#991b1b', marginBottom: '16px' }}>Need an Ambulance Instantly?</h2>
+          <p className="text-muted mb-6">ALS and BLS ambulances available at your location within 15 minutes.</p>
+          <button className="btn" style={{ background: '#dc2626', color: 'white', fontSize: '18px', padding: '12px 32px', borderRadius: 'var(--radius-full)' }} onClick={() => go("/ambulance")}>
+            Call 1066 Now
+          </button>
         </div>
       </section>
 
-      {/* ── Your Personal Health Dashboard (Existing Portal Features) ── */}
-      {user && (
-        <section style={{ padding: '60px 0', borderTop: '1px solid #e2e8f0' }}>
-          <div className="container">
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: '0 0 32px 0' }}>Your Health Dashboard</h2>
-            
-            <div className="home-two-col" style={{ marginTop: 0 }}>
-              
-              {/* Upcoming Appointment */}
-              <div className="home-card">
-                <h3 className="home-section-label">Upcoming Appointment</h3>
-                <div className="home-appt-body">
-                  <div className="home-appt-avatar">
-                    {doc.name.split(" ")[1][0]}{doc.name.split(" ")[2][0]}
-                  </div>
-                  <div className="home-appt-info">
-                    <b>{doc.name}</b>
-                    <small>{doc.specialty}</small>
-                  </div>
-                  <div className="home-appt-date">
-                    <CalendarDays size={18} />
-                    <div>
-                      <b>15 Jun, 2026</b>
-                      <small>10:00 AM</small>
-                    </div>
-                  </div>
-                </div>
-                <div className="home-appt-footer">
-                  <div className="home-appt-location">
-                    <MapPin size={16} /> <span>{doc.hospital}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button style={{ background: '#f1f5f9', border: 'none', width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', cursor: 'pointer' }}><Phone size={16} /></button>
-                    <button style={{ background: '#f1f5f9', border: 'none', width: '36px', height: '36px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', cursor: 'pointer' }}><FileText size={16} /></button>
-                    <button className="home-appt-details-btn" onClick={() => go("/appointments/1")}>Details</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Health Summary */}
-              <div className="home-card">
-                <h3 className="home-section-label">Health Summary</h3>
-                <div className="home-health-stats">
-                  
-                  <div className="home-health-steps">
-                    <div className="home-stat-header">
-                      <span className="home-stat-title">Steps</span>
-                      <Footprints size={16} className="home-stat-icons" />
-                    </div>
-                    <div className="home-stat-value">5,234 <small>/ 8000</small></div>
-                    <div className="home-steps-bar">
-                      <div className="home-steps-fill" style={{ width: '65%' }}></div>
-                    </div>
-                  </div>
-
-                  <div className="home-health-stat-item">
-                    <div className="home-stat-icon-circle sleep">
-                      <Moon size={20} />
-                    </div>
-                    <div className="home-stat-title">Sleep</div>
-                    <div className="home-stat-value">7<small>h</small> 20<small>m</small></div>
-                  </div>
-
-                  <div className="home-health-stat-item">
-                    <div className="home-stat-icon-circle heart">
-                      <Heart size={20} />
-                    </div>
-                    <div className="home-stat-title">Heart</div>
-                    <div className="home-stat-value">72 <small>bpm</small></div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-            {/* Manage Your Health Grid */}
-            <div className="home-card" style={{ marginTop: '32px' }}>
-              <h3 className="home-section-label">Manage Your Records</h3>
-              <div className="home-manage-grid">
-                <div className="home-manage-item" onClick={() => go("/records")}>
-                  <div className="home-manage-icon"><ClipboardList size={22} /></div>
-                  <span>Medical Records</span>
-                </div>
-                <div className="home-manage-item" onClick={() => go("/records")}>
-                  <div className="home-manage-icon"><Pill size={22} /></div>
-                  <span>Prescriptions</span>
-                </div>
-                <div className="home-manage-item" onClick={() => go("/records")}>
-                  <div className="home-manage-icon"><FlaskConical size={22} /></div>
-                  <span>Test Reports</span>
-                </div>
-                <div className="home-manage-item" onClick={() => go("/records")}>
-                  <div className="home-manage-icon"><BellRing size={22} /></div>
-                  <span>Reminders</span>
-                </div>
-                <div className="home-manage-item" onClick={() => alert("Family linking coming soon")}>
-                  <div className="home-manage-icon"><Users size={22} /></div>
-                  <span>Family Members</span>
-                </div>
-                <div className="home-manage-item" onClick={() => go("/abha")}>
-                  <div className="home-manage-icon"><Fingerprint size={22} /></div>
-                  <span>ABHA Profile</span>
-                </div>
-              </div>
+      {/* ── App Download Banner ── */}
+      <section className="container" style={{ padding: '80px 24px' }}>
+        <div className="flex justify-between items-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '48px', boxShadow: 'var(--shadow-md)' }}>
+          <div className="flex flex-col gap-4" style={{ maxWidth: '500px' }}>
+            <h2 className="text-h2">Download the Arvaya App</h2>
+            <p className="text-muted">Get exclusive offers, manage appointments, and access your health vault anytime, anywhere.</p>
+            <div className="flex gap-4 mt-2">
+              <div style={{ background: 'var(--text-main)', color: 'white', padding: '12px 24px', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}>App Store</div>
+              <div style={{ background: 'var(--text-main)', color: 'white', padding: '12px 24px', borderRadius: 'var(--radius-sm)', fontWeight: '600', cursor: 'pointer' }}>Google Play</div>
             </div>
           </div>
-        </section>
-      )}
-
+          <div style={{ width: '200px', height: '200px', background: 'var(--bg-app)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="text-muted text-center" style={{ padding: '20px' }}>App Mockup<br/>Image Here</span>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

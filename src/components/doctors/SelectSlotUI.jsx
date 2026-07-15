@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronDown, CalendarX2, Calendar } from "lucide-react";
 import { useState } from "react";
 
-export default function SelectSlotUI({ doctor, onConfirm }) {
+export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
   const [selectedDate, setSelectedDate] = useState(11);
   const [selectedTime, setSelectedTime] = useState(null);
   const dates = [5, 6, 7, 8, 9, 10, 11];
@@ -24,10 +24,12 @@ export default function SelectSlotUI({ doctor, onConfirm }) {
       <div className="slot-grid-layout">
         <div className="date-selector-section">
           <div className="section-title-row">
-            <Calendar size={18} color="#2e666e" />
-            <h4 className="step-prompt" style={{ margin: 0 }}>Select a Date</h4>
+            <Calendar size={18} color="var(--primary)" />
+            <h4 className="step-prompt" style={{ margin: 0, color: 'var(--text-main)', fontSize: '15px' }}>
+              {type === "lab" ? "Select Collection Date" : "Select a Date"}
+            </h4>
           </div>
-          
+
           <div className="full-calendar-card">
             <div className="fc-header">
               <button className="icon-btn"><ChevronLeft size={16} /></button>
@@ -67,7 +69,7 @@ export default function SelectSlotUI({ doctor, onConfirm }) {
 
           <div className="time-slots-grid">
             {["10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "02:00 PM", "02:30 PM", "03:00 PM", "04:30 PM", "05:00 PM"].map((time) => (
-              <button 
+              <button
                 key={time}
                 className={`time-slot-btn ${selectedTime === time ? 'active' : ''}`}
                 onClick={() => setSelectedTime(time)}
@@ -80,14 +82,15 @@ export default function SelectSlotUI({ doctor, onConfirm }) {
       </div>
 
       {/* Sticky Bottom Button */}
-      <div className="bottom-fixed-action">
-        <button 
-          className="pro-btn-primary wizard-action-btn" 
-          disabled={!selectedTime} 
+      <div className="bottom-fixed-action" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          className="btn btn-accent"
+          disabled={!selectedTime}
           onClick={() => onConfirm({ date: `Sat, Jul ${selectedDate}, 2026`, time: selectedTime })}
+          style={{ padding: '12px 24px', fontSize: '15px' }}
         >
           <Calendar size={18} style={{ marginRight: '8px' }} />
-          Confirm Booking
+          {type === "lab" ? "Confirm Schedule" : "Confirm Booking"}
         </button>
       </div>
     </div>

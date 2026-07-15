@@ -57,7 +57,9 @@ export default function Signup() {
         }} />
 
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <img src="/logo.png" alt="Arvaya" style={{ height: "36px", marginBottom: "14px", mixBlendMode: "multiply" }} />
+          <div style={{ background: '#ffffff', padding: '8px 16px', borderRadius: '12px', display: 'inline-flex', marginBottom: '16px' }}>
+            <img src="/logo.png" alt="Arvaya" style={{ height: "36px", objectFit: 'contain' }} />
+          </div>
           <h1 style={{ fontSize: "20px", color: "#4e4e4d", margin: "0 0 4px", fontWeight: "700" }}>
             Create Account
           </h1>

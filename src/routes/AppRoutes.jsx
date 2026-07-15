@@ -12,6 +12,8 @@ import Records from "../pages/Records";
 import Labs from "../pages/Labs";
 import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
+import Ambulance from "../pages/Ambulance";
+import Analytics from "../pages/Analytics";
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -28,6 +30,7 @@ export default function AppRoutes() {
       <Route path="/doctors" element={<Doctors />} />
       <Route path="/doctor" element={<DoctorProfile />} />
       <Route path="/labs" element={<Labs />} />
+      <Route path="/ambulance" element={<Ambulance />} />
 
       {/* Protected Routes (Require Login) */}
       <Route path="/slot" element={<P><SelectSlot /></P>} />
@@ -37,6 +40,7 @@ export default function AppRoutes() {
       <Route path="/records" element={<P><Records /></P>} />
       <Route path="/wallet" element={<P><Wallet /></P>} />
       <Route path="/rewards" element={<P><Rewards /></P>} />
+      <Route path="/analytics" element={<P><Analytics /></P>} />
     </Routes>
   );
 }
