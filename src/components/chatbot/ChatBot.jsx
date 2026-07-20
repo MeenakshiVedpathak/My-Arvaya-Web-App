@@ -74,24 +74,20 @@ export default function ChatBot() {
     <div className="chatbot-window">
       {/* Header */}
       <div className="chatbot-header">
-        <button 
-          onClick={() => setIsOpen(false)} 
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
-        >
-          <ChevronLeft size={22} color="var(--blue)" />
-        </button>
-        <div className="chatbot-header-avatar">
-          <Bot size={20} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <h3>Arvaya CareBot</h3>
-          <div className="chatbot-header-status">● Online</div>
+        <div className="flex items-center gap-2">
+          <div className="chatbot-header-avatar">
+            <Bot size={20} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700' }}>Arvaya CareBot</h3>
+            <div className="chatbot-header-status">Online</div>
+          </div>
         </div>
         <button 
           onClick={() => setIsOpen(false)} 
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+          style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '50%', border: 'none', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center' }}
         >
-          <X size={20} color="var(--muted)" />
+          <X size={18} color="white" />
         </button>
       </div>
 

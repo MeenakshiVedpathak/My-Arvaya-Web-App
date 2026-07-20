@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { doctors as mockDoctors, slots as mockSlots } from "../mocks/data";
+import { doctors as mockDoctors, slots as mockSlots, packages as mockPackages } from "../mocks/data";
 
 const USE_MOCK = true; // Forced static data for the dashboard after login
 
@@ -91,11 +91,7 @@ export async function getDoctorSlots(doctorId, date) {
 /* ─── Plans ─── */
 export async function getPlans(filters = {}) {
   if (USE_MOCK) {
-    return [
-      { id: 1, title: "Full Body Checkup", tests: "Includes 60+ tests", price: "₹1,499", oldPrice: "₹2,200", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=200&h=200&fit=crop" },
-      { id: 2, title: "Diabetes Profile", tests: "Includes 15 tests", price: "₹799", oldPrice: "₹1,200", img: "https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=200&h=200&fit=crop" },
-      { id: 3, title: "Thyroid Profile", tests: "Includes 3 tests", price: "₹649", oldPrice: "₹900", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=200&h=200&fit=crop" },
-    ];
+    return mockPackages;
   }
   // POST api/plan/get
   const res = await api.post("/api/plan/get", filters);

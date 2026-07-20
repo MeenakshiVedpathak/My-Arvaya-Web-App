@@ -1,4 +1,4 @@
-import { Star, MapPin, Check, Heart, ArrowLeft, CalendarDays, Award, Clock } from "lucide-react";
+import { Star, MapPin, Check, Heart, ArrowLeft, CalendarDays, Award, Clock, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
@@ -13,29 +13,36 @@ export default function DoctorProfile() {
   if (!doctor) return null;
 
   return (
-    <main className="page" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-      <div className="container" style={{ paddingBottom: '40px' }}>
+    <main className="page" style={{ background: 'var(--bg-app)', minHeight: '100vh', padding: '24px 0' }}>
+      <div className="container" style={{ paddingBottom: '24px' }}>
 
         {/* Navigation Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '32px 0', cursor: 'pointer', color: 'var(--text-main)', fontWeight: '600' }} onClick={() => go(-1)}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: '600' }} onClick={() => go(-1)}>
           <ArrowLeft size={20} /> <span>Back to Doctors</span>
         </div>
 
         <Steps current={1} />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px', marginTop: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '20px', marginTop: '16px' }}>
 
           {/* Left Column: Doctor Profile & Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-            <section className="glass-panel" style={{ padding: '32px', background: 'var(--surface)' }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: 'flex-start', marginBottom: "24px" }}>
-                <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+            <section style={{ paddingBottom: '16px' }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: 'flex-start', marginBottom: "16px" }}>
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
                   <Avatar doctor={doctor} big />
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <h1 style={{ fontSize: "28px", color: "var(--text-main)", margin: 0, fontWeight: '800', letterSpacing: '-0.02em' }}>{doctor.name}</h1>
-                      <Heart size={24} color="#ef4444" fill="rgba(239, 68, 68, 0.1)" cursor="pointer" />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <h1 style={{ fontSize: "28px", color: "var(--text-main)", margin: 0, fontWeight: '800', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {doctor.name}
+                        </h1>
+                        <Heart size={24} color="#ef4444" fill="rgba(239, 68, 68, 0.1)" cursor="pointer" />
+                      </div>
+                      <span style={{ fontSize: '12px', color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: '4px', alignSelf: 'flex-start', marginTop: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                        <ShieldCheck size={12}/> Medical Registration Verified
+                      </span>
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -51,7 +58,7 @@ export default function DoctorProfile() {
               </div>
 
               {/* Stats Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '32px', paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                 <div style={{ textAlign: 'center' }}>
                   <b style={{ display: 'block', fontSize: '24px', color: 'var(--text-main)', marginBottom: '4px' }}>4.9</b>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', color: '#eab308', marginBottom: '4px' }}><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /></div>
@@ -69,18 +76,18 @@ export default function DoctorProfile() {
             </section>
 
             {/* About & Services */}
-            <section className="glass-panel" style={{ padding: '32px', background: 'var(--surface)' }}>
-              <div style={{ display: 'flex', gap: '32px', borderBottom: '1px solid var(--border)', paddingBottom: '16px', marginBottom: '24px' }}>
-                <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--primary)', cursor: 'pointer', borderBottom: '2px solid var(--primary)', paddingBottom: '16px', marginBottom: '-17px' }}>About</span>
+            <section style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '12px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--primary)', cursor: 'pointer', borderBottom: '2px solid var(--primary)', paddingBottom: '12px', marginBottom: '-13px' }}>About</span>
                 <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--muted)', cursor: 'pointer' }}>Experience</span>
                 <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--muted)', cursor: 'pointer' }}>Reviews</span>
               </div>
 
-              <p style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, marginBottom: '32px' }}>
+              <p style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, marginBottom: '16px' }}>
                 Dr. {doctor.name.split(" ").slice(1).join(" ")} is a highly experienced medical professional focusing on comprehensive patient care. With a holistic approach to medicine, they prioritize both immediate symptom relief and long-term health strategies.
               </p>
 
-              <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '20px', fontWeight: '700' }}>Services Offered</h3>
+              <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '16px', fontWeight: '700' }}>Services Offered</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 {[
                   "Comprehensive Diagnosis",
@@ -90,7 +97,7 @@ export default function DoctorProfile() {
                   "Specialist Referrals",
                   "Tele-consultations"
                 ].map((x) => (
-                  <div key={x} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: '8px' }}>
+                  <div key={x} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-app)', padding: '12px 16px', borderRadius: '8px' }}>
                     <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', padding: '4px' }}>
                       <Check size={14} />
                     </div>
@@ -103,11 +110,11 @@ export default function DoctorProfile() {
 
           {/* Right Column: Sticky Booking Widget */}
           <div>
-            <div className="glass-panel" style={{ padding: '32px', background: 'var(--surface)', position: 'sticky', top: '120px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 24px 0' }}>Book Appointment</h3>
+            <div className="card-elevated" style={{ position: 'sticky', top: '120px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 16px 0' }}>Book Appointment</h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '12px' }}>
                   <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', color: 'var(--primary)' }}><MapPin size={24} /></div>
                   <div>
                     <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>{doctor.hospital}</b>
@@ -115,7 +122,7 @@ export default function DoctorProfile() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '12px' }}>
                   <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', color: 'var(--primary)' }}><Clock size={24} /></div>
                   <div>
                     <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>15 Min Consult</b>
@@ -124,15 +131,15 @@ export default function DoctorProfile() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '24px', borderBottom: '1px solid var(--border)', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
                 <span style={{ fontSize: '15px', color: 'var(--muted)', fontWeight: '500' }}>Consultation Fee</span>
                 <b style={{ fontSize: '24px', color: 'var(--text-main)' }}>₹800</b>
               </div>
 
               <button
-                className="hover-lift"
+                className="btn btn-primary hover-glow"
                 onClick={() => user ? go("/slot") : openLoginModal("/slot")}
-                style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '16px', width: '100%', borderRadius: '12px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                style={{ padding: '16px', width: '100%', borderRadius: '12px', fontSize: '16px' }}
               >
                 <CalendarDays size={20} /> Select Time Slot
               </button>

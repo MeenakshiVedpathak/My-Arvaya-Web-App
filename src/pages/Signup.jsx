@@ -38,7 +38,7 @@ export default function Signup() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "linear-gradient(135deg, #f4f8f8 0%, #e9f2f3 50%, #f0f6f7 100%)",
+      background: "var(--bg-app)",
       padding: "16px",
     }}>
       <div style={{
@@ -140,7 +140,7 @@ export default function Signup() {
 
         <p style={{ textAlign: "center", marginTop: "18px", marginBottom: 0, fontSize: "13px", color: "#718096" }}>
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "#2e666e", fontWeight: "600", textDecoration: "none" }}>
+          <Link to="/login" style={{ color: "var(--primary)", fontWeight: "600", textDecoration: "none" }}>
             Sign In
           </Link>
         </p>

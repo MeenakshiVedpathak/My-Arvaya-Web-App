@@ -24,7 +24,7 @@ export default function ABHA() {
 
           {/* Left Column: ID Card */}
           <section>
-            <div className="glass-panel" style={{ padding: '32px', background: 'var(--surface)' }}>
+            <div className="card-elevated hover-glow" style={{ padding: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Digital Health ID</h3>
                 <span style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#16a34a', padding: '4px 12px', borderRadius: 'var(--radius-full)', fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}><ShieldCheck size={14} /> Active</span>
@@ -76,9 +76,9 @@ export default function ABHA() {
               {[
                 [Link2, "Link Health Records", "Access & link your hospital records seamlessly.", "var(--primary)", "var(--primary-light)"],
                 [Share2, "Share Records", "Securely share with providers using OTP.", "#16a34a", "#dcfce7"],
-                [ShieldCheck, "Consent Manager", "Review and revoke active data sharing consents.", "#9333ea", "#f3e8ff"],
-              ].map(([Icon, title, subtitle, color, bg]) => (
-                <div key={title} className="glass-panel hover-lift" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', background: 'var(--surface)', cursor: 'pointer' }}>
+                [ShieldCheck, "Consent Manager", "Review and revoke active data sharing consents.", "#1F4F57", "#DCE9EB"],
+              ].map(([Icon, title, subtitle, color, bg], idx) => (
+                <div key={title} className={`card-elevated hover-glow animate-fade-in-up delay-${(idx+1)*100}`} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', cursor: 'pointer' }}>
                   <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color, flexShrink: 0 }}>
                     <Icon size={24} />
                   </div>
@@ -91,7 +91,7 @@ export default function ABHA() {
               ))}
             </div>
 
-            <div style={{ textAlign: 'center', marginTop: '32px', background: 'var(--surface-alt)', padding: '20px', borderRadius: '16px' }}>
+            <div style={{ textAlign: 'center', marginTop: '32px', background: 'var(--bg-app)', padding: '20px', border: '1px solid var(--border)', borderRadius: '16px' }}>
               <span style={{ color: 'var(--muted)', fontSize: '14px' }}>Need help understanding ABHA?</span>
               <br />
               <span style={{ color: 'var(--primary)', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Read the FAQ</span>

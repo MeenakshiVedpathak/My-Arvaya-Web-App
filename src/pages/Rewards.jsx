@@ -14,7 +14,7 @@ export default function Rewards() {
       points: 120,
       badge: "Ending Soon",
       icon: Clock,
-      color: "#3b82f6"
+      color: "#2E666E"
     },
     {
       id: 2,
@@ -23,7 +23,7 @@ export default function Rewards() {
       points: 250,
       badge: "Most Popular",
       icon: Sparkles,
-      color: "#f59e0b"
+      color: "#FB913F"
     },
     {
       id: 3,
@@ -32,7 +32,7 @@ export default function Rewards() {
       points: 180,
       badge: "Trending",
       icon: Percent,
-      color: "#10b981"
+      color: "#3D7A83"
     },
     {
       id: 4,
@@ -41,7 +41,7 @@ export default function Rewards() {
       points: 320,
       badge: "Plus Exclusive",
       icon: Crown,
-      color: "#8b5cf6"
+      color: "#1F4F57"
     }
   ];
 
@@ -64,20 +64,21 @@ export default function Rewards() {
           {/* Main Content */}
           <section>
             {/* Membership Header */}
-            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: '#f5f3ff', marginBottom: '32px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-elevated hover-glow" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', marginBottom: '32px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', borderRadius: '50%' }}></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ width: '56px', height: '56px', background: '#8b5cf6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(139, 92, 246, 0.3)' }}>
-                    <Crown size={28} color="#fff" />
+                  <div style={{ width: '56px', height: '56px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                    <Crown size={28} color="#FDBF8B" />
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#4c1d95', margin: '0 0 4px 0' }}>Arvaya Plus</h2>
-                    <p style={{ color: '#7c3aed', fontSize: '14px', margin: 0, fontWeight: '500' }}>Gold Tier Member</p>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: '0 0 4px 0' }}>Arvaya Plus</h2>
+                    <p style={{ color: '#FDBF8B', fontSize: '14px', margin: 0, fontWeight: '500' }}>Gold Tier Member</p>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ color: '#7c3aed', fontSize: '13px', margin: '0 0 4px 0', fontWeight: '600', textTransform: 'uppercase' }}>Total Points</p>
-                  <b style={{ fontSize: '32px', color: '#4c1d95', lineHeight: 1 }}>{points.toLocaleString()}</b>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', margin: '0 0 4px 0', fontWeight: '600', textTransform: 'uppercase' }}>Total Points</p>
+                  <b style={{ fontSize: '32px', color: 'white', lineHeight: 1 }}>{points.toLocaleString()}</b>
                 </div>
               </div>
             </div>
@@ -86,7 +87,7 @@ export default function Rewards() {
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
               {offers.map(offer => (
-                <div key={offer.id} className="hover-lift" style={{ cursor: 'pointer', display: 'flex', borderRadius: '12px', background: 'var(--bg-surface)', position: 'relative', overflow: 'hidden' }} onClick={() => alert("Redeeming offer: " + offer.title)}>
+                <div key={offer.id} className="hover-glow" style={{ cursor: 'pointer', display: 'flex', borderRadius: '12px', background: 'var(--bg-surface)', position: 'relative', overflow: 'hidden' }} onClick={() => alert("Redeeming offer: " + offer.title)}>
                   
                   {/* Left Perforated Section (Icon) */}
                   <div style={{ width: '80px', background: `${offer.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '2px dashed var(--border)', position: 'relative' }}>
@@ -99,7 +100,7 @@ export default function Rewards() {
                   <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <span style={{ fontSize: '11px', fontWeight: '700', color: offer.color, background: `${offer.color}20`, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>{offer.badge}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f59e0b', fontWeight: '700', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#FB913F', fontWeight: '700', fontSize: '14px' }}>
                         <Gift size={14} /> {offer.points}
                       </div>
                     </div>

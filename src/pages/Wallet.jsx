@@ -45,43 +45,44 @@ export default function Wallet() {
           <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* Balance Card */}
-            <div className="card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="card-elevated hover-glow" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', color: 'white', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', borderRadius: '50%' }}></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '48px', height: '48px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '48px', height: '48px', background: 'rgba(255,255,255,0.1)', color: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <W size={24} />
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '16px', color: 'var(--text-main)', margin: '0 0 4px 0', fontWeight: '600' }}>Total Arvaya Cash</h2>
-                    <b style={{ fontSize: '32px', color: 'var(--text-main)', lineHeight: 1 }}>₹{wallet?.balance?.toLocaleString() || 0}</b>
+                    <h2 style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', margin: '0 0 4px 0', fontWeight: '600' }}>Total Arvaya Cash</h2>
+                    <b style={{ fontSize: '32px', color: 'white', lineHeight: 1 }}>₹{wallet?.balance?.toLocaleString() || 0}</b>
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{ padding: '12px 24px' }} onClick={() => alert("Add money flow initiated")}>
+                <button className="btn hover-glow" style={{ padding: '12px 24px', background: 'white', color: 'black' }} onClick={() => alert("Add money flow initiated")}>
                   Top Up Cash
                 </button>
               </div>
 
               {/* Breakdown */}
-              <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid var(--border)', paddingTop: '24px' }} className="balance-breakdown">
-                <div style={{ flex: 1, padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed var(--border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>
+              <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '24px', position: 'relative', zIndex: 1 }} className="balance-breakdown">
+                <div style={{ flex: 1, padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>
                     Refundable Balance <Info size={14} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <b style={{ fontSize: '20px', color: 'var(--text-main)' }}>₹{(wallet?.balance - 350)?.toLocaleString() || 0}</b>
-                    <button style={{ color: 'var(--primary)', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <b style={{ fontSize: '20px', color: 'white' }}>₹{(wallet?.balance - 350)?.toLocaleString() || 0}</b>
+                    <button style={{ color: 'var(--primary-light)', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer' }}>
                       Withdraw <ArrowDownToLine size={14} />
                     </button>
                   </div>
                 </div>
                 
-                <div style={{ flex: 1, padding: '16px', background: '#fff7ed', borderRadius: '12px', border: '1px dashed #fed7aa' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>
+                <div style={{ flex: 1, padding: '16px', background: 'rgba(251, 145, 63, 0.1)', borderRadius: '12px', border: '1px solid rgba(251, 145, 63, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>
                     Promotional Cash <Info size={14} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <b style={{ fontSize: '20px', color: 'var(--text-main)' }}>₹350</b>
-                    <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '500', background: '#ffedd5', padding: '2px 8px', borderRadius: '4px' }}>Expires in 30d</span>
+                    <b style={{ fontSize: '20px', color: 'white' }}>₹350</b>
+                    <span style={{ fontSize: '12px', color: 'white', fontWeight: '600', background: 'var(--accent)', padding: '2px 8px', borderRadius: '99px' }}>Expires in 30d</span>
                   </div>
                 </div>
               </div>
@@ -135,7 +136,7 @@ export default function Wallet() {
               <p style={{ fontSize: '13px', color: '#15803d', lineHeight: 1.5, margin: 0 }}>Your Arvaya Cash is protected by RBI guidelines and bank-grade security protocols.</p>
             </div>
 
-            <div className="card hover-lift cursor-pointer" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className="card hover-glow cursor-pointer" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ background: 'var(--bg-app)', padding: '12px', borderRadius: '12px', color: 'var(--text-main)' }}>
                 <CreditCard size={24} />
               </div>

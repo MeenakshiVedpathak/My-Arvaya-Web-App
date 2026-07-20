@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileText, BadgePercent } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
@@ -38,24 +38,38 @@ export default function Review() {
   if (!doctor) return null;
 
   return (
-    <main className="page" style={{ background: 'var(--bg)', minHeight: '100vh', padding: '40px 0' }}>
+    <main className="page page-enter" style={{ background: 'var(--bg-app)', minHeight: '100vh', padding: '24px 0' }}>
       <div className="container">
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: '600' }} onClick={() => go(-1)}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: '600', transition: 'color 0.2s' }} onClick={() => go(-1)} onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.color = 'var(--text-main)'}>
           <ArrowLeft size={20} /> <span>Back to Selection</span>
         </div>
 
         <Steps current={3} />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', marginTop: '32px' }}>
-          <section className="glass-panel" style={{ padding: '32px', background: 'var(--surface)' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 24px 0', letterSpacing: '-0.02em' }}>Review Appointment</h1>
+        <style>{`
+          .review-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-top: 32px; }
+          @media (max-width: 900px) { .review-layout { grid-template-columns: 1fr; } }
+          .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px dashed var(--border); }
+          .summary-row:last-child { border-bottom: none; }
+        `}</style>
 
-            <div style={{ display: "flex", gap: "16px", marginBottom: "32px", border: "1px solid var(--border)", padding: "16px", borderRadius: "16px", background: 'var(--surface-alt)' }}>
-              <Avatar doctor={doctor} />
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px", justifyContent: "center" }}>
-                <b style={{ fontSize: "16px", color: "var(--text-main)" }}>{doctor.name}</b>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: 'var(--muted)' }}>
+        <div className="review-layout">
+          <section className="card-elevated animate-fade-in-up" style={{ padding: '32px', background: 'var(--bg-surface)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FileText size={20} />
+              </div>
+              <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>Review Appointment</h1>
+            </div>
+
+            <div style={{ display: "flex", gap: "20px", marginBottom: "32px", border: "1px solid var(--border)", padding: "20px", borderRadius: "var(--radius-lg)", background: 'var(--bg-app)', alignItems: 'center' }}>
+              <Avatar doctor={doctor} size="64px" />
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <b style={{ fontSize: "18px", color: "var(--text-main)", display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {doctor.name} <CheckCircle2 size={16} className="text-success" />
+                </b>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: 'var(--muted)', flexWrap: 'wrap' }}>
                   <span>{doctor.specialty}</span>
                   <span style={{ color: 'var(--border)' }}>|</span>
                   <span>{doctor.hospital}</span>
@@ -63,38 +77,55 @@ export default function Review() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--surface-alt)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-app)', padding: '0 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
               {[
                 ["Date", formattedDate],
                 ["Time", slot],
                 ["Patient", user?.name || "Patient"],
                 ["Purpose of Visit", "Regular Checkup"],
                 ["Mode", "In-clinic"],
-                ["Amount to Pay", `₹${doctor.fee || "0"}`],
               ].map((x) => (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '15px' }} key={x[0]}>
-                  <span style={{ color: 'var(--muted)' }}>{x[0]}</span>
-                  <b style={{ color: 'var(--text-main)', fontWeight: '600' }}>{x[1]}</b>
+                <div className="summary-row" key={x[0]}>
+                  <span style={{ color: 'var(--muted)', fontSize: '14px', fontWeight: '500' }}>{x[0]}</span>
+                  <b style={{ color: 'var(--text-main)', fontSize: '15px' }}>{x[1]}</b>
                 </div>
               ))}
             </div>
           </section>
 
-          <aside className="glass-panel" style={{ alignSelf: 'start', padding: '32px', background: 'var(--surface)' }}>
-            <b style={{ fontSize: '16px', color: 'var(--text-main)', display: 'block', marginBottom: '16px' }}>Apply Coupon</b>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input placeholder="Enter code" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-main)', outline: 'none' }} />
-              <button className="hover-lift" style={{ background: 'var(--surface-alt)', color: 'var(--text-main)', border: '1px solid var(--border)', padding: '12px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}>Apply</button>
+          <aside className="card-elevated animate-fade-in-up" style={{ alignSelf: 'start', padding: '32px', background: 'var(--bg-surface)', animationDelay: '100ms' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+              <BadgePercent size={20} className="text-primary" />
+              <b style={{ fontSize: '16px', color: 'var(--text-main)' }}>Apply Coupon</b>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input placeholder="Enter code" style={{ flex: 1, padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-main)', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'} onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'} />
+              <button className="btn btn-secondary" style={{ padding: '0 24px' }}>Apply</button>
+            </div>
+            
+            <div className="badge badge-success" style={{ display: 'inline-flex', marginBottom: '32px' }}>
+              Available: FREECONSULT
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '32px 0 24px', borderTop: '1px dashed var(--border)', paddingTop: '24px' }}>
-              <span style={{ fontSize: '15px', color: 'var(--text-main)', fontWeight: '600' }}>Total Amount</span>
-              <b style={{ fontSize: '24px', color: 'var(--text-main)' }}>₹{doctor.fee || "0"}</b>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', color: 'var(--text-muted)', fontSize: '14px' }}>
+              <span>Consultation Fee</span>
+              <span>₹{doctor.fee || "0"}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', color: 'var(--success)', fontSize: '14px', fontWeight: '600' }}>
+              <span>Platform Fee Discount</span>
+              <span>-₹49</span>
             </div>
 
-            <button className="hover-lift" onClick={confirm} disabled={submitting} style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '16px', width: '100%', borderRadius: '12px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', opacity: submitting ? 0.7 : 1, transition: 'all 0.2s' }}>
-              {submitting ? "Booking..." : "Confirm Booking"}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 32px', borderTop: '2px dashed var(--border)', paddingTop: '24px' }}>
+              <span style={{ fontSize: '16px', color: 'var(--text-main)', fontWeight: '700' }}>Total Amount</span>
+              <b style={{ fontSize: '28px', color: 'var(--text-main)' }}>₹{doctor.fee || "0"}</b>
+            </div>
+
+            <button className="btn btn-primary" onClick={confirm} disabled={submitting} style={{ padding: '16px', width: '100%', justifyContent: 'center', fontSize: '16px', fontWeight: '700', boxShadow: '0 8px 24px rgba(46, 102, 110, 0.25)', height: '56px' }}>
+              {submitting ? <div className="loading-spinner"></div> : "Confirm Booking"}
             </button>
+            <p className="text-muted text-center mt-4" style={{ fontSize: '12px' }}>By confirming, you agree to our terms and conditions.</p>
           </aside>
         </div>
       </div>

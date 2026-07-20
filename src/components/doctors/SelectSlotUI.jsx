@@ -61,7 +61,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
         <div className="slots-section">
           <div className="section-title-row" style={{ justifyContent: "space-between", width: "100%" }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <Calendar size={18} color="#2e666e" />
+              <Calendar size={18} color="var(--primary)" />
               <h4 className="step-prompt" style={{ margin: 0 }}>Available Slots</h4>
             </div>
             <span className="selected-date-badge">Sat, Jul {selectedDate}, 2026</span>

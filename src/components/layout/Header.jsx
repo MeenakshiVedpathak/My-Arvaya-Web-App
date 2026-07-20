@@ -1,4 +1,4 @@
-import { HeartPulse, Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle } from "lucide-react";
+import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -7,23 +7,25 @@ export default function Header() {
   const go = useNavigate();
 
   return (
-    <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
-      {/* ── Top Bar ── */}
-      <div style={{ background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
-        <div className="container flex justify-between items-center" style={{ height: '32px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
-          <div className="flex gap-4">
-            <span className="flex items-center gap-1 cursor-pointer hover:text-primary"><Smartphone size={14}/> Download App</span>
-            <span className="flex items-center gap-1 cursor-pointer hover:text-primary"><HelpCircle size={14}/> Help Center</span>
-          </div>
-          <div className="flex gap-4">
-            <span className="cursor-pointer hover:text-primary">For Providers</span>
-            <span className="cursor-pointer hover:text-primary">Corporate Health</span>
+    <>
+      {/* ── Main Header ── */}
+      <header className="glass" style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
+        
+        {/* Top Bar inside Header */}
+        <div style={{ borderBottom: '1px solid var(--border)', background: 'rgba(241, 245, 249, 0.4)' }}>
+          <div className="container flex justify-between items-center" style={{ height: '32px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
+            <div className="flex gap-4">
+              <span className="flex items-center gap-1 cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}><Smartphone size={14}/> Download App</span>
+              <span className="flex items-center gap-1 cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}><HelpCircle size={14}/> Help Center</span>
+            </div>
+            <div className="flex gap-4">
+              <span className="cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>For Providers</span>
+              <span className="cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Corporate Health</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Main Header ── */}
-      <div className="container flex justify-between items-center" style={{ height: '76px', padding: '0 24px' }}>
+        <div className="container flex justify-between items-center" style={{ height: '76px', padding: '0 24px' }}>
         
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2" style={{ marginRight: '32px' }}>
@@ -31,21 +33,21 @@ export default function Header() {
         </Link>
         
         {/* Universal Search Bar */}
-        <div className="flex-1 flex items-center" style={{ maxWidth: '600px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', height: '44px' }}>
+        <div className="flex-1 flex items-center" style={{ maxWidth: '600px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'rgba(255, 255, 255, 0.6)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', height: '44px', transition: 'box-shadow 0.3s, border-color 0.3s' }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(46, 102, 110, 0.1)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}>
           
           {/* Location Selector */}
-          <div className="flex items-center gap-1" style={{ padding: '0 16px', borderRight: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', background: 'var(--bg-app)', height: '100%' }}>
-            <MapPin size={16} className="text-muted" />
+          <div className="flex items-center gap-1" style={{ padding: '0 16px', borderRight: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', background: 'var(--bg-app)', height: '100%', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--primary-light)'} onMouseOut={e => e.currentTarget.style.background = 'var(--bg-app)'}>
+            <MapPin size={16} className="text-primary" />
             <span>Bangalore</span>
             <ChevronDown size={16} className="text-muted" />
           </div>
 
           {/* Search Input */}
-          <div className="flex-1 flex items-center gap-2" style={{ padding: '0 16px', background: 'var(--bg-surface)' }}>
+          <div className="flex-1 flex items-center gap-2" style={{ padding: '0 16px', background: 'transparent' }}>
             <Search size={18} className="text-muted" />
             <input 
-              placeholder="Search doctors, clinics, hospitals, diseases..." 
-              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px' }}
+              placeholder="Search doctors, clinics, tests…" 
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px', color: 'var(--text-main)' }}
             />
           </div>
         </div>
@@ -72,7 +74,8 @@ export default function Header() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <button className="btn btn-primary" onClick={() => openLoginModal()} style={{ fontSize: '14px' }}>
+              <button className="btn btn-primary flex items-center gap-2" onClick={() => openLoginModal()} style={{ fontSize: '14px' }}>
+                <User size={16} />
                 Login / Sign Up
               </button>
             </div>
@@ -82,8 +85,8 @@ export default function Header() {
       </div>
 
       {/* ── Secondary Navigation ── */}
-      <div style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
-        <div className="container flex items-center gap-6" style={{ height: '48px', overflowX: 'auto' }}>
+      <div style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
+        <div className="container flex items-center gap-6 no-scrollbar" style={{ height: '48px', overflowX: 'auto' }}>
           {[
             ["Home", "/"],
             ["Consult Doctors", "/doctors"],
@@ -92,12 +95,11 @@ export default function Header() {
             ["Patient Portal", "/records"],
             ["Wallet", "/wallet"],
             ["Rewards", "/rewards"],
-            ["Analytics", "/analytics"],
-            ["🚨 24/7 Ambulance", "/ambulance"],
-          ].map((x) => (
+            ["Analytics", "/analytics"]
+          ].map(([label, path]) => (
             <NavLink 
-              key={x[0]} 
-              to={x[1]}
+              key={label} 
+              to={path}
               style={({ isActive }) => ({
                 color: isActive ? 'var(--primary)' : 'var(--text-main)',
                 fontWeight: isActive ? '600' : '500',
@@ -107,15 +109,18 @@ export default function Header() {
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 4px',
-                transition: 'all 0.2s',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                 whiteSpace: 'nowrap'
               })}
+              onMouseOver={e => { if (!e.currentTarget.classList.contains('active')) e.currentTarget.style.color = 'var(--primary)'; }}
+              onMouseOut={e => { if (!e.currentTarget.classList.contains('active')) e.currentTarget.style.color = ''; }}
             >
-              {x[0]}
+              {label}
             </NavLink>
           ))}
         </div>
       </div>
     </header>
+    </>
   );
 }

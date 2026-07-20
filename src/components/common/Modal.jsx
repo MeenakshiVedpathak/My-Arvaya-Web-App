@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = "600px" }) {
   useEffect(() => {
@@ -13,7 +14,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "60
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content" 
@@ -30,6 +31,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "60
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

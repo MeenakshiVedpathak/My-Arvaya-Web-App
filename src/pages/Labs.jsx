@@ -1,4 +1,4 @@
-import { Search, ChevronRight, Activity, FlaskConical, Clock, Heart, ShieldCheck } from "lucide-react";
+import { Search, ChevronRight, Activity, FlaskConical, Clock, Heart, ShieldCheck, Sparkles } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getLabPackages } from "../services/dataService";
@@ -6,6 +6,8 @@ import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
 import SelectSlotUI from "../components/doctors/SelectSlotUI";
 import Modal from "../components/common/Modal";
+
+const borderColors = ['var(--primary)', 'var(--accent)', '#3D7A83', '#1F4F57'];
 
 export default function Labs() {
   const go = useNavigate();
@@ -43,49 +45,64 @@ export default function Labs() {
   };
 
   return (
-    <main className="page" style={{ padding: 0, background: 'var(--bg-app)' }}>
+    <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
       <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
           <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" className="hover:text-primary">Home</Link> <ChevronRight size={12} /> <span>Lab Tests & Packages</span>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Lab Tests & Packages</span>
           </div>
           <h1 className="text-h2" style={{ fontSize: '24px' }}>Diagnostic Tests & Packages</h1>
           <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Safe, secure, and accurate home sample collection</p>
         </div>
       </div>
 
-      <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px', display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
+      <style>{`
+        .labs-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+        @media (max-width: 768px) { .labs-layout { grid-template-columns: 1fr; } }
+        .lab-card { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .lab-card:hover { box-shadow: 0 12px 32px rgba(46, 102, 110, 0.12); transform: translateY(-3px); }
+      `}</style>
+
+      <div className="container labs-layout" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         
         {/* ── Sidebar ── */}
         <aside>
-          <div className="card mb-4" style={{ padding: '16px' }}>
-             <h3 style={{ fontSize: '15px', marginBottom: '16px' }}>Search Tests</h3>
-             <div className="flex items-center gap-2" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px' }}>
-               <Search size={16} className="text-muted" />
-               <input 
-                 placeholder="Search by test name..." 
-                 value={q}
-                 onChange={(e) => setQ(e.target.value)}
-                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px' }}
-               />
-             </div>
-          </div>
-          
-          <div className="card" style={{ padding: '16px' }}>
-            <h3 style={{ fontSize: '15px', marginBottom: '16px' }}>Browse by Organs</h3>
-            <div className="flex flex-col gap-3">
-              <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Heart size={14} className="text-accent"/> Heart</label>
-              <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Activity size={14} className="text-primary"/> Liver</label>
-              <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <FlaskConical size={14} className="text-muted"/> Kidney</label>
+          <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '180px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+            <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <b style={{ fontSize: '15px' }}>Filters</b>
+              <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => setQ("")}>RESET</span>
             </div>
-          </div>
-          
-          <div className="mt-6 p-4 rounded-md flex items-start gap-3" style={{ background: 'var(--success-bg)', border: '1px solid #bbf7d0' }}>
-            <ShieldCheck size={24} className="text-success" />
-            <div>
-              <b style={{ fontSize: '13px', display: 'block', color: 'var(--success)' }}>100% Safe & Hygienic</b>
-              <span className="text-muted" style={{ fontSize: '11px' }}>Phlebotomists follow strict safety protocols</span>
+
+            <div className="flex flex-col gap-6">
+              <div>
+                <div className="flex items-center gap-2 mb-4" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', transition: 'border-color 0.2s, box-shadow 0.2s', background: 'var(--bg-app)' }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(46, 102, 110, 0.1)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                  <Search size={16} className="text-muted" />
+                  <input 
+                    placeholder="Search by test name..." 
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--text-main)' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Browse by Organs</b>
+                <div className="flex flex-col gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Heart size={14} className="text-accent"/> Heart</label>
+                  <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Activity size={14} className="text-primary"/> Liver</label>
+                  <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <FlaskConical size={14} className="text-muted"/> Kidney</label>
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--success-bg)', border: '1px solid #bbf7d0', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <ShieldCheck size={24} className="text-success" style={{ flexShrink: 0 }} />
+                <div>
+                  <b style={{ fontSize: '13px', display: 'block', color: 'var(--success)' }}>100% Safe & Hygienic</b>
+                  <span className="text-muted" style={{ fontSize: '11px' }}>Phlebotomists follow strict safety protocols</span>
+                </div>
+              </div>
             </div>
           </div>
         </aside>
@@ -93,35 +110,70 @@ export default function Labs() {
         {/* ── Main Content ── */}
         <section>
           {loading ? (
-            <div className="text-center text-muted" style={{ padding: "60px 0" }}>
-              <div className="loading-spinner mb-4" />
-              <p>Loading packages...</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <article key={i} className="card-elevated flex flex-col" style={{ padding: '0', minHeight: '320px', overflow: 'hidden' }}>
+                  <div className="skeleton" style={{ height: '120px', borderRadius: 0 }}></div>
+                  <div style={{ padding: '20px' }}>
+                    <div className="skeleton skeleton-title" style={{ width: '80%' }}></div>
+                    <div className="skeleton skeleton-text" style={{ width: '40%' }}></div>
+                    <div className="flex gap-2 mb-4 mt-4">
+                      <div className="skeleton skeleton-text" style={{ width: '80px', borderRadius: '99px', height: '24px' }}></div>
+                      <div className="skeleton skeleton-text" style={{ width: '80px', borderRadius: '99px', height: '24px' }}></div>
+                    </div>
+                    <div className="flex justify-between items-end mt-auto" style={{ borderTop: '1px dashed var(--border)', paddingTop: '16px' }}>
+                      <div className="skeleton skeleton-text" style={{ width: '60px', height: '24px' }}></div>
+                      <div className="skeleton skeleton-btn" style={{ width: '80px' }}></div>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-              {filteredPackages.map((pkg) => (
-                <article className="card card-hover flex flex-col" key={pkg.title} style={{ padding: '20px' }}>
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 style={{ fontSize: '16px', color: 'var(--text-main)', lineHeight: 1.3, fontWeight: '700' }}>{pkg.title}</h3>
-                  </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+              {filteredPackages.map((pkg, idx) => (
+                <article className="card-elevated lab-card flex flex-col" key={pkg.title} style={{ padding: '0', position: 'relative', borderLeft: `3px solid ${borderColors[idx % borderColors.length]}` }}>
+                  {idx === 0 && <div className="ribbon" style={{ display: 'flex', alignItems: 'center', zIndex: 10, fontSize: '10px', padding: '4px 8px' }}><Sparkles size={10} style={{ marginRight: '4px' }} /> Most Booked</div>}
                   
-                  <div className="flex gap-2 mb-4">
-                    <span className="badge badge-success" style={{ background: '#e0f2fe', color: '#0284c7' }}><Activity size={12}/> {pkg.tests || "30+ Tests"}</span>
-                    <span className="badge" style={{ background: 'var(--bg-app)', color: 'var(--text-muted)' }}><Clock size={12}/> 24 Hrs Report</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-end mt-auto" style={{ borderTop: '1px dashed var(--border)', paddingTop: '16px' }}>
-                    <div>
-                      {pkg.oldPrice && <span className="text-muted" style={{ fontSize: '12px', display: 'flex', gap: '4px' }}><s>{pkg.oldPrice}</s> <b className="text-success">{pkg.discount}</b></span>}
-                      {pkg.price && <b style={{ fontSize: '20px', color: 'var(--text-main)', display: 'block' }}>{pkg.price}</b>}
+                  {/* Package Image */}
+                  {pkg.img && (
+                    <div style={{ height: '120px', overflow: 'hidden', background: 'var(--primary-light)', borderRadius: '12px 12px 0 0' }}>
+                      <img 
+                        src={pkg.img} 
+                        alt={pkg.title} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                      />
                     </div>
-                    <button 
-                      className="btn btn-accent"
-                      onClick={() => setSelectedPackage(pkg)}
-                      style={{ padding: '10px 20px' }}
-                    >
-                      Book
-                    </button>
+                  )}
+
+                  <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.3, fontWeight: '700' }}>{pkg.title}</h3>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', alignSelf: 'flex-start', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                      <ShieldCheck size={10}/> NABL Accredited
+                    </div>
+                    
+                    <div className="flex gap-2 mb-3" style={{ flexWrap: 'wrap' }}>
+                      <span className="badge badge-success" style={{ background: '#E4EEEF', color: '#2E666E', padding: '2px 6px', fontSize: '11px' }}><Activity size={10}/> {pkg.tests || "30+ Tests"} Included</span>
+                      <span className="badge" style={{ background: 'var(--bg-app)', color: 'var(--text-muted)', padding: '2px 6px', fontSize: '11px' }}><Clock size={10}/> 24 Hrs Report</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-end mt-auto" style={{ borderTop: '1px dashed var(--border)', paddingTop: '12px' }}>
+                      <div>
+                        {pkg.oldPrice && <span className="text-muted" style={{ fontSize: '11px', display: 'flex', gap: '4px' }}><s>{pkg.oldPrice}</s> <b className="text-success">{pkg.discount}</b></span>}
+                        {pkg.price && <b style={{ fontSize: '18px', color: 'var(--text-main)', display: 'block' }}>{pkg.price}</b>}
+                      </div>
+                      <button 
+                        className="btn btn-accent"
+                        onClick={() => setSelectedPackage(pkg)}
+                        style={{ padding: '6px 14px', fontSize: '13px', minHeight: '32px' }}
+                      >
+                        Book
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}

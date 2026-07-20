@@ -83,7 +83,7 @@ export default function LoginModal() {
       }}>
         <button
           onClick={handleClose}
-          className="hover-lift"
+          className="btn btn-primary hover-glow"
           style={{
             position: 'absolute', top: '16px', right: '16px', background: 'var(--bg-app)',
             border: 'none', cursor: 'pointer', color: 'var(--text-main)', padding: '8px', borderRadius: '50%',
@@ -144,7 +144,7 @@ function Landing({ onAbha, onMobile }) {
         <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Login or sign up to access your account</p>
       </div>
 
-      <button onClick={onMobile} className="hover-lift" style={{
+      <button onClick={onMobile} className="hover-glow" style={{
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: 'var(--primary)', color: '#fff', border: 'none', padding: '16px',
         borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer',
@@ -162,7 +162,7 @@ function Landing({ onAbha, onMobile }) {
         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
       </div>
 
-      <button onClick={onAbha} className="hover-lift" style={{
+      <button onClick={onAbha} className="hover-glow" style={{
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: '#fff', color: 'var(--text-main)', border: '1px solid var(--border)', padding: '16px',
         borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer'

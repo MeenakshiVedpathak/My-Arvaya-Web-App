@@ -16,7 +16,7 @@ export default function Analytics() {
   return (
     <main className="page" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
+      <div className="bg-mesh-primary" style={{ padding: '40px 0', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
           <h1 className="text-h2" style={{ fontSize: '24px' }}>Health Analytics</h1>
           <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Track your vital signs and health progression</p>
@@ -27,7 +27,7 @@ export default function Analytics() {
         {/* KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
           
-          <div className="card" style={{ padding: '20px' }}>
+          <div className="card-elevated hover-glow animate-fade-in-up" style={{ padding: '24px' }}>
             <div className="flex justify-between items-start mb-4">
               <div style={{ background: '#fef2f2', padding: '12px', borderRadius: '50%' }}>
                 <Heart size={24} color="#ef4444" />
@@ -40,10 +40,10 @@ export default function Analytics() {
             <p className="text-muted" style={{ fontSize: '13px' }}>Avg. Heart Rate</p>
           </div>
 
-          <div className="card" style={{ padding: '20px' }}>
+          <div className="card-elevated hover-glow animate-fade-in-up delay-100" style={{ padding: '24px' }}>
             <div className="flex justify-between items-start mb-4">
-              <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '50%' }}>
-                <Activity size={24} color="#3b82f6" />
+              <div style={{ background: '#E4EEEF', padding: '12px', borderRadius: '50%' }}>
+                <Activity size={24} color="#2E666E" />
               </div>
               <span className="badge flex items-center gap-1" style={{ background: '#fee2e2', color: '#ef4444', fontSize: '12px' }}>
                 <ArrowUpRight size={12}/> 5%
@@ -53,7 +53,7 @@ export default function Analytics() {
             <p className="text-muted" style={{ fontSize: '13px' }}>Blood Pressure</p>
           </div>
 
-          <div className="card" style={{ padding: '20px' }}>
+          <div className="card-elevated hover-glow animate-fade-in-up delay-200" style={{ padding: '24px' }}>
             <div className="flex justify-between items-start mb-4">
               <div style={{ background: '#f0fdf4', padding: '12px', borderRadius: '50%' }}>
                 <TrendingUp size={24} color="#22c55e" />
@@ -66,10 +66,10 @@ export default function Analytics() {
             <p className="text-muted" style={{ fontSize: '13px' }}>Daily Activity</p>
           </div>
 
-          <div className="card" style={{ padding: '20px' }}>
+          <div className="card-elevated hover-glow animate-fade-in-up delay-300" style={{ padding: '24px' }}>
             <div className="flex justify-between items-start mb-4">
-              <div style={{ background: '#fdf4ff', padding: '12px', borderRadius: '50%' }}>
-                <Droplet size={24} color="#d946ef" />
+              <div style={{ background: '#DCE9EB', padding: '12px', borderRadius: '50%' }}>
+                <Droplet size={24} color="#FB913F" />
               </div>
               <span className="badge flex items-center gap-1" style={{ background: '#fee2e2', color: '#ef4444', fontSize: '12px' }}>
                 <ArrowDownRight size={12}/> 1%
@@ -83,7 +83,7 @@ export default function Analytics() {
 
         {/* Charts Mock */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card-elevated animate-fade-in-up delay-200" style={{ padding: '32px', borderRadius: 'var(--radius-lg)' }}>
             <h3 style={{ fontSize: '16px', marginBottom: '24px' }}>Activity Trend (Last 7 Days)</h3>
             <div style={{ height: '300px', display: 'flex', alignItems: 'flex-end', gap: '12px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>
               {/* Mock Bar Chart */}
@@ -95,7 +95,7 @@ export default function Analytics() {
             </div>
           </div>
 
-          <div className="card" style={{ padding: '24px' }}>
+          <div className="card-elevated animate-fade-in-up delay-300" style={{ padding: '32px', borderRadius: 'var(--radius-lg)' }}>
             <h3 style={{ fontSize: '16px', marginBottom: '24px' }}>Recent Health Logs</h3>
             <div className="flex flex-col gap-4">
               <div style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>

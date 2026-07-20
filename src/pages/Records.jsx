@@ -5,8 +5,8 @@ import { getRecords } from "../services/dataService";
 
 const iconMap = {
   "Lab Report": { Icon: HeartPulse, color: "#38a169", bg: "#f0fff4" },
-  "Diagnostic": { Icon: FileText, color: "#805ad5", bg: "#faf5ff" },
-  "Prescription": { Icon: Stethoscope, color: "#ed8936", bg: "#fff5eb" },
+  "Diagnostic": { Icon: FileText, color: "#1F4F57", bg: "#DCE9EB" },
+  "Prescription": { Icon: Stethoscope, color: "#FB913F", bg: "#FEF0E2" },
 };
 
 export default function Records() {
@@ -17,7 +17,6 @@ export default function Records() {
   let [loading, setLoading] = useState(true);
   let [loadingMore, setLoadingMore] = useState(false);
   let [activeTab, setActiveTab] = useState("personal");
-  let [view, setView] = useState("list"); // 'list' | 'add'
 
   const fetchRecords = (page) => {
     if (page === 1) setLoading(true);
@@ -38,36 +37,6 @@ export default function Records() {
     fetchRecords(1);
   }, []);
 
-  if (view === "add") {
-    return (
-      <main className="page">
-        <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-          <div className="container">
-            <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-              <Link to="/" className="hover:text-primary">Home</Link> <ChevronRight size={12} /> <span style={{ cursor: 'pointer', color: 'var(--primary)' }} onClick={() => setView("list")}>Records</span> <ChevronRight size={12} /> <span>Upload</span>
-            </div>
-            <h1 className="text-h2" style={{ fontSize: '24px' }}>Upload Health Record</h1>
-            <p className="text-muted mt-2" style={{ fontSize: '15px' }}>Securely store your medical documents with 256-bit encryption.</p>
-          </div>
-        </div>
-
-        <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
-          <div style={{ maxWidth: '600px', margin: '0 auto', background: 'var(--bg-surface)', padding: '48px 40px', borderRadius: '24px', border: '1px dashed var(--primary)', textAlign: 'center', boxShadow: 'var(--shadow-sm)', cursor: 'pointer' }} onClick={() => alert("File explorer opened")} className="hover-lift">
-            <div style={{ width: '100px', height: '100px', background: 'var(--primary-light)', borderRadius: '50%', margin: '0 auto 24px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CloudUpload size={48} color="var(--primary)" />
-            </div>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>Drag and drop your report here</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '15px', marginBottom: '32px' }}>Supported formats: JPEG, PNG, PDF, DICOM (Max 15MB)</p>
-            
-            <button className="btn btn-primary" style={{ padding: '14px 32px', fontSize: '15px', borderRadius: '12px' }}>
-              Browse Files
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="page" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
@@ -85,11 +54,6 @@ export default function Records() {
               <p className="text-muted mt-2" style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Lock size={14} /> ISO 27001 Certified • 256-bit Encrypted Storage
               </p>
-            </div>
-            <div className="reports-actions">
-              <button className="btn btn-primary hover-lift flex items-center gap-2" style={{ boxShadow: 'var(--shadow-md)' }} onClick={() => setView("add")}>
-                <Plus size={18} /> Upload Record
-              </button>
             </div>
           </div>
         </div>
@@ -160,7 +124,7 @@ export default function Records() {
             </div>
 
             {activeTab === 'abha' ? (
-              <div className="glass-panel" style={{ textAlign: 'center', padding: '80px 40px', background: 'var(--surface)' }}>
+              <div className="card-elevated" style={{ textAlign: 'center', padding: '80px 40px', background: 'var(--bg-surface)' }}>
                 <img src="/empty_reports.png" alt="No reports found" style={{ height: '120px', marginBottom: '24px', opacity: 0.5 }} />
                 <h3 style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '12px', fontWeight: '700' }}>No ABHA records found</h3>
                 <p style={{ color: 'var(--muted)', fontSize: '16px', maxWidth: '400px', margin: '0 auto 24px' }}>Link your ABHA ID to sync records from external hospitals and clinics.</p>
@@ -169,20 +133,33 @@ export default function Records() {
             ) : (
               <>
                 {loading ? (
-                  <div style={{ textAlign: "center", padding: "80px 0", color: "var(--muted)" }}>
-                    <div className="loading-spinner" />
-                    <p style={{ marginTop: '16px' }}>Decrypting vault...</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '24px' }}>
+                    {[1, 2, 3].map(i => (
+                      <div key={i} style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                        <div className="skeleton skeleton-avatar" style={{ width: '56px', height: '56px', borderRadius: '16px' }}></div>
+                        <div style={{ flex: 1 }}>
+                          <div className="skeleton skeleton-title" style={{ width: '50%' }}></div>
+                          <div className="skeleton skeleton-text" style={{ width: '30%' }}></div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <div className="skeleton skeleton-btn" style={{ width: '80px' }}></div>
+                          <div className="skeleton skeleton-btn" style={{ width: '40px' }}></div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '27px', top: '40px', bottom: '40px', width: '2px', background: 'var(--border)', zIndex: 0 }}></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {records.map((rec) => {
                       const { Icon, color, bg } = iconMap[rec.type] || iconMap["Lab Report"];
                       return (
-                        <article className="hover-lift" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '20px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer' }} onClick={() => alert("Opening record...")}>
+                        <article className="hover-glow" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer', position: 'relative', zIndex: 1 }} onClick={() => alert("Opening record...")}>
 
                           {/* Icon Block */}
-                          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Icon size={28} />
+                          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '4px solid var(--bg)', boxShadow: '0 0 0 4px var(--bg)' }}>
+                            <Icon size={24} />
                           </div>
 
                           {/* Details */}
@@ -199,23 +176,24 @@ export default function Records() {
 
                           {/* Actions */}
                           <div style={{ display: 'flex', gap: '12px' }}>
-                            <button className="hover-lift" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => { e.stopPropagation(); alert("Opening report: " + rec.title); }}>
+                            <button className="btn hover-glow" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => { e.stopPropagation(); alert("Opening report: " + rec.title); }}>
                               View
                             </button>
-                            <button className="hover-lift" style={{ background: 'var(--surface-alt)', color: 'var(--text-main)', border: '1px solid var(--border)', padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Download" onClick={(e) => { e.stopPropagation(); alert("Downloading..."); }}>
+                            <button className="btn btn-secondary hover-glow" style={{ padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Download" onClick={(e) => { e.stopPropagation(); alert("Downloading..."); }}>
                               <Download size={18} />
                             </button>
                           </div>
                         </article>
                       );
                     })}
+                    </div>
                   </div>
                 )}
 
                 {records.length < count && !loading && (
                   <div style={{ textAlign: 'center', marginTop: '40px' }}>
                     <button
-                      className="hover-lift"
+                      className="btn hover-glow"
                       onClick={() => {
                         const nextPage = pageIndex + 1;
                         setPageIndex(nextPage);
