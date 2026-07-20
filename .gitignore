@@ -2,5 +2,5 @@ node_modules
 dist
 .env
 
-.zip
-.rar
+*.zip
+*.rar

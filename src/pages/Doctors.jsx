@@ -152,46 +152,44 @@ export default function Doctors() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+          <div className="flex flex-col gap-4">
             {filtered.map((d, idx) => (
-              <article key={d.id} className="card-elevated doctor-card-main flex flex-col animate-fade-in-up" style={{ padding: '0', position: 'relative', borderLeft: `3px solid var(--primary)`, animationDelay: `${idx * 80}ms` }}>
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <article key={d.id} className="card-elevated doctor-card-main flex animate-fade-in-up" style={{ padding: '0', position: 'relative', borderLeft: `3px solid var(--primary)`, animationDelay: `${idx * 80}ms` }}>
+                <div style={{ padding: '16px 20px', display: 'flex', gap: '20px', alignItems: 'center', width: '100%' }}>
                   
-                  <div className="flex gap-3 mb-3">
-                    <Avatar doctor={d} size="48px" />
-                    <div>
-                      <b className="text-primary cursor-pointer flex items-start gap-1" style={{ fontSize: '15px', lineHeight: 1.2, marginBottom: '2px', transition: 'color 0.2s' }} onClick={() => handleSelect(d)} onMouseOver={e => e.currentTarget.style.textDecoration='underline'} onMouseOut={e => e.currentTarget.style.textDecoration='none'}>
-                        {d.name} <CheckCircle2 size={14} className="text-success" style={{ marginTop: '2px', flexShrink: 0 }} title="Medical Registration Verified" />
+                  {/* Left: Avatar */}
+                  <Avatar doctor={d} size="80px" />
+                  
+                  {/* Middle: Details */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div className="flex items-center gap-3">
+                      <b className="text-primary cursor-pointer flex items-center gap-1" style={{ fontSize: '18px', transition: 'color 0.2s' }} onClick={() => handleSelect(d)} onMouseOver={e => e.currentTarget.style.textDecoration='underline'} onMouseOut={e => e.currentTarget.style.textDecoration='none'}>
+                        {d.name} <CheckCircle2 size={16} className="text-success" title="Medical Registration Verified" />
                       </b>
-                      <p className="text-muted" style={{ fontSize: '12px', marginBottom: '2px' }}>{d.specialty}</p>
-                      <div className="flex items-center gap-1 text-muted" style={{ fontSize: '11px' }}>
-                        <MapPin size={10} /> Bangalore
+                      <div style={{ fontSize: '11px', color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                        <ShieldCheck size={12}/> Medical Reg Verified
                       </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-muted" style={{ fontSize: '13px' }}>
+                      <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>{d.specialty}</span>
+                      <span className="flex items-center gap-1"><MapPin size={14} /> {d.hospital}, Bangalore</span>
+                      <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>{d.experience} Exp.</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-muted mt-1" style={{ fontSize: '12px' }}>
+                      <span className="badge badge-success flex items-center gap-1" style={{ background: '#E4EEEF', color: '#2E666E', padding: '4px 8px' }}><ThumbsUp size={12} /> {Math.round(d.rating * 20)}%</span>
+                      <span><b>{d.reviews}</b> Patient Stories</span>
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '10px', color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', alignSelf: 'flex-start', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
-                    <ShieldCheck size={10}/> Medical Reg Verified
-                  </div>
-                  
-                  <p className="text-main mb-1" style={{ fontSize: '12px', fontWeight: '500' }}>{d.experience} Experience</p>
-                  <p className="text-main mb-3" style={{ fontSize: '12px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {d.hospital}
-                  </p>
-
-                  <div className="flex items-center gap-3 text-muted mb-3" style={{ fontSize: '11px' }}>
-                    <span className="badge badge-success flex items-center gap-1" style={{ background: '#E4EEEF', color: '#2E666E', padding: '2px 6px' }}><ThumbsUp size={10} /> {Math.round(d.rating * 20)}%</span>
-                    <span><b>{d.reviews}</b> Stories</span>
-                  </div>
-
-                  <div className="flex justify-between items-end mt-auto" style={{ borderTop: '1px dashed var(--border)', paddingTop: '12px' }}>
-                    <div>
-                      <div className="flex items-center gap-1 mb-1" style={{ fontSize: '10px', color: 'var(--success)' }}>
-                        <span className="pulse-dot" style={{ width: '5px', height: '5px' }} /> Available Today
-                      </div>
-                      <b style={{ fontSize: '18px', color: 'var(--text-main)', display: 'block' }}>₹{d.fee}</b>
+                  {/* Right: Booking & Price */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', borderLeft: '1px dashed var(--border)', paddingLeft: '24px', minWidth: '160px' }}>
+                    <div className="flex items-center gap-1 mb-2" style={{ fontSize: '12px', color: 'var(--success)' }}>
+                      <span className="pulse-dot" style={{ width: '6px', height: '6px' }} /> Available Today
                     </div>
-                    <button className="btn btn-accent" onClick={() => handleSelect(d)} style={{ padding: '6px 14px', fontSize: '13px', minHeight: '32px' }}>Book</button>
+                    <b style={{ fontSize: '22px', color: 'var(--text-main)', display: 'block', marginBottom: '16px' }}>₹{d.fee}</b>
+                    <button className="btn btn-accent" onClick={() => handleSelect(d)} style={{ width: '100%', padding: '10px 16px', fontSize: '14px' }}>Book Visit</button>
                   </div>
 
                 </div>
