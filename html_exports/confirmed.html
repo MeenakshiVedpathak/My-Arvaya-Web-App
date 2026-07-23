@@ -180,23 +180,37 @@
           if (!btn) return;
           const text = (btn.textContent || "").trim().toLowerCase();
 
+          // Open modal when Book button clicked on lab card
           if (text === "book" || text === "book test" || text.includes("book now")) {
             e.preventDefault();
             if (labModalOverlay) labModalOverlay.style.display = "flex";
+            return;
+          }
+
+          // Enable confirm button when time slot or date is picked
+          if (btn.classList.contains("time-slot-btn") || btn.classList.contains("fc-date")) {
+            const confirmBtn = document.querySelector("#static-labs-container .bottom-fixed-action button, #static-labs-container .btn-accent");
+            if (confirmBtn) {
+              confirmBtn.removeAttribute("disabled");
+              confirmBtn.disabled = false;
+              confirmBtn.style.opacity = "1";
+              confirmBtn.style.cursor = "pointer";
+            }
+            return;
+          }
+
+          // Confirm Lab Schedule & Navigate to confirmed.html
+          if (text.includes("confirm schedule") || text.includes("confirm sample") || (text.includes("confirm") && labModalOverlay && labModalOverlay.style.display === "flex")) {
+            e.preventDefault();
+            window.location.href = "confirmed.html";
+            return;
+          }
+
+          // Close modal on X or overlay click
+          if (e.target === labModalOverlay || btn.classList.contains("modal-close-btn")) {
+            if (labModalOverlay) labModalOverlay.style.display = "none";
           }
         });
-
-        if (labModalOverlay) {
-          labModalOverlay.addEventListener("click", (e) => {
-            const btn = e.target.closest("button");
-            if (btn && (btn.textContent.toLowerCase().includes("confirm sample collection") || btn.textContent.toLowerCase().includes("confirm schedule"))) {
-              e.preventDefault();
-              window.location.href = "confirmed.html";
-            } else if (e.target === labModalOverlay || btn?.classList.contains("modal-close-btn")) {
-              labModalOverlay.style.display = "none";
-            }
-          });
-        }
       }
 
       // ── 5. Ambulance Request Modal ──

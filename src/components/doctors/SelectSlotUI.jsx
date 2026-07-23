@@ -7,7 +7,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
 
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDateObj, setSelectedDateObj] = useState(today);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(type === "lab" ? "10:00 AM" : null);
 
   const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
