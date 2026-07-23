@@ -5,8 +5,17 @@ import { getWallet } from "../services/dataService";
 
 export default function Wallet() {
   let go = useNavigate();
-  let [wallet, setWallet] = useState(null);
-  let [loading, setLoading] = useState(true);
+  const defaultMockWallet = {
+    balance: 1250,
+    transactions: [
+      { id: 1, title: "Cashback – Dr. Priya", amount: "₹50", date: "10 Jul 2026", type: "credit" },
+      { id: 2, title: "Consultation Fee", amount: "₹600", date: "08 Jul 2026", type: "debit" },
+      { id: 3, title: "Referral Bonus", amount: "₹200", date: "05 Jul 2026", type: "credit" },
+      { id: 4, title: "Lab Test Payment", amount: "₹799", date: "02 Jul 2026", type: "debit" },
+    ],
+  };
+  let [wallet, setWallet] = useState(defaultMockWallet);
+  let [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getWallet().then(data => {

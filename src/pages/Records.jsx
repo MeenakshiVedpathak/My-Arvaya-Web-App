@@ -11,10 +11,14 @@ const iconMap = {
 
 export default function Records() {
   let go = useNavigate();
-  let [records, setRecords] = useState([]);
-  let [count, setCount] = useState(0);
+  let [records, setRecords] = useState([
+    { id: 1, title: "Blood Report", doctor: "Dr. Priya Sharma", date: "10 Jul 2026", type: "Lab Report" },
+    { id: 2, title: "ECG Report", doctor: "Dr. Arjun Verma", date: "05 Jul 2026", type: "Diagnostic" },
+    { id: 3, title: "Prescription", doctor: "Dr. Neha Kapoor", date: "01 Jul 2026", type: "Prescription" },
+  ]);
+  let [count, setCount] = useState(3);
   let [pageIndex, setPageIndex] = useState(1);
-  let [loading, setLoading] = useState(true);
+  let [loading, setLoading] = useState(false);
   let [loadingMore, setLoadingMore] = useState(false);
   let [activeTab, setActiveTab] = useState("personal");
 

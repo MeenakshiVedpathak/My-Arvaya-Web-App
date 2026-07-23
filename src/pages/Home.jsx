@@ -18,9 +18,7 @@ export default function Home() {
       title: <>24/7 Smart ICU Emergency &<br/>Mobile Dispatch</>,
       subtitle: "Rapid emergency ambulance dispatch equipped with mobile life support and live tracking.",
       primaryBtn: "Request Ambulance",
-      primaryAction: () => setShowAmbulanceModal(true),
-      secondaryBtn: "Hotline: 1800–ARVAYA–911",
-      secondaryAction: () => { window.location.href = "tel:18002782929"; },
+      primaryAction: () => go('/ambulance'),
       bg: "/banner_healthcare_1.png"
     },
     {
@@ -176,20 +174,22 @@ export default function Home() {
                 </button>
 
                 {/* Secondary Outlined CTA Button */}
-                <button 
-                  onClick={slide.secondaryAction} 
-                  style={{ 
-                    padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
-                    color: '#ffffff', background: 'rgba(255, 255, 255, 0.08)', 
-                    border: '1.5px solid rgba(255, 255, 255, 0.5)', borderRadius: '14px', 
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
-                    backdropFilter: 'blur(8px)', transition: 'all 0.3s' 
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.borderColor = '#ffffff'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
-                >
-                  {slide.secondaryBtn}
-                </button>
+                {slide.secondaryBtn && (
+                  <button 
+                    onClick={slide.secondaryAction} 
+                    style={{ 
+                      padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
+                      color: '#ffffff', background: 'rgba(255, 255, 255, 0.08)', 
+                      border: '1.5px solid rgba(255, 255, 255, 0.5)', borderRadius: '14px', 
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
+                      backdropFilter: 'blur(8px)', transition: 'all 0.3s' 
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.borderColor = '#ffffff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
+                  >
+                    {slide.secondaryBtn}
+                  </button>
+                )}
               </div>
             </div>
           ))}
