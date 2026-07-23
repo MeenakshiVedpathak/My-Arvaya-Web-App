@@ -14,6 +14,7 @@ import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
 import Analytics from "../pages/Analytics";
 import Ambulance from "../pages/Ambulance";
+import Profile from "../pages/Profile";
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -41,6 +42,7 @@ export default function AppRoutes() {
       <Route path="/rewards" element={<P><Rewards /></P>} />
       <Route path="/analytics" element={<P><Analytics /></P>} />
       <Route path="/ambulance" element={<P><Ambulance /></P>} />
+      <Route path="/profile" element={<P><Profile /></P>} />
     </Routes>
   );
 }

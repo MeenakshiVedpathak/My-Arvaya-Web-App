@@ -1,4 +1,4 @@
-import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2 } from "lucide-react";
+import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -15,9 +15,11 @@ export default function Header() {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [q, setQ] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const searchContainerRef = useRef(null);
   const locationPickerRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
   const cities = ["Bangalore", "Mumbai", "Delhi NCR", "Hyderabad", "Chennai", "Pune", "Kolkata"];
 
@@ -29,6 +31,9 @@ export default function Header() {
       }
       if (locationPickerRef.current && !locationPickerRef.current.contains(event.target)) {
         setIsLocationOpen(false);
+      }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -217,21 +222,57 @@ export default function Header() {
           {/* Right Auth CTA (Desktop) */}
           <div className="header-desktop-auth flex items-center gap-4" style={{ flexShrink: 0 }}>
             {user ? (
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-end">
-                  <span className="text-muted" style={{ fontSize: '12px' }}>Welcome,</span>
-                  <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{user.name.split(" ")[0]}</span>
-                </div>
-                <button 
-                  className="btn btn-secondary flex items-center gap-2"
-                  style={{ padding: '8px 12px' }}
-                  onClick={() => {
-                    logout();
-                    go("/");
-                  }}
+              <div className="flex items-center gap-4" ref={profileMenuRef} style={{ position: 'relative' }}>
+                <div 
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  style={{ padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '30px', background: 'var(--bg-surface)', transition: 'background 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'var(--bg-surface)'}
                 >
-                  <LogOut size={16} /> Logout
-                </button>
+                  <div className="flex flex-col items-end">
+                    <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{user.name.split(" ")[0]}</span>
+                  </div>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <ChevronDown size={16} className="text-muted" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                </div>
+
+                {/* Profile Dropdown */}
+                {isProfileMenuOpen && (
+                  <div style={{ position: 'absolute', top: '56px', right: 0, width: '220px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
+                    <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', marginBottom: '8px' }}>
+                      <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{user.name}</b>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user.phone || '+91 XXXXX XXXXX'}</span>
+                    </div>
+                    
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/profile"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Settings size={16} className="text-muted" /> Profile Management
+                    </div>
+                    
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        logout();
+                        go("/");
+                      }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--error, #e53e3e)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <LogOut size={16} /> Logout
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -302,22 +343,41 @@ export default function Header() {
             {/* User Profile / Auth CTA */}
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', background: 'var(--primary-light)' }}>
               {user ? (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Logged in as</span>
-                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)' }}>{user.name}</b>
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '18px' }}>
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Logged in as</span>
+                        <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)' }}>{user.name}</b>
+                      </div>
+                    </div>
                   </div>
-                  <button 
-                    className="btn btn-secondary flex items-center gap-1"
-                    style={{ padding: '6px 12px', fontSize: '13px' }}
-                    onClick={() => {
-                      logout();
-                      setMobileDrawerOpen(false);
-                      go("/");
-                    }}
-                  >
-                    <LogOut size={14} /> Logout
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      className="btn btn-primary flex-1 flex items-center justify-center gap-2"
+                      style={{ padding: '8px', fontSize: '13px' }}
+                      onClick={() => {
+                        setMobileDrawerOpen(false);
+                        go("/profile");
+                      }}
+                    >
+                      <Settings size={14} /> Profile Management
+                    </button>
+                    <button 
+                      className="btn btn-secondary flex items-center justify-center gap-2"
+                      style={{ padding: '8px 12px', fontSize: '13px' }}
+                      onClick={() => {
+                        logout();
+                        setMobileDrawerOpen(false);
+                        go("/");
+                      }}
+                    >
+                      <LogOut size={14} /> Logout
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div>
