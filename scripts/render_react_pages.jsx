@@ -49,55 +49,14 @@ import Ambulance from "../src/pages/Ambulance.jsx";
 import Analytics from "../src/pages/Analytics.jsx";
 import Wallet from "../src/pages/Wallet.jsx";
 import Rewards from "../src/pages/Rewards.jsx";
-import ABHA from "../src/pages/ABHA.jsx";
+import ABHA from "../src/pages/abha/index.jsx";
 import Signup from "../src/pages/Signup.jsx";
 
-// Standalone Login Page Component for login.html
+// Standalone Login Page Component for login.html rendering exact React LoginModal
 function StandaloneLoginPage() {
   return (
     <main className="page" style={{ padding: '60px 16px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)' }}>
-      <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px', display: 'flex', overflow: 'hidden', boxShadow: '0 25px 60px -12px rgba(0,0,0,0.15)', border: '1px solid var(--border)' }}>
-        
-        {/* Left Branding */}
-        <div style={{ flex: '1', background: 'linear-gradient(150deg, var(--primary-light) 0%, #ffffff 60%)', padding: '48px 40px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border)' }}>
-          <img src="logo.png" alt="Arvaya" style={{ height: '44px', marginBottom: '32px', width: 'fit-content' }} />
-          <h2 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.2', marginBottom: '16px' }}>
-            Your Health,<br /><span style={{ color: 'var(--primary)' }}>Simplified.</span>
-          </h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '32px', lineHeight: '1.7' }}>
-            Join India's most trusted healthcare platform. Experience hassle-free medical care, teleconsultations, and digital records.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>
-            <div>✓ Consult 10,000+ Top Doctors</div>
-            <div>✓ NABL Diagnostic Lab Tests with Home Collection</div>
-            <div>✓ Encrypted Health Records Vault</div>
-            <div>✓ ABHA Health Card Integration</div>
-          </div>
-        </div>
-
-        {/* Right Login Form */}
-        <div style={{ flex: '1', padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#fff' }}>
-          <h3 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px' }}>Sign In to Arvaya</h3>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>Enter your registered mobile number to get a verification OTP</p>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '8px' }}>Mobile Number</label>
-            <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', background: 'var(--bg-app)' }}>
-              <span style={{ padding: '14px 16px', fontWeight: '700', color: 'var(--text-muted)', borderRight: '1px solid var(--border)', fontSize: '15px' }}>+91</span>
-              <input type="tel" placeholder="Enter 10-digit mobile number" style={{ border: 'none', padding: '14px 16px', width: '100%', outline: 'none', background: 'transparent', fontSize: '15px', fontWeight: '600' }} defaultValue="9876543210" />
-            </div>
-          </div>
-
-          <button onClick={() => alert("OTP verified!")} className="btn btn-primary" style={{ width: '100%', padding: '16px', fontSize: '15px', fontWeight: '700', borderRadius: '12px', marginBottom: '20px' }}>
-            Send Verification OTP
-          </button>
-
-          <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
-            Don't have an account? <a href="signup.html" style={{ color: 'var(--primary)', fontWeight: '700' }}>Create Account</a>
-          </div>
-        </div>
-
-      </div>
+      <LoginModal forceOpen={true} />
     </main>
   );
 }
@@ -252,34 +211,53 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         }
       });
 
-      // ── 3. Global Booking Button Flow Router ──
+      // ── 3. ABHA Page Navigation Tabs (ABHA Data, Consents, Providers) ──
+      if (window.location.pathname.includes("abha.html")) {
+        const navBtns = document.querySelectorAll("nav button");
+        const tabData = document.getElementById("static-abha-tab-data");
+        const tabConsent = document.getElementById("static-abha-tab-consent");
+        const tabProvider = document.getElementById("static-abha-tab-provider");
+
+        navBtns.forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const btnText = btn.textContent.toLowerCase();
+
+            navBtns.forEach(b => {
+              b.style.color = "#6b7280";
+              b.style.borderBottom = "3px solid transparent";
+            });
+            btn.style.color = "var(--primary-dark)";
+            btn.style.borderBottom = "3px solid var(--primary)";
+
+            if (tabData) tabData.style.display = (btnText.includes("abha data") || btnText.includes("abha hub")) ? "block" : "none";
+            if (tabConsent) tabConsent.style.display = btnText.includes("consents") ? "block" : "none";
+            if (tabProvider) tabProvider.style.display = btnText.includes("providers") ? "block" : "none";
+          });
+        });
+      }
+
+      // ── 4. Global Booking & Ambulance Button Router ──
       document.body.addEventListener("click", (e) => {
         const btn = e.target.closest("button, a");
         if (!btn) return;
 
         const text = (btn.textContent || "").trim().toLowerCase();
 
-        // LAB TEST BOOKING FLOW
-        if (window.location.pathname.includes("labs.html") || btn.closest(".lab-card")) {
-          if (text === "book" || text === "book test" || text.includes("book now")) {
-            e.preventDefault();
-            const labCard = btn.closest(".lab-card");
-            const pkgTitle = labCard ? labCard.querySelector("h3").textContent : "Schedule Lab Test";
-            const modal = document.getElementById("static-lab-modal");
-            const modalTitle = document.getElementById("static-lab-modal-title");
-            if (modal) {
-              if (modalTitle) modalTitle.textContent = "Schedule Lab Test – " + pkgTitle;
-              modal.style.display = "flex";
-            }
-            return;
-          }
-        }
-
-        // EMERGENCY AMBULANCE FLOW
-        if (text.includes("request ambulance")) {
+        // AMBULANCE FLOW
+        if (text.includes("request ambulance") || text.includes("call ambulance")) {
           e.preventDefault();
           window.location.href = "ambulance.html";
           return;
+        }
+
+        // LAB TEST BOOKING FLOW
+        if (text === "book" || text === "book test" || text.includes("book now")) {
+          if (window.location.pathname.includes("labs.html") || btn.closest(".lab-card")) {
+            e.preventDefault();
+            window.location.href = "confirmed.html";
+            return;
+          }
         }
 
         // DOCTOR APPOINTMENT BOOKING FLOW
@@ -305,41 +283,8 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         }
       });
 
-      // ── 4. Lab Modal Interactions ──
-      const closeLabModalBtn = document.getElementById("close-static-lab-modal");
-      const labModal = document.getElementById("static-lab-modal");
-      if (closeLabModalBtn && labModal) {
-        closeLabModalBtn.addEventListener("click", () => {
-          labModal.style.display = "none";
-        });
-      }
-
-      const confirmLabBtn = document.getElementById("confirm-static-lab-booking");
-      if (confirmLabBtn) {
-        confirmLabBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.location.href = "confirmed.html";
-        });
-      }
-
-      const visitOptions = document.querySelectorAll(".lab-visit-option");
-      visitOptions.forEach(opt => {
-        opt.addEventListener("click", () => {
-          visitOptions.forEach(o => {
-            o.style.background = "var(--bg-app)";
-            o.style.borderColor = "var(--border)";
-            const b = o.querySelector("b");
-            if (b) b.style.color = "var(--text-main)";
-          });
-          opt.style.background = "var(--primary-light)";
-          opt.style.borderColor = "var(--primary)";
-          const activeB = opt.querySelector("b");
-          if (activeB) activeB.style.color = "var(--primary-dark)";
-        });
-      });
-
       // ── 5. Time Slot Selection ──
-      const slotBtns = document.querySelectorAll(".slot-btn, .static-lab-slot");
+      const slotBtns = document.querySelectorAll(".slot-btn, .time-slot-btn");
       slotBtns.forEach(sb => {
         sb.addEventListener("click", () => {
           slotBtns.forEach(b => {

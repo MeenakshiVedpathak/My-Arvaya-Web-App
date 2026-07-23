@@ -6,14 +6,29 @@ import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal
 
 export default function AmbulancePage() {
   const go = useNavigate();
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading]  = useState(true);
+  const defaultRequests = [
+    {
+      id: "AMB-KA01-7892",
+      patientName: "Rahul Sharma",
+      contactNumber: "9876543210",
+      pickupAddress: "Koramangala 4th Block, Bangalore, Karnataka",
+      emergencyType: "cardiac",
+      status: "En Route",
+      eta: 12,
+      createdAt: new Date().toISOString(),
+      ambulanceId: "KA-01-7892",
+      driverName: "Ramesh K.",
+      driverPhone: "9876543210",
+    }
+  ];
+
+  const [requests, setRequests] = useState(defaultRequests);
+  const [loading, setLoading]  = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const load = async () => {
-    setLoading(true);
     const data = await getAmbulanceRequests();
-    setRequests(data);
+    if (Array.isArray(data) && data.length > 0) setRequests(data);
     setLoading(false);
   };
 
@@ -222,15 +237,11 @@ export default function AmbulancePage() {
         </button>
       )}
 
-      {/* ── Modal ── */}
+      {/* ── Modal (Used in React) ── */}
       {showModal && (
         <AmbulanceRequestModal onClose={() => { setShowModal(false); load(); }} onSuccess={() => {}} />
       )}
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-      `}</style>
     </main>
   );
 }

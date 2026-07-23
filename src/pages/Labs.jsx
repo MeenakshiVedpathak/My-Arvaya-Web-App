@@ -228,49 +228,7 @@ export default function Labs() {
 
         <SelectSlotUI onConfirm={confirmBooking} type="lab" />
       </Modal>
-
-      {/* Static Pre-rendered Lab Test Booking Modal for static HTML */}
-      <div id="static-lab-modal" className="modal-backdrop" style={{ display: 'none', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.72)', backdropFilter: 'blur(8px)', zIndex: 9999, alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-        <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '700px', padding: '32px', position: 'relative', boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35)', maxHeight: '90vh', overflowY: 'auto' }}>
-          <button id="close-static-lab-modal" style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--bg-app)', border: '1px solid var(--border)', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '50%', fontSize: '18px', fontWeight: 'bold' }}>✕</button>
-          
-          <h3 id="static-lab-modal-title" style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '20px' }}>Schedule Lab Test</h3>
-          
-          <div style={{ marginBottom: "24px" }}>
-            <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px" }}>
-              Select Visit Type
-            </label>
-            <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-              <div className="lab-visit-option active" style={{ background: 'var(--primary-light)', padding: '16px', borderRadius: 'var(--radius-md)', border: '2px solid var(--primary)', flex: 1, minWidth: '220px', cursor: 'pointer' }}>
-                <b style={{ display: 'block', color: 'var(--primary-dark)', marginBottom: '4px', fontSize: '14px' }}>Home Sample Collection</b>
-                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>A phlebotomist will visit your home.</small>
-              </div>
-              <div className="lab-visit-option" style={{ background: 'var(--bg-app)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', flex: 1, minWidth: '220px', cursor: 'pointer' }}>
-                <b style={{ display: 'block', color: 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>Visit Diagnostic Center</b>
-                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>Walk-in to the nearest partner lab.</small>
-              </div>
-            </div>
-          </div>
-
-          <div className="select-slot-container">
-            <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px' }}>Select Collection Date & Time</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-              {["10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "02:00 PM", "03:00 PM", "04:30 PM"].map((t, idx) => (
-                <button key={t} className={`time-slot-btn static-lab-slot ${idx === 1 ? 'active' : ''}`} style={{ padding: '10px', borderRadius: '8px', border: idx === 1 ? '2px solid var(--primary)' : '1px solid var(--border)', background: idx === 1 ? 'var(--primary)' : 'var(--bg-app)', color: idx === 1 ? '#fff' : 'var(--text-main)', fontWeight: '600', cursor: 'pointer' }}>
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            <button id="confirm-static-lab-booking" className="btn btn-accent" style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: '700', borderRadius: '12px' }}>
-              Confirm Sample Collection Schedule →
-            </button>
-          </div>
-
-        </div>
-      </div>
       </div>
     </main>
   );
 }
-

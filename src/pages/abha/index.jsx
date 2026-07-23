@@ -73,9 +73,15 @@ export default function ABHA() {
 
       {/* ── Main Content Area ── */}
       <div className="container" style={{ maxWidth: "1280px", margin: "32px auto", padding: "0 24px" }}>
-        {activeTab === "abha"     && <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={logout} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />}
-        {activeTab === "consent"  && <ConsentTab />}
-        {activeTab === "provider" && <ProviderTab />}
+        <div id="static-abha-tab-data" style={{ display: activeTab === "abha" ? "block" : "none" }}>
+          <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={logout} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />
+        </div>
+        <div id="static-abha-tab-consent" style={{ display: activeTab === "consent" ? "block" : "none" }}>
+          <ConsentTab />
+        </div>
+        <div id="static-abha-tab-provider" style={{ display: activeTab === "provider" ? "block" : "none" }}>
+          <ProviderTab />
+        </div>
       </div>
 
       {/* ── Modals ── */}

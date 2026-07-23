@@ -5,7 +5,7 @@ import { sendOtp, verifyOtp } from "../../services/authService";
 import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress } from "../../services/abhaService";
 import { useNavigate } from "react-router-dom";
 
-export default function LoginModal() {
+export default function LoginModal({ forceOpen = false }) {
   const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession } = useAuth();
   const [screen, setScreen] = useState("landing");
   const [phone, setPhone] = useState("");
@@ -21,7 +21,7 @@ export default function LoginModal() {
 
   const go = useNavigate();
 
-  if (!isLoginModalOpen) return null;
+  if (!isLoginModalOpen && !forceOpen) return null;
 
   const handleClose = () => {
     setScreen("landing");

@@ -73,34 +73,53 @@
         }
       });
 
-      // ── 3. Global Booking Button Flow Router ──
+      // ── 3. ABHA Page Navigation Tabs (ABHA Data, Consents, Providers) ──
+      if (window.location.pathname.includes("abha.html")) {
+        const navBtns = document.querySelectorAll("nav button");
+        const tabData = document.getElementById("static-abha-tab-data");
+        const tabConsent = document.getElementById("static-abha-tab-consent");
+        const tabProvider = document.getElementById("static-abha-tab-provider");
+
+        navBtns.forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const btnText = btn.textContent.toLowerCase();
+
+            navBtns.forEach(b => {
+              b.style.color = "#6b7280";
+              b.style.borderBottom = "3px solid transparent";
+            });
+            btn.style.color = "var(--primary-dark)";
+            btn.style.borderBottom = "3px solid var(--primary)";
+
+            if (tabData) tabData.style.display = (btnText.includes("abha data") || btnText.includes("abha hub")) ? "block" : "none";
+            if (tabConsent) tabConsent.style.display = btnText.includes("consents") ? "block" : "none";
+            if (tabProvider) tabProvider.style.display = btnText.includes("providers") ? "block" : "none";
+          });
+        });
+      }
+
+      // ── 4. Global Booking & Ambulance Button Router ──
       document.body.addEventListener("click", (e) => {
         const btn = e.target.closest("button, a");
         if (!btn) return;
 
         const text = (btn.textContent || "").trim().toLowerCase();
 
-        // LAB TEST BOOKING FLOW
-        if (window.location.pathname.includes("labs.html") || btn.closest(".lab-card")) {
-          if (text === "book" || text === "book test" || text.includes("book now")) {
-            e.preventDefault();
-            const labCard = btn.closest(".lab-card");
-            const pkgTitle = labCard ? labCard.querySelector("h3").textContent : "Schedule Lab Test";
-            const modal = document.getElementById("static-lab-modal");
-            const modalTitle = document.getElementById("static-lab-modal-title");
-            if (modal) {
-              if (modalTitle) modalTitle.textContent = "Schedule Lab Test – " + pkgTitle;
-              modal.style.display = "flex";
-            }
-            return;
-          }
-        }
-
-        // EMERGENCY AMBULANCE FLOW
-        if (text.includes("request ambulance")) {
+        // AMBULANCE FLOW
+        if (text.includes("request ambulance") || text.includes("call ambulance")) {
           e.preventDefault();
           window.location.href = "ambulance.html";
           return;
+        }
+
+        // LAB TEST BOOKING FLOW
+        if (text === "book" || text === "book test" || text.includes("book now")) {
+          if (window.location.pathname.includes("labs.html") || btn.closest(".lab-card")) {
+            e.preventDefault();
+            window.location.href = "confirmed.html";
+            return;
+          }
         }
 
         // DOCTOR APPOINTMENT BOOKING FLOW
@@ -126,41 +145,8 @@
         }
       });
 
-      // ── 4. Lab Modal Interactions ──
-      const closeLabModalBtn = document.getElementById("close-static-lab-modal");
-      const labModal = document.getElementById("static-lab-modal");
-      if (closeLabModalBtn && labModal) {
-        closeLabModalBtn.addEventListener("click", () => {
-          labModal.style.display = "none";
-        });
-      }
-
-      const confirmLabBtn = document.getElementById("confirm-static-lab-booking");
-      if (confirmLabBtn) {
-        confirmLabBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.location.href = "confirmed.html";
-        });
-      }
-
-      const visitOptions = document.querySelectorAll(".lab-visit-option");
-      visitOptions.forEach(opt => {
-        opt.addEventListener("click", () => {
-          visitOptions.forEach(o => {
-            o.style.background = "var(--bg-app)";
-            o.style.borderColor = "var(--border)";
-            const b = o.querySelector("b");
-            if (b) b.style.color = "var(--text-main)";
-          });
-          opt.style.background = "var(--primary-light)";
-          opt.style.borderColor = "var(--primary)";
-          const activeB = opt.querySelector("b");
-          if (activeB) activeB.style.color = "var(--primary-dark)";
-        });
-      });
-
       // ── 5. Time Slot Selection ──
-      const slotBtns = document.querySelectorAll(".slot-btn, .static-lab-slot");
+      const slotBtns = document.querySelectorAll(".slot-btn, .time-slot-btn");
       slotBtns.forEach(sb => {
         sb.addEventListener("click", () => {
           slotBtns.forEach(b => {

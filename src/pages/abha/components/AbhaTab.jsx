@@ -133,7 +133,6 @@ export function AbhaTab({ abhaData, onShowQr, onLogout, onSwitch, onCreate }) {
             <div style={{ fontSize: "12px", color: "#ef4444" }}>Unlink current session</div>
           </div>
         </button>
-
       </div>
     </div>
   );

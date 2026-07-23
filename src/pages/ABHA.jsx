@@ -105,9 +105,15 @@ export default function ABHA() {
 
         {/* ── Main Content Area ── */}
         <div style={{ background: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.5)", borderRadius: "24px", padding: "40px", minHeight: "600px", boxShadow: "0 24px 48px -12px rgba(0,0,0,0.06)", backdropFilter: "blur(20px)" }}>
-          {activeTab === "abha"     && <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={logout} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />}
-          {activeTab === "consent"  && <ConsentTab />}
-          {activeTab === "provider" && <ProviderTab />}
+          <div id="static-abha-tab-hub" style={{ display: activeTab === "abha" ? "block" : "none" }}>
+            <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={logout} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />
+          </div>
+          <div id="static-abha-tab-consent" style={{ display: activeTab === "consent" ? "block" : "none" }}>
+            <ConsentTab />
+          </div>
+          <div id="static-abha-tab-provider" style={{ display: activeTab === "provider" ? "block" : "none" }}>
+            <ProviderTab />
+          </div>
         </div>
       </div>
 
@@ -161,86 +167,82 @@ function AbhaTab({ abhaData, onShowQr, onLogout, onSwitch, onCreate }) {
           </div>
 
           {/* ABHA Card View */}
-          {cardView === "card" && (
-            <div style={{ animation: "fadeInUp 0.35s var(--ease-out) forwards" }}>
-              {/* Premium dark ABHA ID Card */}
-              <div style={{
-                background: "linear-gradient(135deg, var(--primary-dark) 0%, #12333A 50%, #0d2028 100%)",
-                borderRadius: "20px", padding: "32px", color: "#fff",
-                boxShadow: "0 20px 48px -12px rgba(18,51,58,0.5)",
-                position: "relative", overflow: "hidden", marginBottom: "16px",
-                height: "260px", display: "flex", flexDirection: "column", justifyContent: "space-between"
-              }}>
-                <div style={{ position: "absolute", right: "-40px", top: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(251,145,63,0.06)" }} />
-                <div style={{ position: "absolute", left: "-30px", bottom: "-50px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(46,102,110,0.15)" }} />
+          <div id="static-abha-card-view" style={{ display: cardView === "card" ? "block" : "none", animation: "fadeInUp 0.35s var(--ease-out) forwards" }}>
+            {/* Premium dark ABHA ID Card */}
+            <div style={{
+              background: "linear-gradient(135deg, var(--primary-dark) 0%, #12333A 50%, #0d2028 100%)",
+              borderRadius: "20px", padding: "32px", color: "#fff",
+              boxShadow: "0 20px 48px -12px rgba(18,51,58,0.5)",
+              position: "relative", overflow: "hidden", marginBottom: "16px",
+              height: "260px", display: "flex", flexDirection: "column", justifyContent: "space-between"
+            }}>
+              <div style={{ position: "absolute", right: "-40px", top: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(251,145,63,0.06)" }} />
+              <div style={{ position: "absolute", left: "-30px", bottom: "-50px", width: "180px", height: "180px", borderRadius: "50%", background: "rgba(46,102,110,0.15)" }} />
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 2 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <img src="/abha.svg" alt="ABHA" style={{ height: "28px", filter: "brightness(0) invert(1)", opacity: 0.9 }} onError={e => { e.currentTarget.style.display = "none"; }} />
-                    <div>
-                      <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Ayushman Bharat</div>
-                      <div style={{ fontSize: "13px", fontWeight: "700", color: "rgba(255,255,255,0.9)" }}>Digital Mission</div>
-                    </div>
-                  </div>
-                  <div style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.25)", padding: "4px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />Active
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 2 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <img src="/abha.svg" alt="ABHA" style={{ height: "28px", filter: "brightness(0) invert(1)", opacity: 0.9 }} onError={e => { e.currentTarget.style.display = "none"; }} />
+                  <div>
+                    <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Ayushman Bharat</div>
+                    <div style={{ fontSize: "13px", fontWeight: "700", color: "rgba(255,255,255,0.9)" }}>Digital Mission</div>
                   </div>
                 </div>
-
-                <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "1fr auto", gap: "24px", alignItems: "end" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                    <div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Account Holder</div>
-                      <div style={{ fontSize: "20px", fontWeight: "800", letterSpacing: "-0.01em" }}>{abhaData.name}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>ABHA Address</div>
-                      <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--accent)", fontFamily: "monospace" }}>{abhaData.abhaAddress}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>ABHA Number</div>
-                      <div style={{ fontSize: "16px", fontWeight: "700", letterSpacing: "0.08em", fontFamily: "monospace" }}>{abhaData.abhaNumber}</div>
-                    </div>
-                  </div>
-                  <div onClick={() => setCardView("qr")} style={{ background: "#fff", padding: "10px", borderRadius: "12px", cursor: "pointer", opacity: 0.9 }} title="View full QR">
-                    <QrCode size={60} color="#12333A" />
-                  </div>
+                <div style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.25)", padding: "4px 12px", borderRadius: "99px", fontSize: "12px", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />Active
                 </div>
               </div>
 
-              <button onClick={copyAbhaNumber} style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                gap: "8px", padding: "12px", background: "var(--bg-surface)", border: "1.5px solid var(--border)",
-                borderRadius: "12px", fontSize: "14px", fontWeight: "600",
-                color: copied ? "var(--success)" : "var(--primary)", cursor: "pointer", transition: "all 0.2s",
-              }}>
-                {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                {copied ? "Copied to clipboard!" : "Copy ABHA Number"}
-              </button>
+              <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "1fr auto", gap: "24px", alignItems: "end" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>Account Holder</div>
+                    <div style={{ fontSize: "20px", fontWeight: "800", letterSpacing: "-0.01em" }}>{abhaData.name}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>ABHA Address</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--accent)", fontFamily: "monospace" }}>{abhaData.abhaAddress}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>ABHA Number</div>
+                    <div style={{ fontSize: "16px", fontWeight: "700", letterSpacing: "0.08em", fontFamily: "monospace" }}>{abhaData.abhaNumber}</div>
+                  </div>
+                </div>
+                <div onClick={() => setCardView("qr")} style={{ background: "#fff", padding: "10px", borderRadius: "12px", cursor: "pointer", opacity: 0.9 }} title="View full QR">
+                  <QrCode size={60} color="#12333A" />
+                </div>
+              </div>
             </div>
-          )}
+
+            <button onClick={copyAbhaNumber} style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+              gap: "8px", padding: "12px", background: "var(--bg-surface)", border: "1.5px solid var(--border)",
+              borderRadius: "12px", fontSize: "14px", fontWeight: "600",
+              color: copied ? "var(--success)" : "var(--primary)", cursor: "pointer", transition: "all 0.2s",
+            }}>
+              {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+              {copied ? "Copied to clipboard!" : "Copy ABHA Number"}
+            </button>
+          </div>
 
           {/* QR Code View */}
-          {cardView === "qr" && (
-            <div style={{ animation: "fadeInUp 0.35s var(--ease-out) forwards" }}>
-              <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "32px", height: "260px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "20px" }}>
-                <div style={{ padding: "16px", background: "#fff", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)" }}>
-                  <QrCode size={140} color="#12333A" strokeWidth={1.2} />
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-main)", marginBottom: "4px" }}>Scan to Share ABHA</div>
-                </div>
+          <div id="static-abha-qr-view" style={{ display: cardView === "qr" ? "block" : "none", animation: "fadeInUp 0.35s var(--ease-out) forwards" }}>
+            <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "32px", height: "260px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "20px" }}>
+              <div style={{ padding: "16px", background: "#fff", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "var(--shadow-md)" }}>
+                <QrCode size={140} color="#12333A" strokeWidth={1.2} />
               </div>
-              <button onClick={onShowQr} style={{
-                width: "100%", marginTop: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px",
-                background: "var(--accent)", color: "#fff", border: "none", borderRadius: "12px",
-                fontSize: "14px", fontWeight: "700", cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(251,145,63,0.35)", transition: "all 0.2s",
-              }}>
-                <Download size={18} />Download QR Code
-              </button>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-main)", marginBottom: "4px" }}>Scan to Share ABHA</div>
+              </div>
             </div>
-          )}
+            <button onClick={onShowQr} style={{
+              width: "100%", marginTop: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px",
+              background: "var(--accent)", color: "#fff", border: "none", borderRadius: "12px",
+              fontSize: "14px", fontWeight: "700", cursor: "pointer",
+              boxShadow: "0 4px 14px rgba(251,145,63,0.35)", transition: "all 0.2s",
+            }}>
+              <Download size={18} />Download QR Code
+            </button>
+          </div>
         </div>
 
         {/* ── Bottom: Profile Details ── */}
