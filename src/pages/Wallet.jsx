@@ -48,10 +48,10 @@ export default function Wallet() {
       </div>
 
       <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }} className="wallet-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '32px' }} className="wallet-grid">
 
           {/* Main Column */}
-          <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             
             {/* Balance Card */}
             <div className="card-elevated hover-glow" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', color: 'white', position: 'relative', overflow: 'hidden' }}>
@@ -98,12 +98,12 @@ export default function Wallet() {
             </div>
 
             {/* Transactions List */}
-            <div style={{ marginTop: '24px' }}>
-              <div style={{ padding: '16px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <History size={18} /> Transaction History
+            <div>
+              <div style={{ padding: '16px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <History size={20} /> Transaction History
                 </h3>
-                <span className="text-primary cursor-pointer hover:underline" style={{ fontSize: '13px', fontWeight: '600' }}>Download Statement</span>
+                <span className="text-primary cursor-pointer hover:underline" style={{ fontSize: '13px', fontWeight: '600' }}>Download PDF</span>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -111,9 +111,9 @@ export default function Wallet() {
                   <div key={tx.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: idx !== wallet.transactions.length - 1 ? '1px solid var(--border)' : 'none' }}>
                     
                     <div style={{ 
-                      background: tx.type === 'credit' ? '#dcfce7' : '#e2e8f0', 
+                      background: tx.type === 'credit' ? '#dcfce7' : '#f1f5f9', 
                       color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', 
-                      width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px', flexShrink: 0 
+                      width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px', flexShrink: 0 
                     }}>
                       {tx.type === 'credit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
                     </div>
@@ -138,7 +138,7 @@ export default function Wallet() {
           </section>
 
           {/* Right Sidebar */}
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'sticky', top: '24px', alignSelf: 'start' }}>
             <div className="card" style={{ padding: '24px', background: '#f0fdf4' }}>
               <ShieldCheck size={32} color="#16a34a" style={{ marginBottom: '16px' }} />
               <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#166534', marginBottom: '8px' }}>100% Safe & Secure</h3>
@@ -159,8 +159,9 @@ export default function Wallet() {
         </div>
       </div>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 900px) {
+        @media (max-width: 1024px) {
           .wallet-grid { grid-template-columns: 1fr !important; }
+          .wallet-grid > aside { position: relative !important; top: 0 !important; }
           .balance-breakdown { flex-direction: column; }
         }
       `}} />

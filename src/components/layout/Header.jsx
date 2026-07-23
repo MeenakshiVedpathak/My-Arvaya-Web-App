@@ -1,4 +1,4 @@
-import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings } from "lucide-react";
+import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -80,13 +80,17 @@ export default function Header() {
   const navLinks = [
     ["Home", "/"],
     ["Consult Doctors", "/doctors"],
+    ["Pharmacy", "/pharmacy"],
     ["Lab Tests", "/labs"],
     ["ABHA Hub", "/abha"],
     ["Patient Portal", "/records"],
     ["Wallet", "/wallet"],
     ["Rewards", "/rewards"],
+    ["Refer & Earn", "/referrals"],
     ["Analytics", "/analytics"],
-    ["🚑 Ambulance", "/ambulance"]
+    ["🚑 Ambulance", "/ambulance"],
+    ["Support", "/support"],
+    ["🤖 AI Assistant", "/ai-assistant"]
   ];
 
   return (
@@ -255,7 +259,67 @@ export default function Header() {
                       onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
                       onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <Settings size={16} className="text-muted" /> Profile Management
+                      <User size={16} className="text-muted" /> Patient Profile
+                    </div>
+
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/notifications"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Bell size={16} className="text-muted" /> Notifications
+                    </div>
+                    
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/my-appointments"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <User size={16} className="text-muted" /> My Appointments
+                    </div>
+
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/prescriptions"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <User size={16} className="text-muted" /> My Prescriptions
+                    </div>
+                    
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/orders"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <User size={16} className="text-muted" /> My Orders
+                    </div>
+
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/payments"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <User size={16} className="text-muted" /> Payments & Invoices
+                    </div>
+                    
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer"
+                      onClick={() => { setIsProfileMenuOpen(false); go("/settings"); }}
+                      style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Settings size={16} className="text-muted" /> App Settings
                     </div>
                     
                     <div 
@@ -364,7 +428,17 @@ export default function Header() {
                         go("/profile");
                       }}
                     >
-                      <Settings size={14} /> Profile Management
+                      <User size={14} /> Profile
+                    </button>
+                    <button 
+                      className="btn btn-primary flex-1 flex items-center justify-center gap-2"
+                      style={{ padding: '8px', fontSize: '13px' }}
+                      onClick={() => {
+                        setMobileDrawerOpen(false);
+                        go("/settings");
+                      }}
+                    >
+                      <Settings size={14} /> Settings
                     </button>
                     <button 
                       className="btn btn-secondary flex items-center justify-center gap-2"

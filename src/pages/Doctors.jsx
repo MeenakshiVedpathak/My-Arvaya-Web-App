@@ -8,17 +8,66 @@ import Avatar from "../components/common/Avatar";
 export default function Doctors() {
   const [q, setQ] = useState("");
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+  const [filters, setFilters] = useState({
+    gender: "",
+    type: [],
+    fee: [],
+    specialty: [],
+    rating: []
+  });
   const { setDoctor } = useBooking();
   const go = useNavigate();
+
+  const handleFilterToggle = (category, value) => {
+    setFilters(prev => {
+      if(category === "gender") return { ...prev, gender: prev.gender === value ? "" : value };
+      const current = prev[category];
+      if (current.includes(value)) {
+        return { ...prev, [category]: current.filter(item => item !== value) };
+      } else {
+        return { ...prev, [category]: [...current, value] };
+      }
+    });
+  };
 
   const handleSelect = (doc) => {
     setDoctor(doc);
     go("/doctor");
   };
 
-  const filtered = q
-    ? doctors.filter(d => d.name.toLowerCase().includes(q.toLowerCase()) || d.specialty.toLowerCase().includes(q.toLowerCase()))
-    : doctors;
+  const filtered = doctors.filter(d => {
+    // Search query
+    if (q && !d.name.toLowerCase().includes(q.toLowerCase()) && !d.specialty.toLowerCase().includes(q.toLowerCase())) return false;
+    
+    // Specialty filter
+    if (filters.specialty.length > 0 && !filters.specialty.includes(d.specialty)) return false;
+    
+    // Gender filter (mock check - assume Dr. Sarah is female, etc, or ignore if not in mock data)
+    // We'll skip strict gender filtering if mock data lacks it, or simulate it.
+
+    // Fee filter
+    if (filters.fee.length > 0) {
+      const match = filters.fee.some(f => {
+        if(f === "Free") return d.fee === 0;
+        if(f === "₹1 - ₹500") return d.fee > 0 && d.fee <= 500;
+        if(f === "₹500+") return d.fee > 500;
+        return false;
+      });
+      if(!match) return false;
+    }
+
+    // Rating filter
+    if (filters.rating.length > 0) {
+      const match = filters.rating.some(r => {
+        if(r === "4.5+") return d.rating >= 4.5;
+        if(r === "4.0+") return d.rating >= 4.0;
+        return false;
+      });
+      if(!match) return false;
+    }
+
+    return true;
+  });
 
   return (
     <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -53,7 +102,7 @@ export default function Doctors() {
             <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '180px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
               <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
                 <b style={{ fontSize: '15px' }}>Filters</b>
-                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => setQ("")}>RESET</span>
+                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => { setQ(""); setFilters({gender: "", type: [], fee: [], specialty: [], rating: []}); }}>RESET</span>
               </div>
               
               <div className="flex flex-col gap-6">
@@ -72,25 +121,25 @@ export default function Doctors() {
                 <div>
                   <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Gender</b>
                   <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
-                    <button className="badge" style={{ background: 'var(--bg-app)', border: '1px solid var(--border)', padding: '6px 12px', fontWeight: 'normal', color: 'var(--text-main)', transition: 'all 0.2s', cursor: 'pointer' }}>Male Doctor</button>
-                    <button className="badge" style={{ background: 'var(--bg-app)', border: '1px solid var(--border)', padding: '6px 12px', fontWeight: 'normal', color: 'var(--text-main)', transition: 'all 0.2s', cursor: 'pointer' }}>Female Doctor</button>
+                    <button onClick={() => handleFilterToggle("gender", "Male")} className="badge" style={{ background: filters.gender === "Male" ? 'var(--primary-light)' : 'var(--bg-app)', border: filters.gender === "Male" ? '1px solid var(--primary)' : '1px solid var(--border)', padding: '6px 12px', fontWeight: filters.gender === "Male" ? '600' : 'normal', color: filters.gender === "Male" ? 'var(--primary)' : 'var(--text-main)', transition: 'all 0.2s', cursor: 'pointer' }}>Male Doctor</button>
+                    <button onClick={() => handleFilterToggle("gender", "Female")} className="badge" style={{ background: filters.gender === "Female" ? 'var(--primary-light)' : 'var(--bg-app)', border: filters.gender === "Female" ? '1px solid var(--primary)' : '1px solid var(--border)', padding: '6px 12px', fontWeight: filters.gender === "Female" ? '600' : 'normal', color: filters.gender === "Female" ? 'var(--primary)' : 'var(--text-main)', transition: 'all 0.2s', cursor: 'pointer' }}>Female Doctor</button>
                   </div>
                 </div>
 
                 <div>
                   <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Consultation Type</b>
                   <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> In-Clinic Visit</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Video Consult</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.type.includes("In-Clinic")} onChange={() => handleFilterToggle("type", "In-Clinic")} /> In-Clinic Visit</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.type.includes("Video")} onChange={() => handleFilterToggle("type", "Video")} /> Video Consult</label>
                   </div>
                 </div>
 
                 <div>
                   <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Consultation Fee</b>
                   <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Free</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> ₹1 - ₹500</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> ₹500+</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.fee.includes("Free")} onChange={() => handleFilterToggle("fee", "Free")} /> Free</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.fee.includes("₹1 - ₹500")} onChange={() => handleFilterToggle("fee", "₹1 - ₹500")} /> ₹1 - ₹500</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.fee.includes("₹500+")} onChange={() => handleFilterToggle("fee", "₹500+")} /> ₹500+</label>
                   </div>
                 </div>
 
@@ -106,10 +155,18 @@ export default function Doctors() {
                 <div>
                   <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Specialty</b>
                   <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> General Physician</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Cardiologist</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Dermatologist</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Pediatrician</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.specialty.includes("General Physician")} onChange={() => handleFilterToggle("specialty", "General Physician")} /> General Physician</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.specialty.includes("Cardiologist")} onChange={() => handleFilterToggle("specialty", "Cardiologist")} /> Cardiologist</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.specialty.includes("Dermatologist")} onChange={() => handleFilterToggle("specialty", "Dermatologist")} /> Dermatologist</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.specialty.includes("Pediatrician")} onChange={() => handleFilterToggle("specialty", "Pediatrician")} /> Pediatrician</label>
+                  </div>
+                </div>
+
+                <div>
+                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Patient Rating</b>
+                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.rating.includes("4.5+")} onChange={() => handleFilterToggle("rating", "4.5+")} /> 4.5+ ⭐</label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.rating.includes("4.0+")} onChange={() => handleFilterToggle("rating", "4.0+")} /> 4.0+ ⭐</label>
                   </div>
                 </div>
 

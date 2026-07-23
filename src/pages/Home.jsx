@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles } from "lucide-react";
+import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { packages } from "../mocks/data";
@@ -273,6 +273,63 @@ export default function Home() {
         </div>
         </section>
       </div>
+
+      {/* ── Multi-Hospital Branches ── */}
+      <section style={{ padding: '56px 0', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
+        <div className="container">
+          <div className="flex justify-between items-center mb-8" style={{ flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h2 className="text-h2">Our Network Hospitals</h2>
+              <p className="text-muted mt-2">Find a world-class Arvaya hospital near you</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '8px 16px', borderRadius: '12px' }}>
+              <MapPin size={18} color="var(--primary)" />
+              <select style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer' }}>
+                <option>Bangalore</option>
+                <option>Mumbai</option>
+                <option>Delhi NCR</option>
+                <option>Hyderabad</option>
+                <option>Chennai</option>
+              </select>
+            </div>
+          </div>
+
+          <style>{`
+            .hospitals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+            @media (max-width: 900px) { .hospitals-grid { grid-template-columns: repeat(2, 1fr); } }
+            @media (max-width: 600px) { .hospitals-grid { grid-template-columns: 1fr; } }
+          `}</style>
+          <div className="hospitals-grid">
+            {[
+              { name: "Arvaya Flagship Hospital", loc: "Koramangala, Bangalore", dist: "2.4 km", beds: "500+ Beds", img: "/banner_healthcare_1.png" },
+              { name: "Arvaya Speciality Center", loc: "Indiranagar, Bangalore", dist: "5.1 km", beds: "250+ Beds", img: "/banner_healthcare_2.png" },
+              { name: "Arvaya Women & Child", loc: "Whitefield, Bangalore", dist: "8.7 km", beds: "150+ Beds", img: "/banner_healthcare_3.png" },
+            ].map((h, i) => (
+              <div key={i} className="card-elevated hover-glow animate-fade-in-up" style={{ padding: 0, overflow: 'hidden', animationDelay: `${i * 100}ms`, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ height: '160px', background: 'var(--border)' }}>
+                  <img src={h.img} alt={h.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>{h.name}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+                    <MapPin size={14} /> {h.loc}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)', background: 'var(--primary-light)', padding: '4px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Navigation size={12} /> {h.dist} away</span>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent)', background: 'rgba(251,145,63,0.1)', padding: '4px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Building2 size={12} /> {h.beds}</span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: 'auto' }}>
+                    <button className="btn btn-secondary" style={{ fontSize: '13px', padding: '10px' }} onClick={() => go('/ambulance')}>Emergency</button>
+                    <button className="btn btn-primary" style={{ fontSize: '13px', padding: '10px' }} onClick={() => go('/doctors')}>Book Visit</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── How It Works ── */}
       <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>

@@ -204,6 +204,27 @@ export default function Labs({ forceModalOpen = false }) {
         title="Schedule Lab Test"
         maxWidth="700px"
       >
+        {selectedPackage && (
+          <div style={{ marginBottom: "24px", padding: '16px', background: 'var(--bg-app)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px' }}>{selectedPackage.title}</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>{selectedPackage.tests}</p>
+            
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '12px' }}>Detailed Test Inclusion</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {["Complete Blood Count", "Thyroid Profile (T3, T4, TSH)", "Lipid Profile", "Liver Function Test", "Kidney Function Test", "Blood Sugar Fasting"].map((test, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-main)' }}>
+                  <ShieldCheck size={14} className="text-success" /> {test}
+                </div>
+              ))}
+            </div>
+            {selectedPackage.tags && selectedPackage.tags.includes("Fasting Required") && (
+              <div style={{ marginTop: '16px', padding: '8px 12px', background: 'rgba(251, 145, 63, 0.1)', color: 'var(--accent)', borderRadius: '8px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <Clock size={14} /> Fasting of 10-12 hours is required for this package.
+              </div>
+            )}
+          </div>
+        )}
+
         <div style={{ marginBottom: "24px" }}>
           <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px" }}>
             Select Visit Type

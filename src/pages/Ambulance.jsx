@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2, ChevronRight } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { getAmbulanceRequests, STATUS_FLOW, EMERGENCY_TYPES } from "../services/ambulanceService";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 
@@ -65,20 +65,23 @@ export default function AmbulancePage() {
   const pastRequests   = requests.filter(r => r.status === "Arrived");
 
   return (
-    <main className="page page-enter" style={{ padding: 0 }}>
-      {/* ── Header ── */}
-      <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)" }}>
-        <div className="container" style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <button onClick={() => go(-1)} style={{ background: "var(--bg-app)", border: "1px solid var(--border)", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.background="var(--border)"} onMouseLeave={e => e.currentTarget.style.background="var(--bg-app)"}>
-            <ArrowLeft size={18} color="var(--text-main)" />
-          </button>
-          <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-main)", margin: 0, fontFamily: "var(--font-display)" }}>Track Ambulance</h1>
-            <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "2px 0 0" }}>Monitor your emergency ambulance requests</p>
+    <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
+      {/* ── Internal Hero ── */}
+      <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)", padding: '24px 0' }}>
+        <div className="container">
+          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Track Ambulance</span>
           </div>
-          <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontSize: "15px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter="brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter="none"}>
-            <Ambulance size={18} /> Call Ambulance
-          </button>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <h1 className="text-h2" style={{ fontSize: '24px', margin: 0 }}>Track Ambulance</h1>
+              <p className="text-muted mt-2" style={{ fontSize: '14px', margin: 0 }}>Monitor your emergency ambulance requests.</p>
+            </div>
+            <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontSize: "15px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter="brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter="none"}>
+              <Ambulance size={18} /> Call Ambulance
+            </button>
+          </div>
         </div>
       </div>
 
@@ -146,6 +149,16 @@ export default function AmbulancePage() {
                         </div>
                         <div style={{ display: "flex", gap: "4px", marginBottom: "24px" }}>
                           {STATUS_FLOW.map((s, i) => <span key={s} style={{ flex: 1, textAlign: "center", fontSize: "10px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{s}</span>)}
+                        </div>
+
+                        {/* Live Map Placeholder */}
+                        <div style={{ height: "200px", background: "var(--bg-app)", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.1, backgroundImage: "radial-gradient(var(--text-muted) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
+                          <div style={{ textAlign: "center", zIndex: 1 }}>
+                            <Navigation size={32} color="var(--primary)" style={{ margin: "0 auto 8px" }} />
+                            <b style={{ color: "var(--text-main)", fontSize: "14px", display: "block" }}>Live Tracking</b>
+                            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Ambulance is {req.eta} mins away</span>
+                          </div>
                         </div>
 
                         {/* Details grid */}
@@ -230,10 +243,11 @@ export default function AmbulancePage() {
         )}
       </div>
 
-      {/* ── FAB ── */}
+      {/* ── FAB SOS ── */}
       {!showModal && (
-        <button onClick={() => setShowModal(true)} style={{ position: "fixed", bottom: "32px", right: "32px", width: "64px", height: "64px", borderRadius: "50%", background: "#dc2626", color: "#fff", border: "none", boxShadow: "0 8px 24px rgba(220,38,38,0.4)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.08)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}>
-          <Phone size={26} />
+        <button onClick={() => setShowModal(true)} style={{ position: "fixed", bottom: "32px", right: "32px", width: "64px", height: "64px", borderRadius: "50%", background: "#dc2626", color: "#fff", border: "none", boxShadow: "0 8px 24px rgba(220,38,38,0.4)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1000, transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.08)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}>
+          <AlertTriangle size={24} />
+          <span style={{ fontSize: '10px', fontWeight: '800', marginTop: '2px' }}>SOS</span>
         </button>
       )}
 

@@ -42,7 +42,7 @@ export default function Records() {
   }, []);
 
   return (
-    <main className="page" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+    <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)', minHeight: '100vh' }}>
 
       {/* ── Vault Hero ── */}
       <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
@@ -59,6 +59,9 @@ export default function Records() {
                 <Lock size={14} /> ISO 27001 Certified • 256-bit Encrypted Storage
               </p>
             </div>
+            <button className="btn btn-accent flex items-center gap-2 hover-glow" onClick={() => alert("Upload dialog opened")} style={{ padding: '10px 20px', borderRadius: 'var(--radius-full)' }}>
+              <CloudUpload size={18} /> Upload Record
+            </button>
           </div>
         </div>
       </div>
@@ -100,6 +103,21 @@ export default function Records() {
                   <li key={i}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '15px', color: 'var(--text-main)', padding: '6px 0' }}>
                       <input type="radio" name="recordType" defaultChecked={i === 0} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
+                      {type}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Filter Group: Admission Type */}
+            <div style={{ marginTop: '32px' }}>
+              <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={16} /> Admission Type</h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {['Both', 'Inpatient (IP)', 'Outpatient (OP)'].map((type, i) => (
+                  <li key={i}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '15px', color: 'var(--text-main)', padding: '6px 0' }}>
+                      <input type="radio" name="admissionType" defaultChecked={i === 0} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
                       {type}
                     </label>
                   </li>

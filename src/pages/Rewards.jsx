@@ -118,10 +118,35 @@ export default function Rewards() {
                 </div>
               ))}
             </div>
+
+            {/* Loyalty Points Section */}
+            <div style={{ marginTop: '48px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles className="text-accent" size={20} /> Earn Loyalty Points
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                {[
+                  { title: "Book Appointment", pts: "+50", icon: Plus, bg: "var(--primary-light)", color: "var(--primary)" },
+                  { title: "Refer a Friend", pts: "+200", icon: Gift, bg: "var(--accent-light)", color: "var(--accent)" },
+                  { title: "Complete Profile", pts: "+100", icon: CheckCircle2, bg: "var(--success-bg)", color: "var(--success)" }
+                ].map((task, i) => (
+                  <div key={i} className="card-elevated hover-glow" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: task.bg, color: task.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <task.icon size={20} />
+                    </div>
+                    <div>
+                      <b style={{ fontSize: '14px', display: 'block', color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '4px' }}>{task.title}</b>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: task.color }}>{task.pts} pts</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </section>
 
           {/* Right Sidebar: Benefits */}
-          <aside>
+          <aside style={{ position: 'sticky', top: '24px', alignSelf: 'start' }}>
             <div className="card" style={{ padding: '24px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '20px' }}>Your Plus Benefits</h3>
               
@@ -148,8 +173,9 @@ export default function Rewards() {
         </div>
       </div>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 900px) {
+        @media (max-width: 1024px) {
           .rewards-grid { grid-template-columns: 1fr !important; }
+          .rewards-grid > aside { position: relative !important; top: 0 !important; }
         }
       `}} />
     </main>

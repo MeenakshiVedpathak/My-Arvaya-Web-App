@@ -26,27 +26,27 @@ export default function ABHA() {
   ];
 
   return (
-    <main style={{ background: "#f8f9fa", minHeight: "100vh" }}>
+    <main className="page animate-fade-in-up" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0 }}>
       
       {/* ── Enterprise Top Header ── */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0 24px" }}>
+      <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)", padding: "24px 0" }}>
         <div className="container" style={{ maxWidth: "1280px", margin: "0 auto" }}>
           
-          <div style={{ padding: "16px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ padding: "0 0 16px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-              <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--text-muted)", fontSize: "14px", fontWeight: "600", textDecoration: "none" }}>
-                <ArrowLeft size={16} /> Back
+              <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--text-muted)", fontSize: "14px", fontWeight: "600", textDecoration: "none" }} className="hover:text-primary">
+                <ArrowLeft size={16} /> Home
               </Link>
-              <div style={{ width: "1px", height: "24px", background: "#e5e7eb" }} />
-              <h1 style={{ fontSize: "20px", fontWeight: "700", color: "#111827", margin: 0 }}>ABHA Management</h1>
+              <div style={{ width: "1px", height: "24px", background: "var(--border)" }} />
+              <h1 className="text-h2" style={{ fontSize: "24px", margin: 0 }}>ABHA Management</h1>
             </div>
 
             {/* User Profile Summary */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "#f3f4f6", padding: "6px 12px", borderRadius: "99px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-app)", padding: "6px 12px", borderRadius: "99px" }}>
               <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: abhaData.photoColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700" }}>
                 {abhaData.photoInitials}
               </div>
-              <div style={{ fontSize: "13px", fontWeight: "600", color: "#374151" }}>{abhaData.name}</div>
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>{abhaData.name}</div>
             </div>
           </div>
 
@@ -58,7 +58,7 @@ export default function ABHA() {
                 <button key={id} onClick={() => setActiveTab(id)} style={{
                   display: "flex", alignItems: "center", gap: "8px", padding: "0 0 12px 0",
                   background: "none", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: "600",
-                  color: isActive ? "var(--primary-dark)" : "#6b7280",
+                  color: isActive ? "var(--primary-dark)" : "var(--text-muted)",
                   borderBottom: isActive ? "3px solid var(--primary)" : "3px solid transparent",
                   transition: "all 0.2s"
                 }}>
