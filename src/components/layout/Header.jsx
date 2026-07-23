@@ -1,12 +1,76 @@
-import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight } from "lucide-react";
+import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2 } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { doctors, packages } from "../../mocks/data";
+import { useBooking } from "../../context/BookingContext";
 
 export default function Header() {
   const { user, openLoginModal, logout } = useAuth();
+  const { setDoctor } = useBooking();
   const go = useNavigate();
+  
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [selectedCity, setSelectedCity] = useState("Bangalore");
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const searchContainerRef = useRef(null);
+  const locationPickerRef = useRef(null);
+
+  const cities = ["Bangalore", "Mumbai", "Delhi NCR", "Hyderabad", "Chennai", "Pune", "Kolkata"];
+
+  // Click outside listener for search & location popovers
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+      if (locationPickerRef.current && !locationPickerRef.current.contains(event.target)) {
+        setIsLocationOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Static Search Matching
+  const filteredDoctors = useMemo(() => {
+    if (!q.trim()) return [];
+    return doctors.filter(d => 
+      d.name.toLowerCase().includes(q.toLowerCase()) || 
+      d.specialty.toLowerCase().includes(q.toLowerCase()) ||
+      d.hospital.toLowerCase().includes(q.toLowerCase())
+    );
+  }, [q]);
+
+  const filteredPackages = useMemo(() => {
+    if (!q.trim()) return [];
+    return packages.filter(p => 
+      p.title.toLowerCase().includes(q.toLowerCase())
+    );
+  }, [q]);
+
+  const handleSelectDoctor = (doc) => {
+    setDoctor(doc);
+    setIsSearchFocused(false);
+    setQ("");
+    go("/doctor");
+  };
+
+  const handleSelectLab = (pkg) => {
+    setIsSearchFocused(false);
+    setQ("");
+    go(`/labs`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!q.trim()) return;
+    setIsSearchFocused(false);
+    go(`/doctors?q=${encodeURIComponent(q)}`);
+  };
 
   const navLinks = [
     ["Home", "/"],
@@ -32,24 +96,122 @@ export default function Header() {
              <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
           </Link>
           
-          {/* Universal Search Bar (Desktop / Tablet) */}
-          <div className="header-search-bar flex-1 flex items-center" style={{ maxWidth: '600px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'rgba(255, 255, 255, 0.6)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden', height: '44px', transition: 'box-shadow 0.3s, border-color 0.3s' }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(46, 102, 110, 0.1)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}>
+          {/* Universal Search Bar & Location Picker */}
+          <div ref={searchContainerRef} className="header-search-bar flex-1 flex items-center" style={{ position: 'relative', maxWidth: '600px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'rgba(255, 255, 255, 0.8)', boxShadow: isSearchFocused ? '0 0 0 4px rgba(46, 102, 110, 0.12)' : 'var(--shadow-sm)', height: '44px', transition: 'all 0.25s' }}>
             
             {/* Location Selector */}
-            <div className="header-location-picker flex items-center gap-1" style={{ padding: '0 16px', borderRight: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '14px', fontWeight: '500', cursor: 'pointer', background: 'var(--bg-app)', height: '100%', transition: 'background 0.2s', flexShrink: 0 }} onMouseOver={e => e.currentTarget.style.background = 'var(--primary-light)'} onMouseOut={e => e.currentTarget.style.background = 'var(--bg-app)'}>
-              <MapPin size={16} className="text-primary" />
-              <span>Bangalore</span>
-              <ChevronDown size={16} className="text-muted" />
+            <div ref={locationPickerRef} style={{ position: 'relative', height: '100%' }}>
+              <div 
+                className="header-location-picker flex items-center gap-1" 
+                onClick={() => setIsLocationOpen(!isLocationOpen)}
+                style={{ padding: '0 16px', borderRight: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', background: 'var(--bg-app)', height: '100%', transition: 'background 0.2s', flexShrink: 0, userSelect: 'none' }}
+              >
+                <MapPin size={16} className="text-primary" />
+                <span>{selectedCity}</span>
+                <ChevronDown size={16} className="text-muted" style={{ transform: isLocationOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </div>
+
+              {/* Location Dropdown Menu */}
+              {isLocationOpen && (
+                <div style={{ position: 'absolute', top: '50px', left: 0, width: '180px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '6px 0', animation: 'fadeIn 0.2s ease' }}>
+                  <div style={{ padding: '6px 14px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Select City</div>
+                  {cities.map(city => (
+                    <div 
+                      key={city} 
+                      onClick={() => { setSelectedCity(city); setIsLocationOpen(false); }}
+                      style={{ padding: '10px 14px', fontSize: '13px', color: selectedCity === city ? 'var(--primary)' : 'var(--text-main)', fontWeight: selectedCity === city ? '700' : '500', background: selectedCity === city ? 'var(--primary-light)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.2s' }}
+                      onMouseOver={e => { if (selectedCity !== city) e.currentTarget.style.background = 'var(--bg-app)'; }}
+                      onMouseOut={e => { if (selectedCity !== city) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <span>{city}</span>
+                      {selectedCity === city && <Check size={14} color="var(--primary)" />}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Search Input */}
-            <div className="flex-1 flex items-center gap-2" style={{ padding: '0 16px', background: 'transparent', minWidth: '0' }}>
+            <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2" style={{ padding: '0 16px', background: 'transparent', minWidth: '0', height: '100%' }}>
               <Search size={18} className="text-muted" style={{ flexShrink: 0 }} />
               <input 
-                placeholder="Search doctors, clinics, tests…" 
+                placeholder="Search doctors, specialties, lab tests..." 
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px', color: 'var(--text-main)' }}
               />
-            </div>
+              {q && (
+                <X size={16} className="text-muted cursor-pointer" onClick={() => setQ("")} />
+              )}
+            </form>
+
+            {/* Search Autocomplete Results Popover */}
+            {isSearchFocused && q.trim().length > 0 && (
+              <div className="header-search-popover" style={{ position: 'absolute', top: '50px', left: 0, right: 0, background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0 16px 40px rgba(18,51,58,0.2)', zIndex: 110, padding: '16px', animation: 'fadeIn 0.2s ease', maxHeight: '420px', overflowY: 'auto' }}>
+                
+                {/* Section: Doctors */}
+                {filteredDoctors.length > 0 && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Stethoscope size={14} color="var(--primary)" /> Top Doctors
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {filteredDoctors.map(doc => (
+                        <div 
+                          key={doc.id}
+                          onClick={() => handleSelectDoctor(doc)}
+                          style={{ padding: '10px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'var(--bg-app)' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--primary-light)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                        >
+                          <div>
+                            <b style={{ fontSize: '14px', color: 'var(--primary-dark)', display: 'block' }}>{doc.name}</b>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{doc.specialty} • {doc.hospital}</span>
+                          </div>
+                          <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>₹{doc.fee}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section: Lab Tests */}
+                {filteredPackages.length > 0 && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <FlaskConical size={14} color="var(--accent)" /> Lab Packages & Diagnostics
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {filteredPackages.map((pkg, i) => (
+                        <div 
+                          key={i}
+                          onClick={() => handleSelectLab(pkg)}
+                          style={{ padding: '10px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'var(--bg-app)' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--primary-light)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                        >
+                          <div>
+                            <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{pkg.title}</b>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{pkg.tests}</span>
+                          </div>
+                          <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)' }}>{pkg.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* View All Search Action */}
+                <div 
+                  onClick={() => handleSearchSubmit()}
+                  style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '8px', textAlign: 'center', fontSize: '13px', fontWeight: '700', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <span>Search all results for "{q}" in {selectedCity}</span>
+                  <ArrowRight size={14} />
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Right Auth CTA (Desktop) */}
