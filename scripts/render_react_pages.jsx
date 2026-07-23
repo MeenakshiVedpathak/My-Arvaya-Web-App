@@ -83,6 +83,14 @@ function StandaloneLoginPage() {
   );
 }
 
+function LabsWithPrerenderedModal() {
+  return (
+    <div id="static-labs-container">
+      <Labs forceModalOpen={true} />
+    </div>
+  );
+}
+
 function AmbulanceWithPrerenderedModal() {
   return (
     <>
@@ -146,7 +154,7 @@ const routesToRender = [
   { path: "/slot", element: <SelectSlot />, files: ["selectSlot.html"], title: "Select Appointment Slot | Arvaya" },
   { path: "/review", element: <Review />, files: ["review.html"], title: "Review Appointment Booking | Arvaya" },
   { path: "/confirmed", element: <Confirmed />, files: ["confirmed.html"], title: "Appointment Confirmed | Arvaya" },
-  { path: "/labs", element: <Labs />, files: ["labs.html"], title: "Diagnostic Lab Tests & Packages | Arvaya" },
+  { path: "/labs", element: <LabsWithPrerenderedModal />, files: ["labs.html"], title: "Diagnostic Lab Tests & Packages | Arvaya" },
   { path: "/records", element: <Records />, files: ["records.html"], title: "Health Records Vault & ABHA | Arvaya" },
   { path: "/ambulance", element: <AmbulanceWithPrerenderedModal />, files: ["ambulance.html"], title: "24/7 Smart ICU Emergency Ambulance | Arvaya" },
   { path: "/analytics", element: <Analytics />, files: ["analytics.html"], title: "Health Vitals & Analytics | Arvaya" },
@@ -240,6 +248,12 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
   <!-- Universal Static Interactive Script: Exact React Flow & State Replication -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+
+      // Hide pre-rendered Lab Modal overlay on labs.html by default
+      const labOverlay = document.querySelector("#static-labs-container .modal-overlay");
+      if (labOverlay) {
+        labOverlay.style.display = "none";
+      }
 
       // ── 1. Mobile Drawer Navigation ──
       const hamburgerBtn = document.querySelector(".mobile-hamburger-btn");
@@ -344,8 +358,10 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         }
       }
 
-      // ── 4. Diagnostic Labs Booking Action ──
+      // ── 4. Diagnostic Lab Booking Flow ──
       if (window.location.pathname.includes("labs.html")) {
+        const labModalOverlay = document.querySelector("#static-labs-container .modal-overlay");
+
         document.body.addEventListener("click", (e) => {
           const btn = e.target.closest("button");
           if (!btn) return;
@@ -353,9 +369,21 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
 
           if (text === "book" || text === "book test" || text.includes("book now")) {
             e.preventDefault();
-            window.location.href = "selectSlot.html";
+            if (labModalOverlay) labModalOverlay.style.display = "flex";
           }
         });
+
+        if (labModalOverlay) {
+          labModalOverlay.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && (btn.textContent.toLowerCase().includes("confirm sample collection") || btn.textContent.toLowerCase().includes("confirm schedule"))) {
+              e.preventDefault();
+              window.location.href = "confirmed.html";
+            } else if (e.target === labModalOverlay || btn?.classList.contains("modal-close-btn")) {
+              labModalOverlay.style.display = "none";
+            }
+          });
+        }
       }
 
       // ── 5. Ambulance Request Modal ──
@@ -387,7 +415,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         }
       }
 
-      // ── 6. Global Navigation Router ──
+      // ── 6. Doctor Appointment Navigation Router ──
       document.body.addEventListener("click", (e) => {
         const btn = e.target.closest("button, a");
         if (!btn) return;
@@ -400,6 +428,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
           return;
         }
 
+        // DOCTOR APPOINTMENT ONLY (NOT LABS)
         if (text === "book visit" || text === "consult now" || text === "book consultation" || text === "select time slot") {
           e.preventDefault();
           if (window.location.pathname.includes("doctor.html") || window.location.pathname.includes("doctorProfile.html")) {
@@ -410,7 +439,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         } else if (text.includes("continue to review") || text.includes("book appointment")) {
           e.preventDefault();
           window.location.href = "review.html";
-        } else if (text.includes("confirm booking")) {
+        } else if (text.includes("confirm booking") && !window.location.pathname.includes("labs.html")) {
           e.preventDefault();
           window.location.href = "confirmed.html";
         } else if (text.includes("go to my appointments")) {

@@ -8,12 +8,13 @@ import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode } from "../../service
 /* ── Small shared atoms ──────────────────────────────────────────────────── */
 
 function Overlay({ children, onClose }) {
-  return ReactDOM.createPortal(
+  const content = (
     <div className="ambulance-modal-overlay" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "860px", margin: "auto" }}>{children}</div>
-    </div>,
-    document.body
+    </div>
   );
+  if (typeof window === "undefined") return content;
+  return ReactDOM.createPortal(content, document.body);
 }
 
 function ErrorBanner({ msg }) {

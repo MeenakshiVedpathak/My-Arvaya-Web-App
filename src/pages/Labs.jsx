@@ -10,7 +10,7 @@ import Modal from "../components/common/Modal";
 
 const borderColors = ['var(--primary)', 'var(--accent)', '#3D7A83', '#1F4F57'];
 
-export default function Labs() {
+export default function Labs({ forceModalOpen = false }) {
   const go = useNavigate();
   const { setBookingType, setLabPackage, setDate, setSlot, setBookingId } = useBooking();
   const { user, openLoginModal } = useAuth();
@@ -199,7 +199,7 @@ export default function Labs() {
 
       {/* Booking Modal (Used in React & pre-rendered for static HTML) */}
       <Modal 
-        isOpen={!!selectedPackage} 
+        isOpen={!!selectedPackage || forceModalOpen} 
         onClose={() => setSelectedPackage(null)}
         title="Schedule Lab Test"
         maxWidth="700px"

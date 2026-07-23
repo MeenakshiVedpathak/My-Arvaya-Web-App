@@ -4,17 +4,19 @@ import { createPortal } from "react-dom";
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = "600px" }) {
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+    if (typeof window !== "undefined") {
+      if (isOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'unset';
+      }
+      return () => { document.body.style.overflow = 'unset'; };
     }
-    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  return createPortal(
+  const content = (
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content" 
@@ -31,7 +33,12 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "60
           {children}
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
+
+  if (typeof window === "undefined") {
+    return content;
+  }
+
+  return createPortal(content, document.body);
 }

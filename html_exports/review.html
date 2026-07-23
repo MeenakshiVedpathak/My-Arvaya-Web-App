@@ -48,6 +48,12 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
 
+      // Hide pre-rendered Lab Modal overlay on labs.html by default
+      const labOverlay = document.querySelector("#static-labs-container .modal-overlay");
+      if (labOverlay) {
+        labOverlay.style.display = "none";
+      }
+
       // ── 1. Mobile Drawer Navigation ──
       const hamburgerBtn = document.querySelector(".mobile-hamburger-btn");
       if (hamburgerBtn) {
@@ -151,8 +157,10 @@
         }
       }
 
-      // ── 4. Diagnostic Labs Booking Action ──
+      // ── 4. Diagnostic Lab Booking Flow ──
       if (window.location.pathname.includes("labs.html")) {
+        const labModalOverlay = document.querySelector("#static-labs-container .modal-overlay");
+
         document.body.addEventListener("click", (e) => {
           const btn = e.target.closest("button");
           if (!btn) return;
@@ -160,9 +168,21 @@
 
           if (text === "book" || text === "book test" || text.includes("book now")) {
             e.preventDefault();
-            window.location.href = "selectSlot.html";
+            if (labModalOverlay) labModalOverlay.style.display = "flex";
           }
         });
+
+        if (labModalOverlay) {
+          labModalOverlay.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && (btn.textContent.toLowerCase().includes("confirm sample collection") || btn.textContent.toLowerCase().includes("confirm schedule"))) {
+              e.preventDefault();
+              window.location.href = "confirmed.html";
+            } else if (e.target === labModalOverlay || btn?.classList.contains("modal-close-btn")) {
+              labModalOverlay.style.display = "none";
+            }
+          });
+        }
       }
 
       // ── 5. Ambulance Request Modal ──
@@ -194,7 +214,7 @@
         }
       }
 
-      // ── 6. Global Navigation Router ──
+      // ── 6. Doctor Appointment Navigation Router ──
       document.body.addEventListener("click", (e) => {
         const btn = e.target.closest("button, a");
         if (!btn) return;
@@ -207,6 +227,7 @@
           return;
         }
 
+        // DOCTOR APPOINTMENT ONLY (NOT LABS)
         if (text === "book visit" || text === "consult now" || text === "book consultation" || text === "select time slot") {
           e.preventDefault();
           if (window.location.pathname.includes("doctor.html") || window.location.pathname.includes("doctorProfile.html")) {
@@ -217,7 +238,7 @@
         } else if (text.includes("continue to review") || text.includes("book appointment")) {
           e.preventDefault();
           window.location.href = "review.html";
-        } else if (text.includes("confirm booking")) {
+        } else if (text.includes("confirm booking") && !window.location.pathname.includes("labs.html")) {
           e.preventDefault();
           window.location.href = "confirmed.html";
         } else if (text.includes("go to my appointments")) {
