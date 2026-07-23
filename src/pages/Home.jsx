@@ -1,4 +1,4 @@
-import { ChevronRight, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote } from "lucide-react";
+import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { packages } from "../mocks/data";
@@ -8,18 +8,55 @@ export default function Home() {
   const go = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showAmbulanceModal, setShowAmbulanceModal] = useState(false);
-  const slides = [
-    "/banner_healthcare_1.png",
-    "/banner_healthcare_2.png",
-    "/banner_healthcare_3.png"
+
+  const heroSlides = [
+    {
+      badge: "✨ 15 MIN EMERGENCY RESPONSE",
+      badgeColor: "#2dd4bf",
+      badgeBorder: "rgba(45, 212, 191, 0.4)",
+      badgeBg: "rgba(18, 51, 58, 0.7)",
+      title: <>24/7 Smart ICU Emergency &<br/>Mobile Dispatch</>,
+      subtitle: "Rapid emergency ambulance dispatch equipped with mobile life support and live tracking.",
+      primaryBtn: "Request Ambulance",
+      primaryAction: () => setShowAmbulanceModal(true),
+      secondaryBtn: "Hotline: 1800–ARVAYA–911",
+      secondaryAction: () => { window.location.href = "tel:18002782929"; },
+      bg: "/banner_healthcare_1.png"
+    },
+    {
+      badge: "⭐ INDIA'S #1 HEALTHCARE PLATFORM",
+      badgeColor: "#FDBF8B",
+      badgeBorder: "rgba(253, 191, 139, 0.4)",
+      badgeBg: "rgba(255, 255, 255, 0.1)",
+      title: <>Consult Top Doctors &<br/><span style={{ color: '#FDBF8B' }}>Specialists Online</span></>,
+      subtitle: "Instant video consultations with verified top doctors across 35+ medical specialties.",
+      primaryBtn: "Find a Doctor",
+      primaryAction: () => go('/doctors'),
+      secondaryBtn: "Book Lab Test",
+      secondaryAction: () => go('/labs'),
+      bg: "/banner_healthcare_2.png"
+    },
+    {
+      badge: "🔬 100% NABL ACCREDITED LABS",
+      badgeColor: "#38bdf8",
+      badgeBorder: "rgba(56, 189, 248, 0.4)",
+      badgeBg: "rgba(15, 23, 42, 0.6)",
+      title: <>Accurate Diagnostic Tests &<br/><span style={{ color: '#38bdf8' }}>Home Sample Collection</span></>,
+      subtitle: "Sample collection at your doorstep with guaranteed digital reports within 24 hours.",
+      primaryBtn: "Book Lab Package",
+      primaryAction: () => go('/labs'),
+      secondaryBtn: "View Health Vault",
+      secondaryAction: () => go('/records'),
+      bg: "/banner_healthcare_3.png"
+    }
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 4000);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [heroSlides.length]);
 
   const tickerText = "🎉 Avail flat 20% off on all Full Body Checkups this week!  •  🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi  •  ⭐ Free consultation with our top specialists for ABHA card holders  •  ";
 
@@ -51,48 +88,116 @@ export default function Home() {
 
       {/* ── Carousel Banner ── */}
       <section className="home-hero-section" style={{ position: 'relative', width: '100%', minHeight: '480px', overflow: 'hidden' }}>
-        {slides.map((src, idx) => (
-          <div key={src} style={{
+        {heroSlides.map((slide, idx) => (
+          <div key={slide.bg} style={{
               position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
               opacity: idx === currentSlide ? 1 : 0, 
               transition: 'opacity 1.2s ease-in-out',
               zIndex: idx === currentSlide ? 1 : 0
           }}>
             <img 
-              src={src} 
+              src={slide.bg} 
               alt={`Banner ${idx + 1}`} 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.2) 100%)' }}></div>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)' }}></div>
           </div>
         ))}
+
+        {/* Carousel Navigation Arrows */}
+        <button 
+          onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
+          style={{
+            position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
+            width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+            color: '#1e293b', border: '1px solid var(--border)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)', transition: 'all 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
+          aria-label="Previous Slide"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <button 
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+          style={{
+            position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
+            width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+            color: '#1e293b', border: '1px solid var(--border)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)', transition: 'all 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
+          aria-label="Next Slide"
+        >
+          <ChevronRight size={20} />
+        </button>
+
         {/* Overlay Content */}
         <div className="container" style={{ position: 'relative', height: '100%', minHeight: '480px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px' }}>
-          <div className="animate-fade-in-up" style={{ maxWidth: '600px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', padding: '6px 16px', borderRadius: '99px', fontSize: '13px', fontWeight: '600', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <Star size={14} fill="#FDBF8B" color="#FDBF8B" /> India's #1 Healthcare Platform
-            </span>
-            <h1 className="hero-title" style={{ fontSize: '44px', fontWeight: '800', color: 'white', lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
-              Your health, <br/><span style={{ color: '#FDBF8B' }}>managed brilliantly.</span>
-            </h1>
-            <p className="hero-subtext" style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '28px', lineHeight: 1.6 }}>
-              Book top doctors, order medicines, and store health records securely in one unified ecosystem.
-            </p>
-            
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              <button onClick={() => go('/doctors')} className="btn btn-primary" style={{ padding: '14px 28px', fontSize: '15px', boxShadow: '0 4px 20px rgba(46, 102, 110, 0.4)' }}>
-                Find a Doctor
-              </button>
-              <button onClick={() => go('/labs')} className="btn" style={{ padding: '14px 28px', fontSize: '15px', background: 'rgba(255,255,255,0.12)', color: 'white', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', transition: 'all 0.3s' }} onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; }} onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}>
-                Book Lab Test
-              </button>
+          {heroSlides.map((slide, idx) => idx === currentSlide && (
+            <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '640px' }}>
+              <span style={{ 
+                display: 'inline-flex', alignItems: 'center', gap: '8px', 
+                background: slide.badgeBg, backdropFilter: 'blur(10px)', 
+                color: slide.badgeColor, padding: '8px 18px', borderRadius: '99px', 
+                fontSize: '12px', fontWeight: '700', marginBottom: '20px', 
+                border: `1px solid ${slide.badgeBorder}`, textTransform: 'uppercase', 
+                letterSpacing: '0.06em' 
+              }}>
+                {slide.badge}
+              </span>
+              <h1 className="hero-title" style={{ fontSize: '42px', fontWeight: '800', color: 'white', lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
+                {slide.title}
+              </h1>
+              <p className="hero-subtext" style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '32px', lineHeight: 1.6 }}>
+                {slide.subtitle}
+              </p>
+              
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* Primary Orange CTA Button */}
+                <button 
+                  onClick={slide.primaryAction} 
+                  style={{ 
+                    padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
+                    color: '#ffffff', background: 'linear-gradient(135deg, #FF6B00 0%, #F97316 100%)', 
+                    border: 'none', borderRadius: '14px', cursor: 'pointer', 
+                    display: 'flex', alignItems: 'center', gap: '8px', 
+                    boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)', transition: 'all 0.3s' 
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <span>{slide.primaryBtn}</span> <ArrowRight size={16} />
+                </button>
+
+                {/* Secondary Outlined CTA Button */}
+                <button 
+                  onClick={slide.secondaryAction} 
+                  style={{ 
+                    padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
+                    color: '#ffffff', background: 'rgba(255, 255, 255, 0.08)', 
+                    border: '1.5px solid rgba(255, 255, 255, 0.5)', borderRadius: '14px', 
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
+                    backdropFilter: 'blur(8px)', transition: 'all 0.3s' 
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.borderColor = '#ffffff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
+                >
+                  {slide.secondaryBtn}
+                </button>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
 
         {/* Navigation Dots */}
         <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
-          {slides.map((_, idx) => (
+          {heroSlides.map((_, idx) => (
             <button 
               key={idx}
               onClick={() => setCurrentSlide(idx)}

@@ -1099,3 +1099,112 @@ input[type="radio"]:focus-visible {
   }
 }
 
+/* ── Ambulance & Auth Modal Responsiveness ── */
+.ambulance-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 51, 58, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.ambulance-modal-card {
+  background: var(--bg-surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 860px;
+  box-shadow: 0 32px 64px -12px rgba(18, 51, 58, 0.22), 0 0 0 1px var(--border);
+  overflow: hidden;
+  display: flex;
+  max-height: 90vh;
+}
+
+.ambulance-modal-left {
+  flex: 0 0 300px;
+  background: var(--primary-deep);
+  padding: 44px 36px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.ambulance-modal-right {
+  flex: 1;
+  padding: 44px 48px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .ambulance-modal-overlay {
+    padding: 12px;
+  }
+
+  .ambulance-modal-card {
+    flex-direction: column;
+    max-height: 94vh;
+    border-radius: 16px;
+    overflow-y: auto;
+  }
+
+  .ambulance-modal-left {
+    flex: none;
+    padding: 24px 20px;
+  }
+
+  .ambulance-modal-left h2 {
+    font-size: 22px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .ambulance-modal-left p {
+    font-size: 13px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .ambulance-modal-left-icon {
+    width: 44px !important;
+    height: 44px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .ambulance-modal-left-info {
+    margin-top: 0 !important;
+    padding: 12px 14px !important;
+  }
+
+  .ambulance-modal-right {
+    padding: 24px 20px;
+    overflow-y: visible;
+  }
+
+  .login-modal-container {
+    flex-direction: column !important;
+    max-height: 94vh !important;
+    overflow-y: auto !important;
+    border-radius: 16px !important;
+    min-height: auto !important;
+  }
+
+  .login-modal-left {
+    padding: 24px 20px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .login-modal-right {
+    padding: 24px 20px !important;
+    min-width: 100% !important;
+  }
+}
+
+

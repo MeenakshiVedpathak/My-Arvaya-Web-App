@@ -9,7 +9,7 @@ import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode } from "../../service
 
 function Overlay({ children, onClose }) {
   return ReactDOM.createPortal(
-    <div style={{ position: "fixed", inset: 0, background: "rgba(18,51,58,0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "24px", overflowY: "auto" }} onClick={onClose}>
+    <div className="ambulance-modal-overlay" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "860px", margin: "auto" }}>{children}</div>
     </div>,
     document.body
@@ -93,7 +93,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const leftPanel = (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
       {/* Icon */}
-      <div style={{ width: "60px", height: "60px", borderRadius: "18px", background: "rgba(220,38,38,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", border: "1px solid rgba(220,38,38,0.3)" }}>
+      <div className="ambulance-modal-left-icon" style={{ width: "60px", height: "60px", borderRadius: "18px", background: "rgba(220,38,38,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", border: "1px solid rgba(220,38,38,0.3)" }}>
         <Ambulance size={28} color="#ef4444" />
       </div>
       <h2 style={{ fontSize: "30px", fontWeight: "800", color: "#fff", lineHeight: 1.15, margin: "0 0 14px", fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
@@ -104,7 +104,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
       </p>
 
       {/* Info box */}
-      <div style={{ background: "rgba(0,0,0,0.15)", padding: "20px", borderRadius: "14px", marginTop: "auto" }}>
+      <div className="ambulance-modal-left-info" style={{ background: "rgba(0,0,0,0.15)", padding: "20px", borderRadius: "14px", marginTop: "auto" }}>
         <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
           <Shield size={20} color="var(--accent)" style={{ flexShrink: 0, marginTop: "2px" }} />
           <div>
@@ -150,8 +150,8 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
 
       {/* Pickup Address */}
       <div style={{ marginBottom: "20px" }}>
-        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-          Pickup Address *
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
+          <span>Pickup Address *</span>
           <button type="button" onClick={handleLocate} disabled={locating}
             style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary-soft)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: "700", cursor: locating ? "wait" : "pointer", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.2s" }}
             onMouseEnter={e => { if (!locating) e.currentTarget.style.background = "var(--primary-soft)"; }}
@@ -200,7 +200,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
 
       {/* Details card */}
       <div style={{ background: "var(--bg-app)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", width: "100%", textAlign: "left", marginBottom: "32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "16px" }}>
           <div>
             <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>Request ID</div>
             <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-main)", fontFamily: "monospace" }}>{result.id}</div>
@@ -226,10 +226,10 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
 
   return (
     <Overlay onClose={onClose}>
-      <div style={{ background: "var(--bg-surface)", borderRadius: "20px", width: "100%", maxWidth: "860px", boxShadow: "0 32px 64px -12px rgba(18,51,58,0.22), 0 0 0 1px var(--border)", overflow: "hidden", display: "flex", maxHeight: "90vh" }}>
+      <div className="ambulance-modal-card">
 
         {/* Left Panel */}
-        <div style={{ flex: "0 0 300px", background: "var(--primary-deep)", padding: "44px 36px", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+        <div className="ambulance-modal-left">
           <div style={{ position: "absolute", top: "-80px", right: "-60px", width: "220px", height: "220px", borderRadius: "50%", background: "#dc2626", opacity: 0.15 }} />
           <div style={{ position: "absolute", bottom: "-100px", left: "-40px", width: "260px", height: "260px", borderRadius: "50%", background: "var(--accent)", opacity: 0.08 }} />
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
@@ -238,8 +238,8 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
         </div>
 
         {/* Right Panel */}
-        <div style={{ flex: 1, padding: "44px 48px", overflowY: "auto", display: "flex", flexDirection: "column", position: "relative" }}>
-          <button onClick={onClose} style={{ position: "absolute", top: "20px", right: "20px", background: "var(--bg-app)", border: "1px solid var(--border)", width: "34px", height: "34px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.background="var(--border)"} onMouseLeave={e => e.currentTarget.style.background="var(--bg-app)"}>
+        <div className="ambulance-modal-right">
+          <button onClick={onClose} style={{ position: "absolute", top: "16px", right: "16px", background: "var(--bg-app)", border: "1px solid var(--border)", width: "34px", height: "34px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", zIndex: 10 }} onMouseEnter={e => e.currentTarget.style.background="var(--border)"} onMouseLeave={e => e.currentTarget.style.background="var(--bg-app)"}>
             <X size={16} color="var(--text-muted)" />
           </button>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: step === 2 ? "center" : "flex-start" }}>

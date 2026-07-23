@@ -14,8 +14,8 @@ export async function login(email, password) {
   if (USE_MOCK) {
     return { token: "mock_token_" + Date.now(), user: MOCK_USER };
   }
-  // const res = await api.post("/user/login", { username: email, password, created_by: 1 });
-  // return { token: res.token || res.accessToken, user: res.user || res.data };
+  const res = await api.post("/user/login", { username: email, password, created_by: 1 });
+  return { token: res.token || res.accessToken, user: res.user || res.data };
 }
 
 /* ─── Register ─── */
@@ -26,22 +26,29 @@ export async function register(data) {
       user: { ...MOCK_USER, name: data.name, email: data.email, phone: data.phone },
     };
   }
-  // const res = await api.post("/api/user/create", data);
-  // return { token: res.token || res.accessToken, user: res.user || res.data };
+  const res = await api.post("/api/user/create", data);
+  return { token: res.token || res.accessToken, user: res.user || res.data };
 }
 
 /* ─── Send OTP ─── */
 export async function sendOtp(mobile) {
-  // Always hit the real API
+  if (USE_MOCK) {
+    await new Promise(r => setTimeout(r, 600));
+    return { success: true, message: `OTP sent to ${mobile}`, is_registered: true };
+  }
   return api.post("/user/sendOtp", { mobile_number: mobile });
 }
 
 /* ─── Verify OTP ─── */
 export async function verifyOtp(otp, mobile) {
-  // Always hit the real API
+  if (USE_MOCK) {
+    await new Promise(r => setTimeout(r, 600));
+    return { 
+      token: "mock_token_" + Date.now(), 
+      user: { ...MOCK_USER, phone: mobile ? `+91 ${mobile}` : MOCK_USER.phone } 
+    };
+  }
   const res = await api.post("/user/verifyOtp", { otp, mobile_number: mobile });
-  
-  // Directly log in using static session data for the dashboard
   return { 
     token: res?.token || res?.accessToken || "mock_token_" + Date.now(), 
     user: MOCK_USER 
@@ -63,7 +70,6 @@ export async function changePassword(data) {
 /* ─── Get Profile ─── */
 export async function getProfile() {
   if (USE_MOCK) return MOCK_USER;
-  // POST api/user/get
   const res = await api.post("/api/user/get", {});
   return res.user || res.data || res;
 }
@@ -73,3 +79,4 @@ export async function updateProfile(data) {
   if (USE_MOCK) return { ...MOCK_USER, ...data };
   return api.put("/api/user/update", data);
 }
+

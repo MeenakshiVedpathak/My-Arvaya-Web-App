@@ -25,20 +25,6 @@ export default function Header() {
       {/* ── Main Header ── */}
       <header className="glass" style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
         
-        {/* Top Bar inside Header */}
-        <div style={{ borderBottom: '1px solid var(--border)', background: 'rgba(241, 245, 249, 0.4)' }}>
-          <div className="container flex justify-between items-center" style={{ height: '32px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
-            <div className="flex gap-4" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              <span className="flex items-center gap-1 cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}><Smartphone size={14}/> Download App</span>
-              <span className="flex items-center gap-1 cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}><HelpCircle size={14}/> Help Center</span>
-            </div>
-            <div className="flex gap-4" style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              <span className="cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>For Providers</span>
-              <span className="cursor-pointer" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Corporate Health</span>
-            </div>
-          </div>
-        </div>
-
         <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 24px', gap: '16px' }}>
           
           {/* Logo */}
