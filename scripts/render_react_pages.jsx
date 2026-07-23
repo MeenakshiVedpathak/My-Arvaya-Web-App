@@ -1,8 +1,26 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import ReactDOMServer from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import fs from "fs";
 import path from "path";
+
+// Mock ReactDOM.createPortal for SSR so portal components render their children inline into static DOM
+ReactDOM.createPortal = (children) => children;
+
+// Mock document for Node environment SSR
+if (typeof globalThis.document === "undefined") {
+  const mockElem = { nodeType: 1, nodeName: 'BODY', appendChild: () => {}, removeChild: () => {}, style: {} };
+  globalThis.document = {
+    nodeType: 9,
+    body: mockElem,
+    createElement: () => mockElem,
+    querySelector: () => mockElem,
+    querySelectorAll: () => [],
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  };
+}
 
 // Mock localStorage for Node environment SSR
 if (typeof globalThis.localStorage === "undefined") {
@@ -34,6 +52,10 @@ if (typeof globalThis.localStorage === "undefined") {
 import Header from "../src/components/layout/Header.jsx";
 import Footer from "../src/components/layout/Footer.jsx";
 import LoginModal from "../src/components/auth/LoginModal.jsx";
+import AmbulanceRequestModal from "../src/components/ambulance/AmbulanceRequestModal.jsx";
+import { SwitchProfileModal } from "../src/pages/abha/modals/SwitchProfileModal.jsx";
+import { CreateAddressModal } from "../src/pages/abha/modals/CreateAddressModal.jsx";
+
 import { AuthProvider } from "../src/context/AuthContext.jsx";
 import { BookingProvider } from "../src/context/BookingContext.jsx";
 
@@ -58,6 +80,40 @@ function StandaloneLoginPage() {
     <main className="page" style={{ padding: '60px 16px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)' }}>
       <LoginModal forceOpen={true} />
     </main>
+  );
+}
+
+function AmbulanceWithPrerenderedModal() {
+  return (
+    <>
+      <Ambulance />
+      <div id="static-ambulance-modal-wrapper" style={{ display: 'none' }}>
+        <AmbulanceRequestModal onClose={() => {}} onSuccess={() => {}} />
+      </div>
+    </>
+  );
+}
+
+const mockAbhaData = {
+  name: "Rahul Sharma",
+  abhaAddress: "919876543210@sbx",
+  abhaNumber: "91-9876-5432-1098",
+  gender: "Male",
+  dob: { day: "10", month: "4", year: "2000" },
+  address: "Koramangala 4th Block, Bangalore, Karnataka"
+};
+
+function AbhaWithPrerenderedModals() {
+  return (
+    <>
+      <ABHA />
+      <div id="static-switch-modal-wrapper" style={{ display: 'none' }}>
+        <SwitchProfileModal onClose={() => {}} />
+      </div>
+      <div id="static-create-modal-wrapper" style={{ display: 'none' }}>
+        <CreateAddressModal abhaData={mockAbhaData} onClose={() => {}} />
+      </div>
+    </>
   );
 }
 
@@ -92,11 +148,11 @@ const routesToRender = [
   { path: "/confirmed", element: <Confirmed />, files: ["confirmed.html"], title: "Appointment Confirmed | Arvaya" },
   { path: "/labs", element: <Labs />, files: ["labs.html"], title: "Diagnostic Lab Tests & Packages | Arvaya" },
   { path: "/records", element: <Records />, files: ["records.html"], title: "Health Records Vault & ABHA | Arvaya" },
-  { path: "/ambulance", element: <Ambulance />, files: ["ambulance.html"], title: "24/7 Smart ICU Emergency Ambulance | Arvaya" },
+  { path: "/ambulance", element: <AmbulanceWithPrerenderedModal />, files: ["ambulance.html"], title: "24/7 Smart ICU Emergency Ambulance | Arvaya" },
   { path: "/analytics", element: <Analytics />, files: ["analytics.html"], title: "Health Vitals & Analytics | Arvaya" },
   { path: "/wallet", element: <Wallet />, files: ["wallet.html"], title: "Arvaya Care Wallet | Payments & Cashback" },
   { path: "/rewards", element: <Rewards />, files: ["rewards.html"], title: "Care Rewards & Referral Program | Arvaya" },
-  { path: "/abha", element: <ABHA />, files: ["abha.html"], title: "ABHA Health ID Registration & Portal | Arvaya" },
+  { path: "/abha", element: <AbhaWithPrerenderedModals />, files: ["abha.html"], title: "ABHA Health ID Registration & Portal | Arvaya" },
   { path: "/signup", element: <Signup />, files: ["signup.html"], title: "Create Arvaya Account | Patient Portal" },
   { path: "/login", element: <StandaloneLoginPage />, files: ["login.html"], title: "Sign In | Arvaya Patient Portal" }
 ];
@@ -196,7 +252,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         });
       }
 
-      // ── 2. Login Modal Trigger ──
+      // ── 2. Header Login Modal Trigger ──
       document.body.addEventListener("click", (e) => {
         const loginBtn = e.target.closest("button, a");
         if (!loginBtn) return;
@@ -211,7 +267,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         }
       });
 
-      // ── 3. ABHA Page Navigation Tabs (ABHA Data, Consents, Providers) ──
+      // ── 3. ABHA Page Navigation Tabs & Modals ──
       if (window.location.pathname.includes("abha.html")) {
         const navBtns = document.querySelectorAll("nav button");
         const tabData = document.getElementById("static-abha-tab-data");
@@ -235,32 +291,115 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
             if (tabProvider) tabProvider.style.display = btnText.includes("providers") ? "block" : "none";
           });
         });
+
+        // ABHA Action Triggers: Switch Profile & Create Address
+        document.body.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const text = (btn.textContent || "").trim().toLowerCase();
+
+          if (text.includes("switch profile") || text.includes("switch your profile")) {
+            e.preventDefault();
+            const switchWrapper = document.getElementById("static-switch-modal-wrapper");
+            if (switchWrapper) switchWrapper.style.display = "block";
+          } else if (text.includes("create address") || text.includes("create another address")) {
+            e.preventDefault();
+            const createWrapper = document.getElementById("static-create-modal-wrapper");
+            if (createWrapper) createWrapper.style.display = "block";
+          } else if (text.includes("logout profile")) {
+            e.preventDefault();
+            if (confirm("Are you sure you want to logout your ABHA profile session?")) {
+              window.location.href = "login.html";
+            }
+          }
+        });
+
+        // Close ABHA Modals
+        const switchWrapper = document.getElementById("static-switch-modal-wrapper");
+        if (switchWrapper) {
+          switchWrapper.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && btn.textContent.toLowerCase().includes("confirm")) {
+              e.preventDefault();
+              alert("Successfully switched ABHA profile!");
+              switchWrapper.style.display = "none";
+            } else if (e.target === switchWrapper || (btn && !btn.textContent.trim())) {
+              switchWrapper.style.display = "none";
+            }
+          });
+        }
+
+        const createWrapper = document.getElementById("static-create-modal-wrapper");
+        if (createWrapper) {
+          createWrapper.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && btn.textContent.toLowerCase().includes("create")) {
+              e.preventDefault();
+              alert("New ABHA address created successfully!");
+              createWrapper.style.display = "none";
+            } else if (e.target === createWrapper || (btn && !btn.textContent.trim())) {
+              createWrapper.style.display = "none";
+            }
+          });
+        }
       }
 
-      // ── 4. Global Booking & Ambulance Button Router ──
+      // ── 4. Diagnostic Labs Booking Action ──
+      if (window.location.pathname.includes("labs.html")) {
+        document.body.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const text = (btn.textContent || "").trim().toLowerCase();
+
+          if (text === "book" || text === "book test" || text.includes("book now")) {
+            e.preventDefault();
+            window.location.href = "selectSlot.html";
+          }
+        });
+      }
+
+      // ── 5. Ambulance Request Modal ──
+      if (window.location.pathname.includes("ambulance.html")) {
+        const ambModalWrapper = document.getElementById("static-ambulance-modal-wrapper");
+        document.body.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const text = (btn.textContent || "").trim().toLowerCase();
+
+          if (text.includes("call ambulance") || text.includes("request ambulance")) {
+            e.preventDefault();
+            if (ambModalWrapper) ambModalWrapper.style.display = "block";
+          }
+        });
+
+        if (ambModalWrapper) {
+          ambModalWrapper.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && (btn.textContent.toLowerCase().includes("call ambulance") || btn.textContent.toLowerCase().includes("dispatch"))) {
+              e.preventDefault();
+              alert("Opening dialer for emergency call to 108...");
+              window.location.href = "tel:108";
+              ambModalWrapper.style.display = "none";
+            } else if (e.target === ambModalWrapper || (btn && !btn.textContent.trim())) {
+              ambModalWrapper.style.display = "none";
+            }
+          });
+        }
+      }
+
+      // ── 6. Global Navigation Router ──
       document.body.addEventListener("click", (e) => {
         const btn = e.target.closest("button, a");
         if (!btn) return;
 
         const text = (btn.textContent || "").trim().toLowerCase();
 
-        // AMBULANCE FLOW
-        if (text.includes("request ambulance") || text.includes("call ambulance")) {
+        if (text.includes("request ambulance") && !window.location.pathname.includes("ambulance.html")) {
           e.preventDefault();
           window.location.href = "ambulance.html";
           return;
         }
 
-        // LAB TEST BOOKING FLOW
-        if (text === "book" || text === "book test" || text.includes("book now")) {
-          if (window.location.pathname.includes("labs.html") || btn.closest(".lab-card")) {
-            e.preventDefault();
-            window.location.href = "confirmed.html";
-            return;
-          }
-        }
-
-        // DOCTOR APPOINTMENT BOOKING FLOW
         if (text === "book visit" || text === "consult now" || text === "book consultation" || text === "select time slot") {
           e.preventDefault();
           if (window.location.pathname.includes("doctor.html") || window.location.pathname.includes("doctorProfile.html")) {
@@ -283,7 +422,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         }
       });
 
-      // ── 5. Time Slot Selection ──
+      // ── 7. Time Slot Buttons Toggle ──
       const slotBtns = document.querySelectorAll(".slot-btn, .time-slot-btn");
       slotBtns.forEach(sb => {
         sb.addEventListener("click", () => {
@@ -300,7 +439,7 @@ routesToRender.forEach(({ path: routePath, element, files, title }) => {
         });
       });
 
-      // ── 6. Live Search Filtering ──
+      // ── 8. Real-time Doctor & Lab Search Filtering ──
       const searchInputs = document.querySelectorAll("input[placeholder*='Search']");
       searchInputs.forEach(input => {
         input.addEventListener("input", (e) => {

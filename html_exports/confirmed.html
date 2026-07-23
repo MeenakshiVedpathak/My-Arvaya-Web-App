@@ -73,7 +73,7 @@
         });
       }
 
-      // ── 2. Login Modal Trigger ──
+      // ── 2. Header Login Modal Trigger ──
       document.body.addEventListener("click", (e) => {
         const loginBtn = e.target.closest("button, a");
         if (!loginBtn) return;
@@ -88,7 +88,7 @@
         }
       });
 
-      // ── 3. ABHA Page Navigation Tabs (ABHA Data, Consents, Providers) ──
+      // ── 3. ABHA Page Navigation Tabs & Modals ──
       if (window.location.pathname.includes("abha.html")) {
         const navBtns = document.querySelectorAll("nav button");
         const tabData = document.getElementById("static-abha-tab-data");
@@ -112,32 +112,115 @@
             if (tabProvider) tabProvider.style.display = btnText.includes("providers") ? "block" : "none";
           });
         });
+
+        // ABHA Action Triggers: Switch Profile & Create Address
+        document.body.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const text = (btn.textContent || "").trim().toLowerCase();
+
+          if (text.includes("switch profile") || text.includes("switch your profile")) {
+            e.preventDefault();
+            const switchWrapper = document.getElementById("static-switch-modal-wrapper");
+            if (switchWrapper) switchWrapper.style.display = "block";
+          } else if (text.includes("create address") || text.includes("create another address")) {
+            e.preventDefault();
+            const createWrapper = document.getElementById("static-create-modal-wrapper");
+            if (createWrapper) createWrapper.style.display = "block";
+          } else if (text.includes("logout profile")) {
+            e.preventDefault();
+            if (confirm("Are you sure you want to logout your ABHA profile session?")) {
+              window.location.href = "login.html";
+            }
+          }
+        });
+
+        // Close ABHA Modals
+        const switchWrapper = document.getElementById("static-switch-modal-wrapper");
+        if (switchWrapper) {
+          switchWrapper.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && btn.textContent.toLowerCase().includes("confirm")) {
+              e.preventDefault();
+              alert("Successfully switched ABHA profile!");
+              switchWrapper.style.display = "none";
+            } else if (e.target === switchWrapper || (btn && !btn.textContent.trim())) {
+              switchWrapper.style.display = "none";
+            }
+          });
+        }
+
+        const createWrapper = document.getElementById("static-create-modal-wrapper");
+        if (createWrapper) {
+          createWrapper.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && btn.textContent.toLowerCase().includes("create")) {
+              e.preventDefault();
+              alert("New ABHA address created successfully!");
+              createWrapper.style.display = "none";
+            } else if (e.target === createWrapper || (btn && !btn.textContent.trim())) {
+              createWrapper.style.display = "none";
+            }
+          });
+        }
       }
 
-      // ── 4. Global Booking & Ambulance Button Router ──
+      // ── 4. Diagnostic Labs Booking Action ──
+      if (window.location.pathname.includes("labs.html")) {
+        document.body.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const text = (btn.textContent || "").trim().toLowerCase();
+
+          if (text === "book" || text === "book test" || text.includes("book now")) {
+            e.preventDefault();
+            window.location.href = "selectSlot.html";
+          }
+        });
+      }
+
+      // ── 5. Ambulance Request Modal ──
+      if (window.location.pathname.includes("ambulance.html")) {
+        const ambModalWrapper = document.getElementById("static-ambulance-modal-wrapper");
+        document.body.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const text = (btn.textContent || "").trim().toLowerCase();
+
+          if (text.includes("call ambulance") || text.includes("request ambulance")) {
+            e.preventDefault();
+            if (ambModalWrapper) ambModalWrapper.style.display = "block";
+          }
+        });
+
+        if (ambModalWrapper) {
+          ambModalWrapper.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (btn && (btn.textContent.toLowerCase().includes("call ambulance") || btn.textContent.toLowerCase().includes("dispatch"))) {
+              e.preventDefault();
+              alert("Opening dialer for emergency call to 108...");
+              window.location.href = "tel:108";
+              ambModalWrapper.style.display = "none";
+            } else if (e.target === ambModalWrapper || (btn && !btn.textContent.trim())) {
+              ambModalWrapper.style.display = "none";
+            }
+          });
+        }
+      }
+
+      // ── 6. Global Navigation Router ──
       document.body.addEventListener("click", (e) => {
         const btn = e.target.closest("button, a");
         if (!btn) return;
 
         const text = (btn.textContent || "").trim().toLowerCase();
 
-        // AMBULANCE FLOW
-        if (text.includes("request ambulance") || text.includes("call ambulance")) {
+        if (text.includes("request ambulance") && !window.location.pathname.includes("ambulance.html")) {
           e.preventDefault();
           window.location.href = "ambulance.html";
           return;
         }
 
-        // LAB TEST BOOKING FLOW
-        if (text === "book" || text === "book test" || text.includes("book now")) {
-          if (window.location.pathname.includes("labs.html") || btn.closest(".lab-card")) {
-            e.preventDefault();
-            window.location.href = "confirmed.html";
-            return;
-          }
-        }
-
-        // DOCTOR APPOINTMENT BOOKING FLOW
         if (text === "book visit" || text === "consult now" || text === "book consultation" || text === "select time slot") {
           e.preventDefault();
           if (window.location.pathname.includes("doctor.html") || window.location.pathname.includes("doctorProfile.html")) {
@@ -160,7 +243,7 @@
         }
       });
 
-      // ── 5. Time Slot Selection ──
+      // ── 7. Time Slot Buttons Toggle ──
       const slotBtns = document.querySelectorAll(".slot-btn, .time-slot-btn");
       slotBtns.forEach(sb => {
         sb.addEventListener("click", () => {
@@ -177,7 +260,7 @@
         });
       });
 
-      // ── 6. Live Search Filtering ──
+      // ── 8. Real-time Doctor & Lab Search Filtering ──
       const searchInputs = document.querySelectorAll("input[placeholder*='Search']");
       searchInputs.forEach(input => {
         input.addEventListener("input", (e) => {
