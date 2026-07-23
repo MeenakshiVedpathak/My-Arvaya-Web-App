@@ -95,7 +95,8 @@ export default function Header() {
             ["Patient Portal", "/records"],
             ["Wallet", "/wallet"],
             ["Rewards", "/rewards"],
-            ["Analytics", "/analytics"]
+            ["Analytics", "/analytics"],
+            ["🚑 Ambulance", "/ambulance"]
           ].map(([label, path]) => (
             <NavLink 
               key={label} 

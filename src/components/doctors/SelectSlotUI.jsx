@@ -2,9 +2,26 @@ import { ChevronLeft, ChevronRight, ChevronDown, CalendarX2, Calendar } from "lu
 import { useState } from "react";
 
 export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
-  const [selectedDate, setSelectedDate] = useState(11);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDateObj, setSelectedDateObj] = useState(today);
   const [selectedTime, setSelectedTime] = useState(null);
-  const dates = [5, 6, 7, 8, 9, 10, 11];
+
+  const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  const startDay = startOfMonth.getDay();
+  const daysInMonth = endOfMonth.getDate();
+
+  const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  const formatDateForDisplay = (date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   return (
     <div className="select-slot-container">
@@ -32,28 +49,42 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
 
           <div className="full-calendar-card">
             <div className="fc-header">
-              <button className="icon-btn"><ChevronLeft size={16} /></button>
-              <span className="fc-month">July 2026</span>
-              <button className="icon-btn"><ChevronRight size={16} /></button>
+              <button className="icon-btn" onClick={prevMonth}><ChevronLeft size={16} /></button>
+              <span className="fc-month">{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
+              <button className="icon-btn" onClick={nextMonth}><ChevronRight size={16} /></button>
             </div>
             <div className="fc-grid">
               {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                 <div key={`wd-${i}`} className="fc-weekday">{d}</div>
               ))}
-              {/* Mock empty days for start of month (July 1st is Wed, so 3 empty cells) */}
-              <div className="fc-empty"></div>
-              <div className="fc-empty"></div>
-              <div className="fc-empty"></div>
-              {/* 31 days of July */}
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                <button
-                  key={`day-${day}`}
-                  className={`fc-date ${selectedDate === day ? 'active' : ''}`}
-                  onClick={() => setSelectedDate(day)}
-                >
-                  {day}
-                </button>
+              
+              {/* Empty days */}
+              {Array.from({ length: startDay }).map((_, i) => (
+                <div key={`empty-${i}`} className="fc-empty"></div>
               ))}
+              
+              {/* Actual days */}
+              {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+                const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                const isPast = date < today;
+                const isSelected = selectedDateObj && date.toDateString() === selectedDateObj.toDateString();
+                
+                return (
+                  <button
+                    key={`day-${day}`}
+                    className={`fc-date ${isSelected ? 'active' : ''}`}
+                    onClick={() => setSelectedDateObj(date)}
+                    disabled={isPast}
+                    style={{ 
+                      opacity: isPast ? 0.3 : 1, 
+                      cursor: isPast ? 'not-allowed' : 'pointer',
+                      background: isPast ? 'transparent' : ''
+                    }}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -64,7 +95,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
               <Calendar size={18} color="var(--primary)" />
               <h4 className="step-prompt" style={{ margin: 0 }}>Available Slots</h4>
             </div>
-            <span className="selected-date-badge">Sat, Jul {selectedDate}, 2026</span>
+            <span className="selected-date-badge">{selectedDateObj ? formatDateForDisplay(selectedDateObj) : 'Select a date'}</span>
           </div>
 
           <div className="time-slots-grid">
@@ -86,7 +117,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
         <button
           className="btn btn-accent"
           disabled={!selectedTime}
-          onClick={() => onConfirm({ date: `Sat, Jul ${selectedDate}, 2026`, time: selectedTime })}
+          onClick={() => onConfirm({ date: formatDateForDisplay(selectedDateObj), time: selectedTime })}
           style={{ padding: '12px 24px', fontSize: '15px' }}
         >
           <Calendar size={18} style={{ marginRight: '8px' }} />

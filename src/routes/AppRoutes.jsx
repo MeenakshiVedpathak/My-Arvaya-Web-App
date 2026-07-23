@@ -7,12 +7,13 @@ import DoctorProfile from "../pages/DoctorProfile";
 import SelectSlot from "../pages/SelectSlot";
 import Review from "../pages/Review";
 import Confirmed from "../pages/Confirmed";
-import ABHA from "../pages/ABHA";
+import ABHA from "../pages/abha/index";
 import Records from "../pages/Records";
 import Labs from "../pages/Labs";
 import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
 import Analytics from "../pages/Analytics";
+import Ambulance from "../pages/Ambulance";
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -39,6 +40,7 @@ export default function AppRoutes() {
       <Route path="/wallet" element={<P><Wallet /></P>} />
       <Route path="/rewards" element={<P><Rewards /></P>} />
       <Route path="/analytics" element={<P><Analytics /></P>} />
+      <Route path="/ambulance" element={<P><Ambulance /></P>} />
     </Routes>
   );
 }

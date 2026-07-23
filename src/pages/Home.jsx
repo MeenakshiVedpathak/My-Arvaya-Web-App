@@ -2,10 +2,12 @@ import { ChevronRight, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, Shie
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { packages } from "../mocks/data";
+import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 
 export default function Home() {
   const go = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showAmbulanceModal, setShowAmbulanceModal] = useState(false);
   const slides = [
     "/banner_healthcare_1.png",
     "/banner_healthcare_2.png",
@@ -31,10 +33,10 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px' }}>
               🚨 Medical Emergency?
             </div>
-            <a href="tel:108" className="btn" style={{ background: 'white', color: '#dc2626', padding: '6px 16px', fontSize: '13px', fontWeight: 'bold', borderRadius: 'var(--radius-full)' }}>
-              <PhoneCall size={14} /> Call 108
-            </a>
-          </div>
+            <button onClick={() => setShowAmbulanceModal(true)} className="btn" style={{ background: 'white', color: '#dc2626', padding: '6px 16px', fontSize: '13px', fontWeight: 'bold', borderRadius: 'var(--radius-full)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              🚑 Call Ambulance
+            </button>
+            </div>
           {/* Ticker Row */}
           <div style={{ padding: '6px 0', fontSize: '13px', display: 'flex', alignItems: 'center' }}>
             <span style={{ fontWeight: 'bold', paddingRight: '12px', borderRight: '1px solid rgba(255,255,255,0.3)', marginRight: '12px', whiteSpace: 'nowrap', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Updates</span>
@@ -357,6 +359,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {showAmbulanceModal && (
+        <AmbulanceRequestModal onClose={() => setShowAmbulanceModal(false)} />
+      )}
     </main>
   );
 }

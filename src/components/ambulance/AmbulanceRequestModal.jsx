@@ -1,0 +1,255 @@
+import React, { useState } from "react";
+import ReactDOM from "react-dom";
+import { X, MapPin, Phone, User, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, Navigation } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode } from "../../services/ambulanceService";
+
+/* ── Small shared atoms ──────────────────────────────────────────────────── */
+
+function Overlay({ children, onClose }) {
+  return ReactDOM.createPortal(
+    <div style={{ position: "fixed", inset: 0, background: "rgba(18,51,58,0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "24px", overflowY: "auto" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "860px", margin: "auto" }}>{children}</div>
+    </div>,
+    document.body
+  );
+}
+
+function ErrorBanner({ msg }) {
+  if (!msg) return null;
+  return (
+    <div style={{ background: "var(--danger-bg)", color: "var(--danger)", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: "500", display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px" }}>
+      <AlertTriangle size={16} style={{ flexShrink: 0 }} />{msg}
+    </div>
+  );
+}
+
+function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true, type = "button" }) {
+  const base = { width: fullWidth ? "100%" : "auto", padding: "14px 24px", borderRadius: "10px", fontSize: "15px", fontWeight: "600", cursor: disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", border: "none", fontFamily: "var(--font-sans)" };
+  const styles = {
+    accent: { background: disabled ? "var(--border)" : "var(--accent)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(251,145,63,0.25)" },
+    primary: { background: disabled ? "var(--border)" : "var(--primary)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(46,102,110,0.25)" },
+    danger: { background: disabled ? "var(--border)" : "#dc2626", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(220,38,38,0.25)" },
+  };
+  return (
+    <button type={type} disabled={disabled} onClick={onClick} style={{ ...base, ...styles[variant] }}
+      onMouseEnter={e => { if (!disabled) e.currentTarget.style.filter = "brightness(1.08)"; }}
+      onMouseLeave={e => { e.currentTarget.style.filter = "none"; }}>
+      {children}
+    </button>
+  );
+}
+
+/* ── Main Modal ──────────────────────────────────────────────────────────── */
+
+export default function AmbulanceRequestModal({ onClose, onSuccess }) {
+  const { user } = useAuth();
+  const go = useNavigate();
+
+  const [step, setStep]               = useState(1); // 1 = form, 2 = success
+  const [patientName, setPatientName] = useState(user?.name || "");
+  const [contactNumber, setContact]   = useState(user?.phone || user?.mobile || "");
+  const [pickupAddress, setPickup]    = useState("");
+  const [emergencyType, setEmergency] = useState("");
+  const [busy, setBusy]               = useState(false);
+  const [locating, setLocating]       = useState(false);
+  const [err, setErr]                 = useState("");
+  const [result, setResult]           = useState(null);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) { setErr("Geolocation is not supported by your browser."); return; }
+    setLocating(true); setErr("");
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        setPickup(addr);
+        setLocating(false);
+      },
+      () => { setErr("Unable to fetch location. Please enter manually."); setLocating(false); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!patientName.trim()) { setErr("Patient name is required."); return; }
+    if (!contactNumber.trim() || contactNumber.length < 10) { setErr("Enter a valid 10-digit contact number."); return; }
+    if (!pickupAddress.trim()) { setErr("Pickup address is required."); return; }
+    if (!emergencyType) { setErr("Please select an emergency type."); return; }
+    setErr(""); setBusy(true);
+    try {
+      const res = await requestAmbulance({ patientName, contactNumber, pickupAddress, emergencyType });
+      window.alert("Opening dialer for dummy call to 108...");
+      window.location.href = "tel:108";
+      
+      if (onSuccess) onSuccess(res);
+      onClose();
+      go("/ambulance");
+    } catch (e) { setErr(e.message || "Failed to submit request. Please try again."); }
+    finally { setBusy(false); }
+  };
+
+  /* ── Left Panel ──────────────────────────────────────────────────────── */
+  const leftPanel = (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
+      {/* Icon */}
+      <div style={{ width: "60px", height: "60px", borderRadius: "18px", background: "rgba(220,38,38,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", border: "1px solid rgba(220,38,38,0.3)" }}>
+        <Ambulance size={28} color="#ef4444" />
+      </div>
+      <h2 style={{ fontSize: "30px", fontWeight: "800", color: "#fff", lineHeight: 1.15, margin: "0 0 14px", fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
+        Emergency<br/>Ambulance
+      </h2>
+      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 32px" }}>
+        Help is just a click away. Fill in the details and we'll dispatch the nearest ambulance to your location.
+      </p>
+
+      {/* Info box */}
+      <div style={{ background: "rgba(0,0,0,0.15)", padding: "20px", borderRadius: "14px", marginTop: "auto" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+          <Shield size={20} color="var(--accent)" style={{ flexShrink: 0, marginTop: "2px" }} />
+          <div>
+            <strong style={{ color: "#fff", display: "block", marginBottom: "4px", fontSize: "13px" }}>Arvaya Promise</strong>
+            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>Average response time under 10 minutes. NABH-certified ambulances with trained paramedics.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ── Right Panel — Form ──────────────────────────────────────────────── */
+  const formPanel = (
+    <div style={{ animation: "fadeIn 0.25s ease" }}>
+      <h3 style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-main)", margin: "0 0 6px", fontFamily: "var(--font-display)" }}>Request Details</h3>
+      <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "0 0 24px" }}>All fields marked with * are required</p>
+      <div style={{ height: "1px", background: "var(--border)", margin: "0 0 24px" }} />
+      <ErrorBanner msg={err} />
+
+      {/* Patient Name */}
+      <div style={{ marginBottom: "20px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Patient Name *</label>
+        <div style={{ display: "flex", alignItems: "center", border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
+          onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
+          onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
+          <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
+          <input value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Full name of patient"
+            style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500" }} />
+        </div>
+      </div>
+
+      {/* Contact Number */}
+      <div style={{ marginBottom: "20px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Contact Number *</label>
+        <div style={{ display: "flex", alignItems: "center", border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
+          onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
+          onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
+          <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><Phone size={18} /></div>
+          <input value={contactNumber} onChange={e => setContact(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit mobile number" type="tel"
+            style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500", letterSpacing: "0.03em" }} />
+        </div>
+      </div>
+
+      {/* Pickup Address */}
+      <div style={{ marginBottom: "20px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+          Pickup Address *
+          <button type="button" onClick={handleLocate} disabled={locating}
+            style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary-soft)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: "700", cursor: locating ? "wait" : "pointer", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.2s" }}
+            onMouseEnter={e => { if (!locating) e.currentTarget.style.background = "var(--primary-soft)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "var(--primary-light)"; }}>
+            {locating ? <><Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> Locating…</> : <><Navigation size={12} /> Use My Location</>}
+          </button>
+        </label>
+        <div style={{ border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
+          onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
+          onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
+          <textarea value={pickupAddress} onChange={e => setPickup(e.target.value)} placeholder="Enter or auto-detect your pickup address" rows={3}
+            style={{ width: "100%", padding: "14px", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", resize: "none", lineHeight: 1.5, fontFamily: "var(--font-sans)" }} />
+        </div>
+      </div>
+
+      {/* Emergency Type */}
+      <div style={{ marginBottom: "32px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Emergency Type *</label>
+        <div style={{ position: "relative" }}>
+          <select value={emergencyType} onChange={e => setEmergency(e.target.value)}
+            style={{ width: "100%", padding: "14px 40px 14px 14px", border: "1.5px solid var(--border)", borderRadius: "10px", fontSize: "15px", color: emergencyType ? "var(--text-main)" : "var(--text-muted)", fontWeight: "500", background: "#fff", outline: "none", appearance: "none", cursor: "pointer", transition: "border-color 0.2s", fontFamily: "var(--font-sans)" }}
+            onFocus={e => e.target.style.borderColor = "var(--primary)"} onBlur={e => e.target.style.borderColor = "var(--border)"}>
+            <option value="" disabled>Select emergency type</option>
+            {EMERGENCY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+          <ChevronDown size={18} color="var(--text-muted)" style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+        </div>
+      </div>
+
+      <Btn variant="danger" disabled={busy} onClick={handleSubmit}>
+        {busy ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Submitting…</> : <><Ambulance size={18} /> Call Ambulance</>}
+      </Btn>
+    </div>
+  );
+
+  /* ── Right Panel — Success ───────────────────────────────────────────── */
+  const successPanel = result && (
+    <div style={{ textAlign: "center", padding: "20px 0", animation: "fadeIn 0.35s var(--ease-out)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1 }}>
+      <div style={{ width: "88px", height: "88px", borderRadius: "50%", background: "var(--success-bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px", boxShadow: "0 0 0 14px rgba(22,163,74,0.06)" }}>
+        <CheckCircle2 size={44} color="var(--success)" strokeWidth={2} />
+      </div>
+      <h3 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-main)", marginBottom: "12px", fontFamily: "var(--font-display)" }}>Ambulance Requested!</h3>
+      <p style={{ fontSize: "15px", color: "var(--text-muted)", marginBottom: "32px", lineHeight: 1.6, maxWidth: "320px" }}>
+        Your request has been submitted. An ambulance is being dispatched to your location.
+      </p>
+
+      {/* Details card */}
+      <div style={{ background: "var(--bg-app)", border: "1px solid var(--border)", borderRadius: "14px", padding: "24px", width: "100%", textAlign: "left", marginBottom: "32px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>Request ID</div>
+            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-main)", fontFamily: "monospace" }}>{result.id}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>Estimated Time</div>
+            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--accent)" }}>{result.eta} minutes</div>
+          </div>
+          <div>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>Ambulance</div>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-main)" }}>{result.ambulanceId}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>Driver</div>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-main)" }}>{result.driverName}</div>
+          </div>
+        </div>
+      </div>
+
+      <Btn variant="primary" onClick={onClose}>Back to Dashboard</Btn>
+    </div>
+  );
+
+  return (
+    <Overlay onClose={onClose}>
+      <div style={{ background: "var(--bg-surface)", borderRadius: "20px", width: "100%", maxWidth: "860px", boxShadow: "0 32px 64px -12px rgba(18,51,58,0.22), 0 0 0 1px var(--border)", overflow: "hidden", display: "flex", maxHeight: "90vh" }}>
+
+        {/* Left Panel */}
+        <div style={{ flex: "0 0 300px", background: "var(--primary-deep)", padding: "44px 36px", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "-80px", right: "-60px", width: "220px", height: "220px", borderRadius: "50%", background: "#dc2626", opacity: 0.15 }} />
+          <div style={{ position: "absolute", bottom: "-100px", left: "-40px", width: "260px", height: "260px", borderRadius: "50%", background: "var(--accent)", opacity: 0.08 }} />
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+            {leftPanel}
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div style={{ flex: 1, padding: "44px 48px", overflowY: "auto", display: "flex", flexDirection: "column", position: "relative" }}>
+          <button onClick={onClose} style={{ position: "absolute", top: "20px", right: "20px", background: "var(--bg-app)", border: "1px solid var(--border)", width: "34px", height: "34px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.background="var(--border)"} onMouseLeave={e => e.currentTarget.style.background="var(--bg-app)"}>
+            <X size={16} color="var(--text-muted)" />
+          </button>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: step === 2 ? "center" : "flex-start" }}>
+            {step === 1 ? formPanel : successPanel}
+          </div>
+        </div>
+      </div>
+
+      {/* Inline keyframes for spinner */}
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </Overlay>
+  );
+}
