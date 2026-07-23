@@ -23,22 +23,22 @@ export default function DoctorProfile() {
 
         <Steps current={1} />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '20px', marginTop: '16px' }}>
+        <div className="doctor-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '20px', marginTop: '16px' }}>
 
           {/* Left Column: Doctor Profile & Details */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
             <section style={{ paddingBottom: '16px' }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: 'flex-start', marginBottom: "16px" }}>
-                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: 'wrap' }}>
                   <Avatar doctor={doctor} big />
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <h1 style={{ fontSize: "28px", color: "var(--text-main)", margin: 0, fontWeight: '800', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <h1 style={{ fontSize: "24px", color: "var(--text-main)", margin: 0, fontWeight: '800', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {doctor.name}
                         </h1>
-                        <Heart size={24} color="#ef4444" fill="rgba(239, 68, 68, 0.1)" cursor="pointer" />
+                        <Heart size={22} color="#ef4444" fill="rgba(239, 68, 68, 0.1)" cursor="pointer" />
                       </div>
                       <span style={{ fontSize: '12px', color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: '4px', alignSelf: 'flex-start', marginTop: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                         <ShieldCheck size={12}/> Medical Registration Verified
@@ -60,16 +60,16 @@ export default function DoctorProfile() {
               {/* Stats Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <b style={{ display: 'block', fontSize: '24px', color: 'var(--text-main)', marginBottom: '4px' }}>4.9</b>
+                  <b style={{ display: 'block', fontSize: '22px', color: 'var(--text-main)', marginBottom: '4px' }}>4.9</b>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', color: '#eab308', marginBottom: '4px' }}><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /></div>
                   <small style={{ color: 'var(--muted)' }}>120 Reviews</small>
                 </div>
                 <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
-                  <b style={{ display: 'block', fontSize: '24px', color: 'var(--text-main)', marginBottom: '4px' }}>15k+</b>
+                  <b style={{ display: 'block', fontSize: '22px', color: 'var(--text-main)', marginBottom: '4px' }}>15k+</b>
                   <small style={{ color: 'var(--muted)', display: 'block', marginTop: '18px' }}>Patients Consulted</small>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <b style={{ display: 'block', fontSize: '24px', color: 'var(--text-main)', marginBottom: '4px' }}>99%</b>
+                  <b style={{ display: 'block', fontSize: '22px', color: 'var(--text-main)', marginBottom: '4px' }}>99%</b>
                   <small style={{ color: 'var(--muted)', display: 'block', marginTop: '18px' }}>Recommendation</small>
                 </div>
               </div>
@@ -88,7 +88,7 @@ export default function DoctorProfile() {
               </p>
 
               <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '16px', fontWeight: '700' }}>Services Offered</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                 {[
                   "Comprehensive Diagnosis",
                   "Preventative Care",

@@ -929,8 +929,67 @@ input[type="radio"]:focus-visible {
 }
 
 /* ═══════════════════════════════════════
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN SYSTEM & UTILITIES
    ═══════════════════════════════════════ */
+
+/* Mobile Nav Drawer Animations & Overlay */
+.mobile-nav-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(18, 51, 58, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1200;
+  opacity: 0;
+  animation: fadeInBackdrop 0.3s var(--ease-out) forwards;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 85%;
+  max-width: 340px;
+  background: var(--bg-surface);
+  z-index: 1250;
+  box-shadow: -8px 0 32px rgba(18, 51, 58, 0.2);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  animation: slideDrawer 0.35s var(--ease-out) forwards;
+}
+
+@keyframes slideDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* Mobile Filter Collapsible Button */
+.mobile-filter-toggle {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 @media (max-width: 1024px) {
   .container {
@@ -940,22 +999,103 @@ input[type="radio"]:focus-visible {
 
 @media (max-width: 900px) {
   .wallet-grid,
-  .rewards-grid {
+  .rewards-grid,
+  .doctor-profile-grid,
+  .analytics-charts-grid {
     grid-template-columns: 1fr !important;
+  }
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
 @media (max-width: 768px) {
-  .text-h1 { font-size: 28px; }
+  .text-h1 { font-size: 30px; }
   .text-h2 { font-size: 22px; }
   .text-h3 { font-size: 18px; }
 
   .container {
     padding: 0 16px;
   }
+
+  .mobile-filter-toggle {
+    display: flex;
+  }
+
+  .collapsible-sidebar-mobile {
+    display: none;
+  }
+
+  .collapsible-sidebar-mobile.open {
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .collapsible-sidebar-mobile aside {
+    position: static !important;
+    max-height: none !important;
+    width: 100% !important;
+  }
+
+  .vault-layout {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  .vault-sidebar {
+    width: 100% !important;
+    position: static !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Doctor Card Mobile Stacking */
+  .doctor-card-main > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .doctor-card-right-section {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px dashed var(--border) !important;
+    padding-left: 0 !important;
+    padding-top: 16px !important;
+    align-items: stretch !important;
+  }
+
+  .doctor-card-right-section button {
+    width: 100% !important;
+  }
+
+  /* Record item card responsive layout */
+  .record-item-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .record-item-actions {
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
+
+  .analytics-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {
   .text-h1 { font-size: 24px; }
   .text-h2 { font-size: 20px; }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+  }
 }
+

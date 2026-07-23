@@ -60,7 +60,7 @@ export default function Records() {
       </div>
 
       <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }} className="vault-layout">
 
           {/* ── Left Sidebar (Filters) ── */}
           <aside style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '100px' }} className="vault-sidebar">
@@ -105,10 +105,10 @@ export default function Records() {
           </aside>
 
           {/* ── Right Content (Vault List) ── */}
-          <section style={{ flex: 1 }}>
+          <section style={{ flex: 1, width: '100%' }}>
 
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)', marginBottom: '24px', flexWrap: 'wrap' }}>
               <button
                 style={{ background: 'transparent', border: 'none', padding: '12px 0', fontSize: '16px', fontWeight: '600', color: activeTab === 'personal' ? 'var(--primary)' : 'var(--muted)', borderBottom: activeTab === 'personal' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s', marginBottom: '-1px' }}
                 onClick={() => setActiveTab('personal')}
@@ -155,7 +155,7 @@ export default function Records() {
                     {records.map((rec) => {
                       const { Icon, color, bg } = iconMap[rec.type] || iconMap["Lab Report"];
                       return (
-                        <article className="hover-glow" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer', position: 'relative', zIndex: 1 }} onClick={() => alert("Opening record...")}>
+                        <article className="hover-glow record-item-card" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer', position: 'relative', zIndex: 1 }} onClick={() => alert("Opening record...")}>
 
                           {/* Icon Block */}
                           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '4px solid var(--bg)', boxShadow: '0 0 0 4px var(--bg)' }}>
@@ -164,18 +164,18 @@ export default function Records() {
 
                           {/* Details */}
                           <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
                               <h4 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{rec.title}</h4>
                               <span style={{ fontSize: '12px', fontWeight: '600', background: 'var(--bg)', color: 'var(--muted)', padding: '4px 10px', borderRadius: '99px', border: '1px solid var(--border)' }}>{rec.type || "Report"}</span>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--muted)', fontSize: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--muted)', fontSize: '14px', flexWrap: 'wrap' }}>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Stethoscope size={14} /> {rec.doctor}</span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {rec.date}</span>
                             </div>
                           </div>
 
                           {/* Actions */}
-                          <div style={{ display: 'flex', gap: '12px' }}>
+                          <div className="record-item-actions" style={{ display: 'flex', gap: '12px' }}>
                             <button className="btn hover-glow" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => { e.stopPropagation(); alert("Opening report: " + rec.title); }}>
                               View
                             </button>

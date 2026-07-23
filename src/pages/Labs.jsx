@@ -1,4 +1,4 @@
-import { Search, ChevronRight, Activity, FlaskConical, Clock, Heart, ShieldCheck, Sparkles } from "lucide-react";
+import { Search, ChevronRight, Activity, FlaskConical, Clock, Heart, ShieldCheck, Sparkles, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getLabPackages } from "../services/dataService";
@@ -18,6 +18,7 @@ export default function Labs() {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   
   // Booking Modal State
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -66,51 +67,59 @@ export default function Labs() {
 
       <div className="container labs-layout" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         
+        {/* Mobile Filter Toggle */}
+        <button className="mobile-filter-toggle" onClick={() => setShowFiltersMobile(!showFiltersMobile)}>
+          <span className="flex items-center gap-2"><SlidersHorizontal size={16} color="var(--primary)" /> Filter Diagnostic Packages</span>
+          <ChevronDown size={18} style={{ transform: showFiltersMobile ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        </button>
+
         {/* ── Sidebar ── */}
-        <aside>
-          <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '180px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
-            <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-              <b style={{ fontSize: '15px' }}>Filters</b>
-              <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => setQ("")}>RESET</span>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <div>
-                <div className="flex items-center gap-2 mb-4" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', transition: 'border-color 0.2s, box-shadow 0.2s', background: 'var(--bg-app)' }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(46, 102, 110, 0.1)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                  <Search size={16} className="text-muted" />
-                  <input 
-                    placeholder="Search by test name..." 
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--text-main)' }}
-                  />
-                </div>
+        <div className={`collapsible-sidebar-mobile ${showFiltersMobile ? 'open' : ''}`}>
+          <aside>
+            <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '180px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+              <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                <b style={{ fontSize: '15px' }}>Filters</b>
+                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => setQ("")}>RESET</span>
               </div>
 
-              <div>
-                <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Browse by Organs</b>
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Heart size={14} className="text-accent"/> Heart</label>
-                  <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Activity size={14} className="text-primary"/> Liver</label>
-                  <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <FlaskConical size={14} className="text-muted"/> Kidney</label>
-                </div>
-              </div>
-
-              <div style={{ background: 'var(--success-bg)', border: '1px solid #bbf7d0', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <ShieldCheck size={24} className="text-success" style={{ flexShrink: 0 }} />
+              <div className="flex flex-col gap-6">
                 <div>
-                  <b style={{ fontSize: '13px', display: 'block', color: 'var(--success)' }}>100% Safe & Hygienic</b>
-                  <span className="text-muted" style={{ fontSize: '11px' }}>Phlebotomists follow strict safety protocols</span>
+                  <div className="flex items-center gap-2 mb-4" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', transition: 'border-color 0.2s, box-shadow 0.2s', background: 'var(--bg-app)' }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(46, 102, 110, 0.1)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                    <Search size={16} className="text-muted" />
+                    <input 
+                      placeholder="Search by test name..." 
+                      value={q}
+                      onChange={(e) => setQ(e.target.value)}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--text-main)' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Browse by Organs</b>
+                  <div className="flex flex-col gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Heart size={14} className="text-accent"/> Heart</label>
+                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Activity size={14} className="text-primary"/> Liver</label>
+                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <FlaskConical size={14} className="text-muted"/> Kidney</label>
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--success-bg)', border: '1px solid #bbf7d0', padding: '16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <ShieldCheck size={24} className="text-success" style={{ flexShrink: 0 }} />
+                  <div>
+                    <b style={{ fontSize: '13px', display: 'block', color: 'var(--success)' }}>100% Safe & Hygienic</b>
+                    <span className="text-muted" style={{ fontSize: '11px' }}>Phlebotomists follow strict safety protocols</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
 
         {/* ── Main Content ── */}
         <section>
           {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <article key={i} className="card-elevated flex flex-col" style={{ padding: '0', minHeight: '320px', overflow: 'hidden' }}>
                   <div className="skeleton" style={{ height: '120px', borderRadius: 0 }}></div>
@@ -198,15 +207,15 @@ export default function Labs() {
           <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px" }}>
             Select Visit Type
           </label>
-          <div className="flex gap-4">
-            <label style={{ background: visitType === 'home' ? 'var(--primary-light)' : 'var(--bg-app)', padding: '16px', borderRadius: 'var(--radius-md)', border: visitType === 'home' ? '2px solid var(--primary)' : '1px solid var(--border)', flex: 1, cursor: 'pointer', transition: 'all 0.2s' }}>
+          <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
+            <label style={{ background: visitType === 'home' ? 'var(--primary-light)' : 'var(--bg-app)', padding: '16px', borderRadius: 'var(--radius-md)', border: visitType === 'home' ? '2px solid var(--primary)' : '1px solid var(--border)', flex: 1, minWidth: '220px', cursor: 'pointer', transition: 'all 0.2s' }}>
               <input type="radio" name="labVisitType" value="home" checked={visitType === 'home'} onChange={() => setVisitType('home')} style={{ display: 'none' }} />
               <div>
                 <b style={{ display: 'block', color: visitType === 'home' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>Home Sample Collection</b>
                 <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>A phlebotomist will visit your home.</small>
               </div>
             </label>
-            <label style={{ background: visitType === 'lab' ? 'var(--primary-light)' : 'var(--bg-app)', padding: '16px', borderRadius: 'var(--radius-md)', border: visitType === 'lab' ? '2px solid var(--primary)' : '1px solid var(--border)', flex: 1, cursor: 'pointer', transition: 'all 0.2s' }}>
+            <label style={{ background: visitType === 'lab' ? 'var(--primary-light)' : 'var(--bg-app)', padding: '16px', borderRadius: 'var(--radius-md)', border: visitType === 'lab' ? '2px solid var(--primary)' : '1px solid var(--border)', flex: 1, minWidth: '220px', cursor: 'pointer', transition: 'all 0.2s' }}>
               <input type="radio" name="labVisitType" value="lab" checked={visitType === 'lab'} onChange={() => setVisitType('lab')} style={{ display: 'none' }} />
               <div>
                 <b style={{ display: 'block', color: visitType === 'lab' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>Visit Diagnostic Center</b>
@@ -222,3 +231,4 @@ export default function Labs() {
     </main>
   );
 }
+

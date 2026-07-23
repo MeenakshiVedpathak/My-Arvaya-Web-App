@@ -50,7 +50,7 @@ export default function Home() {
       </div>
 
       {/* ── Carousel Banner ── */}
-      <section style={{ position: 'relative', width: '100%', height: '520px', overflow: 'hidden' }}>
+      <section className="home-hero-section" style={{ position: 'relative', width: '100%', minHeight: '480px', overflow: 'hidden' }}>
         {slides.map((src, idx) => (
           <div key={src} style={{
               position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -63,27 +63,27 @@ export default function Home() {
               alt={`Banner ${idx + 1}`} 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.15) 100%)' }}></div>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.2) 100%)' }}></div>
           </div>
         ))}
         {/* Overlay Content */}
-        <div className="container" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10 }}>
+        <div className="container" style={{ position: 'relative', height: '100%', minHeight: '480px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px' }}>
           <div className="animate-fade-in-up" style={{ maxWidth: '600px' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', padding: '6px 16px', borderRadius: '99px', fontSize: '13px', fontWeight: '600', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: 'white', padding: '6px 16px', borderRadius: '99px', fontSize: '13px', fontWeight: '600', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.2)' }}>
               <Star size={14} fill="#FDBF8B" color="#FDBF8B" /> India's #1 Healthcare Platform
             </span>
-            <h1 style={{ fontSize: '48px', fontWeight: '800', color: 'white', lineHeight: 1.1, marginBottom: '24px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
+            <h1 className="hero-title" style={{ fontSize: '44px', fontWeight: '800', color: 'white', lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
               Your health, <br/><span style={{ color: '#FDBF8B' }}>managed brilliantly.</span>
             </h1>
-            <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.85)', marginBottom: '32px', lineHeight: 1.6 }}>
+            <p className="hero-subtext" style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '28px', lineHeight: 1.6 }}>
               Book top doctors, order medicines, and store health records securely in one unified ecosystem.
             </p>
             
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              <button onClick={() => go('/doctors')} className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '16px', boxShadow: '0 4px 20px rgba(46, 102, 110, 0.4)' }}>
+              <button onClick={() => go('/doctors')} className="btn btn-primary" style={{ padding: '14px 28px', fontSize: '15px', boxShadow: '0 4px 20px rgba(46, 102, 110, 0.4)' }}>
                 Find a Doctor
               </button>
-              <button onClick={() => go('/labs')} className="btn" style={{ padding: '16px 32px', fontSize: '16px', background: 'rgba(255,255,255,0.12)', color: 'white', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', transition: 'all 0.3s' }} onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; }} onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}>
+              <button onClick={() => go('/labs')} className="btn" style={{ padding: '14px 28px', fontSize: '15px', background: 'rgba(255,255,255,0.12)', color: 'white', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.25)', transition: 'all 0.3s' }} onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; }} onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}>
                 Book Lab Test
               </button>
             </div>
@@ -91,7 +91,7 @@ export default function Home() {
         </div>
 
         {/* Navigation Dots */}
-        <div style={{ position: 'absolute', bottom: '28px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
+        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
           {slides.map((_, idx) => (
             <button 
               key={idx}
@@ -112,27 +112,26 @@ export default function Home() {
 
       {/* ── Value Props ── */}
       <section style={{ background: 'var(--bg-surface)', padding: '20px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container flex justify-between items-center" style={{ flexWrap: 'wrap', gap: '16px' }}>
+        <div className="container value-props-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           {[
             { icon: <Star size={22} />, title: "4.9/5 Rating", sub: "From 1M+ Users", color: "var(--accent)" },
             { icon: <ShieldCheck size={22} />, title: "NABH Accredited", sub: "Quality Assured", color: "var(--success)" },
             { icon: <PhoneCall size={22} />, title: "24/7 Support", sub: "Always here for you", color: "var(--primary)" },
             { icon: <Pill size={22} />, title: "100% Genuine", sub: "Medicines & Tests", color: "var(--accent)" }
           ].map((v, i) => (
-            <div key={i} className="flex items-center gap-3" style={{ flex: '1', minWidth: '200px', position: 'relative', padding: '8px 0' }}>
+            <div key={i} className="flex items-center gap-3" style={{ padding: '8px 0' }}>
               <div style={{ color: v.color }}>{v.icon}</div>
               <div className="flex flex-col">
                 <b style={{ fontSize: '14px', color: 'var(--text-main)' }}>{v.title}</b>
                 <span className="text-muted" style={{ fontSize: '12px' }}>{v.sub}</span>
               </div>
-              {i < 3 && <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: '1px', height: '24px', background: 'var(--border)' }} />}
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Arvaya Ecosystem ── */}
-      <div className="bg-mesh-primary" style={{ padding: '72px 0', borderBottom: '1px solid var(--border)' }}>
+      <div className="bg-mesh-primary" style={{ padding: '56px 0', borderBottom: '1px solid var(--border)' }}>
         <section className="container" style={{ padding: '0 24px' }}>
         <style>{`
           .ecosystem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
@@ -171,14 +170,14 @@ export default function Home() {
       </div>
 
       {/* ── How It Works ── */}
-      <section style={{ padding: '72px 0', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
+      <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 className="text-h2" style={{ marginBottom: '8px' }}>How It Works</h2>
           <p className="text-muted mb-8" style={{ fontSize: '15px' }}>Book a doctor appointment in 3 simple steps</p>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '48px', maxWidth: '800px', margin: '0 auto', position: 'relative' }}>
+          <div className="how-it-works-grid" style={{ position: 'relative' }}>
             {/* Connecting line */}
-            <div style={{ position: 'absolute', top: '40px', left: '20%', right: '20%', height: '2px', background: 'var(--border)', zIndex: 0 }} />
+            <div className="how-it-works-line" style={{ position: 'absolute', top: '40px', left: '20%', right: '20%', height: '2px', background: 'var(--border)', zIndex: 0 }} />
             
             {[
               { step: "1", icon: <Search size={28} />, title: "Search", desc: "Find specialists by name, specialty, or location" },
@@ -198,7 +197,7 @@ export default function Home() {
       </section>
 
       {/* ── Consult Top Specialties ── */}
-      <section className="container" style={{ padding: '72px 24px' }}>
+      <section className="container" style={{ padding: '56px 24px' }}>
         <style>{`
           .specialties-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
           @media (max-width: 900px) { .specialties-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -233,7 +232,7 @@ export default function Home() {
       </section>
 
       {/* ── Featured Lab Packages ── */}
-      <section style={{ padding: '0 0 72px 0' }}>
+      <section style={{ padding: '0 0 56px 0' }}>
         <div className="container">
           <style>{`
             .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
@@ -281,7 +280,7 @@ export default function Home() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section style={{ padding: '72px 0', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+      <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 className="text-h2">What Our Patients Say</h2>
@@ -322,9 +321,9 @@ export default function Home() {
       </section>
 
       {/* ── App Download CTA ── */}
-      <section style={{ padding: '72px 0' }}>
+      <section style={{ padding: '56px 0' }}>
         <div className="container">
-          <div className="animate-fade-in-up" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', borderRadius: 'var(--radius-xl)', padding: '48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(46, 102, 110, 0.25)', position: 'relative', overflow: 'hidden', flexWrap: 'wrap', gap: '32px' }}>
+          <div className="animate-fade-in-up home-cta-card" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', borderRadius: 'var(--radius-xl)', padding: '44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(46, 102, 110, 0.25)', position: 'relative', overflow: 'hidden', flexWrap: 'wrap', gap: '32px' }}>
             {/* Decorative circles */}
             <div style={{ position: 'absolute', top: '-60%', right: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
             <div style={{ position: 'absolute', bottom: '-40%', left: '-5%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(251,145,63,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
@@ -344,7 +343,7 @@ export default function Home() {
             </div>
 
             {/* Stats */}
-            <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '32px' }}>
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
               {[
                 { num: "1M+", label: "Downloads" },
                 { num: "4.9★", label: "App Rating" },
@@ -359,9 +358,52 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Embedded CSS for Home Responsiveness */}
+      <style>{`
+        .how-it-works-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 48px;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+          .home-hero-section {
+            min-height: 420px !important;
+          }
+          .hero-title {
+            font-size: 32px !important;
+          }
+          .hero-subtext {
+            font-size: 15px !important;
+          }
+          .how-it-works-grid {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          .how-it-works-line {
+            display: none !important;
+          }
+          .home-cta-card {
+            padding: 28px !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hero-title {
+            font-size: 26px !important;
+          }
+        }
+      `}</style>
+
       {showAmbulanceModal && (
         <AmbulanceRequestModal onClose={() => setShowAmbulanceModal(false)} />
       )}
     </main>
+
   );
 }

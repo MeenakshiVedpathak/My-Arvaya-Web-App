@@ -25,7 +25,7 @@ export default function Analytics() {
 
       <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
         {/* KPI Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
+        <div className="analytics-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '32px' }}>
           
           <div className="card-elevated hover-glow animate-fade-in-up" style={{ padding: '24px' }}>
             <div className="flex justify-between items-start mb-4">
@@ -82,7 +82,7 @@ export default function Analytics() {
         </div>
 
         {/* Charts Mock */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+        <div className="analytics-charts-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
           <div className="card-elevated animate-fade-in-up delay-200" style={{ padding: '32px', borderRadius: 'var(--radius-lg)' }}>
             <h3 style={{ fontSize: '16px', marginBottom: '24px' }}>Activity Trend (Last 7 Days)</h3>
             <div style={{ height: '300px', display: 'flex', alignItems: 'flex-end', gap: '12px', paddingBottom: '24px', borderBottom: '1px solid var(--border)' }}>

@@ -134,7 +134,7 @@ export default function AmbulancePage() {
                         </div>
 
                         {/* Details grid */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", background: "var(--bg-app)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px", background: "var(--bg-app)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
                             <AlertTriangle size={16} color="var(--accent)" style={{ marginTop: "2px" }} />
                             <div>
@@ -159,8 +159,8 @@ export default function AmbulancePage() {
                         </div>
 
                         {/* Address + driver */}
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border)" }}>
-                          <div style={{ display: "flex", gap: "8px", alignItems: "center", fontSize: "13px", color: "var(--text-muted)", maxWidth: "60%" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border)", flexWrap: "wrap", gap: "12px" }}>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", fontSize: "13px", color: "var(--text-muted)", maxWidth: "100%" }}>
                             <MapPin size={14} style={{ flexShrink: 0 }} />
                             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{req.pickupAddress}</span>
                           </div>
@@ -183,29 +183,31 @@ export default function AmbulancePage() {
               <section>
                 <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-main)", marginBottom: "20px", fontFamily: "var(--font-display)" }}>Request History</h2>
                 <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                      <tr style={{ background: "var(--bg-app)", borderBottom: "1px solid var(--border)" }}>
-                        {["Request ID", "Patient", "Emergency", "Address", "Date", "Status"].map(h => (
-                          <th key={h} style={{ textAlign: "left", padding: "14px 16px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pastRequests.map(req => (
-                        <tr key={req.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                          <td style={{ padding: "14px 16px", fontSize: "13px", fontWeight: "600", color: "var(--text-main)", fontFamily: "monospace" }}>{req.id}</td>
-                          <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-main)" }}>{req.patientName}</td>
-                          <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-main)" }}>{getEmergencyLabel(req.emergencyType)}</td>
-                          <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{req.pickupAddress}</td>
-                          <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)" }}>{formatTime(req.createdAt)}</td>
-                          <td style={{ padding: "14px 16px" }}>
-                            <span style={{ background: "var(--success-bg)", color: "var(--success)", padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>Completed</span>
-                          </td>
+                  <div className="table-responsive-wrapper">
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
+                      <thead>
+                        <tr style={{ background: "var(--bg-app)", borderBottom: "1px solid var(--border)" }}>
+                          {["Request ID", "Patient", "Emergency", "Address", "Date", "Status"].map(h => (
+                            <th key={h} style={{ textAlign: "left", padding: "14px 16px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</th>
+                          ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {pastRequests.map(req => (
+                          <tr key={req.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                            <td style={{ padding: "14px 16px", fontSize: "13px", fontWeight: "600", color: "var(--text-main)", fontFamily: "monospace" }}>{req.id}</td>
+                            <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-main)" }}>{req.patientName}</td>
+                            <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-main)" }}>{getEmergencyLabel(req.emergencyType)}</td>
+                            <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{req.pickupAddress}</td>
+                            <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)" }}>{formatTime(req.createdAt)}</td>
+                            <td style={{ padding: "14px 16px" }}>
+                              <span style={{ background: "var(--success-bg)", color: "var(--success)", padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>Completed</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </section>
             )}
