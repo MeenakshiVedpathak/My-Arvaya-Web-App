@@ -133,7 +133,7 @@ export default function DoctorProfile() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '16px' }}>
                 <span style={{ fontSize: '15px', color: 'var(--muted)', fontWeight: '500' }}>Consultation Fee</span>
-                <b style={{ fontSize: '24px', color: 'var(--text-main)' }}>₹800</b>
+                <b style={{ fontSize: '24px', color: 'var(--text-main)' }}>₹{doctor.fee}</b>
               </div>
 
               <button

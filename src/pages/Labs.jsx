@@ -20,6 +20,7 @@ export default function Labs({ forceModalOpen = false }) {
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+  const [organFilters, setOrganFilters] = useState([]);
   
   // Booking Modal State
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -32,9 +33,21 @@ export default function Labs({ forceModalOpen = false }) {
     }).catch(() => setLoading(false));
   }, []);
 
+  const toggleOrganFilter = (organ) => {
+    setOrganFilters(prev => prev.includes(organ) ? prev.filter(o => o !== organ) : [...prev, organ]);
+  };
+
   const filteredPackages = useMemo(() => {
-    return (packages || []).filter(pkg => (pkg.title || "").toLowerCase().includes(q.toLowerCase()));
-  }, [packages, q]);
+    return (packages || []).filter(pkg => {
+      const matchQuery = (pkg.title || "").toLowerCase().includes(q.toLowerCase());
+      if (!matchQuery) return false;
+      if (organFilters.length > 0) {
+        if (!pkg.organs) return false;
+        return organFilters.some(organ => pkg.organs.includes(organ));
+      }
+      return true;
+    });
+  }, [packages, q, organFilters]);
 
   const confirmBooking = (slotData) => {
     setBookingType("lab");
@@ -80,7 +93,7 @@ export default function Labs({ forceModalOpen = false }) {
             <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '180px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
               <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
                 <b style={{ fontSize: '15px' }}>Filters</b>
-                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => setQ("")}>RESET</span>
+                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => { setQ(""); setOrganFilters([]); }}>RESET</span>
               </div>
 
               <div className="flex flex-col gap-6">
@@ -99,9 +112,9 @@ export default function Labs({ forceModalOpen = false }) {
                 <div>
                   <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Browse by Organs</b>
                   <div className="flex flex-col gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Heart size={14} className="text-accent"/> Heart</label>
-                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <Activity size={14} className="text-primary"/> Liver</label>
-                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox"/> <FlaskConical size={14} className="text-muted"/> Kidney</label>
+                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox" checked={organFilters.includes("Heart")} onChange={() => toggleOrganFilter("Heart")}/> <Heart size={14} className="text-accent"/> Heart</label>
+                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox" checked={organFilters.includes("Liver")} onChange={() => toggleOrganFilter("Liver")}/> <Activity size={14} className="text-primary"/> Liver</label>
+                    <label className="flex items-center gap-2 cursor-pointer text-main" style={{ fontSize: '13px' }}><input type="checkbox" checked={organFilters.includes("Kidney")} onChange={() => toggleOrganFilter("Kidney")}/> <FlaskConical size={14} className="text-muted"/> Kidney</label>
                   </div>
                 </div>
 

@@ -79,8 +79,8 @@ export const slots = {
   Evening: ["05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM"],
 };
 export const packages = [
-  { img: "/checkup_fullbody.png", title: "Full Body Checkup", tests: "80+ tests included", price: "₹1,499", oldPrice: "₹2,300", discount: "35% OFF", trend: "🔥 Booked 150+ times today", tags: ["Fasting Required"] },
-  { img: "/checkup_diabetes.png", title: "Diabetes Profile", tests: "30+ tests included", price: "₹799", oldPrice: "₹1,200", discount: "33% OFF", trend: "⭐ Most Popular for Seniors" },
-  { img: "/checkup_heart.png", title: "Heart Health", tests: "40+ tests included", price: "₹1,199", oldPrice: "₹1,800", discount: "33% OFF" },
-  { img: "/checkup_thyroid.png", title: "Thyroid Profile", tests: "24+ tests included", price: "₹649", oldPrice: "₹900", discount: "28% OFF", trend: "👩‍⚕️ Recommended for Women" },
+  { img: "/checkup_fullbody.png", title: "Full Body Checkup", tests: "80+ tests included", price: "₹1,499", oldPrice: "₹2,300", discount: "35% OFF", trend: "🔥 Booked 150+ times today", tags: ["Fasting Required"], organs: ["Heart", "Liver", "Kidney"] },
+  { img: "/checkup_diabetes.png", title: "Diabetes Profile", tests: "30+ tests included", price: "₹799", oldPrice: "₹1,200", discount: "33% OFF", trend: "⭐ Most Popular for Seniors", organs: ["Kidney"] },
+  { img: "/checkup_heart.png", title: "Heart Health", tests: "40+ tests included", price: "₹1,199", oldPrice: "₹1,800", discount: "33% OFF", organs: ["Heart"] },
+  { img: "/checkup_thyroid.png", title: "Thyroid Profile", tests: "24+ tests included", price: "₹649", oldPrice: "₹900", discount: "28% OFF", trend: "👩‍⚕️ Recommended for Women", organs: [] },
 ];
