@@ -5,10 +5,34 @@ const USE_MOCK = true; // Forced static data for the dashboard after login
 
 /* ─── Patients / App Users ─── */
 export async function getPatients(filters = {}) {
-  if (USE_MOCK) return [];
-  // POST api/appUser/get
-  const res = await api.post("/api/appUser/get", filters);
-  return res.data || res;
+  try {
+    const res = await api.post("/api/appUser/get", filters);
+    return res?.data || res?.patients || res?.list || res?.result || res?.UserData || res || [];
+  } catch (err) {
+    console.error("getPatients error:", err);
+    return [];
+  }
+}
+
+/* ─── Family Details ─── */
+export async function getFamilyDetails(filters = {}) {
+  try {
+    const res = await api.post("/api/familyDetails/get", filters);
+    return res?.data || res?.list || res?.result || res?.familyDetails || res || [];
+  } catch (err) {
+    console.error("getFamilyDetails error:", err);
+    return [];
+  }
+}
+
+export async function upsertFamilyDetails(payload) {
+  try {
+    const res = await api.post("/api/familyDetails/upsert", payload);
+    return res?.data || res?.result || res;
+  } catch (err) {
+    console.error("upsertFamilyDetails error:", err);
+    throw err;
+  }
 }
 
 function getUserId() {
@@ -39,45 +63,59 @@ function mapDoctor(d) {
     mobile: d.mobile || "",
     blocked: d.blocked || false,
     image: d.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent((d.name || "Dr").trim())}&background=2e666e&color=fff&size=150`,
-    experienceText: d.experience ? `${parseInt(d.experience)} Years` : "",
+    experienceText: d.experience ? `${parseInt(d.experience)} Years` : "10+ Years",
+    experience: d.experience ? `${parseInt(d.experience)}` : "10+",
+    fee: d.amount ? parseInt(d.amount) : 500,
+    rating: d.rating ? parseFloat(d.rating) : null,
+    reviews: d.reviews ? parseInt(d.reviews) : null,
   };
 }
 
 /* ─── Doctors ─── */
 export async function getDoctors(filters = {}) {
-  if (USE_MOCK) return { list: mockDoctors, count: mockDoctors.length };
 
   const payload = {
     pageIndex: filters.pageIndex || 1,
-    pageSize: filters.pageSize || 9,
-    sortKey: filters.sortKey || "id",
+    pageSize: filters.pageSize || 10,
+    sortKey: filters.sortKey || "",
     sortValue: filters.sortValue || "desc",
     filter: filters.filter || "",
-    created_by: getUserId(),
   };
 
-  const res = await api.post("/api/get/dr/secure-hospitalsNew", payload);
-  const data = res.dr || res.data || [];
+  const res = await api.post("/get-doctors", payload);
+  const data = res?.dr || res?.data?.dr || res?.data || res || [];
   return {
     list: Array.isArray(data) ? data.map(mapDoctor) : [],
-    count: res.count || data.length || 0,
+    count: res?.count || res?.data?.count || data.length || 0,
+  };
+}
+
+export async function getLocations(pageIndex = 1, pageSize = 10, filter = "") {
+  const payload = {
+    pageIndex,
+    pageSize,
+    sortKey: "",
+    sortValue: "desc",
+    filter
+  };
+  const res = await api.post("/get-hospitals-locations", payload);
+  return {
+    list: res?.entitylocations || res?.data?.entitylocations || [],
+    count: res?.count || res?.data?.count || 100
   };
 }
 
 export async function getDoctor(id) {
-  if (USE_MOCK) return mockDoctors.find((d) => d.id === parseInt(id)) || mockDoctors[0];
-
   const payload = {
     pageIndex: 1,
     pageSize: 100,
     sortKey: "id",
     sortValue: "desc",
     filter: "",
-    created_by: getUserId(),
   };
 
-  const res = await api.post("/api/get/dr/secure-hospitalsNew", payload);
-  const data = res.dr || res.data || [];
+  const res = await api.post("/get-doctors", payload);
+  const data = res?.dr || res?.data?.dr || res?.data || [];
   const doc = data.find(u => (u.drkey || u.id) === id) || data[0];
   return doc ? mapDoctor(doc) : {};
 }
@@ -96,6 +134,24 @@ export async function getPlans(filters = {}) {
   // POST api/plan/get
   const res = await api.post("/api/plan/get", filters);
   return res.data || res;
+}
+
+/* ─── Banners ─── */
+export async function getBanners() {
+  const payload = {
+    pageIndex: 0,
+    pageSize: 0,
+    sortKey: "seq_no",
+    sortValue: "asc",
+    filterQuery: "and is_active=1",
+  };
+  try {
+    const res = await api.post("/banner/get", payload);
+    return res.data || res || [];
+  } catch (error) {
+    console.error("Failed to fetch banners", error);
+    return [];
+  }
 }
 
 export async function upsertPlan(data) {

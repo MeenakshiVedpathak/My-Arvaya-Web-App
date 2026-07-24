@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { packages } from "../mocks/data";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
+import { getBanners } from "../services/dataService";
 
 export default function Home() {
   const go = useNavigate();
@@ -49,12 +50,47 @@ export default function Home() {
     }
   ];
 
+  const [dynamicSlides, setDynamicSlides] = useState(heroSlides);
+
+  useEffect(() => {
+    const fetchDynamicBanners = async () => {
+      try {
+        const res = await getBanners();
+        const banners = res?.data || res || [];
+        if (banners.length > 0) {
+          const newSlides = banners.map((b, i) => {
+            const baseSlide = heroSlides[i % heroSlides.length];
+            let fullImgUrl = "";
+            if (b.img_url) {
+              if (b.img_url.startsWith('http')) {
+                fullImgUrl = b.img_url;
+              } else {
+                const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+                const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+                const fileName = b.img_url.replace(/^\/+/, '').replace(/^static\/bannerImages\//, '');
+                fullImgUrl = `${cleanBase}/static/bannerImages/${fileName}`;
+              }
+            }
+            return {
+              ...baseSlide,
+              bg: fullImgUrl || baseSlide.bg
+            };
+          });
+          setDynamicSlides(newSlides);
+        }
+      } catch (e) {
+        console.error("Error fetching banners:", e);
+      }
+    };
+    fetchDynamicBanners();
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [heroSlides.length]);
+  }, [dynamicSlides.length]);
 
   const tickerText = "🎉 Avail flat 20% off on all Full Body Checkups this week!  •  🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi  •  ⭐ Free consultation with our top specialists for ABHA card holders  •  ";
 
@@ -86,8 +122,8 @@ export default function Home() {
 
       {/* ── Carousel Banner ── */}
       <section className="home-hero-section" style={{ position: 'relative', width: '100%', minHeight: '480px', overflow: 'hidden' }}>
-        {heroSlides.map((slide, idx) => (
-          <div key={slide.bg} style={{
+        {dynamicSlides.map((slide, idx) => (
+          <div key={`${slide.bg}-${idx}`} style={{
               position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
               opacity: idx === currentSlide ? 1 : 0, 
               transition: 'opacity 1.2s ease-in-out',
@@ -98,13 +134,13 @@ export default function Home() {
               alt={`Banner ${idx + 1}`} 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)' }}></div>
+            {slide.title && <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)' }}></div>}
           </div>
         ))}
 
         {/* Carousel Navigation Arrows */}
         <button 
-          onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
+          onClick={() => setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1))}
           style={{
             position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
             width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
@@ -120,7 +156,7 @@ export default function Home() {
         </button>
 
         <button 
-          onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)}
           style={{
             position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
             width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
@@ -136,42 +172,51 @@ export default function Home() {
         </button>
 
         {/* Overlay Content */}
-        <div className="container" style={{ position: 'relative', height: '100%', minHeight: '480px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px' }}>
-          {heroSlides.map((slide, idx) => idx === currentSlide && (
-            <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '640px' }}>
-              <span style={{ 
-                display: 'inline-flex', alignItems: 'center', gap: '8px', 
-                background: slide.badgeBg, backdropFilter: 'blur(10px)', 
-                color: slide.badgeColor, padding: '8px 18px', borderRadius: '99px', 
-                fontSize: '12px', fontWeight: '700', marginBottom: '20px', 
-                border: `1px solid ${slide.badgeBorder}`, textTransform: 'uppercase', 
-                letterSpacing: '0.06em' 
-              }}>
-                {slide.badge}
-              </span>
-              <h1 className="hero-title" style={{ fontSize: '42px', fontWeight: '800', color: 'white', lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
-                {slide.title}
-              </h1>
-              <p className="hero-subtext" style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '32px', lineHeight: 1.6 }}>
-                {slide.subtitle}
-              </p>
+        <div className="container" style={{ position: 'relative', height: '100%', minHeight: '480px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px', pointerEvents: 'none' }}>
+          {dynamicSlides.map((slide, idx) => idx === currentSlide && (
+            <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '640px', pointerEvents: 'auto' }}>
+              {slide.badge && (
+                <span style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '8px', 
+                  background: slide.badgeBg, backdropFilter: 'blur(10px)', 
+                  color: slide.badgeColor, padding: '8px 18px', borderRadius: '99px', 
+                  fontSize: '12px', fontWeight: '700', marginBottom: '20px', 
+                  border: `1px solid ${slide.badgeBorder}`, textTransform: 'uppercase', 
+                  letterSpacing: '0.06em' 
+                }}>
+                  {slide.badge}
+                </span>
+              )}
+              {slide.title && (
+                <h1 className="hero-title" style={{ fontSize: '42px', fontWeight: '800', color: 'white', lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
+                  {slide.title}
+                </h1>
+              )}
+              {slide.subtitle && (
+                <p className="hero-subtext" style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '32px', lineHeight: 1.6 }}>
+                  {slide.subtitle}
+                </p>
+              )}
               
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-                {/* Primary Orange CTA Button */}
-                <button 
-                  onClick={slide.primaryAction} 
-                  style={{ 
-                    padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
-                    color: '#ffffff', background: 'linear-gradient(135deg, #FF6B00 0%, #F97316 100%)', 
-                    border: 'none', borderRadius: '14px', cursor: 'pointer', 
-                    display: 'flex', alignItems: 'center', gap: '8px', 
-                    boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)', transition: 'all 0.3s' 
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                >
-                  <span>{slide.primaryBtn}</span> <ArrowRight size={16} />
-                </button>
+              {(slide.primaryBtn || slide.secondaryBtn) && (
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Primary Orange CTA Button */}
+                  {slide.primaryBtn && (
+                    <button 
+                      onClick={slide.primaryAction} 
+                      style={{ 
+                        padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
+                        color: '#ffffff', background: 'linear-gradient(135deg, #FF6B00 0%, #F97316 100%)', 
+                        border: 'none', borderRadius: '14px', cursor: 'pointer', 
+                        display: 'flex', alignItems: 'center', gap: '8px', 
+                        boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)', transition: 'all 0.3s' 
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                      <span>{slide.primaryBtn}</span> <ArrowRight size={16} />
+                    </button>
+                  )}
 
                 {/* Secondary Outlined CTA Button */}
                 {slide.secondaryBtn && (
@@ -191,13 +236,14 @@ export default function Home() {
                   </button>
                 )}
               </div>
+            )}
             </div>
           ))}
         </div>
 
         {/* Navigation Dots */}
         <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
-          {heroSlides.map((_, idx) => (
+          {dynamicSlides.map((_, idx) => (
             <button 
               key={idx}
               onClick={() => setCurrentSlide(idx)}
@@ -273,63 +319,6 @@ export default function Home() {
         </div>
         </section>
       </div>
-
-      {/* ── Multi-Hospital Branches ── */}
-      <section style={{ padding: '56px 0', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex justify-between items-center mb-8" style={{ flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <h2 className="text-h2">Our Network Hospitals</h2>
-              <p className="text-muted mt-2">Find a world-class Arvaya hospital near you</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '8px 16px', borderRadius: '12px' }}>
-              <MapPin size={18} color="var(--primary)" />
-              <select style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer' }}>
-                <option>Bangalore</option>
-                <option>Mumbai</option>
-                <option>Delhi NCR</option>
-                <option>Hyderabad</option>
-                <option>Chennai</option>
-              </select>
-            </div>
-          </div>
-
-          <style>{`
-            .hospitals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-            @media (max-width: 900px) { .hospitals-grid { grid-template-columns: repeat(2, 1fr); } }
-            @media (max-width: 600px) { .hospitals-grid { grid-template-columns: 1fr; } }
-          `}</style>
-          <div className="hospitals-grid">
-            {[
-              { name: "Arvaya Flagship Hospital", loc: "Koramangala, Bangalore", dist: "2.4 km", beds: "500+ Beds", img: "/banner_healthcare_1.png" },
-              { name: "Arvaya Speciality Center", loc: "Indiranagar, Bangalore", dist: "5.1 km", beds: "250+ Beds", img: "/banner_healthcare_2.png" },
-              { name: "Arvaya Women & Child", loc: "Whitefield, Bangalore", dist: "8.7 km", beds: "150+ Beds", img: "/banner_healthcare_3.png" },
-            ].map((h, i) => (
-              <div key={i} className="card-elevated hover-glow animate-fade-in-up" style={{ padding: 0, overflow: 'hidden', animationDelay: `${i * 100}ms`, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ height: '160px', background: 'var(--border)' }}>
-                  <img src={h.img} alt={h.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>{h.name}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>
-                    <MapPin size={14} /> {h.loc}
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)', background: 'var(--primary-light)', padding: '4px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Navigation size={12} /> {h.dist} away</span>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent)', background: 'rgba(251,145,63,0.1)', padding: '4px 10px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Building2 size={12} /> {h.beds}</span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: 'auto' }}>
-                    <button className="btn btn-secondary" style={{ fontSize: '13px', padding: '10px' }} onClick={() => go('/ambulance')}>Emergency</button>
-                    <button className="btn btn-primary" style={{ fontSize: '13px', padding: '10px' }} onClick={() => go('/doctors')}>Book Visit</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── How It Works ── */}
       <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
