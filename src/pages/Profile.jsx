@@ -120,7 +120,7 @@ export default function Profile() {
           <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* Horizontal Tabs */}
-            <div className="card-elevated" style={{ padding: '8px', borderRadius: '16px', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="styled-scrollbar">
+            <div className="card-elevated styled-scrollbar" style={{ padding: '8px', borderRadius: '16px', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
               {[
                 { id: 'personal', label: 'Personal Details', icon: User },
                 { id: 'medical', label: 'Medical History', icon: HeartPulse },
