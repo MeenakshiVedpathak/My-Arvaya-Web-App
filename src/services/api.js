@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const BASE = import.meta.env.VITE_API_BASE_URL || "https://p8rhkmb7-8867.inc1.devtunnels.ms/";
 
 function getToken() {
   return localStorage.getItem("arvaya_token");

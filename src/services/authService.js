@@ -1,6 +1,6 @@
 import { api } from "./api";
 
-const USE_MOCK = true; // Force mock data for all dashboard/auth processes
+const USE_MOCK = false; // Set to false for real API calls
 
 const MOCK_USER = {
   id: "user_1",
