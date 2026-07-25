@@ -43,14 +43,28 @@ export function AuthProvider({ children }) {
   async function fetchUserProfile(currentUser) {
     if (!currentUser) return;
     try {
+      const storedUser = localStorage.getItem("arvaya_user");
+      let storedUserId = currentUser?.id || currentUser?.user_id || currentUser?.app_user_id;
+      if (!storedUserId && storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          storedUserId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
+        } catch (e) {}
+      }
+
       const mobile = currentUser.phone || currentUser.mobile_number || currentUser.mobile;
-      const filters = mobile ? { mobile_number: mobile } : {};
+      const filters = {
+        ...(storedUserId ? { id: storedUserId, filterQuery: ` AND id=${storedUserId}` } : {}),
+        ...(mobile ? { mobile_number: mobile } : {})
+      };
       const res = await getPatients(filters);
       
       let patientData = null;
       if (Array.isArray(res) && res.length > 0) {
-        patientData = res.find(p => (p.mobile_number || p.phone || p.mobile) === mobile) || res[0];
-      } else if (res && typeof res === "object" && !Array.isArray(res) && (res.name || res.full_name || res.first_name || res.mobile_number || res.phone)) {
+        patientData = res.find(p => String(p.id || p.user_id || p.app_user_id) === String(storedUserId)) 
+          || res.find(p => (p.mobile_number || p.phone || p.mobile) === mobile) 
+          || res[0];
+      } else if (res && typeof res === "object" && !Array.isArray(res) && (res.name || res.full_name || res.first_name || res.mobile_number || res.phone || res.id || res.user_id)) {
         patientData = res;
       }
 

@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { doctors, packages } from "../../mocks/data";
 import { useBooking } from "../../context/BookingContext";
+import { fetchImageBlob, getImageUrl } from "../../services/uploadService";
+import { getPatients } from "../../services/dataService";
 
 function getUserDisplayName(user) {
   if (!user) return "User";
@@ -47,6 +49,7 @@ export default function Header() {
   const [q, setQ] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [headerAvatar, setHeaderAvatar] = useState("");
 
   const searchContainerRef = useRef(null);
   const locationPickerRef = useRef(null);
@@ -56,6 +59,74 @@ export default function Header() {
   const displayName = getUserDisplayName(user);
   const displayInitial = (displayName || "U").charAt(0).toUpperCase();
   const userPhone = getUserPhone(user);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function updateHeaderAvatar() {
+      if (!user) {
+        if (isMounted) setHeaderAvatar("");
+        return;
+      }
+      try {
+        const storedUser = localStorage.getItem("arvaya_user");
+        let storedUserId = user?.id || user?.user_id || user?.app_user_id;
+        if (!storedUserId && storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            storedUserId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
+          } catch (e) {}
+        }
+
+        const mobile = user?.phone || user?.mobile_number || user?.mobile;
+        const filters = {
+          ...(storedUserId ? { id: storedUserId, filterQuery: ` AND id=${storedUserId}` } : {}),
+          ...(mobile ? { mobile_number: mobile } : {})
+        };
+
+        const res = await getPatients(filters);
+        let patientData = null;
+        if (Array.isArray(res) && res.length > 0) {
+          patientData = res.find(p => String(p.id || p.user_id || p.app_user_id) === String(storedUserId)) 
+            || res.find(p => (p.mobile_number || p.phone || p.mobile) === mobile) 
+            || res[0];
+        } else if (res && typeof res === "object" && !Array.isArray(res)) {
+          patientData = res;
+        }
+
+        let imgPath = patientData?.profile_image || patientData?.profileImage || patientData?.photo || user?.profile_image || user?.profileImage || "";
+        if (!imgPath && storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            imgPath = parsed?.profile_image || parsed?.profileImage || parsed?.photo || "";
+          } catch (e) {}
+        }
+
+        if (imgPath) {
+          const resolved = await fetchImageBlob(imgPath, "patientProfileImage") || getImageUrl(imgPath, "patientProfileImage");
+          if (isMounted && resolved) {
+            setHeaderAvatar(resolved);
+            return;
+          }
+        }
+        if (isMounted) setHeaderAvatar("");
+      } catch (err) {
+        console.error("updateHeaderAvatar error:", err);
+        if (isMounted) setHeaderAvatar("");
+      }
+    }
+
+    updateHeaderAvatar();
+
+    const handleProfileUpdate = () => {
+      updateHeaderAvatar();
+    };
+    window.addEventListener("arvaya_profile_updated", handleProfileUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("arvaya_profile_updated", handleProfileUpdate);
+    };
+  }, [user]);
 
   // Click outside listener for search & location popovers
   useEffect(() => {
@@ -272,7 +343,17 @@ export default function Header() {
                     <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
                     <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{displayName.split(" ")[0]}</span>
                   </div>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px', overflow: 'hidden', position: 'relative' }}>
+                    {headerAvatar ? (
+                      <img 
+                        src={headerAvatar} 
+                        alt={displayName} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }} 
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
                     {displayInitial}
                   </div>
                   <ChevronDown size={16} className="text-muted" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />

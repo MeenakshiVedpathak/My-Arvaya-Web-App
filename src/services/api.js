@@ -17,11 +17,16 @@ function getToken() {
 }
 
 async function request(method, path, body) {
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+
   const headers = { 
-    "Content-Type": "application/json",
     "apikey": "JP76Ol1r5lMvzljKmeaTdP9EthTYzKFH",
     "applicationkey": "Xkit6MeT1Et4ZA2N",
   };
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const token = getToken();
   if (token) {
@@ -36,7 +41,7 @@ async function request(method, path, body) {
   const res = await fetch(`${cleanBase}/${cleanPath}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
   });
 
   if (res.status === 401) {

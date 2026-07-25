@@ -3,14 +3,49 @@ import { doctors as mockDoctors, slots as mockSlots, packages as mockPackages } 
 
 const USE_MOCK = true; // Forced static data for the dashboard after login
 
+function getStoredUserId() {
+  try {
+    const user = JSON.parse(localStorage.getItem("arvaya_user"));
+    return user?.id || user?.user_id || user?.app_user_id || null;
+  } catch {
+    return null;
+  }
+}
+
 /* ─── Patients / App Users ─── */
 export async function getPatients(filters = {}) {
   try {
-    const res = await api.post("/api/appUser/get", filters);
+    const storedUserId = getStoredUserId();
+    let filterQuery = filters.filterQuery || filters.filter || "";
+
+    if (storedUserId) {
+      if (!filterQuery.includes("id=")) {
+        filterQuery += ` AND id=${storedUserId}`;
+      }
+    }
+
+    const payload = {
+      filterQuery: filterQuery.trim(),
+      filter: filterQuery.trim(),
+      ...(storedUserId ? { id: storedUserId } : {}),
+      ...filters
+    };
+
+    const res = await api.post("/api/appUser/get", payload);
     return res?.data || res?.patients || res?.list || res?.result || res?.UserData || res || [];
   } catch (err) {
     console.error("getPatients error:", err);
     return [];
+  }
+}
+
+export async function updateAppUser(payload) {
+  try {
+    const res = await api.post("/api/appUser/upsert", payload);
+    return res?.data || res?.result || res;
+  } catch (err) {
+    console.error("updateAppUser error:", err);
+    throw err;
   }
 }
 
@@ -27,7 +62,18 @@ export async function getFamilyDetails(filters = {}) {
 
 export async function upsertFamilyDetails(payload) {
   try {
-    const res = await api.post("/api/familyDetails/upsert", payload);
+    let genderCode = payload.gender || "M";
+    const lower = String(genderCode).trim().toLowerCase();
+    if (lower.startsWith("f")) genderCode = "F";
+    else if (lower.startsWith("m")) genderCode = "M";
+    else if (lower.startsWith("o")) genderCode = "O";
+
+    const formattedPayload = {
+      ...payload,
+      gender: genderCode
+    };
+
+    const res = await api.post("/api/familyDetails/upsert", formattedPayload);
     return res?.data || res?.result || res;
   } catch (err) {
     console.error("upsertFamilyDetails error:", err);
@@ -286,41 +332,105 @@ export async function getRewards() {
 
 /* ─── Health Records ─── */
 export async function getRecords(filters = {}) {
-  if (USE_MOCK) {
-    const mockList = [
-      { id: 1, title: "Blood Report", doctor: "Dr. Priya Sharma", date: "10 Jul 2026", type: "Lab Report" },
-      { id: 2, title: "ECG Report", doctor: "Dr. Arjun Verma", date: "05 Jul 2026", type: "Diagnostic" },
-      { id: 3, title: "Prescription", doctor: "Dr. Neha Kapoor", date: "01 Jul 2026", type: "Prescription" },
-    ];
-    return { list: mockList, count: mockList.length };
+  try {
+    const storedUserId = getStoredUserId();
+    let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || filters.filter || "");
+
+    if (storedUserId) {
+      if (!filterQuery.toLowerCase().includes("app_user_id=") && !filterQuery.toLowerCase().includes("user_id=")) {
+        if (filterQuery.trim()) {
+          filterQuery = filterQuery.trim().toLowerCase().startsWith("and ") 
+            ? `and app_user_id=${storedUserId} ${filterQuery.trim()}`
+            : `and app_user_id=${storedUserId} and ${filterQuery.trim()}`;
+        } else {
+          filterQuery = `and app_user_id=${storedUserId}`;
+        }
+      }
+    }
+
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 12,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filterQuery: filterQuery ? filterQuery.trim() : "",
+      filter: filterQuery ? filterQuery.trim() : "",
+      ...(storedUserId ? { app_user_id: storedUserId, created_by: storedUserId, user_id: storedUserId } : {}),
+      ...((typeof filters === "object" && filters) ? filters : {})
+    };
+
+    const res = await api.post("/api/patientHealthRecord/get", payload);
+    const rawList = res?.data || res?.list || res?.records || res?.result || res?.UserData || (Array.isArray(res) ? res : []);
+    const count = res?.count || res?.totalCount || res?.total || (Array.isArray(rawList) ? rawList.length : 0);
+
+    const mappedList = Array.isArray(rawList) ? rawList.map(r => ({
+      id: r.id || r.record_id || Math.random(),
+      title: r.title || r.name || r.record_name || r.file_name || "Health Record",
+      doctor: r.doctor_name || r.doctor || r.created_by_name || "Consultant",
+      date: r.created_modified_date 
+        ? new Date(r.created_modified_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+        : r.created_date 
+        ? new Date(r.created_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+        : (r.date || "Recent"),
+      type: r.type || r.record_type || r.category || "Diagnostic",
+      fileUrl: r.file_path || r.file_url || r.url || r.file || null,
+      raw: r
+    })) : [];
+
+    return { list: mappedList, count: count || mappedList.length };
+  } catch (err) {
+    console.error("getRecords API error:", err);
+    return { list: [], count: 0 };
   }
-
-  const userId = getUserId();
-  let finalFilter = filters.filter || "";
-  if (userId && String(userId) !== "1") {
-    finalFilter += ` and app_user_id=${userId}`;
-  }
-
-  const payload = {
-    pageIndex: filters.pageIndex || 1,
-    pageSize: filters.pageSize || 9,
-    sortKey: filters.sortKey || "id",
-    sortValue: filters.sortValue || "desc",
-    filter: finalFilter.trim(),
-    created_by: userId,
-  };
-
-  const res = await api.post("/api/patientHealthRecord/get", payload);
-  const data = res.data || [];
-
-  return {
-    list: Array.isArray(data) ? data.map(r => ({
-      id: r.id,
-      title: r.title || r.name || r.record_name || "Health Record",
-      doctor: r.doctor_name || r.doctor || "Consultant",
-      date: r.created_modified_date ? new Date(r.created_modified_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : (r.date || "Unknown"),
-      type: r.type || r.record_type || "Diagnostic",
-    })) : [],
-    count: res.count || 0
-  };
 }
+
+/* ─── Notifications ─── */
+export async function getNotifications(filters = {}) {
+  try {
+    const storedUserId = getStoredUserId();
+    let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || filters.filter || "");
+
+    if (storedUserId) {
+      if (!filterQuery.toLowerCase().includes("user_id=")) {
+        if (filterQuery.trim()) {
+          if (filterQuery.trim().toLowerCase().startsWith("and ")) {
+            filterQuery = `and user_id=${storedUserId} ${filterQuery.trim()}`;
+          } else {
+            filterQuery = `and user_id=${storedUserId} and ${filterQuery.trim()}`;
+          }
+        } else {
+          filterQuery = `and user_id=${storedUserId}`;
+        }
+      }
+    }
+
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 100,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filterQuery: filterQuery ? filterQuery.trim() : "",
+      filter: filterQuery ? filterQuery.trim() : "",
+      ...(storedUserId ? { user_id: storedUserId } : {}),
+      ...((typeof filters === "object" && filters) ? filters : {})
+    };
+
+    const res = await api.post("/api/notification/get", payload);
+    const data = res?.data || res?.list || res?.notifications || res?.result || (Array.isArray(res) ? res : []);
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("getNotifications error with filterQuery, retrying fallback:", err);
+    try {
+      const storedUserId = getStoredUserId();
+      const res = await api.post("/api/notification/get", storedUserId ? { user_id: storedUserId } : {});
+      const data = res?.data || res?.list || res?.notifications || res?.result || (Array.isArray(res) ? res : []);
+      return Array.isArray(data) ? data : [];
+    } catch (fallbackErr) {
+      console.error("getNotifications fallback error:", fallbackErr);
+      return [];
+    }
+  }
+}
+
+
+
