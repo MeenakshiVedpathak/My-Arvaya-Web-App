@@ -27,6 +27,15 @@ function getUserDisplayName(user) {
   return rawName || "User";
 }
 
+function getUserPhone(user) {
+  if (!user) return "";
+  const rawPhone = user.phone || user.mobile_number || user.mobile || user.mobile_no || user.phone_number || user.phoneNumber;
+  if (!rawPhone) return "";
+  const cleanPhone = String(rawPhone).trim();
+  if (cleanPhone.startsWith("+91")) return cleanPhone;
+  if (cleanPhone.startsWith("91") && cleanPhone.length === 12) return `+${cleanPhone}`;
+  return `+91 ${cleanPhone}`;
+}
 export default function Header() {
   const { user, openLoginModal, logout } = useAuth();
   const { setDoctor } = useBooking();
