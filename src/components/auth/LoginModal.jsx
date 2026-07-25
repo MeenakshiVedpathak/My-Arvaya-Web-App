@@ -55,7 +55,38 @@ export default function LoginModal({ forceOpen = false }) {
     setErr(""); setBusy(true);
     try {
       const res = await verifyOtp(otp, phone);
-      if (res.token) saveSession({ token: res.token, user: res.user || {} });
+      const userData = res?.UserData || res?.userData || res?.data || res?.result || {};
+      const rawNewUser = userData?.is_new_user !== undefined 
+        ? userData.is_new_user 
+        : userData?.Is_new_user !== undefined 
+        ? userData.Is_new_user 
+        : res?.is_new_user !== undefined 
+        ? res.is_new_user 
+        : res?.Is_new_user;
+
+      const isNewUserOne = rawNewUser === 1 || rawNewUser === "1" || rawNewUser === true;
+
+      // If is_new_user is 1, open registration form
+      if (isNewUserOne) {
+        handleClose();
+        go(`/signup?phone=${phone}`);
+        return;
+      }
+
+      // If is_new_user is 0 (existing user), login directly
+      const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || "token_" + Date.now();
+      let rawUser = res?.user || res?.UserData || res?.data?.user || res?.result?.user || res?.data || res || {};
+      let fullName = rawUser?.name || rawUser?.full_name || rawUser?.fullName || rawUser?.user_name;
+      if (!fullName && (rawUser?.first_name || rawUser?.lastName || rawUser?.last_name)) {
+        const title = rawUser?.title ? rawUser.title.trim() + " " : "";
+        fullName = `${title}${rawUser?.first_name || ""} ${rawUser?.last_name || rawUser?.lastName || ""}`.trim();
+      }
+      let user = {
+        ...rawUser,
+        name: fullName || (phone ? `User (${phone})` : "User"),
+        phone: rawUser?.phone || rawUser?.mobile_number || phone
+      };
+      saveSession({ token, user });
       handleClose();
       if (pendingRedirect) go(pendingRedirect);
     } catch (e) { setErr(e.message || "Invalid OTP"); }
@@ -114,7 +145,7 @@ export default function LoginModal({ forceOpen = false }) {
       card = <Mobile onBack={() => setScreen("landing")} onSend={doSendOtp} {...p} />;
       break;
     case "otp":
-      card = <Otp phone={phone} onBack={() => setScreen("mobile")} onVerify={doVerify} {...p} />;
+      card = <Otp phone={phone} onBack={() => setScreen("mobile")} onVerify={doVerify} onResend={() => doSendOtp(phone)} {...p} />;
       break;
     // ── ABHA Login 3-step ──
     case "abha_mobile":
@@ -405,7 +436,7 @@ function Mobile({ onBack, onSend, busy, err }) {
 /* ═══════════════════════════════════════
    OTP (Regular)
    ═══════════════════════════════════════ */
-function Otp({ phone, onBack, onVerify, busy, err }) {
+function Otp({ phone, onBack, onVerify, onResend, busy, err }) {
   const [o, setO] = useState("");
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
@@ -434,7 +465,7 @@ function Otp({ phone, onBack, onVerify, busy, err }) {
 
       <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', marginTop: '24px' }}>
         Didn't receive the code?{' '}
-        <button style={{ color: 'var(--primary)', fontWeight: '600', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+        <button onClick={onResend} style={{ color: 'var(--primary)', fontWeight: '600', background: 'transparent', border: 'none', cursor: 'pointer' }}>
           Resend OTP
         </button>
       </p>

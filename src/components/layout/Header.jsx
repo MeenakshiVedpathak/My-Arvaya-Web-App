@@ -5,6 +5,37 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { doctors, packages } from "../../mocks/data";
 import { useBooking } from "../../context/BookingContext";
 
+function getUserDisplayName(user) {
+  if (!user) return "User";
+  if (typeof user === "string") return user;
+  
+  const rawName = user.name || user.full_name || user.fullName || user.user_name || user.userName;
+  if (rawName && typeof rawName === "string" && !rawName.startsWith("User (") && rawName !== "User") {
+    return rawName;
+  }
+  
+  const title = user.title ? user.title.trim() + " " : "";
+  const firstName = user.first_name || user.firstName || "";
+  const lastName = user.last_name || user.lastName || "";
+  if (firstName || lastName) {
+    return `${title}${firstName} ${lastName}`.trim();
+  }
+
+  if (user.email) return user.email.split("@")[0];
+  
+  return rawName || "User";
+}
+
+function getUserPhone(user) {
+  if (!user) return "";
+  const rawPhone = user.phone || user.mobile_number || user.mobile || user.mobile_no || user.phone_number || user.phoneNumber;
+  if (!rawPhone) return "";
+  const cleanPhone = String(rawPhone).trim();
+  if (cleanPhone.startsWith("+91")) return cleanPhone;
+  if (cleanPhone.startsWith("91") && cleanPhone.length === 12) return `+${cleanPhone}`;
+  return `+91 ${cleanPhone}`;
+}
+
 export default function Header() {
   const { user, openLoginModal, logout } = useAuth();
   const { setDoctor } = useBooking();
@@ -22,6 +53,9 @@ export default function Header() {
   const profileMenuRef = useRef(null);
 
   const cities = ["Bangalore", "Mumbai", "Delhi NCR", "Hyderabad", "Chennai", "Pune", "Kolkata"];
+  const displayName = getUserDisplayName(user);
+  const displayInitial = (displayName || "U").charAt(0).toUpperCase();
+  const userPhone = getUserPhone(user);
 
   // Click outside listener for search & location popovers
   useEffect(() => {
@@ -236,10 +270,10 @@ export default function Header() {
                 >
                   <div className="flex flex-col items-end">
                     <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{user.name.split(" ")[0]}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{displayName.split(" ")[0]}</span>
                   </div>
                   <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
-                    {user.name.charAt(0).toUpperCase()}
+                    {displayInitial}
                   </div>
                   <ChevronDown size={16} className="text-muted" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                 </div>
@@ -248,8 +282,8 @@ export default function Header() {
                 {isProfileMenuOpen && (
                   <div style={{ position: 'absolute', top: '56px', right: 0, width: '220px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
                     <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', marginBottom: '8px' }}>
-                      <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{user.name}</b>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user.phone || '+91 XXXXX XXXXX'}</span>
+                      <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{displayName}</b>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{userPhone || '+91 XXXXX XXXXX'}</span>
                     </div>
                     
                     <div 
@@ -411,11 +445,11 @@ export default function Header() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '18px' }}>
-                        {user.name.charAt(0).toUpperCase()}
+                        {displayInitial}
                       </div>
                       <div>
                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Logged in as</span>
-                        <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)' }}>{user.name}</b>
+                        <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)' }}>{displayName}</b>
                       </div>
                     </div>
                   </div>

@@ -5,10 +5,34 @@ const USE_MOCK = true; // Forced static data for the dashboard after login
 
 /* ─── Patients / App Users ─── */
 export async function getPatients(filters = {}) {
-  if (USE_MOCK) return [];
-  // POST api/appUser/get
-  const res = await api.post("/api/appUser/get", filters);
-  return res.data || res;
+  try {
+    const res = await api.post("/api/appUser/get", filters);
+    return res?.data || res?.patients || res?.list || res?.result || res?.UserData || res || [];
+  } catch (err) {
+    console.error("getPatients error:", err);
+    return [];
+  }
+}
+
+/* ─── Family Details ─── */
+export async function getFamilyDetails(filters = {}) {
+  try {
+    const res = await api.post("/api/familyDetails/get", filters);
+    return res?.data || res?.list || res?.result || res?.familyDetails || res || [];
+  } catch (err) {
+    console.error("getFamilyDetails error:", err);
+    return [];
+  }
+}
+
+export async function upsertFamilyDetails(payload) {
+  try {
+    const res = await api.post("/api/familyDetails/upsert", payload);
+    return res?.data || res?.result || res;
+  } catch (err) {
+    console.error("upsertFamilyDetails error:", err);
+    throw err;
+  }
 }
 
 function getUserId() {
