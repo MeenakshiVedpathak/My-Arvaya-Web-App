@@ -17,19 +17,19 @@ export default function Doctors() {
   const urlQ = searchParams.get("q") || "";
   const urlLoc = searchParams.get("loc") || "";
 
+  const urlLocKey = searchParams.get("locKey") || "";
+
   const [q, setQ] = useState(urlQ);
-  const [currentLoc, setCurrentLoc] = useState(urlLoc);
 
   useEffect(() => {
     if (urlQ !== q) setQ(urlQ);
-    if (urlLoc !== currentLoc) setCurrentLoc(urlLoc);
-  }, [urlQ, urlLoc]);
+  }, [urlQ]);
 
   const fetchDocs = async (page = 1, append = false, overrideFilter = null) => {
     if (append) setLoadingMore(true);
     else setLoading(true);
     
-    const filterStr = overrideFilter !== null ? overrideFilter : `${q} ${currentLoc}`.trim();
+    const filterStr = overrideFilter !== null ? overrideFilter : q.trim();
     
     try {
       const res = await getDoctors({
@@ -37,7 +37,8 @@ export default function Doctors() {
         pageSize: 10,
         sortKey: "",
         sortValue: "desc",
-        filter: filterStr
+        filter: filterStr,
+        location_key: urlLocKey
       });
       if (append) {
         setDoctorList(prev => [...prev, ...(res.list || [])]);
@@ -57,10 +58,10 @@ export default function Doctors() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setPageIndex(1);
-      fetchDocs(1, false, `${q} ${currentLoc}`.trim());
+      fetchDocs(1, false, q.trim());
     }, 500);
     return () => clearTimeout(timer);
-  }, [q, currentLoc]);
+  }, [q, urlLocKey]);
 
   const handlePageChange = (newPage) => {
     const totalPages = Math.ceil(totalCount / 10);
@@ -76,14 +77,11 @@ export default function Doctors() {
     "Anesthesiologist", "Cardiologist", "Dermatologist", "Pediatrician"
   ];
   const availableGenders = ["M", "F"];
-  const availableExperiences = ["0-5 Years", "5-10 Years", "10-15 Years", "15+ Years"];
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [filters, setFilters] = useState({
     gender: "",
-    type: [],
     fee: [],
-    specialty: [],
-    rating: []
+    specialty: []
   });
   const { setDoctor } = useBooking();
   const go = useNavigate();
@@ -126,18 +124,10 @@ export default function Doctors() {
       if(!match) return false;
     }
 
-    // Rating filter
-    if (filters.rating.length > 0) {
-      const match = filters.rating.some(r => {
-        if(r === "4.5+") return d.rating >= 4.5;
-        if(r === "4.0+") return d.rating >= 4.0;
-        return false;
-      });
-      if(!match) return false;
-    }
-
     return true;
   });
+
+  const displayLoc = urlLoc || "Your Area";
 
   return (
     <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -145,9 +135,9 @@ export default function Doctors() {
       <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
         <div className="container">
           <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Doctors in Bangalore</span>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Doctors in {displayLoc}</span>
           </div>
-          <h1 className="text-h2" style={{ fontSize: '24px' }}>Top Doctors to Consult in Bangalore</h1>
+          <h1 className="text-h2" style={{ fontSize: '24px' }}>Top Doctors to Consult in {displayLoc}</h1>
         </div>
       </div>
 
@@ -172,7 +162,7 @@ export default function Doctors() {
             <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '100px', height: 'calc(100vh - 120px)', overflowY: 'auto' }}>
               <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
                 <b style={{ fontSize: '15px' }}>Filters</b>
-                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => { setQ(""); setFilters({gender: "", type: [], fee: [], specialty: [], rating: []}); }}>RESET</span>
+                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => { setQ(""); setFilters({gender: "", fee: [], specialty: []}); }}>RESET</span>
               </div>
               
               <div className="flex flex-col gap-6">
@@ -198,28 +188,11 @@ export default function Doctors() {
                 </div>
 
                 <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Consultation Type</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.type.includes("In-Clinic")} onChange={() => handleFilterToggle("type", "In-Clinic")} /> In-Clinic Visit</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.type.includes("Video")} onChange={() => handleFilterToggle("type", "Video")} /> Video Consult</label>
-                  </div>
-                </div>
-
-                <div>
                   <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Consultation Fee</b>
                   <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
                     <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.fee.includes("Free")} onChange={() => handleFilterToggle("fee", "Free")} /> Free</label>
                     <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.fee.includes("₹1 - ₹500")} onChange={() => handleFilterToggle("fee", "₹1 - ₹500")} /> ₹1 - ₹500</label>
                     <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.fee.includes("₹500+")} onChange={() => handleFilterToggle("fee", "₹500+")} /> ₹500+</label>
-                  </div>
-                </div>
-
-                <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Availability</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Available Today</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Available Tomorrow</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Next 7 Days</label>
                   </div>
                 </div>
 
@@ -234,22 +207,6 @@ export default function Doctors() {
                   </div>
                 </div>
 
-                <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Patient Rating</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.rating.includes("4.5+")} onChange={() => handleFilterToggle("rating", "4.5+")} /> 4.5+ ⭐</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={filters.rating.includes("4.0+")} onChange={() => handleFilterToggle("rating", "4.0+")} /> 4.0+ ⭐</label>
-                  </div>
-                </div>
-
-                <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Experience</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    {availableExperiences.length > 0 ? availableExperiences.map(exp => (
-                      <label key={exp} className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> {exp}</label>
-                    )) : <span className="text-muted">No data available</span>}
-                  </div>
-                </div>
               </div>
             </div>
           </aside>
@@ -258,7 +215,7 @@ export default function Doctors() {
         {/* ── Doctor List ── */}
         <section>
           <div className="flex justify-between items-center mb-6" style={{ flexWrap: 'wrap', gap: '12px' }}>
-            <p className="text-main" style={{ fontSize: '14px', fontWeight: '600' }}>{filtered.length} Doctors available in Bangalore</p>
+            <p className="text-main" style={{ fontSize: '14px', fontWeight: '600' }}>{filtered.length} Doctors available in {displayLoc}</p>
             <div className="flex items-center gap-2">
               <span className="text-muted" style={{ fontSize: '13px' }}>Sort By:</span>
               <select className="input-field" style={{ width: 'auto', padding: '6px 12px', height: 'auto', borderRadius: 'var(--radius-sm)' }}>

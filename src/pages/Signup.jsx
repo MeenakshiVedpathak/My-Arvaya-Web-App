@@ -5,10 +5,10 @@ import { User, Phone, Calendar, ArrowRight, Droplet } from "lucide-react";
 
 export default function Signup() {
   const [searchParams] = useSearchParams();
-  const [title, setTitle] = useState("Mrs.");
+  const [title, setTitle] = useState("Mr.");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [gender, setGender] = useState("Female");
+  const [gender, setGender] = useState("Male");
   const [dob, setDob] = useState("");
   const [bloodGroup, setBloodGroup] = useState("B+");
   const [phone, setPhone] = useState(() => searchParams.get("phone") || "");

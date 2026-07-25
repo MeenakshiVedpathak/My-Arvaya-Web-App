@@ -1,7 +1,9 @@
-import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint } from "lucide-react";
-import { useState, useEffect } from "react";
+import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint, X, Upload, CheckCircle2, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getRecords } from "../services/dataService";
+import { uploadImage, getImageUrl } from "../services/uploadService";
+import { api } from "../services/api";
 
 const iconMap = {
   "Lab Report": { Icon: HeartPulse, color: "#38a169", bg: "#f0fff4" },
@@ -9,29 +11,50 @@ const iconMap = {
   "Prescription": { Icon: Stethoscope, color: "#FB913F", bg: "#FEF0E2" },
 };
 
+const getRecordIcon = (type = "") => {
+  const norm = String(type).toLowerCase();
+  if (norm.includes("lab") || norm.includes("blood")) {
+    return { Icon: HeartPulse, color: "#38a169", bg: "#f0fff4" };
+  }
+  if (norm.includes("prescription") || norm.includes("rx") || norm.includes("medicine")) {
+    return { Icon: Stethoscope, color: "#FB913F", bg: "#FEF0E2" };
+  }
+  return iconMap[type] || { Icon: FileText, color: "#1F4F57", bg: "#DCE9EB" };
+};
+
 export default function Records() {
   let go = useNavigate();
-  let [records, setRecords] = useState([
-    { id: 1, title: "Blood Report", doctor: "Dr. Priya Sharma", date: "10 Jul 2026", type: "Lab Report" },
-    { id: 2, title: "ECG Report", doctor: "Dr. Arjun Verma", date: "05 Jul 2026", type: "Diagnostic" },
-    { id: 3, title: "Prescription", doctor: "Dr. Neha Kapoor", date: "01 Jul 2026", type: "Prescription" },
-  ]);
-  let [count, setCount] = useState(3);
+  let fileInputRef = useRef(null);
+
+  let [records, setRecords] = useState([]);
+  let [count, setCount] = useState(0);
   let [pageIndex, setPageIndex] = useState(1);
-  let [loading, setLoading] = useState(false);
+  let [loading, setLoading] = useState(true);
   let [loadingMore, setLoadingMore] = useState(false);
   let [activeTab, setActiveTab] = useState("personal");
+  let [searchQuery, setSearchQuery] = useState("");
+  let [selectedType, setSelectedType] = useState("All Records");
+
+  // Modal & Upload States
+  let [showUploadModal, setShowUploadModal] = useState(false);
+  let [selectedFile, setSelectedFile] = useState(null);
+  let [recordTitle, setRecordTitle] = useState("");
+  let [recordType, setRecordType] = useState("Lab Report");
+  let [doctorName, setDoctorName] = useState("");
+  let [uploading, setUploading] = useState(false);
+  let [uploadSuccess, setUploadSuccess] = useState(false);
 
   const fetchRecords = (page) => {
     if (page === 1) setLoading(true);
     else setLoadingMore(true);
 
     getRecords({ pageIndex: page, pageSize: 12 }).then(res => {
-      setRecords(prev => page === 1 ? res.list : [...prev, ...res.list]);
-      setCount(res.count);
+      setRecords(prev => page === 1 ? (res.list || []) : [...prev, ...(res.list || [])]);
+      setCount(res.count || 0);
       setLoading(false);
       setLoadingMore(false);
-    }).catch(() => {
+    }).catch(err => {
+      console.error("fetchRecords error:", err);
       setLoading(false);
       setLoadingMore(false);
     });
@@ -40,6 +63,90 @@ export default function Records() {
   useEffect(() => {
     fetchRecords(1);
   }, []);
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      if (!recordTitle) {
+        setRecordTitle(file.name.replace(/\.[^/.]+$/, ""));
+      }
+    }
+  };
+
+  const handleUploadSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedFile) return;
+
+    setUploading(true);
+    try {
+      const folderName = 'HealthRecords';
+      const fileExt = selectedFile.name.split('.').pop();
+      const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
+
+      // 1. Trigger API for upload using uploadImage from uploadService
+      const uploadRes = await uploadImage(selectedFile, folderName, generatedName);
+      const uploadedFileName = uploadRes?.filename || uploadRes?.fileName || generatedName;
+      const fileUrl = getImageUrl(uploadedFileName, folderName) || URL.createObjectURL(selectedFile);
+
+      // 2. Upsert API temporarily disabled as requested
+      /*
+      try {
+        const storedUser = localStorage.getItem("arvaya_user");
+        let userId = null;
+        if (storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            userId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
+          } catch(err) {}
+        }
+        await api.post("/api/patientHealthRecord/upsert", {
+          title: recordTitle || selectedFile.name,
+          record_name: recordTitle || selectedFile.name,
+          record_type: recordType || "Lab Report",
+          type: recordType || "Lab Report",
+          doctor_name: doctorName || "Self Uploaded",
+          file_name: uploadedFileName,
+          file_path: uploadedFileName,
+          url: fileUrl,
+          ...(userId ? { app_user_id: userId, created_by: userId } : {})
+        });
+      } catch (err) {
+        console.warn("patientHealthRecord upsert endpoint notice:", err);
+      }
+      */
+
+      // 3. Construct new record item and prepend to records list under My Uploads & Hospital Records
+      const newRecord = {
+        id: Date.now(),
+        title: recordTitle || selectedFile.name,
+        doctor: doctorName || "Self Uploaded",
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+        type: recordType || "Lab Report",
+        fileUrl: fileUrl,
+        raw: { file_name: uploadedFileName }
+      };
+
+      setRecords(prev => [newRecord, ...prev]);
+      setCount(prev => prev + 1);
+      setActiveTab("personal");
+      setUploadSuccess(true);
+
+      setTimeout(() => {
+        setShowUploadModal(false);
+        setUploadSuccess(false);
+        setSelectedFile(null);
+        setRecordTitle("");
+        setDoctorName("");
+      }, 1000);
+
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload document. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)', minHeight: '100vh' }}>
@@ -59,7 +166,7 @@ export default function Records() {
                 <Lock size={14} /> ISO 27001 Certified • 256-bit Encrypted Storage
               </p>
             </div>
-            <button className="btn btn-accent flex items-center gap-2 hover-glow" onClick={() => alert("Upload dialog opened")} style={{ padding: '10px 20px', borderRadius: 'var(--radius-full)' }}>
+            <button className="btn btn-accent flex items-center gap-2 hover-glow" onClick={() => setShowUploadModal(true)} style={{ padding: '10px 20px', borderRadius: 'var(--radius-full)' }}>
               <CloudUpload size={18} /> Upload Record
             </button>
           </div>
@@ -76,7 +183,13 @@ export default function Records() {
             <div style={{ marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <Search size={18} color="var(--muted)" />
-                <input type="text" placeholder="Search records..." style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', marginLeft: '12px', color: 'var(--text-main)' }} />
+                <input
+                  type="text"
+                  placeholder="Search records..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', marginLeft: '12px', color: 'var(--text-main)' }}
+                />
               </div>
             </div>
 
@@ -102,7 +215,13 @@ export default function Records() {
                 {['All Records', 'Prescriptions', 'Lab Reports', 'Diagnostic Scans'].map((type, i) => (
                   <li key={i}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '15px', color: 'var(--text-main)', padding: '6px 0' }}>
-                      <input type="radio" name="recordType" defaultChecked={i === 0} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
+                      <input
+                        type="radio"
+                        name="recordType"
+                        checked={selectedType === type}
+                        onChange={() => setSelectedType(type)}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+                      />
                       {type}
                     </label>
                   </li>
@@ -170,14 +289,27 @@ export default function Records() {
                       </div>
                     ))}
                   </div>
+                ) : records.length === 0 ? (
+                  <div className="card-elevated" style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-surface)', borderRadius: '16px' }}>
+                    <FileText size={48} color="var(--muted)" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
+                    <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '8px', fontWeight: '700' }}>No Health Records Found</h3>
+                    <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '360px', margin: '0 auto 20px' }}>Upload your medical reports or prescriptions to store them securely in your vault.</p>
+                  </div>
                 ) : (
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'absolute', left: '27px', top: '40px', bottom: '40px', width: '2px', background: 'var(--border)', zIndex: 0 }}></div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {records.map((rec) => {
-                      const { Icon, color, bg } = iconMap[rec.type] || iconMap["Lab Report"];
+                    {records.filter(rec => {
+                      const matchesSearch = !searchQuery || rec.title?.toLowerCase().includes(searchQuery.toLowerCase()) || rec.doctor?.toLowerCase().includes(searchQuery.toLowerCase());
+                      const matchesType = selectedType === "All Records" ||
+                        (selectedType === "Prescriptions" && (rec.type?.toLowerCase().includes("prescription") || rec.type?.toLowerCase().includes("rx"))) ||
+                        (selectedType === "Lab Reports" && (rec.type?.toLowerCase().includes("lab") || rec.type?.toLowerCase().includes("blood"))) ||
+                        (selectedType === "Diagnostic Scans" && (rec.type?.toLowerCase().includes("diagnostic") || rec.type?.toLowerCase().includes("ecg") || rec.type?.toLowerCase().includes("scan")));
+                      return matchesSearch && matchesType;
+                    }).map((rec) => {
+                      const { Icon, color, bg } = getRecordIcon(rec.type);
                       return (
-                        <article className="hover-glow record-item-card" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer', position: 'relative', zIndex: 1 }} onClick={() => alert("Opening record...")}>
+                        <article className="hover-glow record-item-card" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer', position: 'relative', zIndex: 1 }} onClick={() => rec.fileUrl ? window.open(rec.fileUrl, '_blank') : alert("Opening record: " + rec.title)}>
 
                           {/* Icon Block */}
                           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '4px solid var(--bg)', boxShadow: '0 0 0 4px var(--bg)' }}>
@@ -198,10 +330,10 @@ export default function Records() {
 
                           {/* Actions */}
                           <div className="record-item-actions" style={{ display: 'flex', gap: '12px' }}>
-                            <button className="btn hover-glow" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => { e.stopPropagation(); alert("Opening report: " + rec.title); }}>
+                            <button className="btn hover-glow" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => { e.stopPropagation(); if (rec.fileUrl) window.open(rec.fileUrl, '_blank'); else alert("Opening report: " + rec.title); }}>
                               View
                             </button>
-                            <button className="btn btn-secondary hover-glow" style={{ padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Download" onClick={(e) => { e.stopPropagation(); alert("Downloading..."); }}>
+                            <button className="btn btn-secondary hover-glow" style={{ padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Download" onClick={(e) => { e.stopPropagation(); if (rec.fileUrl) window.open(rec.fileUrl, '_blank'); else alert("Downloading: " + rec.title); }}>
                               <Download size={18} />
                             </button>
                           </div>
@@ -233,6 +365,126 @@ export default function Records() {
 
         </div>
       </div>
+      {showUploadModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
+          <div className="animate-fade-in-up" style={{ background: 'var(--bg-surface)', width: '100%', maxWidth: '520px', borderRadius: '20px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+            
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                <CloudUpload size={22} color="var(--primary)" /> Upload Medical Record
+              </h3>
+              <button onClick={() => setShowUploadModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', borderRadius: '50%' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <form onSubmit={handleUploadSubmit} style={{ padding: '24px' }}>
+              
+              {/* File Dropzone / Selector */}
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                style={{ border: '2px dashed var(--border)', borderRadius: '14px', padding: '28px 20px', textAlign: 'center', background: 'var(--bg-app)', cursor: 'pointer', marginBottom: '20px', transition: 'border-color 0.2s' }}
+              >
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileSelect} 
+                  accept="image/*,.pdf,.doc,.docx" 
+                  style={{ display: 'none' }} 
+                />
+                {selectedFile ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                    <FileText size={32} color="var(--primary)" />
+                    <div style={{ textAlign: 'left' }}>
+                      <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', fontSize: '15px' }}>{selectedFile.name}</p>
+                      <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Click to change</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <Upload size={36} color="var(--primary)" style={{ margin: '0 auto 10px', opacity: 0.8 }} />
+                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-main)', fontSize: '15px' }}>Click or drag file to upload</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--muted)' }}>Supports PDF, JPG, PNG, DOCX up to 10MB</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Record Title Input */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Document Name / Title *</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Blood Test Report, Chest X-Ray..." 
+                  value={recordTitle} 
+                  onChange={(e) => setRecordTitle(e.target.value)} 
+                  required 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none' }}
+                />
+              </div>
+
+              {/* Record Type Selection */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Record Type</label>
+                <select 
+                  value={recordType} 
+                  onChange={(e) => setRecordType(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none' }}
+                >
+                  <option value="Lab Report">Lab Report</option>
+                  <option value="Prescription">Prescription</option>
+                  <option value="Diagnostic">Diagnostic Scan</option>
+                </select>
+              </div>
+
+              {/* Doctor Name Input */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Doctor / Clinic Name (Optional)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Dr. Priya Sharma, Apollo Clinic" 
+                  value={doctorName} 
+                  onChange={(e) => setDoctorName(e.target.value)} 
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none' }}
+                />
+              </div>
+
+              {/* Footer Actions */}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowUploadModal(false)}
+                  disabled={uploading}
+                  style={{ padding: '10px 20px', borderRadius: '10px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={uploading || !selectedFile || uploadSuccess}
+                  className="btn btn-accent hover-glow"
+                  style={{ padding: '10px 24px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Uploading...
+                    </>
+                  ) : uploadSuccess ? (
+                    <>
+                      <CheckCircle2 size={16} /> Uploaded!
+                    </>
+                  ) : (
+                    <>
+                      <CloudUpload size={16} /> Upload & Save
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -79,16 +79,8 @@ export default function DoctorProfile() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '12px' }}>
                   <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', color: 'var(--primary)' }}><MapPin size={24} /></div>
                   <div>
-                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>{doctor.hospital}</b>
-                    <small style={{ color: 'var(--muted)', fontSize: '13px' }}>Clinic Visit</small>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '12px' }}>
-                  <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', color: 'var(--primary)' }}><Clock size={24} /></div>
-                  <div>
-                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>15 Min Consult</b>
-                    <small style={{ color: 'var(--muted)', fontSize: '13px' }}>Estimated Duration</small>
+                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>{doctor.hospital || "Hospital"}</b>
+                    <small style={{ color: 'var(--muted)', fontSize: '13px' }}>{doctor.city || "Location"}</small>
                   </div>
                 </div>
               </div>

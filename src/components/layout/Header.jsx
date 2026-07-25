@@ -2,9 +2,10 @@ import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { doctors, packages } from "../../mocks/data";
+import { getLocations, getDoctors, getLabPackages } from "../../services/dataService";
 import { useBooking } from "../../context/BookingContext";
-import { getLocations } from "../../services/dataService";
+import { fetchImageBlob, getImageUrl } from "../../services/uploadService";
+import { getPatients } from "../../services/dataService";
 
 function getUserDisplayName(user) {
   if (!user) return "User";
@@ -38,59 +39,119 @@ function getUserPhone(user) {
 }
 export default function Header() {
   const { user, openLoginModal, logout } = useAuth();
-  const { setDoctor } = useBooking();
+  const { globalLocation, setGlobalLocation, setDoctor } = useBooking();
   const go = useNavigate();
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("Bangalore");
+  const selectedCity = globalLocation ? (globalLocation.city || globalLocation.alt_name || globalLocation.name || "Unknown") : "Loading...";
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [locSearch, setLocSearch] = useState("");
   const [q, setQ] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [headerAvatar, setHeaderAvatar] = useState("");
 
   const searchContainerRef = useRef(null);
   const locationPickerRef = useRef(null);
   const profileMenuRef = useRef(null);
 
   const [locations, setLocations] = useState([]);
-  const [locPage, setLocPage] = useState(1);
-  const [hasMoreLocs, setHasMoreLocs] = useState(true);
   const [loadingLocs, setLoadingLocs] = useState(false);
 
+
   useEffect(() => {
-    if (isLocationOpen && locations.length === 0) {
-      loadMoreLocations(1);
+    let isMounted = true;
+ 
+    async function updateHeaderAvatar() {
+      if (!user) {
+        if (isMounted) setHeaderAvatar("");
+        return;
+      }
+      try {
+        const storedUser = localStorage.getItem("arvaya_user");
+        let storedUserId = user?.id || user?.user_id || user?.app_user_id;
+        if (!storedUserId && storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            storedUserId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
+          } catch (e) {}
+        }
+ 
+        const mobile = user?.phone || user?.mobile_number || user?.mobile;
+        const filters = {
+          ...(storedUserId ? { id: storedUserId, filterQuery: ` AND id=${storedUserId}` } : {}),
+          ...(mobile ? { mobile_number: mobile } : {})
+        };
+ 
+        const res = await getPatients(filters);
+        let patientData = null;
+        if (Array.isArray(res) && res.length > 0) {
+          patientData = res.find(p => String(p.id || p.user_id || p.app_user_id) === String(storedUserId))
+            || res.find(p => (p.mobile_number || p.phone || p.mobile) === mobile)
+            || res[0];
+        } else if (res && typeof res === "object" && !Array.isArray(res)) {
+          patientData = res;
+        }
+ 
+        let imgPath = patientData?.profile_image || patientData?.profileImage || patientData?.photo || user?.profile_image || user?.profileImage || "";
+        if (!imgPath && storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            imgPath = parsed?.profile_image || parsed?.profileImage || parsed?.photo || "";
+          } catch (e) {}
+        }
+ 
+        if (imgPath) {
+          const resolved = await fetchImageBlob(imgPath, "patientProfileImage") || getImageUrl(imgPath, "patientProfileImage");
+          if (isMounted && resolved) {
+            setHeaderAvatar(resolved);
+            return;
+          }
+        }
+        if (isMounted) setHeaderAvatar("");
+      } catch (err) {
+        console.error("updateHeaderAvatar error:", err);
+        if (isMounted) setHeaderAvatar("");
+      }
     }
-  }, [isLocationOpen]);
+ 
+    updateHeaderAvatar();
+ 
+    const handleProfileUpdate = () => {
+      updateHeaderAvatar();
+    };
+    window.addEventListener("arvaya_profile_updated", handleProfileUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("arvaya_profile_updated", handleProfileUpdate);
+    };
+  }, [user]);
+ 
+
+  useEffect(() => {
+    async function initLocations() {
+      setLoadingLocs(true);
+      try {
+        const res = await getLocations(1, 100);
+        const allLocs = res.list || [];
+        setLocations(allLocs);
+
+        if (!globalLocation && allLocs.length > 0) {
+          setGlobalLocation(allLocs[0]);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setLoadingLocs(false);
+    }
+    initLocations();
+  }, []);
 
   const displayName = getUserDisplayName(user);
   const displayInitial = (displayName || "U").charAt(0).toUpperCase();
   const userPhone = getUserPhone(user);
 
-  const loadMoreLocations = async (page) => {
-    if (loadingLocs || (!hasMoreLocs && page > 1)) return;
-    setLoadingLocs(true);
-    try {
-      const res = await getLocations(page, 10);
-      const newLocs = res.list || [];
-      if (newLocs.length < 10) setHasMoreLocs(false);
 
-      const uniqueNewLocs = newLocs.filter(nl => !locations.some(l => l.entitylocation === nl.entitylocation));
-
-      setLocations(prev => page === 1 ? newLocs : [...prev, ...uniqueNewLocs]);
-      setLocPage(page);
-    } catch (err) {
-      console.error(err);
-    }
-    setLoadingLocs(false);
-  };
-
-  const handleLocScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollTop + clientHeight >= scrollHeight - 10) {
-      loadMoreLocations(locPage + 1);
-    }
-  };
 
   // Click outside listener for search & location popovers
   useEffect(() => {
@@ -109,28 +170,51 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Static Search Matching
-  const filteredDoctors = useMemo(() => {
-    if (!q.trim()) return [];
-    return doctors.filter(d =>
-      d.name.toLowerCase().includes(q.toLowerCase()) ||
-      d.specialty.toLowerCase().includes(q.toLowerCase()) ||
-      d.hospital.toLowerCase().includes(q.toLowerCase())
-    );
-  }, [q]);
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
+  const [filteredPackages, setFilteredPackages] = useState([]);
 
-  const filteredPackages = useMemo(() => {
-    if (!q.trim()) return [];
-    return packages.filter(p =>
-      p.title.toLowerCase().includes(q.toLowerCase())
-    );
+  useEffect(() => {
+    if (!q.trim()) {
+      setFilteredDoctors([]);
+      setFilteredPackages([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const query = q.toLowerCase();
+
+        const docRes = await getDoctors({ 
+          pageSize: 100, 
+          filter: q,
+          location_key: globalLocation?.entitylocation || "" 
+        });
+        
+        const allDocs = docRes.list || [];
+        const localFilteredDocs = allDocs.filter(d => 
+          d.name?.toLowerCase().includes(query) || d.specialty?.toLowerCase().includes(query)
+        );
+        setFilteredDoctors(localFilteredDocs.slice(0, 5));
+        
+        const pkgRes = await getLabPackages({ pageSize: 100, filter: q });
+        const allPkgs = pkgRes || [];
+        const localFilteredPkgs = allPkgs.filter(p => 
+          p.title?.toLowerCase().includes(query) || p.tests?.toLowerCase().includes(query)
+        );
+        setFilteredPackages(localFilteredPkgs.slice(0, 5));
+      } catch (err) {
+        console.error("Search error", err);
+      }
+    }, 300); // debounce search
+
+    return () => clearTimeout(timer);
   }, [q]);
 
   const handleSelectDoctor = (doc) => {
     setDoctor(doc);
     setIsSearchFocused(false);
     setQ("");
-    go("/doctor");
+    go("/doctors/visit-type");
   };
 
   const handleSelectLab = (pkg) => {
@@ -190,27 +274,54 @@ export default function Header() {
 
               {/* Location Dropdown Menu */}
               {isLocationOpen && (
-                <div onScroll={handleLocScroll} className="styled-scrollbar" style={{ position: 'absolute', top: '50px', left: 0, width: '220px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '6px 0', animation: 'fadeIn 0.2s ease', maxHeight: '300px', overflowY: 'auto' }}>
-                  <div style={{ padding: '6px 14px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Select Location</div>
-                  {locations.map((loc, idx) => {
-                    const locName = loc.city || loc.alt_name || "Unknown";
-                    return (
-                      <div
-                        key={loc.entitylocation || idx}
-                        onClick={() => { setSelectedCity(locName); setIsLocationOpen(false); }}
-                        style={{ padding: '10px 14px', fontSize: '13px', color: selectedCity === locName ? 'var(--primary)' : 'var(--text-main)', fontWeight: selectedCity === locName ? '700' : '500', background: selectedCity === locName ? 'var(--primary-light)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.2s' }}
-                        onMouseOver={e => { if (selectedCity !== locName) e.currentTarget.style.background = 'var(--bg-app)'; }}
-                        onMouseOut={e => { if (selectedCity !== locName) e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span>{locName}</span>
-                          {loc.alt_name && loc.city && <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>{loc.alt_name}</span>}
-                        </span>
-                        {selectedCity === locName && <Check size={14} color="var(--primary)" />}
-                      </div>
-                    );
-                  })}
-                  {loadingLocs && <div style={{ padding: '12px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)' }}>Loading more...</div>}
+                <div className="styled-scrollbar" style={{ position: 'absolute', top: '50px', left: 0, width: '240px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '10px', animation: 'fadeIn 0.2s ease', maxHeight: '350px', overflowY: 'auto' }}>
+                  
+                  {/* Location Search Box */}
+                  <div style={{ marginBottom: '8px', padding: '0 4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-app)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px' }}>
+                      <Search size={14} color="var(--text-muted)" />
+                      <input 
+                        type="text" 
+                        placeholder="Search locations..."
+                        value={locSearch}
+                        onChange={e => setLocSearch(e.target.value)}
+                        style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px', marginLeft: '6px', color: 'var(--text-main)' }}
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '6px 4px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Available Locations</div>
+                  
+                  {loadingLocs ? (
+                    <div style={{ padding: '12px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)' }}>Loading...</div>
+                  ) : (
+                    locations.filter(loc => {
+                      const name = (loc.city || loc.alt_name || "").toLowerCase();
+                      return name.includes(locSearch.toLowerCase());
+                    }).map((loc, idx) => {
+                      const locName = loc.city || loc.alt_name || "Unknown";
+                      return (
+                        <div
+                          key={loc.entitylocation || idx}
+                          onClick={() => { 
+                            setGlobalLocation(loc);
+                            setIsLocationOpen(false); 
+                            setLocSearch(""); // clear search on select
+                          }}
+                          style={{ padding: '10px 10px', borderRadius: '8px', fontSize: '13px', color: selectedCity === locName ? 'var(--primary)' : 'var(--text-main)', fontWeight: selectedCity === locName ? '700' : '500', background: selectedCity === locName ? 'var(--primary-light)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.2s' }}
+                          onMouseOver={e => { if (selectedCity !== locName) e.currentTarget.style.background = 'var(--bg-app)'; }}
+                          onMouseOut={e => { if (selectedCity !== locName) e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span>{locName}</span>
+                            {loc.alt_name && loc.city && <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>{loc.alt_name}</span>}
+                          </span>
+                          {selectedCity === locName && <Check size={14} color="var(--primary)" />}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>
@@ -313,7 +424,17 @@ export default function Header() {
                     <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
                     <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{displayName.split(" ")[0]}</span>
                   </div>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px', overflow: 'hidden', position: 'relative' }}>
+                    {headerAvatar ? (
+                      <img
+                        src={headerAvatar}
+                        alt={displayName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
                     {displayInitial}
                   </div>
                   <ChevronDown size={16} className="text-muted" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />

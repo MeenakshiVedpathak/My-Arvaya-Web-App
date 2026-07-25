@@ -1,19 +1,86 @@
-import { useState } from "react";
-import { Bell, Calendar, Activity, CreditCard, Gift, AlertCircle, Info, Trash2, CheckCircle2, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Calendar, Activity, CreditCard, Gift, AlertCircle, Info, Trash2, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getNotifications } from "../services/dataService";
 
-const initialNotifications = [
-  { id: 1, type: "appointment", title: "Appointment Confirmed", message: "Your consultation with Dr. Sarah Smith is confirmed for tomorrow at 10:00 AM.", time: "10 mins ago", read: false, icon: Calendar, color: "var(--primary)" },
-  { id: 2, type: "lab", title: "Lab Results Ready", message: "Your Complete Blood Count (CBC) report is now available to view and download.", time: "2 hours ago", read: false, icon: Activity, color: "var(--success)" },
-  { id: 3, type: "wallet", title: "Wallet Recharge Successful", message: "₹500 has been successfully added to your Arvaya Wallet.", time: "Yesterday", read: true, icon: CreditCard, color: "var(--accent)" },
-  { id: 4, type: "rewards", title: "You earned 50 Points!", message: "Thanks for completing your medical profile. 50 loyalty points have been credited.", time: "Yesterday", read: true, icon: Gift, color: "#eab308" },
-  { id: 5, type: "emergency", title: "Emergency Contact Added", message: "Jane Doe was successfully added as your primary emergency contact.", time: "2 days ago", read: true, icon: AlertCircle, color: "var(--danger)" },
-  { id: 6, type: "general", title: "Welcome to Arvaya", message: "Thank you for joining the Arvaya Patient Portal. Start exploring your healthcare dashboard today.", time: "1 week ago", read: true, icon: Info, color: "var(--text-muted)" }
-];
+function getNotificationMeta(type, title = "") {
+  const t = String(type || "").toLowerCase();
+  const titleLower = String(title || "").toLowerCase();
+  if (t.includes("appoint") || titleLower.includes("appointment")) return { type: "appointment", icon: Calendar, color: "var(--primary)" };
+  if (t.includes("lab") || titleLower.includes("lab")) return { type: "lab", icon: Activity, color: "var(--success)" };
+  if (t.includes("wallet") || t.includes("pay") || titleLower.includes("wallet") || titleLower.includes("payment")) return { type: "wallet", icon: CreditCard, color: "var(--accent)" };
+  if (t.includes("reward") || titleLower.includes("reward") || titleLower.includes("redeem") || (/\bpoints?\b/i.test(titleLower) && !titleLower.includes("appointment"))) return { type: "rewards", icon: Gift, color: "#eab308" };
+  if (t.includes("emerg") || titleLower.includes("emerg") || titleLower.includes("ambulance") || titleLower.includes("booking")) return { type: "emergency", icon: AlertCircle, color: "var(--danger)" };
+  return { type: t || "general", icon: Info, color: "var(--text-muted)" };
+}
+
+function mapNotificationItem(n) {
+  const itemTitle = n.title || n.subject || n.name || "Notification";
+  const meta = getNotificationMeta(n.type || n.notification_type || n.category, itemTitle);
+  
+  let timeStr = n.time || n.created_at || n.created_date || n.created_modified_date || "";
+  if (timeStr && !isNaN(Date.parse(timeStr))) {
+    timeStr = new Date(timeStr).toLocaleString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  return {
+    id: n.id || n.notification_id || Math.random(),
+    type: meta.type,
+    title: itemTitle,
+    message: n.message || n.description || n.content || n.text || "",
+    time: timeStr || "Recently",
+    read: Boolean(n.read ?? n.is_read ?? (n.status === "read" || n.status === 1)),
+    icon: meta.icon,
+    color: meta.color,
+    raw: n
+  };
+}
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    fetchNotifications("all");
+  }, []);
+
+  const fetchNotifications = async (catId = filter) => {
+    setLoading(true);
+    try {
+      let payload = {};
+      if (catId === "appointment") {
+        payload = { filterQuery: "and title like '%Appointment%'" };
+      } else if (catId === "lab") {
+        payload = { filterQuery: "and title like '%Lab%'" };
+      } else if (catId === "wallet") {
+        payload = { filterQuery: "and (title like '%Payment%' or title like '%Wallet%')" };
+      } else if (catId === "rewards") {
+        payload = { filterQuery: "and (title like '%Redeem%' or title like '%Reward%' or title like '%Points%') and title not like '%Appointment%'" };
+      } else if (catId === "emergency") {
+        payload = { filterQuery: "and (title like '%Ambulance%' or title like '%Booking%' or title like '%Emergency%')" };
+      }
+
+      const data = await getNotifications(payload);
+      if (Array.isArray(data) && data.length > 0) {
+        setNotifications(data.map(mapNotificationItem));
+      } else {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryClick = async (catId) => {
+    setFilter(catId);
+    await fetchNotifications(catId);
+  };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -25,7 +92,31 @@ export default function Notifications() {
     setNotifications(notifications.filter(n => n.id !== id));
   };
 
-  const filteredNotifications = notifications.filter(n => filter === "all" || n.type === filter);
+  const filteredNotifications = notifications.filter(n => {
+    if (filter === "all") return true;
+    if (filter === "appointment") {
+      const titleText = String(n.title || n.raw?.title || "").toLowerCase();
+      return titleText.includes("appointment");
+    }
+    if (filter === "lab") {
+      const titleText = String(n.title || n.raw?.title || "").toLowerCase();
+      return titleText.includes("lab");
+    }
+    if (filter === "wallet") {
+      const titleText = String(n.title || n.raw?.title || "").toLowerCase();
+      return titleText.includes("payment") || titleText.includes("wallet");
+    }
+    if (filter === "rewards") {
+      const titleText = String(n.title || n.raw?.title || "").toLowerCase();
+      if (titleText.includes("appointment")) return false;
+      return titleText.includes("reward") || titleText.includes("redeem") || /\bpoints?\b/i.test(titleText);
+    }
+    if (filter === "emergency") {
+      const titleText = String(n.title || n.raw?.title || "").toLowerCase();
+      return titleText.includes("ambulance") || titleText.includes("booking") || titleText.includes("emergency");
+    }
+    return n.type === filter;
+  });
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -73,7 +164,7 @@ export default function Notifications() {
                 ].map(cat => (
                   <button 
                     key={cat.id}
-                    onClick={() => setFilter(cat.id)}
+                    onClick={() => handleCategoryClick(cat.id)}
                     style={{ 
                       textAlign: 'left', 
                       padding: '10px 16px', 
@@ -98,7 +189,12 @@ export default function Notifications() {
 
           {/* Notifications List */}
           <section style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0, maxHeight: 'calc(100vh - 220px)', overflowY: 'auto', paddingRight: '12px', paddingBottom: '24px' }} className="styled-scrollbar">
-            {filteredNotifications.length === 0 ? (
+            {loading ? (
+              <div style={{ padding: '48px', textAlign: 'center', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px' }}>
+                <Loader2 size={32} color="var(--primary)" style={{ margin: '0 auto 16px auto', animation: 'spin 1s linear infinite' }} />
+                <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading notifications...</p>
+              </div>
+            ) : filteredNotifications.length === 0 ? (
               <div style={{ padding: '48px', textAlign: 'center', background: 'var(--bg-surface)', border: '1px dashed var(--border)', borderRadius: '16px' }}>
                 <Bell size={48} color="var(--border)" style={{ margin: '0 auto 16px auto' }} />
                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)' }}>No Notifications</h3>
@@ -132,6 +228,10 @@ export default function Notifications() {
         </div>
       </div>
       <style dangerouslySetInnerHTML={{__html: `
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
         @media (max-width: 768px) {
           .notifications-grid { grid-template-columns: 1fr !important; }
           .notifications-sidebar { position: relative !important; top: 0 !important; }
