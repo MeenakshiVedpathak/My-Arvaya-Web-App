@@ -67,7 +67,8 @@ export async function register(data) {
     blood_group: data.blood_group || "B+",
     cloud_id: data.cloud_id || getCloudId(),
     device_id: data.device_id || getDeviceId(),
-    client_id: data.client_id || getClientId()
+    client_id: data.client_id || getClientId(),
+    is_active: 1
   };
 
   const res = await api.post("/appUser/register", payload);
@@ -82,7 +83,7 @@ export async function sendOtp(mobile, clientId) {
     await new Promise(r => setTimeout(r, 600));
     return { success: true, message: `OTP sent to ${mobile}`, is_registered: true };
   }
-  return api.post("/user/sendOtp", { 
+  return api.post("/user/sendOtp", {
     mobile_number: mobile,
     client_id: clientId || getClientId()
   });
@@ -92,9 +93,9 @@ export async function sendOtp(mobile, clientId) {
 export async function verifyOtp(otp, mobile, options = {}) {
   if (USE_MOCK) {
     await new Promise(r => setTimeout(r, 600));
-    return { 
-      token: "mock_token_" + Date.now(), 
-      user: { ...MOCK_USER, phone: mobile ? `+91 ${mobile}` : MOCK_USER.phone } 
+    return {
+      token: "mock_token_" + Date.now(),
+      user: { ...MOCK_USER, phone: mobile ? `+91 ${mobile}` : MOCK_USER.phone }
     };
   }
   const clientId = typeof options === "string" ? options : options?.clientId;
@@ -110,26 +111,13 @@ export async function verifyOtp(otp, mobile, options = {}) {
   };
 
   const res = await api.post("/user/verifyOtp", payload);
-  const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.jwt || res?.UserData?.token || res?.UserData?.accessToken || "token_" + Date.now();
-  
-  let userDataObj = res?.UserData || res?.user || res?.userData || res?.data?.user || res?.result?.user || res?.data || res?.result || {};
-  let fullName = userDataObj?.name || userDataObj?.full_name || userDataObj?.fullName || userDataObj?.user_name;
-  if (!fullName && (userDataObj?.first_name || userDataObj?.lastName || userDataObj?.last_name)) {
-    const title = userDataObj?.title ? userDataObj.title.trim() + " " : "";
-    fullName = `${title}${userDataObj?.first_name || ""} ${userDataObj?.last_name || userDataObj?.lastName || ""}`.trim();
+  const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.jwt || "token_" + Date.now();
+  let user = res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result || { name: mobile ? `User (${mobile})` : "User", phone: mobile };
+  if (typeof user === "object" && user !== null && !user.name) {
+    user = { ...user, name: mobile ? `User (${mobile})` : "User" };
   }
-  if (!fullName || fullName === "User") {
-    fullName = mobile ? `User (${mobile})` : "User";
-  }
-
-  let user = {
-    ...userDataObj,
-    name: fullName,
-    phone: userDataObj?.phone || userDataObj?.mobile_number || userDataObj?.mobile || mobile
-  };
-
-  return { 
-    token, 
+  return {
+    token,
     user,
     ...res
   };

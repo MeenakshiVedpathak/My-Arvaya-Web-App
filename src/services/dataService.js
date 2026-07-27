@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { doctors as mockDoctors, slots as mockSlots, packages as mockPackages } from "../mocks/data";
+import { slots as mockSlots, packages as mockPackages } from "../mocks/data";
 
 const USE_MOCK = true; // Forced static data for the dashboard after login
 
@@ -11,26 +11,27 @@ function getStoredUserId() {
     return null;
   }
 }
-
+ 
+ 
 /* ─── Patients / App Users ─── */
 export async function getPatients(filters = {}) {
   try {
     const storedUserId = getStoredUserId();
     let filterQuery = filters.filterQuery || filters.filter || "";
-
+ 
     if (storedUserId) {
       if (!filterQuery.includes("id=")) {
         filterQuery += ` AND id=${storedUserId}`;
       }
     }
-
+ 
     const payload = {
       filterQuery: filterQuery.trim(),
       filter: filterQuery.trim(),
       ...(storedUserId ? { id: storedUserId } : {}),
       ...filters
     };
-
+ 
     const res = await api.post("/api/appUser/get", payload);
     return res?.data || res?.patients || res?.list || res?.result || res?.UserData || res || [];
   } catch (err) {
@@ -38,7 +39,7 @@ export async function getPatients(filters = {}) {
     return [];
   }
 }
-
+ 
 export async function updateAppUser(payload) {
   try {
     const res = await api.post("/api/appUser/upsert", payload);
@@ -48,6 +49,7 @@ export async function updateAppUser(payload) {
     throw err;
   }
 }
+ 
 
 /* ─── Family Details ─── */
 export async function getFamilyDetails(filters = {}) {
@@ -67,12 +69,12 @@ export async function upsertFamilyDetails(payload) {
     if (lower.startsWith("f")) genderCode = "F";
     else if (lower.startsWith("m")) genderCode = "M";
     else if (lower.startsWith("o")) genderCode = "O";
-
+ 
     const formattedPayload = {
       ...payload,
       gender: genderCode
     };
-
+ 
     const res = await api.post("/api/familyDetails/upsert", formattedPayload);
     return res?.data || res?.result || res;
   } catch (err) {
@@ -109,53 +111,131 @@ function mapDoctor(d) {
     mobile: d.mobile || "",
     blocked: d.blocked || false,
     image: d.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent((d.name || "Dr").trim())}&background=2e666e&color=fff&size=150`,
-    experienceText: d.experience ? `${parseInt(d.experience)} Years` : "",
+    experienceText: d.experience ? `${parseInt(d.experience)} Years` : "10+ Years",
+    experience: d.experience ? `${parseInt(d.experience)}` : "10+",
+    fee: d.amount ? parseInt(d.amount) : 500,
+    rating: d.rating ? parseFloat(d.rating) : null,
+    reviews: d.reviews ? parseInt(d.reviews) : null,
   };
 }
 
 /* ─── Doctors ─── */
 export async function getDoctors(filters = {}) {
-  if (USE_MOCK) return { list: mockDoctors, count: mockDoctors.length };
 
   const payload = {
     pageIndex: filters.pageIndex || 1,
-    pageSize: filters.pageSize || 9,
-    sortKey: filters.sortKey || "id",
+    pageSize: filters.pageSize || 10,
+    sortKey: filters.sortKey || "",
     sortValue: filters.sortValue || "desc",
     filter: filters.filter || "",
-    created_by: getUserId(),
+    entitylocation: filters.location_key || "",
   };
 
-  const res = await api.post("/api/get/dr/secure-hospitalsNew", payload);
-  const data = res.dr || res.data || [];
+  const isLoggedIn = typeof window !== 'undefined' && (!!localStorage.getItem("arvaya_token") || !!localStorage.getItem("arvaya_user"));
+  const endpoint = isLoggedIn ? "/api/get/dr/admin-secure-hospitals" : "/get-doctors";
+
+  const res = await api.post(endpoint, payload);
+  const data = res?.dr || res?.data?.dr || res?.data || res || [];
   return {
     list: Array.isArray(data) ? data.map(mapDoctor) : [],
-    count: res.count || data.length || 0,
+    count: res?.count || res?.data?.count || data.length || 0,
   };
 }
 
-export async function getDoctor(id) {
-  if (USE_MOCK) return mockDoctors.find((d) => d.id === parseInt(id)) || mockDoctors[0];
+export async function getLocations(pageIndex = 1, pageSize = 10, filter = "") {
+  const payload = {
+    pageIndex,
+    pageSize,
+    sortKey: "",
+    sortValue: "desc",
+    filter
+  };
+  const res = await api.post("/get-hospitals-locations", payload);
+  return {
+    list: res?.entitylocations || res?.data?.entitylocations || [],
+    count: res?.count || res?.data?.count || 100
+  };
+}
 
+export async function getHospitalsForLocation(locationKey) {
+  const payload = {
+    pageIndex: 1,
+    pageSize: 100,
+    sortKey: "",
+    sortValue: "desc",
+    filter: "",
+    entitylocation: locationKey
+  };
+  
+  const isLoggedIn = typeof window !== 'undefined' && (!!localStorage.getItem("arvaya_token") || !!localStorage.getItem("arvaya_user"));
+  const endpoint = isLoggedIn ? "/api/get/dr/admin-secure-hospitals" : "/get-doctors";
+  const res = await api.post(endpoint, payload);
+  const data = res?.dr || res?.data?.dr || res?.data || res || [];
+  
+  const uniqueHospitals = [];
+  const map = new Map();
+  
+  data.forEach(d => {
+    const loc = d.locations && d.locations[0];
+    if (loc) {
+      const name = loc.locname || loc.name || loc.alt_name || "";
+      if (name && !map.has(name)) {
+        map.set(name, true);
+        uniqueHospitals.push({
+          ...loc,
+          id: loc.id || loc.entitylocation || name,
+          name: name,
+          city: loc.city || "",
+          entitylocation: loc.entitylocation || locationKey
+        });
+      }
+    }
+  });
+  
+  return uniqueHospitals;
+}
+
+export async function getDoctor(id) {
   const payload = {
     pageIndex: 1,
     pageSize: 100,
     sortKey: "id",
     sortValue: "desc",
     filter: "",
-    created_by: getUserId(),
   };
 
-  const res = await api.post("/api/get/dr/secure-hospitalsNew", payload);
-  const data = res.dr || res.data || [];
+  const isLoggedIn = typeof window !== 'undefined' && (!!localStorage.getItem("arvaya_token") || !!localStorage.getItem("arvaya_user"));
+  const endpoint = isLoggedIn ? "/api/get/dr/admin-secure-hospitals" : "/get-doctors";
+
+  const res = await api.post(endpoint, payload);
+  const data = res?.dr || res?.data?.dr || res?.data || [];
   const doc = data.find(u => (u.drkey || u.id) === id) || data[0];
   return doc ? mapDoctor(doc) : {};
 }
 
-export async function getDoctorSlots(doctorId, date) {
-  if (USE_MOCK) return mockSlots;
-  const res = await api.post("/api/plan/get", { doctorId, date });
-  return res.data || res;
+export async function getDoctorSlots(doctorId, dateObj) {
+  let dStr = dateObj;
+  if (typeof dateObj !== 'string' && dateObj instanceof Date) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    dStr = `${year}${month}${day}`;
+  }
+
+  const payload = {
+    entitykey: "secure-hospitals",
+    startdate: dStr,
+    enddate: dStr,
+    drkey: doctorId
+  };
+
+  try {
+    const res = await api.post("/api/calendar/secure-hospitals", payload);
+    return res?.data || res || [];
+  } catch (err) {
+    console.error("Failed to fetch slots", err);
+    return [];
+  }
 }
 
 /* ─── Plans ─── */
@@ -166,6 +246,24 @@ export async function getPlans(filters = {}) {
   // POST api/plan/get
   const res = await api.post("/api/plan/get", filters);
   return res.data || res;
+}
+
+/* ─── Banners ─── */
+export async function getBanners() {
+  const payload = {
+    pageIndex: 0,
+    pageSize: 0,
+    sortKey: "seq_no",
+    sortValue: "asc",
+    filterQuery: "and is_active=1",
+  };
+  try {
+    const res = await api.post("/banner/get", payload);
+    return res.data || res || [];
+  } catch (error) {
+    console.error("Failed to fetch banners", error);
+    return [];
+  }
 }
 
 export async function upsertPlan(data) {
@@ -257,6 +355,26 @@ export async function bookAppointment(data) {
   return res.data || res;
 }
 
+export async function getWalletAmount(patient_id) {
+  try {
+    const res = await api.post("/api/appointments/get-wallet-amount", { patient_id });
+    return res?.data || res || { balance: 0 };
+  } catch (err) {
+    console.error("getWalletAmount error:", err);
+    return { balance: 0 };
+  }
+}
+
+export async function checkVisitType(payload) {
+  try {
+    const res = await api.post("/api/appointments/check-visit-type", payload);
+    return res?.data || res || {};
+  } catch (err) {
+    console.error("checkVisitType error:", err);
+    return {};
+  }
+}
+
 /* ─── Reports ─── */
 export async function getPatientPaymentsReport(filters = {}) {
   if (USE_MOCK) {
@@ -330,16 +448,17 @@ export async function getRewards() {
   return getRewardsReport();
 }
 
+
 /* ─── Health Records ─── */
 export async function getRecords(filters = {}) {
   try {
     const storedUserId = getStoredUserId();
     let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || filters.filter || "");
-
+ 
     if (storedUserId) {
       if (!filterQuery.toLowerCase().includes("app_user_id=") && !filterQuery.toLowerCase().includes("user_id=")) {
         if (filterQuery.trim()) {
-          filterQuery = filterQuery.trim().toLowerCase().startsWith("and ") 
+          filterQuery = filterQuery.trim().toLowerCase().startsWith("and ")
             ? `and app_user_id=${storedUserId} ${filterQuery.trim()}`
             : `and app_user_id=${storedUserId} and ${filterQuery.trim()}`;
         } else {
@@ -347,7 +466,7 @@ export async function getRecords(filters = {}) {
         }
       }
     }
-
+ 
     const payload = {
       pageIndex: filters.pageIndex || 1,
       pageSize: filters.pageSize || 12,
@@ -358,38 +477,38 @@ export async function getRecords(filters = {}) {
       ...(storedUserId ? { app_user_id: storedUserId, created_by: storedUserId, user_id: storedUserId } : {}),
       ...((typeof filters === "object" && filters) ? filters : {})
     };
-
+ 
     const res = await api.post("/api/patientHealthRecord/get", payload);
     const rawList = res?.data || res?.list || res?.records || res?.result || res?.UserData || (Array.isArray(res) ? res : []);
     const count = res?.count || res?.totalCount || res?.total || (Array.isArray(rawList) ? rawList.length : 0);
-
+ 
     const mappedList = Array.isArray(rawList) ? rawList.map(r => ({
       id: r.id || r.record_id || Math.random(),
       title: r.title || r.name || r.record_name || r.file_name || "Health Record",
       doctor: r.doctor_name || r.doctor || r.created_by_name || "Consultant",
-      date: r.created_modified_date 
+      date: r.created_modified_date
         ? new Date(r.created_modified_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-        : r.created_date 
+        : r.created_date
         ? new Date(r.created_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
         : (r.date || "Recent"),
       type: r.type || r.record_type || r.category || "Diagnostic",
       fileUrl: r.file_path || r.file_url || r.url || r.file || null,
       raw: r
     })) : [];
-
+ 
     return { list: mappedList, count: count || mappedList.length };
   } catch (err) {
     console.error("getRecords API error:", err);
     return { list: [], count: 0 };
   }
 }
-
+ 
 /* ─── Notifications ─── */
 export async function getNotifications(filters = {}) {
   try {
     const storedUserId = getStoredUserId();
     let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || filters.filter || "");
-
+ 
     if (storedUserId) {
       if (!filterQuery.toLowerCase().includes("user_id=")) {
         if (filterQuery.trim()) {
@@ -403,7 +522,7 @@ export async function getNotifications(filters = {}) {
         }
       }
     }
-
+ 
     const payload = {
       pageIndex: filters.pageIndex || 1,
       pageSize: filters.pageSize || 100,
@@ -414,7 +533,7 @@ export async function getNotifications(filters = {}) {
       ...(storedUserId ? { user_id: storedUserId } : {}),
       ...((typeof filters === "object" && filters) ? filters : {})
     };
-
+ 
     const res = await api.post("/api/notification/get", payload);
     const data = res?.data || res?.list || res?.notifications || res?.result || (Array.isArray(res) ? res : []);
     return Array.isArray(data) ? data : [];
@@ -431,6 +550,5 @@ export async function getNotifications(filters = {}) {
     }
   }
 }
-
-
-
+ 
+ 

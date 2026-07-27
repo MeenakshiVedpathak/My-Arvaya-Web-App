@@ -25,6 +25,13 @@ import Payments from "../pages/Payments";
 import Referrals from "../pages/Referrals";
 import Support from "../pages/Support";
 import AIAssistant from "../pages/AIAssistant";
+import SpecialtySelection from "../pages/booking/SpecialtySelection";
+import VisitTypeSelection from "../pages/booking/VisitTypeSelection";
+import DoctorList from "../pages/booking/DoctorList";
+import ScheduleSelection from "../pages/booking/ScheduleSelection";
+import HospitalSelection from "../pages/booking/HospitalSelection";
+import BookingReview from "../pages/booking/BookingReview";
+import BookingConfirmed from "../pages/booking/BookingConfirmed";
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -38,7 +45,6 @@ export default function AppRoutes() {
 
       {/* Public Pages */}
       <Route path="/" element={<Home />} />
-      <Route path="/doctors" element={<Doctors />} />
       <Route path="/doctor" element={<DoctorProfile />} />
       <Route path="/labs" element={<Labs />} />
 
@@ -63,6 +69,14 @@ export default function AppRoutes() {
       <Route path="/referrals" element={<P><Referrals /></P>} />
       <Route path="/support" element={<P><Support /></P>} />
       <Route path="/ai-assistant" element={<P><AIAssistant /></P>} />
+      {/* Doctors Booking Flow */}
+      <Route path="/doctors" element={<P><HospitalSelection /></P>} />
+      <Route path="/doctors/specialty" element={<P><SpecialtySelection /></P>} />
+      <Route path="/doctors/list" element={<P><DoctorList /></P>} />
+      <Route path="/doctors/visit-type" element={<P><VisitTypeSelection /></P>} />
+      <Route path="/doctors/schedule" element={<P><ScheduleSelection /></P>} />
+      <Route path="/doctors/review" element={<P><BookingReview /></P>} />
+      <Route path="/doctors/confirmed" element={<P><BookingConfirmed /></P>} />
     </Routes>
   );
 }

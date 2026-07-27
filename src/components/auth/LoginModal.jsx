@@ -56,13 +56,13 @@ export default function LoginModal({ forceOpen = false }) {
     try {
       const res = await verifyOtp(otp, phone);
       const userData = res?.UserData || res?.userData || res?.data || res?.result || {};
-      const rawNewUser = userData?.is_new_user !== undefined 
-        ? userData.is_new_user 
-        : userData?.Is_new_user !== undefined 
-        ? userData.Is_new_user 
-        : res?.is_new_user !== undefined 
-        ? res.is_new_user 
-        : res?.Is_new_user;
+      const rawNewUser = userData?.is_new_user !== undefined
+        ? userData.is_new_user
+        : userData?.Is_new_user !== undefined
+          ? userData.Is_new_user
+          : res?.is_new_user !== undefined
+            ? res.is_new_user
+            : res?.Is_new_user;
 
       const isNewUserOne = rawNewUser === 1 || rawNewUser === "1" || rawNewUser === true;
 
@@ -75,17 +75,10 @@ export default function LoginModal({ forceOpen = false }) {
 
       // If is_new_user is 0 (existing user), login directly
       const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || "token_" + Date.now();
-      let rawUser = res?.user || res?.UserData || res?.data?.user || res?.result?.user || res?.data || res || {};
-      let fullName = rawUser?.name || rawUser?.full_name || rawUser?.fullName || rawUser?.user_name;
-      if (!fullName && (rawUser?.first_name || rawUser?.lastName || rawUser?.last_name)) {
-        const title = rawUser?.title ? rawUser.title.trim() + " " : "";
-        fullName = `${title}${rawUser?.first_name || ""} ${rawUser?.last_name || rawUser?.lastName || ""}`.trim();
+      let user = res?.user || res?.UserData || res?.data?.user || res?.result?.user || { name: phone ? `User (${phone})` : "User", phone: phone };
+      if (typeof user === "object" && user !== null && !user.name) {
+        user = { ...user, name: phone ? `User (${phone})` : "User" };
       }
-      let user = {
-        ...rawUser,
-        name: fullName || (phone ? `User (${phone})` : "User"),
-        phone: rawUser?.phone || rawUser?.mobile_number || phone
-      };
       saveSession({ token, user });
       handleClose();
       if (pendingRedirect) go(pendingRedirect);
@@ -248,8 +241,8 @@ export default function LoginModal({ forceOpen = false }) {
    ABHA LEFT PANE — Shows ABHA branding + step progress
    ═══════════════════════════════════════ */
 function AbhaLeftPane({ step, isCreate = false }) {
-  const loginSteps  = ["Mobile Number",  "Verify OTP",    "Select Address"];
-  const createSteps = ["Aadhaar Number", "Verify OTP",    "Personal Details", "ABHA Created!"];
+  const loginSteps = ["Mobile Number", "Verify OTP", "Select Address"];
+  const createSteps = ["Aadhaar Number", "Verify OTP", "Personal Details", "ABHA Created!"];
   const steps = isCreate ? createSteps : loginSteps;
   const title = isCreate ? "Create ABHA" : "Link ABHA Profile";
   return (
@@ -756,10 +749,10 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
    ═══════════════════════════════════════ */
 function AbhaCreate({ step, onBack, onNext, onFinish }) {
   const [aadhaar, setAadhaar] = useState("");
-  const [otp, setOtp]         = useState("");
-  const [busy, setBusy]       = useState(false);
-  const [err, setErr]         = useState("");
-  const [form, setForm]       = useState({ name: "", dob: "", gender: "Male", mobile: "", address: "" });
+  const [otp, setOtp] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [form, setForm] = useState({ name: "", dob: "", gender: "Male", mobile: "", address: "" });
   const [createdAbha, setCreatedAbha] = useState("");
 
   const fmtAadhaar = (v) => v.replace(/\D/g, "").slice(0, 12).replace(/(\d{4})(?=\d)/g, "$1 ");
@@ -787,7 +780,7 @@ function AbhaCreate({ step, onBack, onNext, onFinish }) {
     if (!form.name.trim() || !form.dob || !form.mobile) { setErr("Please fill all required fields."); return; }
     setErr(""); setBusy(true);
     await new Promise(r => setTimeout(r, 1400));
-    const generated = `${form.name.split(" ")[0].toLowerCase()}.${Math.floor(Math.random()*9000+1000)}@abdm`;
+    const generated = `${form.name.split(" ")[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}@abdm`;
     setCreatedAbha(generated);
     setBusy(false);
     onNext("abha_create_done");
@@ -824,7 +817,7 @@ function AbhaCreate({ step, onBack, onNext, onFinish }) {
       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', paddingLeft: '44px', lineHeight: '1.6' }}>
         {step === 'abha_create_1' ? 'Enter your 12-digit Aadhaar number to create your ABHA ID.'
           : step === 'abha_create_2' ? 'Enter the OTP sent to your Aadhaar-linked mobile number.'
-          : 'Review and confirm your personal details fetched from Aadhaar.'}
+            : 'Review and confirm your personal details fetched from Aadhaar.'}
       </p>
 
       {err && <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px 14px', borderRadius: '10px', fontSize: '13px', fontWeight: '500', marginBottom: '16px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '8px' }}><X size={15} />{err}</div>}
@@ -852,19 +845,19 @@ function AbhaCreate({ step, onBack, onNext, onFinish }) {
           {[['Full Name', 'name', 'text', 'Enter full name'], ['Mobile Number', 'mobile', 'tel', '10-digit mobile'], ['Address', 'address', 'text', 'Your address']].map(([lbl, key, type, ph]) => (
             <div key={key}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>{lbl}</label>
-              <input className="input-field" type={type} placeholder={ph} value={form[key]} onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
+              <input className="input-field" type={type} placeholder={ph} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
                 style={{ padding: '13px 16px', borderRadius: '12px', background: 'var(--bg-app)', fontSize: '14px', width: '100%' }} />
             </div>
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Date of Birth</label>
-              <input className="input-field" type="date" value={form.dob} onChange={e => setForm(f => ({...f, dob: e.target.value}))} max={new Date().toISOString().split('T')[0]}
+              <input className="input-field" type="date" value={form.dob} onChange={e => setForm(f => ({ ...f, dob: e.target.value }))} max={new Date().toISOString().split('T')[0]}
                 style={{ padding: '13px 16px', borderRadius: '12px', background: 'var(--bg-app)', fontSize: '14px', width: '100%' }} />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Gender</label>
-              <select className="input-field" value={form.gender} onChange={e => setForm(f => ({...f, gender: e.target.value}))}
+              <select className="input-field" value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
                 style={{ padding: '13px 16px', borderRadius: '12px', background: 'var(--bg-app)', fontSize: '14px', width: '100%' }}>
                 <option>Male</option><option>Female</option><option>Other</option>
               </select>

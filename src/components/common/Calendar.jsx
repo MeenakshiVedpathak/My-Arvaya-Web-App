@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function Calendar({ selectedDate, onSelectDate }) {
+export default function Calendar({ selectedDate, onSelectDate, minDate }) {
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate || new Date()));
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const minDateObj = minDate ? new Date(minDate) : today;
+  minDateObj.setHours(0, 0, 0, 0);
 
   const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
@@ -53,7 +56,7 @@ export default function Calendar({ selectedDate, onSelectDate }) {
         {days.map((date, i) => {
           if (!date) return <div key={i} />;
 
-          const isPast = date < today;
+          const isPast = date < minDateObj;
           const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
           const isToday = date.toDateString() === today.toDateString();
 

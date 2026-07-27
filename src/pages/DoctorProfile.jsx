@@ -57,53 +57,15 @@ export default function DoctorProfile() {
                 </div>
               </div>
 
-              {/* Stats Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <b style={{ display: 'block', fontSize: '22px', color: 'var(--text-main)', marginBottom: '4px' }}>4.9</b>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', color: '#eab308', marginBottom: '4px' }}><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /><Star size={14} fill="currentColor" /></div>
-                  <small style={{ color: 'var(--muted)' }}>120 Reviews</small>
-                </div>
-                <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
-                  <b style={{ display: 'block', fontSize: '22px', color: 'var(--text-main)', marginBottom: '4px' }}>15k+</b>
-                  <small style={{ color: 'var(--muted)', display: 'block', marginTop: '18px' }}>Patients Consulted</small>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <b style={{ display: 'block', fontSize: '22px', color: 'var(--text-main)', marginBottom: '4px' }}>99%</b>
-                  <small style={{ color: 'var(--muted)', display: 'block', marginTop: '18px' }}>Recommendation</small>
-                </div>
-              </div>
-            </section>
-
-            {/* About & Services */}
-            <section style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '12px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--primary)', cursor: 'pointer', borderBottom: '2px solid var(--primary)', paddingBottom: '12px', marginBottom: '-13px' }}>About</span>
-                <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--muted)', cursor: 'pointer' }}>Experience</span>
-                <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--muted)', cursor: 'pointer' }}>Reviews</span>
+                <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--primary)', cursor: 'pointer', borderBottom: '2px solid var(--primary)', paddingBottom: '12px', marginBottom: '-13px' }}>Profile Details</span>
               </div>
-
-              <p style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, marginBottom: '16px' }}>
-                Dr. {doctor.name.split(" ").slice(1).join(" ")} is a highly experienced medical professional focusing on comprehensive patient care. With a holistic approach to medicine, they prioritize both immediate symptom relief and long-term health strategies.
-              </p>
-
-              <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '16px', fontWeight: '700' }}>Services Offered</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                {[
-                  "Comprehensive Diagnosis",
-                  "Preventative Care",
-                  "Chronic Disease Management",
-                  "Post-op Rehabilitation",
-                  "Specialist Referrals",
-                  "Tele-consultations"
-                ].map((x) => (
-                  <div key={x} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-app)', padding: '12px 16px', borderRadius: '8px' }}>
-                    <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', padding: '4px' }}>
-                      <Check size={14} />
-                    </div>
-                    <span style={{ fontSize: '14px', color: 'var(--text-main)', fontWeight: '500' }}>{x}</span>
-                  </div>
-                ))}
+              
+              <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.6, marginBottom: '16px' }}>
+                <div style={{ marginBottom: '12px' }}><strong>Specialty:</strong> {doctor.specialty || 'N/A'}</div>
+                {doctor.qualification && <div style={{ marginBottom: '12px' }}><strong>Qualification:</strong> {doctor.qualification}</div>}
+                {doctor.gender && <div style={{ marginBottom: '12px' }}><strong>Gender:</strong> {doctor.gender === 'M' ? 'Male' : doctor.gender === 'F' ? 'Female' : doctor.gender}</div>}
+                {doctor.experience && doctor.experience !== "10+" && <div style={{ marginBottom: '12px' }}><strong>Experience:</strong> {doctor.experienceText}</div>}
               </div>
             </section>
           </div>
@@ -117,16 +79,8 @@ export default function DoctorProfile() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '12px' }}>
                   <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', color: 'var(--primary)' }}><MapPin size={24} /></div>
                   <div>
-                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>{doctor.hospital}</b>
-                    <small style={{ color: 'var(--muted)', fontSize: '13px' }}>Clinic Visit</small>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px', background: 'var(--bg-app)', borderRadius: '12px' }}>
-                  <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', color: 'var(--primary)' }}><Clock size={24} /></div>
-                  <div>
-                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>15 Min Consult</b>
-                    <small style={{ color: 'var(--muted)', fontSize: '13px' }}>Estimated Duration</small>
+                    <b style={{ display: 'block', fontSize: '15px', color: 'var(--text-main)', marginBottom: '4px' }}>{doctor.hospital || "Hospital"}</b>
+                    <small style={{ color: 'var(--muted)', fontSize: '13px' }}>{doctor.city || "Location"}</small>
                   </div>
                 </div>
               </div>
