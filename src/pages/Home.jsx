@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation } from "lucide-react";
+import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation, TestTube, Clock, Flame } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { packages } from "../mocks/data";
@@ -132,7 +132,7 @@ export default function Home() {
             <img 
               src={slide.bg} 
               alt={`Banner ${idx + 1}`} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'fill', display: 'block' }} 
             />
             {slide.title && <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)' }}></div>}
           </div>
@@ -386,6 +386,8 @@ export default function Home() {
       <section style={{ padding: '0 0 56px 0' }}>
         <div className="container">
           <style>{`
+            .labs-pkg-card { background: #fff; border-radius: 16px; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; position: relative; }
+            .labs-pkg-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.06); transform: translateY(-4px); border-color: rgba(46,102,110,0.2); }
             .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
             @media (max-width: 1024px) { .packages-grid { grid-template-columns: repeat(2, 1fr); } }
             @media (max-width: 600px) { .packages-grid { grid-template-columns: 1fr; } }
@@ -400,31 +402,70 @@ export default function Home() {
           
           <div className="packages-grid">
             {packages.slice(0, 4).map((pkg, idx) => (
-              <div key={pkg.title} className="card-elevated hover-glow flex flex-col animate-fade-in-up" style={{ padding: '0', height: '100%', overflow: 'hidden', position: 'relative', animationDelay: `${idx * 80}ms` }}>
-                {idx === 0 && <div className="ribbon">Most Popular</div>}
+              <article key={pkg.title} className="labs-pkg-card animate-fade-in-up" style={{ animationDelay: `${idx * 80}ms` }}>
+                {idx === 0 && <div className="ribbon" style={{ display: 'flex', alignItems: 'center', zIndex: 10, fontSize: '10px', padding: '4px 8px' }}><Sparkles size={10} style={{ marginRight: '4px' }} /> Most Booked</div>}
                 
                 {/* Package Image */}
-                <div style={{ height: '140px', overflow: 'hidden', background: 'var(--primary-light)' }}>
-                  <img src={pkg.img} alt={pkg.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} />
-                </div>
+                {pkg.img && (
+                  <div style={{ height: '150px', overflow: 'hidden', background: 'var(--primary-light)', position: 'relative', borderRadius: '16px 16px 0 0' }}>
+                    <img 
+                      src={pkg.img} 
+                      alt={pkg.title} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }} 
+                      onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} 
+                      onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} 
+                    />
+                    {pkg.discount && (
+                      <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--accent)', color: 'white', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700' }}>
+                        {pkg.discount}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 style={{ fontSize: '16px', fontWeight: '700', lineHeight: 1.3 }}>{pkg.title}</h3>
-                    <div className="badge badge-accent" style={{ fontSize: '11px', flexShrink: 0 }}>{pkg.discount}</div>
+                  <h3 style={{ fontSize: '16px', color: 'var(--text-main)', lineHeight: 1.3, fontWeight: '700', marginBottom: '8px' }}>{pkg.title}</h3>
+
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '11px', color: '#16a34a', background: '#dcfce7', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                      <ShieldCheck size={10} /> NABL Accredited
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--bg-app)', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <TestTube size={10} /> {pkg.tests || "30+ Tests"}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--bg-app)', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Clock size={10} /> 24 Hrs Report
+                    </span>
                   </div>
-                  {pkg.trend && <div style={{ fontSize: '11px', color: '#c2410c', fontWeight: '700', marginBottom: '8px' }}>{pkg.trend}</div>}
-                  <p className="text-muted mb-4" style={{ fontSize: '13px' }}>{pkg.tests}</p>
-                  
-                  <div className="flex justify-between items-center mt-auto" style={{ paddingTop: '16px', borderTop: '1px dashed var(--border)' }}>
-                    <div className="flex flex-col">
-                      <s className="text-muted" style={{ fontSize: '12px' }}>{pkg.oldPrice}</s>
-                      <b style={{ fontSize: '20px', color: 'var(--text-main)' }}>{pkg.price}</b>
+
+                  {pkg.trend && <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '600', marginBottom: '12px' }}>
+                    {pkg.trend === "Popular" ? (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Star size={12} fill="#FBBF24" color="#FBBF24" /> {pkg.trend}
+                      </span>
+                    ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Flame size={12} fill="#c2410c" /> {pkg.trend}
+                      </span>
+                    )}
+                  </div>}
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '1px dashed var(--border)' }}>
+                    <div>
+                      {pkg.oldPrice && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}><s>{pkg.oldPrice}</s></span>}
+                      {pkg.price && <b style={{ fontSize: '20px', color: 'var(--text-main)', display: 'block', lineHeight: 1.2 }}>{pkg.price}</b>}
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>onwards</span>
                     </div>
-                    <button className="btn btn-accent" onClick={() => go("/labs")}>Book</button>
+                    <button 
+                      className="btn btn-accent" 
+                      onClick={() => go("/labs")}
+                      style={{ padding: '10px 20px', fontSize: '14px', fontWeight: '700', borderRadius: '10px' }}
+                    >
+                      Book Now
+                    </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>

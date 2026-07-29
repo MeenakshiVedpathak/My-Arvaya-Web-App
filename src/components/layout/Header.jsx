@@ -25,7 +25,23 @@ function getUserDisplayName(user) {
 
   if (user.email) return user.email.split("@")[0];
 
-  return rawName || "User";
+  try {
+    const storedUser = localStorage.getItem("arvaya_user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      const storedName = parsed?.name || parsed?.full_name || parsed?.fullName;
+      if (storedName && !storedName.startsWith("User (") && storedName !== "User") {
+        return storedName;
+      }
+      const pFirst = parsed?.first_name || parsed?.firstName || "";
+      const pLast = parsed?.last_name || parsed?.lastName || "";
+      if (pFirst || pLast) {
+        return `${pFirst} ${pLast}`.trim();
+      }
+    }
+  } catch (e) {}
+
+  return (rawName && rawName !== "User") ? rawName : "User";
 }
 
 function getUserPhone(user) {
@@ -240,9 +256,8 @@ export default function Header() {
     ["Rewards", "/rewards"],
     ["Refer & Earn", "/referrals"],
     ["Analytics", "/analytics"],
-    ["🚑 Ambulance", "/ambulance"],
-    ["Support", "/support"],
-    ["🤖 AI Assistant", "/ai-assistant"]
+    ["Ambulance", "/ambulance"],
+    ["Support", "/support"]
   ];
 
   return (

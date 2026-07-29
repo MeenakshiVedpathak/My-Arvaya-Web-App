@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus } from "lucide-react";
-import { sendOtp, verifyOtp } from "../../services/authService";
-import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress } from "../../services/abhaService";
+import { sendOtp, verifyOtp, getCloudId, getDeviceId } from "../../services/authService";
+import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress, abhaVerifyUser } from "../../services/abhaService";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginModal({ forceOpen = false }) {
@@ -18,6 +18,7 @@ export default function LoginModal({ forceOpen = false }) {
   const [abhaAddresses, setAbhaAddresses] = useState([]);
   const [selectedAbhaAddress, setSelectedAbhaAddress] = useState("");
   const [abhaTransactionId, setAbhaTransactionId] = useState("");
+  const [abhaVerifyData, setAbhaVerifyData] = useState(null);
 
   const go = useNavigate();
 
@@ -31,6 +32,7 @@ export default function LoginModal({ forceOpen = false }) {
     setAbhaAddresses([]);
     setSelectedAbhaAddress("");
     setAbhaTransactionId("");
+    setAbhaVerifyData(null);
     closeLoginModal();
   };
 
@@ -75,10 +77,30 @@ export default function LoginModal({ forceOpen = false }) {
 
       // If is_new_user is 0 (existing user), login directly
       const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || "token_" + Date.now();
-      let user = res?.user || res?.UserData || res?.data?.user || res?.result?.user || { name: phone ? `User (${phone})` : "User", phone: phone };
-      if (typeof user === "object" && user !== null && !user.name) {
-        user = { ...user, name: phone ? `User (${phone})` : "User" };
+      let rawUser = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result;
+      if (!rawUser || typeof rawUser !== "object") {
+        rawUser = {};
       }
+
+      let derivedName = rawUser?.name || rawUser?.full_name || rawUser?.fullName || rawUser?.user_name || rawUser?.userName;
+      if (!derivedName || derivedName === "User" || derivedName.startsWith("User (")) {
+        const firstName = rawUser?.first_name || rawUser?.firstName || "";
+        const lastName = rawUser?.last_name || rawUser?.lastName || "";
+        if (firstName || lastName) {
+          const title = rawUser?.title ? rawUser.title.trim() + " " : "";
+          derivedName = `${title}${firstName} ${lastName}`.trim();
+        }
+      }
+      if (!derivedName) {
+        derivedName = phone ? `User (${phone})` : "User";
+      }
+
+      const user = {
+        ...rawUser,
+        name: derivedName,
+        phone: rawUser?.mobile_number || rawUser?.phone || rawUser?.mobile || phone
+      };
+
       saveSession({ token, user });
       handleClose();
       if (pendingRedirect) go(pendingRedirect);
@@ -91,7 +113,8 @@ export default function LoginModal({ forceOpen = false }) {
     setAbhaMobile(mobile); setErr(""); setBusy(true);
     try {
       const res = await abhaSendOtp(mobile);
-      setAbhaTransactionId(res?.transactionId || res?.txnId || "mock_txn_" + Date.now());
+      const txnId = res?.transactionId || res?.txnId || res?.txn_id || res?.data?.transactionId || res?.data?.txnId || res?.data?.txn_id || res?.result?.txnId || res?.result?.transactionId || "mock_txn_" + Date.now();
+      setAbhaTransactionId(txnId);
       setScreen("abha_otp");
     } catch (e) { setErr(e.message || "Failed to send OTP to ABHA mobile"); }
     finally { setBusy(false); }
@@ -101,15 +124,25 @@ export default function LoginModal({ forceOpen = false }) {
     setErr(""); setBusy(true);
     try {
       const res = await abhaVerifyOtp(otp, abhaTransactionId);
-      const newTxnId = res?.transactionId || res?.txnId || abhaTransactionId;
+      setAbhaVerifyData(res);
+      const newTxnId = res?.txnId || res?.transactionId || res?.txn_id || res?.data?.txnId || abhaTransactionId;
       setAbhaTransactionId(newTxnId);
-      // Fetch ABHA addresses linked to this mobile
-      const addrRes = await abhaGetAddresses(newTxnId);
-      const addresses = addrRes?.abhaAddressList || addrRes?.addresses || [
-        { id: 1, address: `91${abhaMobile}@sbx`, isPrimary: true },
-      ];
+
+      const userObj = res?.users?.[0] || res?.data?.users?.[0] || res?.user || {};
+      const verifyAddress = userObj?.abhaAddress || userObj?.address || userObj?.abha_address || res?.abhaAddress || res?.data?.abhaAddress || res?.abha_address || "";
+
+      let addresses = res?.users || res?.abhaAddressList || res?.addresses || res?.data?.users || res?.data?.abhaAddressList || [];
+      if (addresses.length === 0 && verifyAddress) {
+        addresses = [{ address: verifyAddress, isPrimary: true }];
+      } else if (addresses.length === 0) {
+        const addrRes = await abhaGetAddresses(newTxnId).catch(() => null);
+        addresses = addrRes?.abhaAddressList || addrRes?.addresses || (verifyAddress ? [{ address: verifyAddress }] : []);
+      }
+
+      const primaryAddress = verifyAddress || (addresses[0]?.abhaAddress || addresses[0]?.address || addresses[0]?.id || "");
+
       setAbhaAddresses(addresses);
-      setSelectedAbhaAddress(addresses[0]?.address || addresses[0]?.id || "");
+      setSelectedAbhaAddress(primaryAddress);
       setScreen("abha_address");
     } catch (e) { setErr(e.message || "Invalid OTP. Please try again."); }
     finally { setBusy(false); }
@@ -118,8 +151,29 @@ export default function LoginModal({ forceOpen = false }) {
   const doAbhaConfirm = async (address, dob) => {
     setErr(""); setBusy(true);
     try {
-      const res = await abhaConfirmAddress(address, dob, abhaTransactionId);
-      saveSession({ token: res?.token || "mock_abha_token_" + Date.now(), user: res?.user || { name: "ABHA User" } });
+      const userObj = abhaVerifyData?.users?.[0] || abhaVerifyData?.data?.users?.[0] || abhaVerifyData?.user || {};
+      const tokenVal = abhaVerifyData?.tokens?.token || abhaVerifyData?.token || abhaVerifyData?.accessToken || abhaVerifyData?.data?.token || "";
+      const payload = {
+        txnId: abhaVerifyData?.txnId || abhaVerifyData?.transactionId || abhaVerifyData?.data?.txnId || abhaTransactionId,
+        abhaAddress: address,
+        token: tokenVal,
+        supportKey: abhaVerifyData?.supportKey || abhaVerifyData?.data?.supportKey || abhaVerifyData?.support_key || "",
+        name: userObj?.fullName || userObj?.name || userObj?.first_name || abhaVerifyData?.name || abhaVerifyData?.data?.name || "",
+        mobile_number: abhaMobile,
+        cloud_id: getCloudId(),
+        device_id: getDeviceId(),
+        abha_number: userObj?.abhaNumber || userObj?.abha_number || abhaVerifyData?.abha_number || abhaVerifyData?.abhaNumber || "",
+        abha_type: "sbx",
+        abha_status: "active",
+        gender: userObj?.gender || abhaVerifyData?.gender || "",
+        date_of_birth: dob
+      };
+
+      const res = await abhaVerifyUser(payload);
+      const token = res?.token || res?.accessToken || res?.data?.token || res?.UserData?.token || res?.result?.token || tokenVal || "mock_abha_token_" + Date.now();
+      let user = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result || { name: payload.name || "ABHA User", abhaAddress: address };
+
+      saveSession({ token, user });
       handleClose();
       if (pendingRedirect) go(pendingRedirect);
     } catch (e) { setErr(e.message || "Could not link ABHA. Please try again."); }
@@ -643,6 +697,8 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
     onConfirm(selected, dob);
   };
 
+  const hasAddress = !!selected || (addresses && addresses.length > 0);
+
   return (
     <div style={{ animation: 'fadeIn 0.35s ease-in-out' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
@@ -650,63 +706,82 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
           <ArrowLeft size={18} />
         </button>
         <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-          Select ABHA Address
+          Link ABHA Profile
         </h3>
       </div>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', paddingLeft: '44px', lineHeight: '1.6' }}>
-        ABHA addresses found for this mobile number.
-      </p>
 
       {err && <ErrorBox msg={err} />}
 
-      {/* ABHA Address List */}
+      {/* Message above input when ABHA address is found */}
+      {hasAddress && (
+        <div style={{
+          fontSize: '13px', color: '#15803d', fontWeight: '600',
+          marginBottom: '16px', padding: '10px 14px', borderRadius: '10px',
+          background: '#f0fdf4', border: '1px solid #bbf7d0',
+          display: 'flex', alignItems: 'center', gap: '8px'
+        }}>
+          <CheckCircle2 size={16} color="#16a34a" />
+          <span>Abha address find for this number</span>
+        </div>
+      )}
+
+      {/* ABHA Address Field / Selector */}
       <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '10px' }}>
+        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '8px' }}>
           ABHA Address
         </label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {addresses.length > 0 ? addresses.map((addr, i) => {
-            const addrVal = addr.address || addr.id || addr;
-            const isSelected = selected === addrVal;
-            return (
-              <button
-                key={i}
-                onClick={() => onSelect(addrVal)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '14px 16px', borderRadius: '12px', textAlign: 'left',
-                  border: isSelected ? '2px solid var(--primary)' : '1.5px solid var(--border)',
-                  background: isSelected ? 'var(--primary-light)' : 'var(--bg-app)',
-                  cursor: 'pointer', transition: 'all 0.2s', width: '100%'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-                    border: isSelected ? '5px solid var(--primary)' : '2px solid var(--border)',
-                    transition: 'all 0.2s', background: 'white'
-                  }} />
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary-dark)', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
-                      {addrVal}
+
+        {addresses.length > 1 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+            {addresses.map((addr, i) => {
+              const addrVal = addr.address || addr.id || addr;
+              const isSelected = selected === addrVal;
+              return (
+                <button
+                  key={i}
+                  onClick={() => onSelect(addrVal)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '12px 14px', borderRadius: '12px', textAlign: 'left',
+                    border: isSelected ? '2px solid var(--primary)' : '1.5px solid var(--border)',
+                    background: isSelected ? 'var(--primary-light)' : 'var(--bg-app)',
+                    cursor: 'pointer', transition: 'all 0.2s', width: '100%'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '16px', height: '16px', borderRadius: '50%', flexShrink: 0,
+                      border: isSelected ? '5px solid var(--primary)' : '2px solid var(--border)',
+                      transition: 'all 0.2s', background: 'white'
+                    }} />
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary-dark)', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+                        {addrVal}
+                      </div>
                     </div>
-                    {addr.isPrimary && (
-                      <span style={{ fontSize: '11px', color: 'var(--success)', fontWeight: '600' }}>● Primary</span>
-                    )}
                   </div>
-                </div>
-                {isSelected && <CheckCircle2 size={18} color="var(--primary)" />}
-              </button>
-            );
-          }) : (
-            <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', background: 'var(--bg-app)', borderRadius: '12px', border: '1.5px dashed var(--border)' }}>
-              No ABHA addresses found
-            </div>
-          )}
-        </div>
+                  {isSelected && <CheckCircle2 size={18} color="var(--primary)" />}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <input
+            type="text"
+            value={selected}
+            onChange={e => onSelect(e.target.value)}
+            placeholder="e.g. username@sbx"
+            className="input-field"
+            style={{
+              padding: '14px 16px', borderRadius: '12px',
+              background: 'var(--bg-app)', fontSize: '15px', width: '100%',
+              fontWeight: '600', color: 'var(--primary-dark)', fontFamily: 'monospace'
+            }}
+          />
+        )}
       </div>
 
-      {/* Date of Birth — native date input; NO custom icon overlay to avoid double calendar */}
+      {/* Date of Birth */}
       <div style={{ marginBottom: '24px' }}>
         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '8px' }}>
           Date of Birth
@@ -738,7 +813,7 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
         }}
       >
-        {busy ? "Linking Account..." : <>Continue and Login <ChevronRight size={18} /></>}
+        {busy ? "Logging in..." : <>Continue and login <ChevronRight size={18} /></>}
       </button>
     </div>
   );

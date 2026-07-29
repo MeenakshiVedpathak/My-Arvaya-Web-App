@@ -34,23 +34,34 @@ export default function AmbulancePage() {
 
   useEffect(() => { load(); }, []);
 
+  const getStatusIndex = (status) => {
+    if (!status) return 0;
+    const s = String(status).trim().toLowerCase().replace(/_/g, " ");
+    if (s.includes("dispatch")) return 1;
+    if (s.includes("en route") || s.includes("enroute") || s.includes("transit") || s.includes("on way")) return 2;
+    if (s.includes("arrive") || s.includes("reach") || s.includes("complete") || s.includes("done")) return 3;
+    return 0;
+  };
+
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Requested":  return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
-      case "Dispatched": return { bg: "#dbeafe", color: "#2563eb", border: "#93c5fd" };
-      case "En Route":   return { bg: "#e0e7ff", color: "#4f46e5", border: "#a5b4fc" };
-      case "Arrived":    return { bg: "var(--success-bg)", color: "var(--success)", border: "#86efac" };
-      default:           return { bg: "var(--bg-app)", color: "var(--text-muted)", border: "var(--border)" };
+    const idx = getStatusIndex(status);
+    switch (idx) {
+      case 0: return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
+      case 1: return { bg: "#dbeafe", color: "#2563eb", border: "#93c5fd" };
+      case 2: return { bg: "#e0e7ff", color: "#4f46e5", border: "#a5b4fc" };
+      case 3: return { bg: "var(--success-bg)", color: "var(--success)", border: "#86efac" };
+      default: return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Requested":  return <Clock size={16} />;
-      case "Dispatched": return <Truck size={16} />;
-      case "En Route":   return <Navigation size={16} />;
-      case "Arrived":    return <CheckCircle2 size={16} />;
-      default:           return <Clock size={16} />;
+    const idx = getStatusIndex(status);
+    switch (idx) {
+      case 0: return <Clock size={16} />;
+      case 1: return <Truck size={16} />;
+      case 2: return <Navigation size={16} />;
+      case 3: return <CheckCircle2 size={16} />;
+      default: return <Clock size={16} />;
     }
   };
 
@@ -61,8 +72,8 @@ export default function AmbulancePage() {
     return d.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
-  const activeRequests = requests.filter(r => r.status !== "Arrived");
-  const pastRequests   = requests.filter(r => r.status === "Arrived");
+  const activeRequests = requests.filter(r => getStatusIndex(r.status) < 3);
+  const pastRequests   = requests.filter(r => getStatusIndex(r.status) === 3);
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -133,7 +144,7 @@ export default function AmbulancePage() {
                         {/* Status progress */}
                         <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "24px" }}>
                           {STATUS_FLOW.map((s, i) => {
-                            const idx = STATUS_FLOW.indexOf(req.status);
+                            const idx = getStatusIndex(req.status);
                             const done = i <= idx;
                             return (
                               <React.Fragment key={s}>

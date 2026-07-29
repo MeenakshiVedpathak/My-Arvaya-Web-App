@@ -95,6 +95,18 @@ export function BookingProvider({ children }) {
     initialLocationMount.current = false;
   }, [globalLocation]);
 
+  const clearBooking = () => {
+    setDoctor(null);
+    setBookingHospital(null);
+    setBookingSpecialty("");
+    setBookingVisitType("Initial consultation");
+    setLabPackage(null);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setDate(tomorrow);
+    setSlot("10:30 AM");
+  };
+
   return (
     <C.Provider
       value={{
@@ -114,7 +126,8 @@ export function BookingProvider({ children }) {
         labPackage,
         setLabPackage,
         globalLocation,
-        setGlobalLocation
+        setGlobalLocation,
+        clearBooking
       }}
     >
       {children}

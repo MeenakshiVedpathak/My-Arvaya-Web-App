@@ -41,7 +41,7 @@ async function request(method, path, body) {
   const res = await fetch(`${cleanBase}/${cleanPath}`, {
     method,
     headers,
-    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+    body: isFormData ? body : (body ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined),
   });
 
   if (res.status === 401) {
@@ -60,7 +60,9 @@ async function request(method, path, body) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || "Request failed");
+    const error = new Error(err.message || "Request failed");
+    error.status = res.status;
+    throw error;
   }
 
   return res.json();

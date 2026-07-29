@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { CheckCircle2, CalendarDays, Clock, MapPin, Download, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
@@ -5,8 +6,14 @@ import Steps from "../components/common/Steps";
 import Avatar from "../components/common/Avatar";
 
 export default function Confirmed() {
-  let { doctor, date, slot, bookingId, bookingType, labPackage } = useBooking(),
+  let { doctor, date, slot, bookingId, bookingType, labPackage, clearBooking } = useBooking(),
     go = useNavigate();
+
+  useEffect(() => {
+    return () => {
+      if (clearBooking) clearBooking();
+    };
+  }, [clearBooking]);
 
   const formattedDate = date && date instanceof Date
     ? date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
