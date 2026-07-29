@@ -100,10 +100,8 @@ async function getAmbulanceRequests(currentUser) {
   const filterQuery = ` AND patient_id=${patientId}`;
 
   const payload = {
-    filterQuery: filterQuery,
     filter: filterQuery,
     patient_id: patientId,
-    patientId: patientId,
     pageIndex: 1,
     pageSize: 100
   };
