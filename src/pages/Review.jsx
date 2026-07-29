@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
-import { bookAppointment } from "../services/dataService";
+import { bookAppointment, verifyPayment } from "../services/dataService";
 import Steps from "../components/common/Steps";
 import Avatar from "../components/common/Avatar";
 
@@ -13,20 +13,110 @@ export default function Review() {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   let confirm = async () => {
     setSubmitting(true);
     try {
-      const result = await bookAppointment({
-        doctorId: doctor.id,
-        date: date?.toISOString(),
-        slot,
-      });
-      setBookingId(result.bookingId);
-      go("/confirmed");
-    } catch {
-      setBookingId("APMNT" + Date.now().toString().slice(-8));
-      go("/confirmed");
-    } finally {
+      const patient_id = user?.id || user?.user_id || user?.patient_id || "";
+      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? date.toISOString().split('T')[0] : "");
+      const dStr = dStrRaw.replace(/-/g, '');
+
+      const payload = {
+        patient_id: patient_id,
+        dr: doctor.id || doctor.drkey,
+        entitylocation: doctor.locations?.[0]?.location_key || "",
+        date: dStr,
+        start: slot,
+        end: slot,
+        entitykey: "secure-hospitals",
+        session: "",
+        sessionval: `${slot}-${slot}`,
+        appnotes: "",
+        referred_by: "",
+        referredbykey: "",
+        extphid: "",
+        fname: user?.name || "Guest",
+        phone: user?.mobile || user?.phone || "N/A",
+        wallet_amount_used: 0
+      };
+
+      const result = await bookAppointment(payload);
+
+      const amountToPay = parseInt(doctor.fee) || 0;
+
+      if (amountToPay <= 0) {
+        setBookingId(result.order_id || result.bookingId || "APMNT" + Date.now().toString().slice(-8));
+        go("/confirmed");
+        return;
+      }
+
+      const res = await loadRazorpayScript();
+      if (!res) {
+        alert("Razorpay SDK failed to load. Are you offline?");
+        setSubmitting(false);
+        return;
+      }
+
+      const options = {
+        key: "rzp_test_Awy3RfMG9T9BYe",
+        amount: amountToPay * 100,
+        currency: "INR",
+        name: "Arvaya Healthcare",
+        description: "Doctor Consultation",
+        order_id: result.razorpay_order_id,
+        handler: async function (response) {
+          try {
+            await verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              ...payload
+            });
+            setBookingId(result.razorpay_order_id || result.bookingId || "APMNT" + Date.now().toString().slice(-8));
+            go("/confirmed");
+          } catch (err) {
+            console.error("Payment verification failed", err);
+            alert("Payment verification failed. Please contact support.");
+            setSubmitting(false);
+          }
+        },
+        prefill: {
+          name: user?.name || "Guest",
+          contact: user?.mobile || user?.phone || "",
+        },
+        theme: {
+          color: "#2e666e",
+        },
+        modal: {
+          ondismiss: function() {
+            setSubmitting(false);
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (err) {
+      console.error(err);
+      if (err.status === 409) {
+        alert(err.message || "Slot already booked");
+      } else {
+        alert("Booking failed. Please try again.");
+      }
       setSubmitting(false);
     }
   };

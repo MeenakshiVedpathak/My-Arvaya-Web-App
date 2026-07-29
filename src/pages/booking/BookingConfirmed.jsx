@@ -1,10 +1,17 @@
+import { useEffect } from "react";
 import { CheckCircle2, CalendarDays, Clock, MapPin, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
 
 export default function BookingConfirmed() {
-  const { doctor, date, slot, bookingId, bookingVisitType, bookingHospital } = useBooking();
+  const { doctor, date, slot, bookingId, bookingVisitType, bookingHospital, clearBooking } = useBooking();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    return () => {
+      if (clearBooking) clearBooking();
+    };
+  }, [clearBooking]);
 
   const formattedDate = date && date instanceof Date
     ? date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
@@ -85,7 +92,7 @@ export default function BookingConfirmed() {
           </p>
 
           <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
-            <button className="pro-btn-primary" onClick={() => navigate("/my-appointments")} style={{ padding: '16px', justifyContent: 'center', fontSize: '16px', borderRadius: '12px', width: '100%' }}>
+            <button className="btn btn-primary" onClick={() => navigate("/my-appointments")} style={{ padding: '16px', justifyContent: 'center', fontSize: '16px', borderRadius: '12px', width: '100%' }}>
               View My Appointments
             </button>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>

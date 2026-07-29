@@ -256,9 +256,8 @@ export default function Header() {
     ["Rewards", "/rewards"],
     ["Refer & Earn", "/referrals"],
     ["Analytics", "/analytics"],
-    ["🚑 Ambulance", "/ambulance"],
-    ["Support", "/support"],
-    ["🤖 AI Assistant", "/ai-assistant"]
+    ["Ambulance", "/ambulance"],
+    ["Support", "/support"]
   ];
 
   return (

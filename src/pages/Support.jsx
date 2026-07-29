@@ -52,112 +52,20 @@ export default function Support() {
         {/* Main Content Area */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
           
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--border)' }}>
-            <button onClick={() => setActiveTab('faq')} style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px', color: activeTab === 'faq' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'faq' ? '2px solid var(--primary)' : '2px solid transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <HelpCircle size={18} /> FAQs
-            </button>
-            <button onClick={() => setActiveTab('chat')} style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px', color: activeTab === 'chat' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'chat' ? '2px solid var(--primary)' : '2px solid transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <MessageSquare size={18} /> Live Chat
-            </button>
-            <button onClick={() => setActiveTab('tickets')} style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px', color: activeTab === 'tickets' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: activeTab === 'tickets' ? '2px solid var(--primary)' : '2px solid transparent', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={18} /> My Tickets
-            </button>
+          <div className="animate-fade-in-up">
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '24px' }}>
+              <Search size={18} color="var(--muted)" />
+              <input type="text" placeholder="Search for help..." style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', marginLeft: '12px', color: 'var(--text-main)' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {faqs.map((faq, i) => (
+                <div key={i} className="card-elevated" style={{ padding: '24px' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px' }}>{faq.q}</h4>
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>{faq.a}</p>
+                </div>
+              ))}
+            </div>
           </div>
-
-          {/* FAQ Tab */}
-          {activeTab === 'faq' && (
-            <div className="animate-fade-in-up">
-              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '24px' }}>
-                <Search size={18} color="var(--muted)" />
-                <input type="text" placeholder="Search for help..." style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', marginLeft: '12px', color: 'var(--text-main)' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {faqs.map((faq, i) => (
-                  <div key={i} className="card-elevated" style={{ padding: '24px' }}>
-                    <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '12px' }}>{faq.q}</h4>
-                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6 }}>{faq.a}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Chat Tab */}
-          {activeTab === 'chat' && (
-            <div className="card-elevated animate-fade-in-up" style={{ height: '500px', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 24px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'white', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>
-                  A
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: '700' }}>Arvaya Support Agent</h3>
-                  <p style={{ fontSize: '12px', opacity: 0.8 }}>Online • Replies typically in minutes</p>
-                </div>
-              </div>
-              
-              <div style={{ flex: 1, background: 'var(--bg-app)', padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', margin: '16px 0' }}>Today</div>
-                
-                <div style={{ display: 'flex', gap: '12px', maxWidth: '80%' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '12px', fontWeight: '700' }}>A</div>
-                  <div style={{ background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '0 16px 16px 16px', border: '1px solid var(--border)', fontSize: '14px', color: 'var(--text-main)' }}>
-                    Hi Rahul! I'm your Arvaya support assistant. How can I help you today?
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '12px', maxWidth: '80%', alignSelf: 'flex-end', flexDirection: 'row-reverse' }}>
-                  <div style={{ background: 'var(--primary)', color: 'white', padding: '12px 16px', borderRadius: '16px 0 16px 16px', fontSize: '14px' }}>
-                    I need help understanding my recent lab report.
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', maxWidth: '80%' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '12px', fontWeight: '700' }}>A</div>
-                  <div style={{ background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '0 16px 16px 16px', border: '1px solid var(--border)', fontSize: '14px', color: 'var(--text-main)' }}>
-                    Sure, I can help with that. Please give me a moment to pull up your recent lab reports from your Health Vault.
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ padding: '16px 24px', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', display: 'flex', gap: '12px' }}>
-                <input type="text" placeholder="Type your message..." style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: '1px solid var(--border)', outline: 'none', background: 'var(--bg-app)' }} />
-                <button className="btn btn-primary" style={{ width: '48px', height: '48px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Send size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Tickets Tab */}
-          {activeTab === 'tickets' && (
-            <div className="animate-fade-in-up">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>Your Recent Tickets</h3>
-                <button className="btn btn-accent" style={{ padding: '8px 16px', fontSize: '13px' }}>Create New Ticket</button>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {[
-                  { id: "TKT-9921", title: "Refund not received for cancelled booking", date: "24 Oct 2023", status: "Open" },
-                  { id: "TKT-8842", title: "Issue with prescription download", date: "15 Sep 2023", status: "Resolved" }
-                ].map(t => (
-                  <div key={t.id} className="card-elevated" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)', background: 'var(--primary-light)', padding: '2px 8px', borderRadius: '4px' }}>{t.id}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t.date}</span>
-                      </div>
-                      <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>{t.title}</h4>
-                    </div>
-                    <span style={{ display: 'inline-block', padding: '4px 10px', background: t.status === 'Resolved' ? '#dcfce7' : '#fef08a', color: t.status === 'Resolved' ? '#16a34a' : '#854d0e', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
-                      {t.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
         </div>
       </div>
