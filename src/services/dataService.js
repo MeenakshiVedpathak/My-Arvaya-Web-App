@@ -238,14 +238,14 @@ export async function getDoctorSlots(doctorId, dateObj) {
   }
 }
 
-/* ─── Plans ─── */
 export async function getPlans(filters = {}) {
-  if (USE_MOCK) {
-    return mockPackages;
+  try {
+    const res = await api.post("/api/plan/get", filters);
+    return res?.data || res?.plans || res?.result || res?.list || res || [];
+  } catch (err) {
+    console.error("getPlans error:", err);
+    return [];
   }
-  // POST api/plan/get
-  const res = await api.post("/api/plan/get", filters);
-  return res.data || res;
 }
 
 /* ─── Banners ─── */
@@ -362,6 +362,83 @@ export async function getWalletAmount(patient_id) {
   } catch (err) {
     console.error("getWalletAmount error:", err);
     return { balance: 0 };
+  }
+}
+
+export async function getAppointmentHistory(patient_id) {
+  try {
+    const res = await api.post("/api/appointments/history", { patient_id });
+    return res?.data || res?.history || res?.appointments || res?.result || res?.list || res || [];
+  } catch (err) {
+    console.error("getAppointmentHistory error:", err);
+    return [];
+  }
+}
+
+export async function getLoyaltyConfig(filters = {}) {
+  try {
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 100,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filterQuery: filters.filterQuery || "and is_active=1",
+      filter: filters.filter || "and is_active=1",
+      is_active: 1,
+      ...filters
+    };
+    const res = await api.post("/api/loyalty/get", payload);
+    const data = res?.data || res?.list || res?.config || res?.result || (Array.isArray(res) ? res : []);
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error("getLoyaltyConfig error:", err);
+    return [];
+  }
+}
+
+export const getLoyaltyRedemptionConfig = getLoyaltyConfig;
+
+
+export async function getPatientLoyalty(patient_id) {
+  try {
+    const payload = {
+      patient_id,
+      id: patient_id,
+      user_id: patient_id,
+      app_user_id: patient_id
+    };
+    const res = await api.post("/api/loyalty/get-patient-loyalty", payload);
+    return res?.data || res || {};
+  } catch (err) {
+    console.error("getPatientLoyalty error:", err);
+    return {};
+  }
+}
+
+export async function redeemLoyaltyPoints(patient_id, points_to_redeem) {
+  try {
+    const payload = {
+      patient_id,
+      points_to_redeem
+    };
+    const res = await api.post("/api/loyalty/redeem", payload);
+    return res?.data || res?.result || res || {};
+  } catch (err) {
+    console.error("redeemLoyaltyPoints error:", err);
+    throw err;
+  }
+}
+
+export async function getLoyaltyHistory(patient_id) {
+  try {
+    const payload = {
+      patient_id
+    };
+    const res = await api.post("/api/loyalty/history", payload);
+    return res?.data || res?.history || res?.list || res?.transactions || res?.logs || res?.result || (Array.isArray(res) ? res : []);
+  } catch (err) {
+    console.error("getLoyaltyHistory error:", err);
+    return [];
   }
 }
 

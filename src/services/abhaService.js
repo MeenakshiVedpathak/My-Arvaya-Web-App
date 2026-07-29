@@ -1,14 +1,15 @@
 import { api } from "./api";
+import { getCloudId, getDeviceId } from "./authService";
 
 // Set to true to use mock data during development / when ABHA APIs are not yet integrated
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const MOCK_DELAY = (ms = 800) => new Promise(r => setTimeout(r, ms));
 
 /* ─────────────────────────────────────────────
    STEP 1 — Send OTP to ABHA-linked mobile
-   POST /abha/sendOtp
-   Body: { mobile_number }
+   POST /abhaAddress/requestOtp
+   Body: { mobile_no }
    Response: { txnId, message }
 ───────────────────────────────────────────── */
 export async function abhaSendOtp(mobile) {
@@ -19,12 +20,12 @@ export async function abhaSendOtp(mobile) {
       message: `OTP sent successfully to +91 ${mobile}`,
     };
   }
-  return api.post("/abha/sendOtp", { mobile_number: mobile });
+  return api.post("/login/requestOtp", { mobile_no: mobile });
 }
 
 /* ─────────────────────────────────────────────
    STEP 2 — Verify OTP
-   POST /abha/verifyOtp
+   POST /abhaAddress/verifyOtp
    Body: { otp, txnId }
    Response: { txnId, verified: true }
 ───────────────────────────────────────────── */
@@ -37,7 +38,10 @@ export async function abhaVerifyOtp(otp, txnId) {
       verified: true,
     };
   }
-  return api.post("/abha/verifyOtp", { otp, txnId });
+  return api.post("/login/verifyOtp", {
+    otp: String(otp),
+    txnId: String(txnId)
+  });
 }
 
 /* ─────────────────────────────────────────────
@@ -83,4 +87,41 @@ export async function abhaConfirmAddress(abhaAddress, dateOfBirth, txnId) {
     };
   }
   return api.post("/abha/confirmAddress", { abhaAddress, dateOfBirth, txnId });
+}
+
+/* ─────────────────────────────────────────────
+   STEP 3 — Verify User & Complete Login
+   POST /login/verifyUser
+───────────────────────────────────────────── */
+export async function abhaVerifyUser(data) {
+  if (USE_MOCK) {
+    await MOCK_DELAY(1000);
+    return {
+      token: "abha_mock_token_" + Date.now(),
+      user: {
+        id: "abha_user_1",
+        name: data.name || "ABHA User",
+        abhaAddress: data.abhaAddress,
+        abhaNumber: data.abha_number,
+        dateOfBirth: data.date_of_birth,
+        phone: data.mobile_number,
+      },
+    };
+  }
+  const payload = {
+    txnId: data.txnId || "",
+    abhaAddress: data.abhaAddress || "",
+    token: data.token || "",
+    supportKey: data.supportKey || "",
+    name: data.name || "",
+    mobile_number: data.mobile_number || "",
+    cloud_id: data.cloud_id || getCloudId(),
+    device_id: data.device_id || getDeviceId(),
+    abha_number: data.abha_number || "",
+    abha_type: "sbx",
+    abha_status: "active",
+    gender: data.gender || "",
+    date_of_birth: data.date_of_birth || ""
+  };
+  return api.post("/login/verifyUser", payload);
 }

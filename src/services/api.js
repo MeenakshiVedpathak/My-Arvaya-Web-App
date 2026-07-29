@@ -41,7 +41,7 @@ async function request(method, path, body) {
   const res = await fetch(`${cleanBase}/${cleanPath}`, {
     method,
     headers,
-    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+    body: isFormData ? body : (body ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined),
   });
 
   if (res.status === 401) {

@@ -96,6 +96,9 @@ export function AuthProvider({ children }) {
 
         setUser(updatedUser);
         localStorage.setItem("arvaya_user", JSON.stringify(updatedUser));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("arvaya_profile_updated"));
+        }
       }
     } catch (err) {
       console.error("fetchUserProfile error:", err);
@@ -119,13 +122,35 @@ export function AuthProvider({ children }) {
       deleteCookie("arvaya_token");
       localStorage.removeItem("arvaya_token");
     }
-    if (data.user) {
-      localStorage.setItem("arvaya_user", JSON.stringify(data.user));
+
+    let resolvedUser = data.user;
+    if (resolvedUser && typeof resolvedUser === "object") {
+      let derivedName = resolvedUser.name || resolvedUser.full_name || resolvedUser.fullName || resolvedUser.user_name || resolvedUser.userName;
+      if (!derivedName || derivedName === "User" || derivedName.startsWith("User (")) {
+        const firstName = resolvedUser.first_name || resolvedUser.firstName || "";
+        const lastName = resolvedUser.last_name || resolvedUser.lastName || "";
+        if (firstName || lastName) {
+          const title = resolvedUser.title ? resolvedUser.title.trim() + " " : "";
+          derivedName = `${title}${firstName} ${lastName}`.trim();
+        }
+      }
+      if (derivedName) {
+        resolvedUser = { ...resolvedUser, name: derivedName };
+      }
+    }
+
+    if (resolvedUser) {
+      localStorage.setItem("arvaya_user", JSON.stringify(resolvedUser));
     }
     setToken(data.token);
-    setUser(data.user);
-    if (data.user) {
-      fetchUserProfile(data.user);
+    setUser(resolvedUser);
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("arvaya_profile_updated"));
+    }
+
+    if (resolvedUser) {
+      fetchUserProfile(resolvedUser);
     }
   }
 
@@ -165,14 +190,20 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("arvaya_token");
-    localStorage.removeItem("arvaya_user");
-    deleteCookie("token");
-    deleteCookie("arvaya_token");
-    setToken(null);
-    setUser(null);
+  async function logout() {
+    try {
+      await authService.logout(user);
+    } catch (e) {
+      console.error("Logout API error:", e);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("arvaya_token");
+      localStorage.removeItem("arvaya_user");
+      deleteCookie("token");
+      deleteCookie("arvaya_token");
+      setToken(null);
+      setUser(null);
+    }
   }
 
   return (

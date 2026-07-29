@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { X, MapPin, Phone, User, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, Navigation } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useBooking } from "../../context/BookingContext";
 import { useNavigate } from "react-router-dom";
 import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode } from "../../services/ambulanceService";
 
@@ -46,12 +47,15 @@ function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true
 
 export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const { user } = useAuth();
+  const { globalLocation } = useBooking();
   const go = useNavigate();
 
   const [step, setStep]               = useState(1); // 1 = form, 2 = success
   const [patientName, setPatientName] = useState(user?.name || "");
   const [contactNumber, setContact]   = useState(user?.phone || user?.mobile || "");
   const [pickupAddress, setPickup]    = useState("");
+  const [pickupLat, setPickupLat]     = useState(null);
+  const [pickupLng, setPickupLng]     = useState(null);
   const [emergencyType, setEmergency] = useState("");
   const [busy, setBusy]               = useState(false);
   const [locating, setLocating]       = useState(false);
@@ -63,7 +67,11 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
     setLocating(true); setErr("");
     navigator.geolocation.getCurrentPosition(
       async pos => {
-        const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setPickupLat(lat);
+        setPickupLng(lng);
+        const addr = await reverseGeocode(lat, lng);
         setPickup(addr);
         setLocating(false);
       },
@@ -78,8 +86,40 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
     if (!pickupAddress.trim()) { setErr("Pickup address is required."); return; }
     if (!emergencyType) { setErr("Please select an emergency type."); return; }
     setErr(""); setBusy(true);
+
+    let locationKey = globalLocation?.entitylocation || globalLocation?.location_key || "";
+    if (!locationKey) {
+      try {
+        const savedLoc = localStorage.getItem("arvaya_location");
+        if (savedLoc) {
+          const parsed = JSON.parse(savedLoc);
+          locationKey = parsed?.entitylocation || parsed?.location_key || "";
+        }
+      } catch (e) {}
+    }
+
+    let patientId = user?.id || user?.user_id || user?.patient_id || user?.app_user_id || "";
+    if (!patientId) {
+      try {
+        const savedUser = localStorage.getItem("arvaya_user");
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser);
+          patientId = parsed?.id || parsed?.user_id || parsed?.patient_id || parsed?.app_user_id || "";
+        }
+      } catch (e) {}
+    }
+
     try {
-      const res = await requestAmbulance({ patientName, contactNumber, pickupAddress, emergencyType });
+      const res = await requestAmbulance({
+        patient_id: patientId,
+        patient_name: patientName.trim(),
+        requester_phone: contactNumber.trim(),
+        emergency_type: emergencyType,
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        pickup_address: pickupAddress.trim(),
+        location_key: locationKey
+      });
       window.alert("Opening dialer for dummy call to 108...");
       window.location.href = "tel:108";
       

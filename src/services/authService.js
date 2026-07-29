@@ -15,11 +15,12 @@ export async function login(email, password) {
     return { token: "mock_token_" + Date.now(), user: MOCK_USER };
   }
   const res = await api.post("/user/login", { username: email, password, created_by: 1 });
-  return { token: res.token || res.accessToken, user: res.user || res.data };
+  let user = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result;
+  return { token: res.token || res.accessToken || res?.UserData?.token, user };
 }
 
 /* ─── Cookie Helpers ─── */
-function getCookie(name) {
+export function getCookie(name) {
   if (typeof document === "undefined") return "";
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -27,15 +28,15 @@ function getCookie(name) {
   return "";
 }
 
-function getCloudId() {
+export function getCloudId() {
   return getCookie("cloudID") || getCookie("CLOUD_ID") || getCookie("cloud_id") || "";
 }
 
-function getDeviceId() {
+export function getDeviceId() {
   return getCookie("deviceId") || getCookie("DEVICE_ID") || getCookie("device_id") || "";
 }
 
-function getClientId() {
+export function getClientId() {
   return getCookie("clientID") || getCookie("CLIENT_ID") || getCookie("client_id") || getCookie("clientKey") || (typeof localStorage !== "undefined" && localStorage.getItem("client_id")) || "1";
 }
 
@@ -111,11 +112,32 @@ export async function verifyOtp(otp, mobile, options = {}) {
   };
 
   const res = await api.post("/user/verifyOtp", payload);
-  const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.jwt || "token_" + Date.now();
-  let user = res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result || { name: mobile ? `User (${mobile})` : "User", phone: mobile };
-  if (typeof user === "object" && user !== null && !user.name) {
-    user = { ...user, name: mobile ? `User (${mobile})` : "User" };
+  const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || res?.jwt || "token_" + Date.now();
+  
+  let rawUser = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result;
+  if (!rawUser || typeof rawUser !== "object") {
+    rawUser = {};
   }
+
+  let derivedName = rawUser?.name || rawUser?.full_name || rawUser?.fullName || rawUser?.user_name || rawUser?.userName;
+  if (!derivedName || derivedName === "User" || derivedName.startsWith("User (")) {
+    const firstName = rawUser?.first_name || rawUser?.firstName || "";
+    const lastName = rawUser?.last_name || rawUser?.lastName || "";
+    if (firstName || lastName) {
+      const title = rawUser?.title ? rawUser.title.trim() + " " : "";
+      derivedName = `${title}${firstName} ${lastName}`.trim();
+    }
+  }
+  if (!derivedName) {
+    derivedName = mobile ? `User (${mobile})` : "User";
+  }
+
+  const user = {
+    ...rawUser,
+    name: derivedName,
+    phone: rawUser?.mobile_number || rawUser?.phone || rawUser?.mobile || mobile
+  };
+
   return {
     token,
     user,
@@ -146,5 +168,33 @@ export async function getProfile() {
 export async function updateProfile(data) {
   if (USE_MOCK) return { ...MOCK_USER, ...data };
   return api.put("/api/user/update", data);
+}
+
+/* ─── Logout ─── */
+export async function logout(currentUser) {
+  if (USE_MOCK) return { success: true };
+
+  let appUserId = currentUser?.app_user_id || currentUser?.id || currentUser?.user_id || currentUser?.patient_id || currentUser?.userKey;
+  if (!appUserId) {
+    try {
+      const savedUser = localStorage.getItem("arvaya_user");
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        appUserId = parsed?.app_user_id || parsed?.id || parsed?.user_id || parsed?.patient_id || parsed?.userKey;
+      }
+    } catch (e) {}
+  }
+
+  const payload = {
+    app_user_id: appUserId || ""
+  };
+
+  try {
+    const res = await api.post("/api/appUser/logout", payload);
+    return res;
+  } catch (e) {
+    console.error("Error triggering api/appUser/logout:", e);
+    return null;
+  }
 }
 
