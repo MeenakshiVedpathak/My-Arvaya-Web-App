@@ -1,8 +1,8 @@
-import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint, X, Upload, CheckCircle2, Loader2 } from "lucide-react";
+import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint, X, Upload, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getRecords } from "../services/dataService";
-import { uploadImage, getImageUrl } from "../services/uploadService";
+import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
 import { api } from "../services/api";
 
 const iconMap = {
@@ -44,6 +44,9 @@ export default function Records() {
   let [uploading, setUploading] = useState(false);
   let [uploadSuccess, setUploadSuccess] = useState(false);
 
+  // Download State
+  let [downloadingId, setDownloadingId] = useState(null);
+
   const fetchRecords = (page) => {
     if (page === 1) setLoading(true);
     else setLoadingMore(true);
@@ -74,6 +77,69 @@ export default function Records() {
     }
   };
 
+  const handleViewRecord = async (rec, e) => {
+    if (e) e.stopPropagation();
+    const targetFile = rec?.filePath || rec?.raw?.file_name || rec?.raw?.file_path || rec?.fileUrl || rec?.raw?.url;
+
+    if (!targetFile || targetFile === "null" || targetFile === "undefined") {
+      return;
+    }
+
+    try {
+      const resolvedBlob = await fetchImageBlob(targetFile, 'HealthRecords');
+      const finalUrl = resolvedBlob || getImageUrl(targetFile, 'HealthRecords');
+      window.location.href = finalUrl;
+    } catch (err) {
+      console.error("Failed to load view blob:", err);
+      window.location.href = getImageUrl(targetFile, 'HealthRecords');
+    }
+  };
+
+  const handleDownloadRecord = async (rec, e) => {
+    if (e) e.stopPropagation();
+    const targetFile = rec?.filePath || rec?.raw?.file_name || rec?.raw?.file_path || rec?.fileUrl || rec?.raw?.url;
+
+    if (!targetFile || targetFile === "null" || targetFile === "undefined") {
+      return;
+    }
+
+    setDownloadingId(rec.id);
+    try {
+      const blobUrl = await fetchImageBlob(targetFile, 'HealthRecords');
+      const fetchUrl = blobUrl || getImageUrl(targetFile, 'HealthRecords');
+
+      const response = await fetch(fetchUrl);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const pathStr = String(targetFile);
+      const ext = pathStr.includes('.') ? pathStr.split('.').pop().split('?')[0] : 'pdf';
+      const cleanTitle = (rec.title || "Health_Record").replace(/[^a-zA-Z0-9_-]/g, "_");
+      const downloadFileName = `${cleanTitle}.${ext}`;
+
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = downloadFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+    } catch (err) {
+      console.error("Download error, falling back to direct link:", err);
+      const directUrl = getImageUrl(targetFile, 'HealthRecords');
+      const link = document.createElement('a');
+      link.href = directUrl;
+      link.download = rec.title || "Health_Record";
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const handleUploadSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!selectedFile) return;
@@ -84,13 +150,12 @@ export default function Records() {
       const fileExt = selectedFile.name.split('.').pop();
       const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
 
-      // 1. Trigger API for upload using uploadImage from uploadService
+      // 1. Upload image/file via uploadService to HealthRecords folder
       const uploadRes = await uploadImage(selectedFile, folderName, generatedName);
       const uploadedFileName = uploadRes?.filename || uploadRes?.fileName || generatedName;
       const fileUrl = getImageUrl(uploadedFileName, folderName) || URL.createObjectURL(selectedFile);
 
-      // 2. Upsert API temporarily disabled as requested
-      /*
+      // 2. Save metadata via upsert API if backend endpoint is present
       try {
         const storedUser = localStorage.getItem("arvaya_user");
         let userId = null;
@@ -112,19 +177,19 @@ export default function Records() {
           ...(userId ? { app_user_id: userId, created_by: userId } : {})
         });
       } catch (err) {
-        console.warn("patientHealthRecord upsert endpoint notice:", err);
+        console.warn("patientHealthRecord upsert notice:", err);
       }
-      */
 
-      // 3. Construct new record item and prepend to records list under My Uploads & Hospital Records
+      // 3. Construct new record item
       const newRecord = {
         id: Date.now(),
         title: recordTitle || selectedFile.name,
         doctor: doctorName || "Self Uploaded",
         date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
         type: recordType || "Lab Report",
+        filePath: uploadedFileName,
         fileUrl: fileUrl,
-        raw: { file_name: uploadedFileName }
+        raw: { file_name: uploadedFileName, file_path: uploadedFileName }
       };
 
       setRecords(prev => [newRecord, ...prev]);
@@ -308,8 +373,10 @@ export default function Records() {
                       return matchesSearch && matchesType;
                     }).map((rec) => {
                       const { Icon, color, bg } = getRecordIcon(rec.type);
+                      const targetFile = rec?.filePath || rec?.fileUrl || rec?.raw?.file_name || rec?.raw?.file_path || rec?.raw?.file_url || rec?.raw?.url || rec?.raw?.file;
+                      const hasFile = Boolean(targetFile && targetFile !== "null" && targetFile !== "undefined");
                       return (
-                        <article className="hover-glow record-item-card" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: 'pointer', position: 'relative', zIndex: 1 }} onClick={() => rec.fileUrl ? window.open(rec.fileUrl, '_blank') : alert("Opening record: " + rec.title)}>
+                        <article className="hover-glow record-item-card" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: hasFile ? 'pointer' : 'default', position: 'relative', zIndex: 1 }} onClick={(e) => hasFile && handleViewRecord(rec, e)}>
 
                           {/* Icon Block */}
                           <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '4px solid var(--bg)', boxShadow: '0 0 0 4px var(--bg)' }}>
@@ -330,11 +397,45 @@ export default function Records() {
 
                           {/* Actions */}
                           <div className="record-item-actions" style={{ display: 'flex', gap: '12px' }}>
-                            <button className="btn hover-glow" style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => { e.stopPropagation(); if (rec.fileUrl) window.open(rec.fileUrl, '_blank'); else alert("Opening report: " + rec.title); }}>
+                            <button 
+                              className="btn hover-glow" 
+                              disabled={!hasFile}
+                              title={hasFile ? "View Record" : "No document file available"}
+                              style={{ 
+                                background: hasFile ? 'var(--primary-light)' : 'var(--bg)', 
+                                color: hasFile ? 'var(--primary)' : 'var(--muted)', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '10px', 
+                                fontSize: '14px', 
+                                fontWeight: '600', 
+                                cursor: hasFile ? 'pointer' : 'not-allowed', 
+                                opacity: hasFile ? 1 : 0.5,
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '6px' 
+                              }} 
+                              onClick={(e) => hasFile && handleViewRecord(rec, e)}
+                            >
                               View
                             </button>
-                            <button className="btn btn-secondary hover-glow" style={{ padding: '10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Download" onClick={(e) => { e.stopPropagation(); if (rec.fileUrl) window.open(rec.fileUrl, '_blank'); else alert("Downloading: " + rec.title); }}>
-                              <Download size={18} />
+                            <button 
+                              className="btn btn-secondary hover-glow" 
+                              disabled={!hasFile || downloadingId === rec.id}
+                              title={hasFile ? "Download Record" : "No document file available"}
+                              style={{ 
+                                padding: '10px', 
+                                borderRadius: '10px', 
+                                cursor: hasFile ? 'pointer' : 'not-allowed', 
+                                opacity: hasFile ? 1 : 0.5,
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                minWidth: '40px' 
+                              }} 
+                              onClick={(e) => hasFile && handleDownloadRecord(rec, e)}
+                            >
+                              {downloadingId === rec.id ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                             </button>
                           </div>
                         </article>
@@ -365,6 +466,9 @@ export default function Records() {
 
         </div>
       </div>
+
+
+
       {showUploadModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
           <div className="animate-fade-in-up" style={{ background: 'var(--bg-surface)', width: '100%', maxWidth: '520px', borderRadius: '20px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid var(--border)', overflow: 'hidden' }}>

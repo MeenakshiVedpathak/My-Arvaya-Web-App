@@ -60,13 +60,33 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
       headers,
       redirect: 'manual'
     });
-    if (res.ok && res.status === 200) {
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("image") || contentType.includes("octet-stream") || res.type === "basic" || res.type === "cors") {
-        const blob = await res.blob();
-        if (blob && blob.size > 0) {
-          return URL.createObjectURL(blob);
+    if (res.ok && (res.status === 200 || res.status === 0)) {
+      const blob = await res.blob();
+      if (blob && blob.size > 0) {
+        let finalBlob = blob;
+        const ext = fileName.split('.').pop().split('?')[0].toLowerCase();
+        
+        // Define explicit MIME mapping for all common images & document types
+        const mimeMap = {
+          pdf: 'application/pdf',
+          jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
+          png: 'image/png',
+          webp: 'image/webp',
+          gif: 'image/gif',
+          svg: 'image/svg+xml',
+          bmp: 'image/bmp',
+          tiff: 'image/tiff',
+          tif: 'image/tiff',
+          txt: 'text/plain',
+          html: 'text/html'
+        };
+
+        if (mimeMap[ext] && blob.type !== mimeMap[ext]) {
+          finalBlob = new Blob([blob], { type: mimeMap[ext] });
         }
+
+        return URL.createObjectURL(finalBlob);
       }
     }
   } catch (err) {
@@ -90,15 +110,19 @@ export function getImageUrl(imagePath, folderName = 'familyProfileImage') {
   }
 
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-  const cleanPath = pathStr.startsWith('/') ? pathStr.slice(1) : pathStr;
-
-  if (cleanPath.startsWith(`static/${folderName}`)) {
-    return `${cleanBase}/${cleanPath}`;
+  let fileName = pathStr;
+  if (fileName.includes('/')) {
+    fileName = fileName.split('/').pop();
   }
 
-  if (cleanPath.startsWith(folderName)) {
-    return `${cleanBase}/static/${cleanPath}`;
-  }
-
-  return `${cleanBase}/static/${folderName}/${cleanPath}`;
+  return `${cleanBase}/static/${folderName}/${fileName}`;
 }
+
+export async function fetchHealthRecordBlob(recordPath) {
+  return fetchImageBlob(recordPath, 'HealthRecords');
+}
+
+export function getHealthRecordUrl(recordPath) {
+  return getImageUrl(recordPath, 'HealthRecords');
+}
+

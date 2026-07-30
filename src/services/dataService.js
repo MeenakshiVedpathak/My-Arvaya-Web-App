@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { getImageUrl } from "./uploadService";
 import { slots as mockSlots, packages as mockPackages } from "../mocks/data";
 
 const USE_MOCK = true; // Forced static data for the dashboard after login
@@ -549,7 +550,7 @@ export async function getRecords(filters = {}) {
       sortKey: filters.sortKey || "id",
       sortValue: filters.sortValue || "desc",
       filterQuery: filterQuery ? filterQuery.trim() : "",
-      filter: filterQuery ? filterQuery.trim() : "",
+      // filter: filterQuery ? filterQuery.trim() : "",
       ...(storedUserId ? { app_user_id: storedUserId, created_by: storedUserId, user_id: storedUserId } : {}),
       ...((typeof filters === "object" && filters) ? filters : {})
     };
@@ -558,19 +559,25 @@ export async function getRecords(filters = {}) {
     const rawList = res?.data || res?.list || res?.records || res?.result || res?.UserData || (Array.isArray(res) ? res : []);
     const count = res?.count || res?.totalCount || res?.total || (Array.isArray(rawList) ? rawList.length : 0);
 
-    const mappedList = Array.isArray(rawList) ? rawList.map(r => ({
-      id: r.id || r.record_id || Math.random(),
-      title: r.title || r.name || r.record_name || r.file_name || "Health Record",
-      doctor: r.doctor_name || r.doctor || r.created_by_name || "Consultant",
-      date: r.created_modified_date
-        ? new Date(r.created_modified_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-        : r.created_date
-          ? new Date(r.created_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-          : (r.date || "Recent"),
-      type: r.type || r.record_type || r.category || "Diagnostic",
-      fileUrl: r.file_path || r.file_url || r.url || r.file || null,
-      raw: r
-    })) : [];
+    const mappedList = Array.isArray(rawList) ? rawList.map(r => {
+      const rawFile = r.file_url || r.file_path || r.file_name || r.url || r.file || "";
+      const filePath = (rawFile && rawFile !== "null" && rawFile !== "undefined") ? String(rawFile).trim() : "";
+      const resolvedUrl = filePath ? getImageUrl(filePath, "HealthRecords") : null;
+      return {
+        id: r.id || r.record_id || Math.random(),
+        title: r.title || r.name || r.record_name || r.file_name || "Health Record",
+        doctor: r.doctor_name || r.doctor || r.created_by_name || "Consultant",
+        date: r.created_modified_date
+          ? new Date(r.created_modified_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+          : r.created_date
+            ? new Date(r.created_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            : (r.date || "Recent"),
+        type: r.type || r.record_type || r.category || "Diagnostic",
+        filePath: filePath,
+        fileUrl: resolvedUrl,
+        raw: r
+      };
+    }) : [];
 
     return { list: mappedList, count: count || mappedList.length };
   } catch (err) {
