@@ -130,12 +130,21 @@ export default function Profile() {
 
   const fetchFamilyMembers = async () => {
     try {
-      const appUserId = user?.user_id || user?.id || user?.app_user_id || user?.userKey || 1;
-      const res = await getFamilyDetails({ app_user_id: appUserId, client_id: user?.client_id || 1 });
+      const storedUser = JSON.parse(localStorage.getItem("arvaya_user") || "{}");
+      const appUserId = user?.app_user_id || user?.user_id || user?.id || storedUser?.app_user_id || storedUser?.user_id || storedUser?.id || 107602;
+      const clientId = user?.client_id || storedUser?.client_id || 1;
+
+      const payload = {
+        app_user_id: appUserId,
+        client_id: clientId,
+        filter: ` AND app_user_id = ${appUserId}`
+      };
+
+      const res = await getFamilyDetails(payload);
       
-      let list = Array.isArray(res) ? res : res?.data || res?.list || [];
+      let list = Array.isArray(res) ? res : res?.data || res?.list || res?.familyDetails || res?.result || [];
       if (Array.isArray(list)) {
-        const mapped = await Promise.all(list.map(async (item, idx) => {
+        const mapped = list.map((item, idx) => {
           let age = item.age;
           if (!age && item.dob) {
             const birthYear = new Date(item.dob).getFullYear();
@@ -145,7 +154,9 @@ export default function Profile() {
           const rawImg = item.profile_image || item.profileImage || item.image || item.family_profile_image || item.photo || "";
           let resolvedDisplayImg = "";
           if (rawImg) {
-            resolvedDisplayImg = await fetchImageBlob(rawImg, 'familyProfileImage');
+            resolvedDisplayImg = (rawImg.startsWith("data:") || rawImg.startsWith("blob:") || rawImg.startsWith("http"))
+              ? rawImg
+              : getImageUrl(rawImg, 'familyProfileImage');
           }
           return {
             id: item.id || item.family_detail_id || idx + 1,
@@ -163,7 +174,7 @@ export default function Profile() {
             abhaNumber: item.abha_number || item.abhaNumber || "",
             age: age !== undefined && age !== "" ? age : 25
           };
-        }));
+        });
         setFamilyMembers(mapped);
       }
     } catch (err) {
@@ -528,7 +539,7 @@ export default function Profile() {
         <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: '32px', alignItems: 'start' }}>
           
           {/* Left Sticky Profile Card */}
-          <aside style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <aside className="profile-sidebar" style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="card-elevated" style={{ padding: '32px 24px', textAlign: 'center', borderRadius: '16px' }}>
               <div style={{ position: 'relative', display: 'inline-block', marginBottom: '16px' }}>
                 <div 
@@ -595,8 +606,6 @@ export default function Profile() {
             <div className="card-elevated styled-scrollbar" style={{ padding: '8px', borderRadius: '16px', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
               {[
                 { id: 'personal', label: 'Personal Details', icon: User },
-                { id: 'medical', label: 'Medical History', icon: HeartPulse },
-                { id: 'insurance', label: 'Insurance Details', icon: FileText },
                 { id: 'family', label: 'Family Members', icon: Users }
               ].map(tab => {
                 const Icon = tab.icon;
@@ -997,6 +1006,7 @@ export default function Profile() {
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 900px) {
           .profile-grid { grid-template-columns: 1fr !important; }
+          .profile-sidebar { position: relative !important; top: 0 !important; }
         }
       `}} />
     </main>

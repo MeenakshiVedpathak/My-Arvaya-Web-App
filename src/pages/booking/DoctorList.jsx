@@ -28,8 +28,10 @@ export default function DoctorList() {
           filter: bookingSpecialty 
         });
         const allDocs = Array.isArray(res) ? res : (res.list || res.data || []);
+        // Filter by specialty on frontend to ensure strict match
+        const specialtyDocs = allDocs.filter(d => d.specialty === bookingSpecialty);
         
-        setDoctors(allDocs);
+        setDoctors(specialtyDocs);
       } catch (err) {
         console.error("Failed to load doctors", err);
       } finally {

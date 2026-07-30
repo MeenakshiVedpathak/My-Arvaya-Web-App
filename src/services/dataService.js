@@ -54,7 +54,17 @@ export async function updateAppUser(payload) {
 /* ─── Family Details ─── */
 export async function getFamilyDetails(filters = {}) {
   try {
-    const res = await api.post("/api/familyDetails/get", filters);
+    const storedUserId = getStoredUserId();
+    const appUserId = filters.app_user_id || filters.appUserId || filters.user_id || storedUserId || 107602;
+    const clientId = filters.client_id || 1;
+
+    const payload = {
+      app_user_id: appUserId,
+      client_id: clientId,
+      filter: filters.filter || ` AND app_user_id = ${appUserId}`,
+      ...filters
+    };
+    const res = await api.post("/api/familyDetails/get", payload);
     return res?.data || res?.list || res?.result || res?.familyDetails || res || [];
   } catch (err) {
     console.error("getFamilyDetails error:", err);
@@ -110,7 +120,9 @@ function mapDoctor(d) {
     gender: d.gender || "",
     mobile: d.mobile || "",
     blocked: d.blocked || false,
-    image: d.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent((d.name || "Dr").trim())}&background=2e666e&color=fff&size=150`,
+    image: (d.profile_image || d.image || d.photo)
+      ? getImageUrl(d.profile_image || d.image || d.photo, 'doctorProfileImage')
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent((d.name || "Dr").trim())}&background=2e666e&color=fff&size=150`,
     experienceText: d.experience ? `${parseInt(d.experience)} Years` : "10+ Years",
     experience: d.experience ? `${parseInt(d.experience)}` : "10+",
     fee: d.amount ? parseInt(d.amount) : 500,
@@ -530,30 +542,44 @@ export async function getRewards() {
 export async function getRecords(filters = {}) {
   try {
     const storedUserId = getStoredUserId();
-    let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || filters.filter || "");
+    const isExplicitObject = typeof filters === "object" && filters !== null;
 
-    if (storedUserId) {
-      if (!filterQuery.toLowerCase().includes("app_user_id=") && !filterQuery.toLowerCase().includes("user_id=")) {
-        if (filterQuery.trim()) {
-          filterQuery = filterQuery.trim().toLowerCase().startsWith("and ")
-            ? `and app_user_id=${storedUserId} ${filterQuery.trim()}`
-            : `and app_user_id=${storedUserId} and ${filterQuery.trim()}`;
-        } else {
-          filterQuery = `and app_user_id=${storedUserId}`;
+    let payload = {};
+
+    if (isExplicitObject && filters.filter !== undefined) {
+      payload = {
+        pageIndex: filters.pageIndex || 1,
+        pageSize: filters.pageSize || 12,
+        sortKey: filters.sortKey || "id",
+        sortValue: filters.sortValue || "desc",
+        filter: filters.filter
+      };
+    } else {
+      let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || "");
+
+      if (storedUserId) {
+        if (!filterQuery.toLowerCase().includes("app_user_id=") && !filterQuery.toLowerCase().includes("user_id=")) {
+          if (filterQuery.trim()) {
+            filterQuery = filterQuery.trim().toLowerCase().startsWith("and ")
+              ? `and app_user_id=${storedUserId} ${filterQuery.trim()}`
+              : `and app_user_id=${storedUserId} and ${filterQuery.trim()}`;
+          } else {
+            filterQuery = `and app_user_id=${storedUserId}`;
+          }
         }
       }
-    }
 
-    const payload = {
-      pageIndex: filters.pageIndex || 1,
-      pageSize: filters.pageSize || 12,
-      sortKey: filters.sortKey || "id",
-      sortValue: filters.sortValue || "desc",
-      filterQuery: filterQuery ? filterQuery.trim() : "",
-      // filter: filterQuery ? filterQuery.trim() : "",
-      ...(storedUserId ? { app_user_id: storedUserId, created_by: storedUserId, user_id: storedUserId } : {}),
-      ...((typeof filters === "object" && filters) ? filters : {})
-    };
+      payload = {
+        pageIndex: filters.pageIndex || 1,
+        pageSize: filters.pageSize || 12,
+        sortKey: filters.sortKey || "id",
+        sortValue: filters.sortValue || "desc",
+        filter: filterQuery ? filterQuery.trim() : "",
+        ...(storedUserId ? { app_user_id: storedUserId } : {}),
+        ...(isExplicitObject ? filters : {})
+      };
+      delete payload.filterQuery;
+    }
 
     const res = await api.post("/api/patientHealthRecord/get", payload);
     const rawList = res?.data || res?.list || res?.records || res?.result || res?.UserData || (Array.isArray(res) ? res : []);

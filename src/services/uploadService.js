@@ -56,16 +56,19 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
     : `${cleanBase}/static/${folderName}/${fileName}`;
 
   try {
-    const res = await fetch(targetUrl, { 
+    const res = await fetch(targetUrl, {
       headers,
       redirect: 'manual'
     });
+    if (!res.ok || res.status === 404) {
+      return null;
+    }
     if (res.ok && (res.status === 200 || res.status === 0)) {
       const blob = await res.blob();
       if (blob && blob.size > 0) {
         let finalBlob = blob;
         const ext = fileName.split('.').pop().split('?')[0].toLowerCase();
-        
+
         // Define explicit MIME mapping for all common images & document types
         const mimeMap = {
           pdf: 'application/pdf',
