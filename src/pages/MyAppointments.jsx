@@ -6,10 +6,18 @@ import Modal from "../components/common/Modal";
 import Toast from "../components/common/Toast";
 import Calendar from "../components/common/Calendar";
 
+const getLocalDateString = (dateObj) => {
+  const d = dateObj || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
 
   // Toast
   const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
@@ -63,16 +71,18 @@ export default function MyAppointments() {
     setIsCancelling(true);
     try {
       const patientId = getStoredUserId();
-      await cancelAppointment({
+      const res = await cancelAppointment({
         appointment_id: appointmentToCancel.raw?.appointment_id || appointmentToCancel.id,
         patient_id: patientId,
         cancellation_reason: cancelReason
       });
-      showToast("Appointment cancelled successfully!");
+      const msg = res?.message || "Appointment cancelled successfully!";
+      showToast(msg);
       setCancelModalOpen(false);
       fetchAppointments();
     } catch (err) {
-      showToast("Failed to cancel appointment.", "error");
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to cancel appointment.";
+      showToast(errMsg, "error");
     } finally {
       setIsCancelling(false);
     }
@@ -170,22 +180,24 @@ export default function MyAppointments() {
     setIsRescheduling(true);
     try {
       const patientId = getStoredUserId();
-      const newDateStr = rescheduleDate.toISOString().split('T')[0];
+      const newDateStr = getLocalDateString(rescheduleDate);
       const newStartStr = typeof rescheduleSlot === 'string' ? rescheduleSlot : (rescheduleSlot.start_time || rescheduleSlot.time);
       const locationKey = appointmentToReschedule.raw?.entitylocation || appointmentToReschedule.raw?.location_key;
 
-      await rescheduleAppointment({
+      const res = await rescheduleAppointment({
         appointment_id: appointmentToReschedule.raw?.appointment_id || appointmentToReschedule.id,
         patient_id: patientId,
         new_date: newDateStr,
         new_start: newStartStr,
         new_location_key: locationKey
       });
-      showToast("Appointment rescheduled successfully!");
+      const msg = res?.message || "Appointment rescheduled successfully!";
+      showToast(msg);
       setRescheduleModalOpen(false);
       fetchAppointments();
     } catch (err) {
-      showToast("Failed to reschedule appointment.", "error");
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to reschedule appointment.";
+      showToast(errMsg, "error");
     } finally {
       setIsRescheduling(false);
     }

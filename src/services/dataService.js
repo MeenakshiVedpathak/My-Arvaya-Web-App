@@ -120,8 +120,8 @@ function mapDoctor(d) {
     gender: d.gender || "",
     mobile: d.mobile || "",
     blocked: d.blocked || false,
-    image: (d.profile_image || d.image || d.photo) 
-      ? getImageUrl(d.profile_image || d.image || d.photo, 'doctorProfileImage') 
+    image: (d.profile_image || d.image || d.photo)
+      ? getImageUrl(d.profile_image || d.image || d.photo, 'doctorProfileImage')
       : `https://ui-avatars.com/api/?name=${encodeURIComponent((d.name || "Dr").trim())}&background=2e666e&color=fff&size=150`,
     experienceText: d.experience ? `${parseInt(d.experience)} Years` : "10+ Years",
     experience: d.experience ? `${parseInt(d.experience)}` : "10+",
