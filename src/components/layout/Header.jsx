@@ -1,4 +1,4 @@
-import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2 } from "lucide-react";
+import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2, Shield } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -443,7 +443,7 @@ export default function Header() {
       {/* ── Main Header ── */}
       <header className="glass" style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
 
-        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 24px', gap: '16px' }}>
+        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px' }}>
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2" style={{ flexShrink: 0 }}>
@@ -570,7 +570,7 @@ export default function Header() {
                     ) : null}
                     {displayInitial}
                   </div>
-                  <ChevronDown size={16} className="text-muted" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                  <ChevronDown size={16} className="text-muted header-user-chevron" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                 </div>
 
                 {/* Profile Dropdown */}
@@ -669,9 +669,9 @@ export default function Header() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <button className="btn btn-primary flex items-center gap-2" onClick={() => openLoginModal()} style={{ fontSize: '14px' }}>
+                <button className="btn btn-primary flex items-center gap-2 header-login-btn" onClick={() => openLoginModal()} style={{ fontSize: '14px' }}>
                   <User size={16} />
-                  Login / Sign Up
+                  <span className="header-login-btn-text">Login / Sign Up</span>
                 </button>
               </div>
             )}
@@ -690,7 +690,7 @@ export default function Header() {
         </div>
 
         {/* ── Secondary Navigation ── */}
-        <div style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
+        <div className="header-secondary-nav" style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
           <div className="container flex items-center justify-between no-scrollbar" style={{ height: '48px', overflowX: 'auto', gap: '8px' }}>
             {navLinks.map(([label, path]) => (
               <NavLink
@@ -734,56 +734,93 @@ export default function Header() {
             </div>
 
             {/* User Profile / Auth CTA */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', background: 'var(--primary-light)' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg, rgba(46, 102, 110, 0.06) 0%, rgba(46, 102, 110, 0.12) 100%)' }}>
               {user ? (
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '18px' }}>
-                        {displayInitial}
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Logged in as</span>
-                        <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)' }}>{displayName}</b>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', background: 'var(--bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(18,51,58,0.06)' }}>
+                  
+                  {/* Top row: Avatar + Name + Shield badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '46px', height: '46px', borderRadius: '50%',
+                      background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                      color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: '700', fontSize: '18px', boxShadow: '0 4px 12px rgba(46,102,110,0.25)',
+                      overflow: 'hidden', position: 'relative', border: '2px solid white', flexShrink: 0
+                    }}>
+                      {headerAvatar ? (
+                        <img
+                          src={headerAvatar}
+                          alt={displayName}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : null}
+                      {displayInitial}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Logged in as</span>
+                      <b style={{ display: 'block', fontSize: '15px', fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</b>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(34, 197, 94, 0.1)', color: '#15803d', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', marginTop: '2px' }}>
+                        <Shield size={10} /> Verified Patient
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+
+                  {/* Buttons row: 2 main action buttons (Profile & Settings) + Logout button */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button
+                        className="btn btn-primary"
+                        style={{
+                          padding: '9px 12px', fontSize: '13px', fontWeight: '700', borderRadius: '12px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                          boxShadow: '0 2px 8px rgba(46,102,110,0.2)'
+                        }}
+                        onClick={() => {
+                          setMobileDrawerOpen(false);
+                          go("/profile");
+                        }}
+                      >
+                        <User size={14} /> Profile
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{
+                          padding: '9px 12px', fontSize: '13px', fontWeight: '600', borderRadius: '12px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                          background: 'var(--bg-app)', border: '1px solid var(--border)', color: 'var(--text-main)'
+                        }}
+                        onClick={() => {
+                          setMobileDrawerOpen(false);
+                          go("/settings");
+                        }}
+                      >
+                        <Settings size={14} /> Settings
+                      </button>
+                    </div>
+                    
                     <button
-                      className="btn btn-primary flex-1 flex items-center justify-center gap-2"
-                      style={{ padding: '8px', fontSize: '13px' }}
-                      onClick={() => {
-                        setMobileDrawerOpen(false);
-                        go("/profile");
-                      }}
-                    >
-                      <User size={14} /> Profile
-                    </button>
-                    <button
-                      className="btn btn-primary flex-1 flex items-center justify-center gap-2"
-                      style={{ padding: '8px', fontSize: '13px' }}
-                      onClick={() => {
-                        setMobileDrawerOpen(false);
-                        go("/settings");
-                      }}
-                    >
-                      <Settings size={14} /> Settings
-                    </button>
-                    <button
-                      className="btn btn-secondary flex items-center justify-center gap-2"
-                      style={{ padding: '8px 12px', fontSize: '13px' }}
                       onClick={() => {
                         logout();
                         setMobileDrawerOpen(false);
                         go("/");
                       }}
+                      style={{
+                        width: '100%', padding: '8px 12px', fontSize: '12px', fontWeight: '700',
+                        borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: '6px', color: '#dc2626', background: 'rgba(220, 38, 38, 0.06)',
+                        border: '1px solid rgba(220, 38, 38, 0.18)', transition: 'all 0.2s'
+                      }}
                     >
-                      <LogOut size={14} /> Logout
+                      <LogOut size={13} /> Logout
                     </button>
                   </div>
+
                 </div>
               ) : (
-                <div>
+                <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                   <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)', marginBottom: '8px' }}>Welcome to Arvaya</b>
                   <button
                     className="btn btn-primary w-full flex items-center justify-center gap-2"
@@ -791,7 +828,7 @@ export default function Header() {
                       setMobileDrawerOpen(false);
                       openLoginModal();
                     }}
-                    style={{ fontSize: '14px', padding: '10px 16px' }}
+                    style={{ fontSize: '14px', padding: '10px 16px', borderRadius: '12px' }}
                   >
                     <User size={16} /> Login / Sign Up
                   </button>
@@ -1267,9 +1304,22 @@ export default function Header() {
 
       {/* Embedded Responsive CSS Rules for Header */}
       <style>{`
+        .mobile-hamburger-btn {
+          display: none;
+        }
+        @media (min-width: 427px) {
+          .header-main-row {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+          }
+        }
         @media (max-width: 768px) {
-          .mobile-hamburger-btn {
+          .header-desktop-auth {
             display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            order: 90 !important;
+            flex-shrink: 0 !important;
           }
           .header-location-picker {
             padding: 0 10px !important;
@@ -1278,6 +1328,9 @@ export default function Header() {
           .header-search-bar {
             max-width: 100% !important;
           }
+          .header-user-chevron {
+            display: block !important;
+          }
         }
         @media (max-width: 520px) {
           .header-location-picker {
@@ -1285,30 +1338,50 @@ export default function Header() {
           }
         }
         @media (max-width: 426px) {
+          .header-secondary-nav {
+            display: none !important;
+          }
           .header-main-row {
             height: 60px !important;
             padding: 0 10px !important;
-            gap: 6px !important;
+            gap: 4px !important;
           }
           .header-main-row img {
             height: 28px !important;
           }
+          .header-desktop-auth {
+            gap: 4px !important;
+          }
           .header-user-text {
             display: none !important;
           }
+          .header-user-chevron {
+            display: block !important;
+            width: 13px !important;
+            height: 13px !important;
+            margin-left: 1px !important;
+            flex-shrink: 0 !important;
+          }
           .header-profile-pill {
-            padding: 4px 6px !important;
-            border-radius: 50px !important;
-            gap: 4px !important;
+            padding: 2px 5px 2px 2px !important;
+            border-radius: 30px !important;
+            gap: 3px !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;
+            background: var(--bg-surface) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            cursor: pointer !important;
           }
           .header-profile-pill > div:nth-child(2) {
-            width: 32px !important;
-            height: 32px !important;
+            width: 30px !important;
+            height: 30px !important;
             font-size: 14px !important;
+            border-radius: 50% !important;
           }
           .header-gift-btn {
-            width: 32px !important;
-            height: 32px !important;
+            width: 30px !important;
+            height: 30px !important;
           }
           .header-gift-btn svg {
             width: 15px !important;
@@ -1316,15 +1389,24 @@ export default function Header() {
           }
           .mobile-hamburger-btn {
             display: flex !important;
-            padding: 6px !important;
+            order: 99 !important;
+            flex-shrink: 0 !important;
+            padding: 5px !important;
             border-radius: 8px !important;
           }
           .mobile-hamburger-btn svg {
             width: 20px !important;
             height: 20px !important;
           }
-          .header-desktop-auth {
-            gap: 6px !important;
+          .header-login-btn-text {
+            display: none !important;
+          }
+          .header-login-btn {
+            padding: 4px 8px !important;
+            border-radius: 30px !important;
+            height: 32px !important;
+            gap: 4px !important;
+            justify-content: center !important;
           }
         }
       `}</style>
