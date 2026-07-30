@@ -603,7 +603,7 @@ export default function Profile() {
           <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* Horizontal Tabs */}
-            <div className="card-elevated styled-scrollbar" style={{ padding: '8px', borderRadius: '16px', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+            <div className="card-elevated styled-scrollbar profile-tabs-bar" style={{ padding: '8px', borderRadius: '16px', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
               {[
                 { id: 'personal', label: 'Personal Details', icon: User },
                 { id: 'family', label: 'Family Members', icon: Users }
@@ -613,6 +613,7 @@ export default function Profile() {
                 return (
                   <button 
                     key={tab.id}
+                    className="profile-tab-btn"
                     onClick={() => {
                       setActiveTab(tab.id);
                       if (tab.id === 'family') {
@@ -632,14 +633,14 @@ export default function Profile() {
                     onMouseOut={e => { if(!isActive) e.currentTarget.style.background = 'transparent'; }}
                   >
                     <Icon size={16} className={isActive ? 'text-primary' : 'text-muted'} />
-                    {tab.label}
+                    <span>{tab.label}</span>
                   </button>
                 )
               })}
             </div>
 
             {/* Form Content */}
-            <div className="card-elevated" style={{ padding: '32px', borderRadius: '16px', background: 'var(--bg-surface)' }}>
+            <div className="card-elevated profile-form-card" style={{ padding: '32px', borderRadius: '16px', background: 'var(--bg-surface)' }}>
               {activeTab === 'personal' && (
                 <div className="animate-fade-in-up">
                   <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -647,7 +648,7 @@ export default function Profile() {
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Row 1: Full Name & Email Address */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="profile-form-row-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       <div className="flex flex-col gap-2">
                         <label className="text-muted" style={{ fontSize: '13px', fontWeight: '600' }}>Full Name</label>
                         <input name="name" value={profile.name} onChange={handleChange} readOnly={!isEditing} className="input-field" style={inputStyle} />
@@ -659,7 +660,7 @@ export default function Profile() {
                     </div>
 
                     {/* Row 2: Phone Number & Date of Birth */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className="profile-form-row-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       <div className="flex flex-col gap-2">
                         <label className="text-muted" style={{ fontSize: '13px', fontWeight: '600' }}>Phone Number</label>
                         <input name="phone" value={profile.phone} onChange={handleChange} readOnly={!isEditing} className="input-field" style={inputStyle} />
@@ -671,7 +672,7 @@ export default function Profile() {
                     </div>
 
                     {/* Row 3: Gender, Blood Group, Height (cm), Weight (kg) in 1 Row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                    <div className="profile-form-row-4col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                       <div className="flex flex-col gap-2">
                         <label className="text-muted" style={{ fontSize: '13px', fontWeight: '600' }}>Gender</label>
                         <select name="gender" value={profile.gender} onChange={handleChange} disabled={!isEditing} className="input-field" style={{...inputStyle, appearance: !isEditing ? 'none' : 'auto'}}>
@@ -907,7 +908,7 @@ export default function Profile() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 
                 {/* Row 1: Name & Relation */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Name *</label>
                     <input required name="name" value={memberForm.name} onChange={handleMemberFormChange} placeholder="Full Name" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
@@ -929,7 +930,7 @@ export default function Profile() {
                 </div>
 
                 {/* Row 2: Date of Birth & Gender */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Date of Birth</label>
                     <input type="date" name="dob" value={memberForm.dob} max={new Date().toISOString().split('T')[0]} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
@@ -946,7 +947,7 @@ export default function Profile() {
                 </div>
 
                 {/* Row 3: Blood Group, Height, Weight (in one row) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                <div className="modal-form-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Blood Group</label>
                     <select name="bloodGroup" value={memberForm.bloodGroup} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
@@ -973,7 +974,7 @@ export default function Profile() {
                 </div>
 
                 {/* Row 4: Mobile Number & ABHA Number (in one row) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Mobile Number</label>
                     <input type="tel" name="mobile" value={memberForm.mobile} onChange={handleMemberFormChange} placeholder="10-digit mobile" maxLength={10} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
@@ -1004,9 +1005,72 @@ export default function Profile() {
       )}
 
       <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 1024px) {
+          .profile-form-row-4col {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 16px !important;
+          }
+        }
         @media (max-width: 900px) {
-          .profile-grid { grid-template-columns: 1fr !important; }
+          .profile-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
           .profile-sidebar { position: relative !important; top: 0 !important; }
+        }
+        @media (max-width: 640px) {
+          .profile-form-card {
+            padding: 20px 16px !important;
+            border-radius: 12px !important;
+          }
+          .profile-form-row-2col {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .profile-form-row-4col {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 12px !important;
+          }
+          #profile-heading {
+            font-size: 20px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .profile-form-card {
+            padding: 16px 12px !important;
+          }
+          .profile-form-row-4col {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+          }
+          .modal-form-2col, .modal-form-3col {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+          }
+          .profile-tabs-bar {
+            padding: 4px !important;
+            gap: 4px !important;
+          }
+          .profile-tab-btn {
+            padding: 8px 6px !important;
+            font-size: 13px !important;
+            gap: 6px !important;
+          }
+        }
+        @media (max-width: 375px) {
+          .profile-tabs-bar {
+            padding: 3px !important;
+            gap: 3px !important;
+            border-radius: 12px !important;
+          }
+          .profile-tab-btn {
+            padding: 7px 4px !important;
+            font-size: 11px !important;
+            gap: 3px !important;
+            border-radius: 9px !important;
+          }
+          .profile-tab-btn svg {
+            width: 13px !important;
+            height: 13px !important;
+            flex-shrink: 0 !important;
+          }
         }
       `}} />
     </main>
