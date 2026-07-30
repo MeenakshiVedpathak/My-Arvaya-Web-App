@@ -398,8 +398,8 @@ export default function Rewards() {
 
       <div className="container" style={{ paddingTop: '28px' }}>
         
-        {/* TWO-COLUMN GRID: Independent column heights (alignItems: 'start') */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px', alignItems: 'start' }} className="loyalty-grid">
+        {/* TWO-COLUMN GRID: Equal column bottom alignment */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px', alignItems: 'stretch' }} className="loyalty-grid">
 
           {/* LEFT COLUMN: Available Points Card + Earn Points Section */}
           <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -644,18 +644,20 @@ export default function Rewards() {
 
           </section>
 
-          {/* RIGHT COLUMN: Recent History Section (Fits Content Naturally) */}
-          <aside style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* RIGHT COLUMN: Recent History Section (Aligned to Left Column Bottom) */}
+          <aside style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div style={{
               background: 'var(--bg-surface)',
               borderRadius: '20px',
-              padding: '24px',
+              padding: '24px 24px 16px 24px',
               border: '1px solid var(--border)',
               boxShadow: 'var(--shadow-sm)',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              height: '100%',
+              boxSizing: 'border-box'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexShrink: 0 }}>
                 <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
                   Recent History
                 </h2>
@@ -666,7 +668,7 @@ export default function Rewards() {
 
               {history.length === 0 ? (
                 /* Empty state */
-                <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+                <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{
                     width: '48px',
                     height: '48px',
@@ -682,8 +684,19 @@ export default function Rewards() {
                   <p style={{ fontSize: '13px', fontWeight: '500', margin: 0 }}>No transactions yet</p>
                 </div>
               ) : (
-                /* Natural flow list */
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                /* Scrollable list filling the full card height without bottom gap */
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    flex: 1,
+                    minHeight: 0,
+                    maxHeight: '440px',
+                    overflowY: 'auto',
+                    paddingRight: '8px'
+                  }}
+                  className="history-scroller"
+                >
                   {history.map((item, idx) => (
                     <div 
                       key={item.id}
@@ -720,8 +733,29 @@ export default function Rewards() {
         </div>
       </div>
 
-      {/* Embedded Responsive Styles */}
+      {/* Embedded Responsive & Custom Scrollbar Styles (Identical to Wallet.jsx) */}
       <style dangerouslySetInnerHTML={{__html: `
+        .history-scroller {
+          flex: 1 !important;
+          min-height: 0 !important;
+          max-height: 440px !important;
+          overflow-y: auto !important;
+        }
+        .history-scroller::-webkit-scrollbar {
+          width: 6px !important;
+          display: block !important;
+        }
+        .history-scroller::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.03) !important;
+          border-radius: 4px !important;
+        }
+        .history-scroller::-webkit-scrollbar-thumb {
+          background: var(--primary-soft, #C9DDE0) !important;
+          border-radius: 4px !important;
+        }
+        .history-scroller::-webkit-scrollbar-thumb:hover {
+          background: var(--primary, #2E666E) !important;
+        }
         @media (max-width: 868px) {
           .loyalty-grid {
             grid-template-columns: 1fr !important;

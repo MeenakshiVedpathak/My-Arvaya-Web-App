@@ -14,13 +14,13 @@ function saveRequests(requests) {
 }
 
 const EMERGENCY_TYPES = [
-  { value: "cardiac",    label: "Cardiac Emergency" },
-  { value: "accident",   label: "Accident / Trauma" },
-  { value: "breathing",  label: "Breathing Difficulty" },
-  { value: "pregnancy",  label: "Pregnancy / Maternity" },
-  { value: "burns",      label: "Burns" },
-  { value: "stroke",     label: "Stroke / Paralysis" },
-  { value: "other",      label: "Other" },
+  { value: "cardiac", label: "Cardiac Emergency" },
+  { value: "accident", label: "Accident / Trauma" },
+  { value: "breathing", label: "Breathing Difficulty" },
+  { value: "pregnancy", label: "Pregnancy / Maternity" },
+  { value: "burns", label: "Burns" },
+  { value: "stroke", label: "Stroke / Paralysis" },
+  { value: "other", label: "Other" },
 ];
 
 const STATUS_FLOW = ["Requested", "Dispatched", "En Route", "Arrived"];
@@ -32,7 +32,7 @@ function getStoredPatientId() {
       const user = JSON.parse(stored);
       return user?.patient_id || user?.id || user?.user_id || user?.app_user_id || null;
     }
-  } catch (e) {}
+  } catch (e) { }
   return null;
 }
 
@@ -100,10 +100,8 @@ async function getAmbulanceRequests(currentUser) {
   const filterQuery = ` AND patient_id=${patientId}`;
 
   const payload = {
-    filterQuery: filterQuery,
     filter: filterQuery,
     patient_id: patientId,
-    patientId: patientId,
     pageIndex: 1,
     pageSize: 100
   };
@@ -127,14 +125,14 @@ async function getAmbulanceRequests(currentUser) {
       return String(pId) === String(patientId);
     });
 
-function normalizeStatus(raw) {
-  if (!raw || typeof raw !== "string") return "Requested";
-  const s = raw.trim().toLowerCase().replace(/_/g, " ");
-  if (s.includes("dispatch")) return "Dispatched";
-  if (s.includes("en route") || s.includes("enroute") || s.includes("transit") || s.includes("on way")) return "En Route";
-  if (s.includes("arrive") || s.includes("reach") || s.includes("complete") || s.includes("done")) return "Arrived";
-  return "Requested";
-}
+    function normalizeStatus(raw) {
+      if (!raw || typeof raw !== "string") return "Requested";
+      const s = raw.trim().toLowerCase().replace(/_/g, " ");
+      if (s.includes("dispatch")) return "Dispatched";
+      if (s.includes("en route") || s.includes("enroute") || s.includes("transit") || s.includes("on way")) return "En Route";
+      if (s.includes("arrive") || s.includes("reach") || s.includes("complete") || s.includes("done")) return "Arrived";
+      return "Requested";
+    }
 
     return filteredList.map(item => {
       const rawEta = item.eta ?? item.eta_minutes ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;

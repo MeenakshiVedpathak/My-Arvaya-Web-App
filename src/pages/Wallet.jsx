@@ -424,32 +424,11 @@ export default function Wallet() {
           <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
             <Link to="/" className="hover:text-primary">Home</Link> <ChevronRight size={12} /> <span>My Rewards</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <h1 className="text-h2" style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>My Rewards</h1>
-              <p className="text-muted mt-1" style={{ fontSize: '14px', margin: '4px 0 0 0' }}>
-                Earn reward points on bookings & redeem exclusive healthcare benefits.
-              </p>
-            </div>
-            <button 
-              onClick={() => addDemoPoints(100)}
-              className="btn hover-glow"
-              style={{
-                background: 'linear-gradient(135deg, var(--accent), var(--accent-hover))',
-                color: 'white',
-                border: 'none',
-                padding: '10px 18px',
-                borderRadius: '12px',
-                fontSize: '13px',
-                fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer'
-              }}
-            >
-              <Plus size={16} /> Earn Free 100 Pts
-            </button>
+          <div>
+            <h1 className="text-h2" style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>My Rewards</h1>
+            <p className="text-muted mt-1" style={{ fontSize: '14px', margin: '4px 0 0 0' }}>
+              Earn reward points on bookings & redeem exclusive healthcare benefits.
+            </p>
           </div>
         </div>
       </div>

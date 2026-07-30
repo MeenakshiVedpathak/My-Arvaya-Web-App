@@ -28,14 +28,17 @@ export async function uploadImage(file, folderName, filename) {
 export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage') {
   if (!imagePath) return null;
   const pathStr = String(imagePath).trim();
-  if (!pathStr) return null;
+  if (!pathStr || pathStr === "undefined" || pathStr === "null") return null;
 
   if (pathStr.startsWith("data:") || pathStr.startsWith("blob:")) {
     return pathStr;
   }
 
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-  const fileName = pathStr.split('/').pop();
+  let fileName = pathStr;
+  if (fileName.includes('/')) {
+    fileName = fileName.split('/').pop();
+  }
 
   const token = getToken();
   const headers = {
@@ -53,18 +56,41 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
     : `${cleanBase}/static/${folderName}/${fileName}`;
 
   try {
-    const res = await fetch(targetUrl, { headers });
-    if (res.ok) {
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("image") || res.status === 200) {
-        const blob = await res.blob();
-        if (blob && blob.size > 0) {
-          return URL.createObjectURL(blob);
+    const res = await fetch(targetUrl, { 
+      headers,
+      redirect: 'manual'
+    });
+    if (res.ok && (res.status === 200 || res.status === 0)) {
+      const blob = await res.blob();
+      if (blob && blob.size > 0) {
+        let finalBlob = blob;
+        const ext = fileName.split('.').pop().split('?')[0].toLowerCase();
+        
+        // Define explicit MIME mapping for all common images & document types
+        const mimeMap = {
+          pdf: 'application/pdf',
+          jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
+          png: 'image/png',
+          webp: 'image/webp',
+          gif: 'image/gif',
+          svg: 'image/svg+xml',
+          bmp: 'image/bmp',
+          tiff: 'image/tiff',
+          tif: 'image/tiff',
+          txt: 'text/plain',
+          html: 'text/html'
+        };
+
+        if (mimeMap[ext] && blob.type !== mimeMap[ext]) {
+          finalBlob = new Blob([blob], { type: mimeMap[ext] });
         }
+
+        return URL.createObjectURL(finalBlob);
       }
     }
   } catch (err) {
-    console.error("fetchImageBlob error:", err);
+    // Silent catch to avoid console error pollution
   }
 
   return null;
@@ -73,22 +99,30 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
 export function getImageUrl(imagePath, folderName = 'familyProfileImage') {
   if (!imagePath) return "";
   const pathStr = String(imagePath).trim();
-  if (!pathStr) return "";
+  if (!pathStr || pathStr === "undefined" || pathStr === "null") return "";
 
-  if (pathStr.startsWith("data:") || pathStr.startsWith("blob:") || pathStr.startsWith("http://") || pathStr.startsWith("https://")) {
+  if (pathStr.startsWith("data:") || pathStr.startsWith("blob:")) {
+    return pathStr;
+  }
+
+  if (pathStr.startsWith("http://") || pathStr.startsWith("https://")) {
     return pathStr;
   }
 
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-  const cleanPath = pathStr.startsWith('/') ? pathStr.slice(1) : pathStr;
-
-  if (cleanPath.startsWith(`static/${folderName}`)) {
-    return `${cleanBase}/${cleanPath}`;
+  let fileName = pathStr;
+  if (fileName.includes('/')) {
+    fileName = fileName.split('/').pop();
   }
 
-  if (cleanPath.startsWith(folderName)) {
-    return `${cleanBase}/static/${cleanPath}`;
-  }
-
-  return `${cleanBase}/static/${folderName}/${cleanPath}`;
+  return `${cleanBase}/static/${folderName}/${fileName}`;
 }
+
+export async function fetchHealthRecordBlob(recordPath) {
+  return fetchImageBlob(recordPath, 'HealthRecords');
+}
+
+export function getHealthRecordUrl(recordPath) {
+  return getImageUrl(recordPath, 'HealthRecords');
+}
+
