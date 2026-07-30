@@ -1,10 +1,10 @@
 import { api } from "./api";
 import { getImageUrl } from "./uploadService";
 import { slots as mockSlots, packages as mockPackages } from "../mocks/data";
-
+import { getImageUrl } from "./uploadService";
 const USE_MOCK = true; // Forced static data for the dashboard after login
 
-function getStoredUserId() {
+export function getStoredUserId() {
   try {
     const user = JSON.parse(localStorage.getItem("arvaya_user"));
     return user?.id || user?.user_id || user?.app_user_id || null;
@@ -583,6 +583,63 @@ export async function getRecords(filters = {}) {
   } catch (err) {
     console.error("getRecords API error:", err);
     return { list: [], count: 0 };
+  }
+}
+
+/* ─── Appointments ─── */
+export async function getAppointments(filters = {}) {
+  try {
+    const storedUserId = getStoredUserId();
+    const payload = {
+      patientId: storedUserId,
+      ...filters
+    };
+    const res = await api.post("/api/appointments/getPatientAppointments", payload);
+    const rawList = res?.data || res?.list || res?.appointments || res?.result || (Array.isArray(res) ? res : []);
+
+    return Array.isArray(rawList) ? rawList.map(apt => {
+      let mappedStatus = (apt.appointment_status || apt.status || "upcoming").toLowerCase();
+      if (mappedStatus === "confirmed") mappedStatus = "upcoming";
+
+      return {
+        id: apt.appointment_id || apt.id || apt._id || Math.random(),
+        doctor: apt.name || apt.doctor_name || apt.doctor || "Consultant",
+        specialty: apt.speciality || apt.specialty || apt.department_name || "Specialist",
+        date: apt.appointment_date || apt.date || new Date().toISOString(),
+        time: apt.appointment_time || apt.time || "10:00 AM",
+        type: apt.appointment_type || apt.consultation_type || apt.type || "In-Person",
+        hospital: apt.hospital_name || apt.hospital || apt.clinic || "Arvaya Health",
+        status: mappedStatus,
+        amount: apt.amount || "0.00",
+        patientName: apt.patient_name || "",
+        patientMobile: apt.patient_mobile || "",
+        image: apt.image || apt.doctor_image || "https://i.pravatar.cc/150",
+        raw: apt
+      };
+    }) : [];
+  } catch (err) {
+    console.error("getAppointments error:", err);
+    return [];
+  }
+}
+
+export async function cancelAppointment(payload) {
+  try {
+    const res = await api.post("/api/appointments/cancel", payload);
+    return res?.data || res;
+  } catch (err) {
+    console.error("cancelAppointment error:", err);
+    throw err;
+  }
+}
+
+export async function rescheduleAppointment(payload) {
+  try {
+    const res = await api.post("/api/appointments/reschedule", payload);
+    return res?.data || res;
+  } catch (err) {
+    console.error("rescheduleAppointment error:", err);
+    throw err;
   }
 }
 

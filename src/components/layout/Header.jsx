@@ -39,7 +39,7 @@ function getUserDisplayName(user) {
         return `${pFirst} ${pLast}`.trim();
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return (rawName && rawName !== "User") ? rawName : "User";
 }
@@ -66,7 +66,6 @@ export default function Header() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [headerAvatar, setHeaderAvatar] = useState("");
-
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isCustomShareOpen, setIsCustomShareOpen] = useState(false);
@@ -88,7 +87,7 @@ export default function Header() {
       color: '#25D366',
       icon: (
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.46h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.46h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
         </svg>
       )
     },
@@ -98,7 +97,7 @@ export default function Header() {
       color: '#0088cc',
       icon: (
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15.74-.79 3.8-1.12 5.59-.14.76-.42 1.01-.69 1.04-.59.05-1.04-.39-1.61-.76-.89-.58-1.39-.94-2.26-1.51-1.01-.66-.35-1.02.22-1.61 1.5-1.53 2.75-2.77 2.78-2.82.04-.06.07-.2-.01-.27-.08-.07-.23-.05-.33-.03-.14.03-2.45 1.56-4.94 3.23-.36.25-.69.37-.99.36-.33 0-.96-.18-1.44-.34-.58-.19-1.05-.29-1.01-.62.02-.17.25-.35.69-.53 2.69-1.17 4.5-1.95 5.41-2.33 2.58-1.07 3.11-1.25 3.47-1.26.08 0 .25.02.36.11.09.08.12.18.13.27 0 .05-.01.15-.02.2z"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15.74-.79 3.8-1.12 5.59-.14.76-.42 1.01-.69 1.04-.59.05-1.04-.39-1.61-.76-.89-.58-1.39-.94-2.26-1.51-1.01-.66-.35-1.02.22-1.61 1.5-1.53 2.75-2.77 2.78-2.82.04-.06.07-.2-.01-.27-.08-.07-.23-.05-.33-.03-.14.03-2.45 1.56-4.94 3.23-.36.25-.69.37-.99.36-.33 0-.96-.18-1.44-.34-.58-.19-1.05-.29-1.01-.62.02-.17.25-.35.69-.53 2.69-1.17 4.5-1.95 5.41-2.33 2.58-1.07 3.11-1.25 3.47-1.26.08 0 .25.02.36.11.09.08.12.18.13.27 0 .05-.01.15-.02.2z" />
         </svg>
       )
     },
@@ -108,8 +107,8 @@ export default function Header() {
       color: '#464EB8',
       icon: (
         <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-          <path d="M9.186 4.797a2.42 2.42 0 1 0-2.86-2.448h1.178c.929 0 1.682.753 1.682 1.682zm-4.295 7.738h2.613c.929 0 1.682-.753 1.682-1.682V5.58h2.783a.7.7 0 0 1 .682.716v4.294a4.197 4.197 0 0 1-4.093 4.293c-1.618-.04-3-.99-3.667-2.35Zm10.737-9.372a1.674 1.674 0 1 1-3.349 0 1.674 1.674 0 0 1 3.349 0m-2.238 9.488-.12-.002a5.2 5.2 0 0 0 .381-2.07V6.306a1.7 1.7 0 0 0-.15-.725h1.792c.39 0 .707.317.707.707v3.765a2.6 2.6 0 0 1-2.598 2.598z"/>
-          <path d="M.682 3.349h6.822c.377 0 .682.305.682.682v6.822a.68.68 0 0 1-.682.682H.682A.68.68 0 0 1 0 10.853V4.03c0-.377.305-.682.682-.682Zm5.206 2.596v-.72h-3.59v.72h1.357V9.66h.87V5.945z"/>
+          <path d="M9.186 4.797a2.42 2.42 0 1 0-2.86-2.448h1.178c.929 0 1.682.753 1.682 1.682zm-4.295 7.738h2.613c.929 0 1.682-.753 1.682-1.682V5.58h2.783a.7.7 0 0 1 .682.716v4.294a4.197 4.197 0 0 1-4.093 4.293c-1.618-.04-3-.99-3.667-2.35Zm10.737-9.372a1.674 1.674 0 1 1-3.349 0 1.674 1.674 0 0 1 3.349 0m-2.238 9.488-.12-.002a5.2 5.2 0 0 0 .381-2.07V6.306a1.7 1.7 0 0 0-.15-.725h1.792c.39 0 .707.317.707.707v3.765a2.6 2.6 0 0 1-2.598 2.598z" />
+          <path d="M.682 3.349h6.822c.377 0 .682.305.682.682v6.822a.68.68 0 0 1-.682.682H.682A.68.68 0 0 1 0 10.853V4.03c0-.377.305-.682.682-.682Zm5.206 2.596v-.72h-3.59v.72h1.357V9.66h.87V5.945z" />
         </svg>
       )
     },
@@ -119,7 +118,7 @@ export default function Header() {
       color: '#000000',
       icon: (
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
         </svg>
       )
     },
@@ -129,7 +128,7 @@ export default function Header() {
       color: '#1877F2',
       icon: (
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
         </svg>
       )
     },
@@ -139,7 +138,7 @@ export default function Header() {
       color: '#0A66C2',
       icon: (
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
         </svg>
       )
     },
@@ -149,7 +148,7 @@ export default function Header() {
       color: '#EA4335',
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
         </svg>
       )
     },
@@ -159,8 +158,8 @@ export default function Header() {
       color: '#10B981',
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-          <line x1="12" y1="18" x2="12.01" y2="18"/>
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" />
         </svg>
       )
     },
@@ -170,8 +169,8 @@ export default function Header() {
       color: '#FB913F',
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
         </svg>
       )
     }
@@ -183,7 +182,7 @@ export default function Header() {
       await navigator.clipboard.writeText(defaultShareMessage);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
-    } catch (e) {}
+    } catch (e) { }
 
     if (platform === 'sms') {
       window.open(`sms:?body=${encodeURIComponent(defaultShareMessage)}`, '_self');
@@ -256,7 +255,7 @@ export default function Header() {
 
   useEffect(() => {
     let isMounted = true;
- 
+
     async function updateHeaderAvatar() {
       if (!user) {
         if (isMounted) setHeaderAvatar("");
@@ -269,15 +268,15 @@ export default function Header() {
           try {
             const parsed = JSON.parse(storedUser);
             storedUserId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
-          } catch (e) {}
+          } catch (e) { }
         }
- 
+
         const mobile = user?.phone || user?.mobile_number || user?.mobile;
         const filters = {
           ...(storedUserId ? { id: storedUserId, filterQuery: ` AND id=${storedUserId}` } : {}),
           ...(mobile ? { mobile_number: mobile } : {})
         };
- 
+
         const res = await getPatients(filters);
         let patientData = null;
         if (Array.isArray(res) && res.length > 0) {
@@ -287,15 +286,15 @@ export default function Header() {
         } else if (res && typeof res === "object" && !Array.isArray(res)) {
           patientData = res;
         }
- 
+
         let imgPath = patientData?.profile_image || patientData?.profileImage || patientData?.photo || user?.profile_image || user?.profileImage || "";
         if (!imgPath && storedUser) {
           try {
             const parsed = JSON.parse(storedUser);
             imgPath = parsed?.profile_image || parsed?.profileImage || parsed?.photo || "";
-          } catch (e) {}
+          } catch (e) { }
         }
- 
+
         if (imgPath) {
           const resolved = await fetchImageBlob(imgPath, "patientProfileImage");
           if (isMounted && resolved) {
@@ -309,9 +308,9 @@ export default function Header() {
         if (isMounted) setHeaderAvatar("");
       }
     }
- 
+
     updateHeaderAvatar();
- 
+
     const handleProfileUpdate = () => {
       updateHeaderAvatar();
     };
@@ -321,7 +320,7 @@ export default function Header() {
       window.removeEventListener("arvaya_profile_updated", handleProfileUpdate);
     };
   }, [user]);
- 
+
 
   useEffect(() => {
     async function initLocations() {
@@ -379,21 +378,21 @@ export default function Header() {
       try {
         const query = q.toLowerCase();
 
-        const docRes = await getDoctors({ 
-          pageSize: 100, 
+        const docRes = await getDoctors({
+          pageSize: 100,
           filter: q,
-          location_key: globalLocation?.entitylocation || "" 
+          location_key: globalLocation?.entitylocation || ""
         });
-        
+
         const allDocs = docRes.list || [];
-        const localFilteredDocs = allDocs.filter(d => 
+        const localFilteredDocs = allDocs.filter(d =>
           d.name?.toLowerCase().includes(query) || d.specialty?.toLowerCase().includes(query)
         );
         setFilteredDoctors(localFilteredDocs.slice(0, 5));
-        
+
         const pkgRes = await getLabPackages({ pageSize: 100, filter: q });
         const allPkgs = pkgRes || [];
-        const localFilteredPkgs = allPkgs.filter(p => 
+        const localFilteredPkgs = allPkgs.filter(p =>
           p.title?.toLowerCase().includes(query) || p.tests?.toLowerCase().includes(query)
         );
         setFilteredPackages(localFilteredPkgs.slice(0, 5));
@@ -433,7 +432,7 @@ export default function Header() {
     ["Patient Portal", "/records"],
     ["Wallet", "/wallet"],
     ["Rewards", "/rewards"],
-    ["Refer & Earn", "/referrals"],
+    // ["Refer & Earn", "/referrals"],
     ["Analytics", "/analytics"],
     ["Ambulance", "/ambulance"],
     ["Support", "/support"]
@@ -451,15 +450,13 @@ export default function Header() {
             <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
           </Link>
 
-          {/* Universal Search Bar & Location Picker */}
-          <div ref={searchContainerRef} className="header-search-bar flex-1 flex items-center" style={{ position: 'relative', maxWidth: '600px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'rgba(255, 255, 255, 0.8)', boxShadow: isSearchFocused ? '0 0 0 4px rgba(46, 102, 110, 0.12)' : 'var(--shadow-sm)', height: '44px', transition: 'all 0.25s' }}>
-
-            {/* Location Selector */}
-            <div ref={locationPickerRef} style={{ position: 'relative', height: '100%' }}>
+          {/* Location Picker */}
+          <div className="flex-1 flex items-center">
+            <div ref={locationPickerRef} style={{ position: 'relative', height: '44px' }}>
               <div
                 className="header-location-picker flex items-center gap-1"
                 onClick={() => setIsLocationOpen(!isLocationOpen)}
-                style={{ padding: '0 16px', borderRight: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', background: 'var(--bg-app)', height: '100%', transition: 'background 0.2s', flexShrink: 0, userSelect: 'none' }}
+                style={{ padding: '0 16px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', background: 'var(--bg-app)', height: '100%', transition: 'background 0.2s', userSelect: 'none', boxShadow: 'var(--shadow-sm)' }}
               >
                 <MapPin size={16} className="text-primary" />
                 <span>{selectedCity}</span>
@@ -469,13 +466,13 @@ export default function Header() {
               {/* Location Dropdown Menu */}
               {isLocationOpen && (
                 <div className="styled-scrollbar" style={{ position: 'absolute', top: '50px', left: 0, width: '240px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '10px', animation: 'fadeIn 0.2s ease', maxHeight: '350px', overflowY: 'auto' }}>
-                  
+
                   {/* Location Search Box */}
                   <div style={{ marginBottom: '8px', padding: '0 4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-app)', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px' }}>
                       <Search size={14} color="var(--text-muted)" />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         placeholder="Search locations..."
                         value={locSearch}
                         onChange={e => setLocSearch(e.target.value)}
@@ -486,7 +483,7 @@ export default function Header() {
                   </div>
 
                   <div style={{ padding: '6px 4px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>Available Locations</div>
-                  
+
                   {loadingLocs ? (
                     <div style={{ padding: '12px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)' }}>Loading...</div>
                   ) : (
@@ -498,9 +495,9 @@ export default function Header() {
                       return (
                         <div
                           key={loc.entitylocation || idx}
-                          onClick={() => { 
+                          onClick={() => {
                             setGlobalLocation(loc);
-                            setIsLocationOpen(false); 
+                            setIsLocationOpen(false);
                             setLocSearch(""); // clear search on select
                           }}
                           style={{ padding: '10px 10px', borderRadius: '8px', fontSize: '13px', color: selectedCity === locName ? 'var(--primary)' : 'var(--text-main)', fontWeight: selectedCity === locName ? '700' : '500', background: selectedCity === locName ? 'var(--primary-light)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.2s' }}
@@ -519,88 +516,6 @@ export default function Header() {
                 </div>
               )}
             </div>
-
-            {/* Search Input */}
-            <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2" style={{ padding: '0 16px', background: 'transparent', minWidth: '0', height: '100%' }}>
-              <Search size={18} className="text-muted" style={{ flexShrink: 0 }} />
-              <input
-                placeholder="Search doctors, specialties, lab tests..."
-                value={q}
-                onChange={e => setQ(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px', color: 'var(--text-main)' }}
-              />
-              {q && (
-                <X size={16} className="text-muted cursor-pointer" onClick={() => setQ("")} />
-              )}
-            </form>
-
-            {/* Search Autocomplete Results Popover */}
-            {isSearchFocused && q.trim().length > 0 && (
-              <div className="header-search-popover" style={{ position: 'absolute', top: '50px', left: 0, right: 0, background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0 16px 40px rgba(18,51,58,0.2)', zIndex: 110, padding: '16px', animation: 'fadeIn 0.2s ease', maxHeight: '420px', overflowY: 'auto' }}>
-
-                {/* Section: Doctors */}
-                {filteredDoctors.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Stethoscope size={14} color="var(--primary)" /> Top Doctors
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {filteredDoctors.map(doc => (
-                        <div
-                          key={doc.id}
-                          onClick={() => handleSelectDoctor(doc)}
-                          style={{ padding: '10px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'var(--bg-app)' }}
-                          onMouseOver={e => e.currentTarget.style.background = 'var(--primary-light)'}
-                          onMouseOut={e => e.currentTarget.style.background = 'var(--bg-app)'}
-                        >
-                          <div>
-                            <b style={{ fontSize: '14px', color: 'var(--primary-dark)', display: 'block' }}>{doc.name}</b>
-                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{doc.specialty} • {doc.hospital}</span>
-                          </div>
-                          <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>₹{doc.fee}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Section: Lab Tests */}
-                {filteredPackages.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <FlaskConical size={14} color="var(--accent)" /> Lab Packages & Diagnostics
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {filteredPackages.map((pkg, i) => (
-                        <div
-                          key={i}
-                          onClick={() => handleSelectLab(pkg)}
-                          style={{ padding: '10px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'background 0.2s', background: 'var(--bg-app)' }}
-                          onMouseOver={e => e.currentTarget.style.background = 'var(--primary-light)'}
-                          onMouseOut={e => e.currentTarget.style.background = 'var(--bg-app)'}
-                        >
-                          <div>
-                            <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{pkg.title}</b>
-                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{pkg.tests}</span>
-                          </div>
-                          <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--primary)' }}>{pkg.price}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* View All Search Action */}
-                <div
-                  onClick={() => handleSearchSubmit()}
-                  style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '8px', textAlign: 'center', fontSize: '13px', fontWeight: '700', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <span>Search all results for "{q}" in {selectedCity}</span>
-                  <ArrowRight size={14} />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right Auth CTA (Desktop & Mobile Icon) */}
@@ -629,7 +544,6 @@ export default function Header() {
             >
               <Gift size={18} color="var(--primary)" />
             </button>
-
             {user ? (
               <div className="flex items-center gap-4" ref={profileMenuRef} style={{ position: 'relative' }}>
                 <div
@@ -777,7 +691,7 @@ export default function Header() {
 
         {/* ── Secondary Navigation ── */}
         <div style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
-          <div className="container flex items-center gap-6 no-scrollbar" style={{ height: '48px', overflowX: 'auto' }}>
+          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '48px', overflowX: 'auto', gap: '8px' }}>
             {navLinks.map(([label, path]) => (
               <NavLink
                 key={label}
@@ -927,7 +841,7 @@ export default function Header() {
 
       {/* ── Professional Website Referral Modal ── */}
       {isReferralModalOpen && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -945,7 +859,7 @@ export default function Header() {
           }}
           onClick={() => setIsReferralModalOpen(false)}
         >
-          <div 
+          <div
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%',
@@ -1086,16 +1000,16 @@ export default function Header() {
             </div>
 
             {/* Referral Link Container */}
-            <div style={{ 
-              background: 'var(--bg-app, #F4F8F8)', 
-              borderRadius: '14px', 
-              padding: '14px 16px', 
+            <div style={{
+              background: 'var(--bg-app, #F4F8F8)',
+              borderRadius: '14px',
+              padding: '14px 16px',
               border: '1px solid var(--border, #DCE6E7)'
             }}>
               <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted, #5E7377)', letterSpacing: '0.8px', display: 'block', marginBottom: '8px' }}>
                 App Download & Referral Link
               </span>
-              
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input
                   type="text"
@@ -1113,7 +1027,7 @@ export default function Header() {
                     fontFamily: 'monospace'
                   }}
                 />
-                
+
                 <button
                   onClick={handleCopyLink}
                   style={{
@@ -1168,7 +1082,7 @@ export default function Header() {
 
       {/* ── Custom Window Share Sheet Modal ── */}
       {isCustomShareOpen && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -1186,7 +1100,7 @@ export default function Header() {
           }}
           onClick={() => setIsCustomShareOpen(false)}
         >
-          <div 
+          <div
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%',
@@ -1276,11 +1190,11 @@ export default function Header() {
               <span style={{ fontSize: '12px', fontWeight: '600', color: '#CCCCCC', display: 'block', marginBottom: '12px' }}>
                 Share using
               </span>
-              
+
               {/* Apps List Grid */}
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '16px 6px',
                 maxHeight: '260px',
                 overflowY: 'auto',
@@ -1330,9 +1244,9 @@ export default function Header() {
                     }}>
                       {option.icon}
                     </div>
-                    <span style={{ 
-                      fontSize: '10px', 
-                      color: '#E0E0E0', 
+                    <span style={{
+                      fontSize: '10px',
+                      color: '#E0E0E0',
                       textAlign: 'center',
                       maxWidth: '64px',
                       overflow: 'hidden',
@@ -1349,9 +1263,12 @@ export default function Header() {
         </div>
       )}
 
+
+
       {/* Embedded Responsive CSS Rules for Header */}
       <style>{`
         @media (max-width: 768px) {
+        
           .mobile-hamburger-btn {
             display: flex !important;
           }
