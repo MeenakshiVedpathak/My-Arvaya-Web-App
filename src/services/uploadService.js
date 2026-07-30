@@ -60,6 +60,9 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
       headers,
       redirect: 'manual'
     });
+    if (!res.ok || res.status === 404) {
+      return null;
+    }
     if (res.ok && (res.status === 200 || res.status === 0)) {
       const blob = await res.blob();
       if (blob && blob.size > 0) {

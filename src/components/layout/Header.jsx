@@ -540,20 +540,20 @@ export default function Header() {
                 flexShrink: 0,
                 outline: 'none'
               }}
-              className="hover:scale-105"
+              className="hover:scale-105 header-gift-btn"
             >
               <Gift size={18} color="var(--primary)" />
             </button>
             {user ? (
               <div className="flex items-center gap-4" ref={profileMenuRef} style={{ position: 'relative' }}>
                 <div
-                  className="flex items-center gap-3 cursor-pointer"
+                  className="flex items-center gap-3 cursor-pointer header-profile-pill"
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                   style={{ padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '30px', background: 'var(--bg-surface)', transition: 'background 0.2s' }}
                   onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
                   onMouseOut={e => e.currentTarget.style.background = 'var(--bg-surface)'}
                 >
-                  <div className="flex flex-col items-end">
+                  <div className="flex flex-col items-end header-user-text">
                     <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
                     <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{displayName.split(" ")[0]}</span>
                   </div>
@@ -1268,7 +1268,6 @@ export default function Header() {
       {/* Embedded Responsive CSS Rules for Header */}
       <style>{`
         @media (max-width: 768px) {
-        
           .mobile-hamburger-btn {
             display: flex !important;
           }
@@ -1283,6 +1282,49 @@ export default function Header() {
         @media (max-width: 520px) {
           .header-location-picker {
             display: none !important;
+          }
+        }
+        @media (max-width: 426px) {
+          .header-main-row {
+            height: 60px !important;
+            padding: 0 10px !important;
+            gap: 6px !important;
+          }
+          .header-main-row img {
+            height: 28px !important;
+          }
+          .header-user-text {
+            display: none !important;
+          }
+          .header-profile-pill {
+            padding: 4px 6px !important;
+            border-radius: 50px !important;
+            gap: 4px !important;
+          }
+          .header-profile-pill > div:nth-child(2) {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 14px !important;
+          }
+          .header-gift-btn {
+            width: 32px !important;
+            height: 32px !important;
+          }
+          .header-gift-btn svg {
+            width: 15px !important;
+            height: 15px !important;
+          }
+          .mobile-hamburger-btn {
+            display: flex !important;
+            padding: 6px !important;
+            border-radius: 8px !important;
+          }
+          .mobile-hamburger-btn svg {
+            width: 20px !important;
+            height: 20px !important;
+          }
+          .header-desktop-auth {
+            gap: 6px !important;
           }
         }
       `}</style>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { packages } from "../mocks/data";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 import { getBanners } from "../services/dataService";
+import { getImageUrl } from "../services/uploadService";
 
 export default function Home() {
   const go = useNavigate();
@@ -60,17 +61,7 @@ export default function Home() {
         if (banners.length > 0) {
           const newSlides = banners.map((b, i) => {
             const baseSlide = heroSlides[i % heroSlides.length];
-            let fullImgUrl = "";
-            if (b.img_url) {
-              if (b.img_url.startsWith('http')) {
-                fullImgUrl = b.img_url;
-              } else {
-                const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-                const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
-                const fileName = b.img_url.replace(/^\/+/, '').replace(/^static\/bannerImages\//, '');
-                fullImgUrl = `${cleanBase}/static/bannerImages/${fileName}`;
-              }
-            }
+            const fullImgUrl = b.img_url ? getImageUrl(b.img_url, 'bannerImages') : "";
             return {
               ...baseSlide,
               bg: fullImgUrl || baseSlide.bg

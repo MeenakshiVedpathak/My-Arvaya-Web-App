@@ -1,5 +1,6 @@
 import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint, X, Upload, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { getRecords } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
@@ -44,6 +45,56 @@ export default function Records() {
   let [uploading, setUploading] = useState(false);
   let [uploadSuccess, setUploadSuccess] = useState(false);
 
+  // ABHA Linked Status
+  const [isAbhaLinked, setIsAbhaLinked] = useState(() => localStorage.getItem("arvaya_abha_linked") === "true");
+
+  useEffect(() => {
+    const checkAbhaStatus = () => {
+      setIsAbhaLinked(localStorage.getItem("arvaya_abha_linked") === "true");
+    };
+    checkAbhaStatus();
+    window.addEventListener("storage", checkAbhaStatus);
+    return () => window.removeEventListener("storage", checkAbhaStatus);
+  }, []);
+
+  // ABHA Records State & Fetching
+  const [abhaRecords, setAbhaRecords] = useState([]);
+  const [loadingAbha, setLoadingAbha] = useState(false);
+
+  const fetchAbhaRecords = () => {
+    setLoadingAbha(true);
+    const storedUser = localStorage.getItem("arvaya_user");
+    let userId = 107609;
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        userId = parsed?.user_id || parsed?.id || parsed?.app_user_id || 107609;
+      } catch(e) {}
+    }
+
+    const filterString = ` AND app_user_id = ${userId} AND record_type = 'P' AND status = 1 `;
+
+    getRecords({
+      pageIndex: 1,
+      pageSize: 20,
+      sortKey: "id",
+      sortValue: "desc",
+      filter: filterString
+    }).then(res => {
+      setAbhaRecords(res.list || []);
+      setLoadingAbha(false);
+    }).catch(err => {
+      console.error("fetchAbhaRecords error:", err);
+      setLoadingAbha(false);
+    });
+  };
+
+  useEffect(() => {
+    if (activeTab === 'abha' && isAbhaLinked) {
+      fetchAbhaRecords();
+    }
+  }, [activeTab, isAbhaLinked]);
+
   // Download State
   let [downloadingId, setDownloadingId] = useState(null);
 
@@ -62,6 +113,17 @@ export default function Records() {
       setLoadingMore(false);
     });
   };
+
+  useEffect(() => {
+    if (showUploadModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showUploadModal]);
 
   useEffect(() => {
     fetchRecords(1);
@@ -330,12 +392,107 @@ export default function Records() {
             </div>
 
             {activeTab === 'abha' ? (
-              <div className="card-elevated" style={{ textAlign: 'center', padding: '80px 40px', background: 'var(--bg-surface)' }}>
-                <img src="/empty_reports.png" alt="No reports found" style={{ height: '120px', marginBottom: '24px', opacity: 0.5 }} />
-                <h3 style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '12px', fontWeight: '700' }}>No ABHA records found</h3>
-                <p style={{ color: 'var(--muted)', fontSize: '16px', maxWidth: '400px', margin: '0 auto 24px' }}>Link your ABHA ID to sync records from external hospitals and clinics.</p>
-                <button style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontWeight: '600', cursor: 'pointer' }}>Link ABHA ID</button>
-              </div>
+              isAbhaLinked ? (
+                loadingAbha ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '24px' }}>
+                    {[1, 2, 3].map(i => (
+                      <div key={i} style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                        <div className="skeleton skeleton-avatar" style={{ width: '56px', height: '56px', borderRadius: '16px' }}></div>
+                        <div style={{ flex: 1 }}>
+                          <div className="skeleton skeleton-title" style={{ width: '50%' }}></div>
+                          <div className="skeleton skeleton-text" style={{ width: '30%' }}></div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <div className="skeleton skeleton-btn" style={{ width: '80px' }}></div>
+                          <div className="skeleton skeleton-btn" style={{ width: '40px' }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : abhaRecords.length === 0 ? (
+                  <div className="card-elevated" style={{ textAlign: 'center', padding: '80px 40px', background: 'var(--bg-surface)' }}>
+                    <img src="/empty_reports.png" alt="No reports found" style={{ height: '120px', marginBottom: '24px', opacity: 0.5 }} />
+                    <h3 style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '12px', fontWeight: '700' }}>No ABHA records found</h3>
+                    <p style={{ color: 'var(--muted)', fontSize: '16px', maxWidth: '400px', margin: '0 auto 24px' }}>Your ABHA account is linked. Synced records from linked hospitals will automatically appear here.</p>
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: '27px', top: '40px', bottom: '40px', width: '2px', background: 'var(--border)', zIndex: 0 }}></div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {abhaRecords.map((rec) => {
+                        const { Icon, color, bg } = getRecordIcon(rec.type);
+                        const targetFile = rec?.filePath || rec?.fileUrl || rec?.raw?.file_name || rec?.raw?.file_path || rec?.raw?.file_url || rec?.raw?.url || rec?.raw?.file;
+                        const hasFile = Boolean(targetFile && targetFile !== "null" && targetFile !== "undefined");
+                        return (
+                          <article className="hover-glow record-item-card" key={rec.id} style={{ display: 'flex', alignItems: 'center', padding: '24px 0', borderBottom: '1px solid var(--border)', gap: '24px', cursor: hasFile ? 'pointer' : 'default', position: 'relative', zIndex: 1 }} onClick={(e) => hasFile && handleViewRecord(rec, e)}>
+                            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '4px solid var(--bg)', boxShadow: '0 0 0 4px var(--bg)' }}>
+                              <Icon size={24} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                <h4 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{rec.title}</h4>
+                                <span style={{ fontSize: '12px', fontWeight: '600', background: 'var(--bg)', color: 'var(--muted)', padding: '4px 10px', borderRadius: '99px', border: '1px solid var(--border)' }}>{rec.type || "ABHA Record"}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--muted)', fontSize: '14px', flexWrap: 'wrap' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Stethoscope size={14} /> {rec.doctor}</span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {rec.date}</span>
+                              </div>
+                            </div>
+                            <div className="record-item-actions" style={{ display: 'flex', gap: '12px' }}>
+                              <button 
+                                className="btn hover-glow" 
+                                disabled={!hasFile}
+                                title={hasFile ? "View Record" : "No document file available"}
+                                style={{ 
+                                  background: hasFile ? 'var(--primary-light)' : 'var(--bg)', 
+                                  color: hasFile ? 'var(--primary)' : 'var(--muted)', 
+                                  border: 'none', 
+                                  padding: '10px 20px', 
+                                  borderRadius: '10px', 
+                                  fontSize: '14px', 
+                                  fontWeight: '600', 
+                                  cursor: hasFile ? 'pointer' : 'not-allowed', 
+                                  opacity: hasFile ? 1 : 0.5,
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '6px' 
+                                }} 
+                                onClick={(e) => hasFile && handleViewRecord(rec, e)}
+                              >
+                                View
+                              </button>
+                              <button 
+                                className="btn btn-secondary hover-glow" 
+                                disabled={!hasFile || downloadingId === rec.id}
+                                title={hasFile ? "Download Record" : "No document file available"}
+                                style={{ 
+                                  padding: '10px', 
+                                  borderRadius: '10px', 
+                                  cursor: hasFile ? 'pointer' : 'not-allowed', 
+                                  opacity: hasFile ? 1 : 0.5,
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  justifyContent: 'center' 
+                                }}
+                                onClick={(e) => hasFile && handleDownloadRecord(rec, e)}
+                              >
+                                <Download size={18} />
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="card-elevated" style={{ textAlign: 'center', padding: '80px 40px', background: 'var(--bg-surface)' }}>
+                  <img src="/empty_reports.png" alt="No reports found" style={{ height: '120px', marginBottom: '24px', opacity: 0.5 }} />
+                  <h3 style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '12px', fontWeight: '700' }}>No ABHA records found</h3>
+                  <p style={{ color: 'var(--muted)', fontSize: '16px', maxWidth: '400px', margin: '0 auto 24px' }}>Link your ABHA ID to sync records from external hospitals and clinics.</p>
+                  <button style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontWeight: '600', cursor: 'pointer' }}>Link ABHA ID</button>
+                </div>
+              )
             ) : (
               <>
                 {loading ? (
@@ -469,27 +626,27 @@ export default function Records() {
 
 
 
-      {showUploadModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-          <div className="animate-fade-in-up" style={{ background: 'var(--bg-surface)', width: '100%', maxWidth: '520px', borderRadius: '20px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+      {showUploadModal && createPortal(
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999999, margin: 0, padding: '12px', overflow: 'hidden' }}>
+          <div className="animate-fade-in-up" style={{ background: 'var(--bg-surface)', width: '100%', maxWidth: '370px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)', border: '1px solid var(--border)', overflow: 'hidden' }}>
             
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-                <CloudUpload size={22} color="var(--primary)" /> Upload Medical Record
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <CloudUpload size={18} color="var(--primary)" /> Upload Medical Record
               </h3>
-              <button onClick={() => setShowUploadModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '4px', borderRadius: '50%' }}>
-                <X size={20} />
+              <button onClick={() => setShowUploadModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '2px', borderRadius: '50%' }}>
+                <X size={18} />
               </button>
             </div>
 
             {/* Modal Content */}
-            <form onSubmit={handleUploadSubmit} style={{ padding: '24px' }}>
+            <form onSubmit={handleUploadSubmit} style={{ padding: '12px 16px' }}>
               
               {/* File Dropzone / Selector */}
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                style={{ border: '2px dashed var(--border)', borderRadius: '14px', padding: '28px 20px', textAlign: 'center', background: 'var(--bg-app)', cursor: 'pointer', marginBottom: '20px', transition: 'border-color 0.2s' }}
+                style={{ border: '2px dashed var(--border)', borderRadius: '10px', padding: '10px 12px', textAlign: 'center', background: 'var(--bg-app)', cursor: 'pointer', marginBottom: '10px', transition: 'border-color 0.2s' }}
               >
                 <input 
                   type="file" 
@@ -499,42 +656,42 @@ export default function Records() {
                   style={{ display: 'none' }} 
                 />
                 {selectedFile ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                    <FileText size={32} color="var(--primary)" />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <FileText size={20} color="var(--primary)" />
                     <div style={{ textAlign: 'left' }}>
-                      <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', fontSize: '15px' }}>{selectedFile.name}</p>
-                      <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Click to change</p>
+                      <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', fontSize: '12px' }}>{selectedFile.name}</p>
+                      <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted)' }}>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Click to change</p>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <Upload size={36} color="var(--primary)" style={{ margin: '0 auto 10px', opacity: 0.8 }} />
-                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-main)', fontSize: '15px' }}>Click or drag file to upload</p>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--muted)' }}>Supports PDF, JPG, PNG, DOCX up to 10MB</p>
+                    <Upload size={20} color="var(--primary)" style={{ margin: '0 auto 2px', opacity: 0.8 }} />
+                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-main)', fontSize: '12px' }}>Click or drag file to upload</p>
+                    <p style={{ margin: '1px 0 0', fontSize: '10px', color: 'var(--muted)' }}>Supports PDF, JPG, PNG up to 10MB</p>
                   </div>
                 )}
               </div>
 
               {/* Record Title Input */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Document Name / Title *</label>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '3px' }}>Document Name / Title *</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Blood Test Report, Chest X-Ray..." 
                   value={recordTitle} 
                   onChange={(e) => setRecordTitle(e.target.value)} 
                   required 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
                 />
               </div>
 
               {/* Record Type Selection */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Record Type</label>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '3px' }}>Record Type</label>
                 <select 
                   value={recordType} 
                   onChange={(e) => setRecordType(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
                 >
                   <option value="Lab Report">Lab Report</option>
                   <option value="Prescription">Prescription</option>
@@ -543,24 +700,24 @@ export default function Records() {
               </div>
 
               {/* Doctor Name Input */}
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Doctor / Clinic Name (Optional)</label>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '3px' }}>Doctor / Clinic Name (Optional)</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Dr. Priya Sharma, Apollo Clinic" 
                   value={doctorName} 
                   onChange={(e) => setDoctorName(e.target.value)} 
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none' }}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
                 />
               </div>
 
               {/* Footer Actions */}
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button 
                   type="button" 
                   onClick={() => setShowUploadModal(false)}
                   disabled={uploading}
-                  style={{ padding: '10px 20px', borderRadius: '10px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '600' }}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}
                 >
                   Cancel
                 </button>
@@ -568,26 +725,27 @@ export default function Records() {
                   type="submit" 
                   disabled={uploading || !selectedFile || uploadSuccess}
                   className="btn btn-accent hover-glow"
-                  style={{ padding: '10px 24px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}
+                  style={{ padding: '6px 18px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', fontSize: '12px' }}
                 >
                   {uploading ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" /> Uploading...
+                      <Loader2 size={13} className="animate-spin" /> Uploading...
                     </>
                   ) : uploadSuccess ? (
                     <>
-                      <CheckCircle2 size={16} /> Uploaded!
+                      <CheckCircle2 size={13} /> Uploaded!
                     </>
                   ) : (
                     <>
-                      <CloudUpload size={16} /> Upload & Save
+                      <CloudUpload size={13} /> Upload & Save
                     </>
                   )}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </main>
   );
