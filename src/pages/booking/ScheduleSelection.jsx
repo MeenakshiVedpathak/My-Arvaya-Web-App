@@ -100,118 +100,157 @@ export default function ScheduleSelection() {
       title="Date & Time" 
       subtitle="Select a convenient slot for your appointment."
     >
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: '32px', alignItems: 'start' }}>
-          
-          {/* Calendar Area */}
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 16px 0' }}>Select a Date</h3>
-            <div style={{ background: 'var(--bg-app)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-              {(() => {
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                return (
-                  <Calendar 
-                    selectedDate={date}
-                    onSelectDate={(d) => setDate(d)}
-                    minDate={tomorrow}
-                  />
-                );
-              })()}
-            </div>
-          </div>
-
-          {/* Time Slots Area */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 16px 0' }}>Available Time Slots</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+        
+        {/* Scrollable Calendar & Time Slot area */}
+        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: '24px', alignItems: 'start', padding: '4px' }}>
             
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', flex: 1 }}>
-                <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '40px', height: '40px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            {/* Calendar Area */}
+            <div>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 12px 0' }}>Select a Date</h3>
+              <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                {(() => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  return (
+                    <Calendar 
+                      selectedDate={date}
+                      onSelectDate={(d) => setDate(d)}
+                      minDate={tomorrow}
+                    />
+                  );
+                })()}
               </div>
-            ) : (
-              <div style={{ flex: 1 }}>
-                
-                {/* Morning */}
-                {availableSlots.morning.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '600' }}>
-                      <Sunrise size={18} color="#eab308" /> Morning
-                    </div>
-                    <div className="time-slots-grid">
-                      {availableSlots.morning.map((slotItem, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setSlot(slotItem)}
-                          className={`time-slot-btn ${slot === slotItem ? 'active' : ''}`}
-                        >
-                          {getSlotDisplay(slotItem)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            </div>
 
-                {/* Afternoon */}
-                {availableSlots.afternoon.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '600' }}>
-                      <Sun size={18} color="#f97316" /> Afternoon
+            {/* Time Slots Area */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 12px 0' }}>Available Time Slots</h3>
+              
+              {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', flex: 1 }}>
+                  <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                </div>
+              ) : (
+                <div style={{ flex: 1 }}>
+                  
+                  {/* Morning */}
+                  {availableSlots.morning.length > 0 && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>
+                        <Sunrise size={16} color="#eab308" /> Morning
+                      </div>
+                      <div className="time-slots-grid">
+                        {availableSlots.morning.map(s => {
+                          const slotStr = formatSlot(s);
+                          const isSel = slot === slotStr;
+                          return (
+                            <button
+                              key={slotStr}
+                              onClick={() => setSlot(slotStr)}
+                              className={`slot-chip ${isSel ? 'selected' : ''}`}
+                            >
+                              {slotStr}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="time-slots-grid">
-                      {availableSlots.afternoon.map((slotItem, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setSlot(slotItem)}
-                          className={`time-slot-btn ${slot === slotItem ? 'active' : ''}`}
-                        >
-                          {getSlotDisplay(slotItem)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Evening */}
-                {availableSlots.evening.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--text-main)', fontSize: '14px', fontWeight: '600' }}>
-                      <Sun size={18} color="#4f46e5" /> Evening
+                  {/* Afternoon */}
+                  {availableSlots.afternoon.length > 0 && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>
+                        <Sun size={16} color="#f97316" /> Afternoon
+                      </div>
+                      <div className="time-slots-grid">
+                        {availableSlots.afternoon.map(s => {
+                          const slotStr = formatSlot(s);
+                          const isSel = slot === slotStr;
+                          return (
+                            <button
+                              key={slotStr}
+                              onClick={() => setSlot(slotStr)}
+                              className={`slot-chip ${isSel ? 'selected' : ''}`}
+                            >
+                              {slotStr}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="time-slots-grid">
-                      {availableSlots.evening.map((slotItem, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setSlot(slotItem)}
-                          className={`time-slot-btn ${slot === slotItem ? 'active' : ''}`}
-                        >
-                          {getSlotDisplay(slotItem)}
-                        </button>
-                      ))}
+                  )}
+
+                  {/* Evening */}
+                  {availableSlots.evening.length > 0 && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>
+                        <Sunset size={16} color="#8b5cf6" /> Evening
+                      </div>
+                      <div className="time-slots-grid">
+                        {availableSlots.evening.map(s => {
+                          const slotStr = formatSlot(s);
+                          const isSel = slot === slotStr;
+                          return (
+                            <button
+                              key={slotStr}
+                              onClick={() => setSlot(slotStr)}
+                              className={`slot-chip ${isSel ? 'selected' : ''}`}
+                            >
+                              {slotStr}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && availableSlots.evening.length === 0 && (
-                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No slots available for the selected date. Please choose another date.
-                  </div>
-                )}
+                  {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && availableSlots.evening.length === 0 && (
+                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      No slots available for the selected date. Please choose another date.
+                    </div>
+                  )}
 
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '24px', marginTop: '32px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+        {/* Pinned Bottom Action Bar */}
+        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingTop: '14px', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-app)', marginTop: '8px' }}>
+          <div>
+            {slot ? (
+              <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Selected Slot: <strong style={{ color: 'var(--primary-dark)' }}>{slot}</strong> on <strong>{date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>
+            ) : (
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Select a date and time slot to proceed</span>
+            )}
+          </div>
+
           <button 
             className="btn btn-primary"
             disabled={!slot}
             onClick={handleConfirm}
-            style={{ padding: '12px 32px', fontSize: '16px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', opacity: slot ? 1 : 0.5 }}
+            style={{ 
+              padding: '12px 28px', 
+              fontSize: '15px', 
+              fontWeight: '600',
+              borderRadius: '12px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              opacity: slot ? 1 : 0.5,
+              cursor: slot ? 'pointer' : 'not-allowed',
+              boxShadow: slot ? '0 4px 14px rgba(46, 102, 110, 0.25)' : 'none'
+            }}
           >
             Review Details <CheckCircle2 size={18} />
           </button>
         </div>
+
+      </div>
     </BookingLayout>
   );
 }

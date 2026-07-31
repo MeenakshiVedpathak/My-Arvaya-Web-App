@@ -205,62 +205,64 @@ export default function BookingReview() {
       title="Confirm Booking" 
       subtitle="Please review your appointment details before confirming."
     >
-      {loadingData ? (
-        <div style={{ padding: '60px', textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
-          <div className="spinner" style={{ width: '40px', height: '40px', borderTopColor: 'var(--primary)', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', alignItems: 'stretch' }}>
-          
-          {/* Left Column: Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            
-            {/* Appointment Information Card */}
-            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                <div style={{ background: '#f0f9ff', color: '#0284c7', padding: '8px', borderRadius: '10px' }}>
-                  <Calendar size={20} />
-                </div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>Appointment Information</h3>
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <Calendar size={14} /> <span>Date</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{formattedDate}</b>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <Clock size={14} /> <span>Time</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{slot}</b>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <User size={14} /> <span>Doctor name</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{doctor.name}</b>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <Stethoscope size={14} /> <span>Department</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{doctor.specialty || "General"}</b>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <Briefcase size={14} /> <span>Consultation type</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{visitType}</b>
-                </div>
-              </div>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '12px' }}>
+          {loadingData ? (
+            <div style={{ padding: '60px', textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
+              <div className="spinner" style={{ width: '40px', height: '40px', borderTopColor: 'var(--primary)', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', alignItems: 'stretch' }}>
+              
+              {/* Left Column: Details */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                
+                {/* Appointment Information Card */}
+                <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ background: '#f0f9ff', color: '#0284c7', padding: '8px', borderRadius: '10px' }}>
+                      <Calendar size={20} />
+                    </div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>Appointment Information</h3>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        <Calendar size={14} /> <span>Date</span>
+                      </div>
+                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{formattedDate}</b>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        <Clock size={14} /> <span>Time</span>
+                      </div>
+                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{slot}</b>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        <User size={14} /> <span>Doctor name</span>
+                      </div>
+                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{doctor.name}</b>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        <Stethoscope size={14} /> <span>Department</span>
+                      </div>
+                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{doctor.specialty || "General"}</b>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        <Briefcase size={14} /> <span>Consultation type</span>
+                      </div>
+                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{visitType}</b>
+                    </div>
+                  </div>
+                </div>
 
             {/* Patient Information Card */}
             <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
@@ -409,6 +411,8 @@ export default function BookingReview() {
           </div>
         </div>
       )}
+      </div>
+    </div>
     </BookingLayout>
   );
 }

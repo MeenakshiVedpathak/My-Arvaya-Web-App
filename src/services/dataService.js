@@ -311,6 +311,48 @@ export async function getLabPackages(filters = {}) {
   return Array.isArray(data) ? data.map(mapTest) : [];
 }
 
+export async function getDiagnosticTests(filters = {}) {
+  try {
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 300,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filter: filters.filter || "",
+      search: filters.search || filters.q || "",
+      q: filters.q || filters.search || "",
+      ...filters
+    };
+    const res = await api.post("/api/diagnostic/getTests", payload);
+    const list = res?.data || res?.tests || res?.list || res?.result || res || [];
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getDiagnosticTests API error:", err);
+    return [];
+  }
+}
+
+export async function getDiagnosticPackages(filters = {}) {
+  try {
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 200,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filter: filters.filter || "",
+      search: filters.search || filters.q || "",
+      q: filters.q || filters.search || "",
+      ...filters
+    };
+    const res = await api.post("/api/diagnostic/getPackages", payload);
+    const list = res?.data || res?.packages || res?.list || res?.result || res || [];
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getDiagnosticPackages API error:", err);
+    return [];
+  }
+}
+
 /* ─── Forms ─── */
 export async function getForms(filters = {}) {
   if (USE_MOCK) return [];

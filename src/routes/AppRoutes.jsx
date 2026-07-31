@@ -10,6 +10,8 @@ import Confirmed from "../pages/Confirmed";
 import ABHA from "../pages/abha/index";
 import Records from "../pages/Records";
 import Labs from "../pages/Labs";
+import AllLabTests from "../pages/AllLabTests";
+import AllHealthPackages from "../pages/AllHealthPackages";
 import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
 import Analytics from "../pages/Analytics";
@@ -33,6 +35,8 @@ import HospitalSelection from "../pages/booking/HospitalSelection";
 import BookingReview from "../pages/booking/BookingReview";
 import BookingConfirmed from "../pages/booking/BookingConfirmed";
 
+import PackageDetails from "../pages/PackageDetails";
+
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
 }
@@ -47,6 +51,10 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/doctor" element={<DoctorProfile />} />
       <Route path="/labs" element={<Labs />} />
+      <Route path="/labs/all-tests" element={<AllLabTests />} />
+      <Route path="/labs/all-packages" element={<AllHealthPackages />} />
+      <Route path="/labs/package-details" element={<PackageDetails />} />
+      <Route path="/labs/package-details/:id" element={<PackageDetails />} />
 
       {/* Protected Routes (Require Login) */}
       <Route path="/slot" element={<P><SelectSlot /></P>} />

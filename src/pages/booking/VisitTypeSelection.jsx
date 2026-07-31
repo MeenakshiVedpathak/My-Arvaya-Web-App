@@ -32,7 +32,11 @@ export default function VisitTypeSelection() {
       title="Visit Type" 
       subtitle={`What type of visit is this for Dr. ${doctor.name}?`}
     >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+        
+        {/* Scrollable Content */}
+        <div className="styled-scrollbar" style={{ flex: '0 1 auto', minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px', marginBottom: '16px', padding: '4px' }}>
             
             {/* Option 1: Initial */}
             <div 
@@ -40,21 +44,22 @@ export default function VisitTypeSelection() {
               style={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: '16px',
-                padding: '20px',
+                gap: '12px',
+                padding: '12px 14px',
                 borderRadius: '12px',
                 cursor: 'pointer',
-                background: bookingVisitType === "Initial consultation" ? 'var(--primary-light)' : 'transparent',
-                border: bookingVisitType === "Initial consultation" ? '1px solid var(--primary)' : '1px solid transparent',
+                background: bookingVisitType === "Initial consultation" ? '#F2F8F8' : 'var(--bg-surface)',
+                border: bookingVisitType === "Initial consultation" ? '2px solid var(--primary)' : '1px solid var(--border)',
+                boxShadow: bookingVisitType === "Initial consultation" ? '0 4px 12px rgba(46, 102, 110, 0.12)' : '0 2px 4px rgba(0, 0, 0, 0.02)',
                 transition: 'all 0.2s',
               }}
-              onMouseOver={e => { if(bookingVisitType !== "Initial consultation") e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.border = '1px solid var(--border)'; }}
-              onMouseOut={e => { if(bookingVisitType !== "Initial consultation") { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.border = '1px solid transparent'; } }}
+              onMouseOver={e => { if(bookingVisitType !== "Initial consultation") { e.currentTarget.style.borderColor = 'var(--primary)'; } }}
+              onMouseOut={e => { if(bookingVisitType !== "Initial consultation") { e.currentTarget.style.borderColor = 'var(--border)'; } }}
             >
-              <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: bookingVisitType === "Initial consultation" ? '7px solid var(--primary)' : '2px solid var(--border)', background: 'var(--bg-app)', flexShrink: 0, transition: 'all 0.2s', marginTop: '2px' }} />
+              <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: bookingVisitType === "Initial consultation" ? '5px solid var(--primary)' : '2px solid var(--border)', background: '#fff', flexShrink: 0, transition: 'all 0.2s', marginTop: '2px' }} />
               <div>
-                <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '700', color: bookingVisitType === "Initial consultation" ? 'var(--primary-dark)' : 'var(--text-main)' }}>Initial consultation</h4>
-                <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5 }}>First visit for a new concern or symptom. Select this if you have not seen this doctor recently.</p>
+                <h4 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: '700', color: bookingVisitType === "Initial consultation" ? 'var(--primary-dark)' : 'var(--text-main)' }}>Initial consultation</h4>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>First visit for a new concern or symptom.</p>
               </div>
             </div>
 
@@ -64,44 +69,68 @@ export default function VisitTypeSelection() {
               style={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: '16px',
-                padding: '20px',
+                gap: '12px',
+                padding: '12px 14px',
                 borderRadius: '12px',
                 cursor: 'pointer',
-                background: bookingVisitType === "Follow-up" ? 'var(--primary-light)' : 'transparent',
-                border: bookingVisitType === "Follow-up" ? '1px solid var(--primary)' : '1px solid transparent',
+                background: bookingVisitType === "Follow-up" ? '#F2F8F8' : 'var(--bg-surface)',
+                border: bookingVisitType === "Follow-up" ? '2px solid var(--primary)' : '1px solid var(--border)',
+                boxShadow: bookingVisitType === "Follow-up" ? '0 4px 12px rgba(46, 102, 110, 0.12)' : '0 2px 4px rgba(0, 0, 0, 0.02)',
                 transition: 'all 0.2s',
               }}
-              onMouseOver={e => { if(bookingVisitType !== "Follow-up") e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.border = '1px solid var(--border)'; }}
-              onMouseOut={e => { if(bookingVisitType !== "Follow-up") { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.border = '1px solid transparent'; } }}
+              onMouseOver={e => { if(bookingVisitType !== "Follow-up") { e.currentTarget.style.borderColor = 'var(--primary)'; } }}
+              onMouseOut={e => { if(bookingVisitType !== "Follow-up") { e.currentTarget.style.borderColor = 'var(--border)'; } }}
             >
-              <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: bookingVisitType === "Follow-up" ? '7px solid var(--primary)' : '2px solid var(--border)', background: 'var(--bg-app)', flexShrink: 0, transition: 'all 0.2s', marginTop: '2px' }} />
+              <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: bookingVisitType === "Follow-up" ? '5px solid var(--primary)' : '2px solid var(--border)', background: '#fff', flexShrink: 0, transition: 'all 0.2s', marginTop: '2px' }} />
               <div>
-                <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '700', color: bookingVisitType === "Follow-up" ? 'var(--primary-dark)' : 'var(--text-main)' }}>Follow-up</h4>
-                <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5 }}>Continuing care from a previous visit. Valid only if you've seen this doctor recently.</p>
+                <h4 style={{ margin: '0 0 2px 0', fontSize: '14px', fontWeight: '700', color: bookingVisitType === "Follow-up" ? 'var(--primary-dark)' : 'var(--text-main)' }}>Follow-up</h4>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>Continuing care from a previous recent visit.</p>
               </div>
             </div>
 
           </div>
 
           {/* Info Alert */}
-          <div style={{ padding: '16px 20px', background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '32px' }}>
-            <Info size={20} color="#ea580c" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <p style={{ fontSize: '14px', color: '#9a3412', margin: 0, lineHeight: 1.5 }}>
-              Select <strong>Follow-up Consultation</strong> only if you have already consulted the same doctor within the last 7 days. Otherwise, please choose <strong>Initial Consultation</strong>.
+          <div style={{ padding: '10px 14px', background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <Info size={16} color="#ea580c" style={{ flexShrink: 0 }} />
+            <p style={{ fontSize: '12px', color: '#9a3412', margin: 0, lineHeight: 1.4 }}>
+              Select <strong>Follow-up Consultation</strong> only if you have consulted the same doctor within the last 7 days.
             </p>
           </div>
+        </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '24px', alignItems: 'center' }}>
-            <button 
-              className="btn btn-primary"
-              disabled={!bookingVisitType}
-              onClick={handleProceed}
-              style={{ padding: '12px 32px', fontSize: '16px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', opacity: bookingVisitType ? 1 : 0.5 }}
-            >
-              Next Step <ArrowRight size={18} />
-            </button>
+        {/* Pinned Bottom Action Bar */}
+        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingTop: '14px', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-app)', marginTop: '8px' }}>
+          <div>
+            {bookingVisitType ? (
+              <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Selected: <strong style={{ color: 'var(--primary-dark)' }}>{bookingVisitType}</strong></span>
+            ) : (
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Choose visit type above to proceed</span>
+            )}
           </div>
+
+          <button 
+            className="btn btn-primary"
+            disabled={!bookingVisitType}
+            onClick={handleProceed}
+            style={{ 
+              padding: '12px 28px', 
+              fontSize: '15px', 
+              fontWeight: '600',
+              borderRadius: '12px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              opacity: bookingVisitType ? 1 : 0.5,
+              cursor: bookingVisitType ? 'pointer' : 'not-allowed',
+              boxShadow: bookingVisitType ? '0 4px 14px rgba(46, 102, 110, 0.25)' : 'none'
+            }}
+          >
+            Next Step <ArrowRight size={18} />
+          </button>
+        </div>
+
+      </div>
     </BookingLayout>
   );
 }
