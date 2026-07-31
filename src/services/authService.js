@@ -58,9 +58,10 @@ export async function register(data) {
   else if (genderCode.toLowerCase().startsWith("f")) genderCode = "F";
   else if (genderCode.toLowerCase().startsWith("o")) genderCode = "O";
 
-  const fullName = data.name || `${data.title || ''}${data.first_name || ''} ${data.last_name || ''}`.trim();
+  const fullName = data.name || `${data.first_name || ''} ${data.last_name || ''}`.trim();
 
   const payload = {
+    title: data.title,
     name: fullName,
     gender: genderCode,
     date_of_birth: data.date_of_birth || data.dob,
@@ -113,7 +114,7 @@ export async function verifyOtp(otp, mobile, options = {}) {
 
   const res = await api.post("/user/verifyOtp", payload);
   const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || res?.jwt || "token_" + Date.now();
-  
+
   let rawUser = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result;
   if (!rawUser || typeof rawUser !== "object") {
     rawUser = {};
@@ -182,7 +183,7 @@ export async function logout(currentUser) {
         const parsed = JSON.parse(savedUser);
         appUserId = parsed?.app_user_id || parsed?.id || parsed?.user_id || parsed?.patient_id || parsed?.userKey;
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const payload = {

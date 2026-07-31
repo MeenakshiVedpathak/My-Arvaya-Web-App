@@ -39,13 +39,14 @@ export default function Signup() {
       return;
     }
 
-    const fullName = `${title}${firstName.trim()} ${lastName.trim()}`;
+    // const fullName = `${title}${firstName.trim()} ${lastName.trim()}`;
     const genderCode = gender === "Female" ? "F" : gender === "Male" ? "M" : "O";
 
-    const ok = await register({ 
-      name: fullName,
-      gender: genderCode, 
-      date_of_birth: dob, 
+    const ok = await register({
+      title: title,
+      name: `${firstName.trim()} ${lastName.trim()}`,
+      gender: genderCode,
+      date_of_birth: dob,
       mobile_number: phone.trim(),
       blood_group: bloodGroup
     });
@@ -115,8 +116,8 @@ export default function Signup() {
               {/* Title */}
               <div style={{ minWidth: 0 }}>
                 <div style={{ ...inputWrap, padding: "0 8px" }}>
-                  <select 
-                    value={title} 
+                  <select
+                    value={title}
                     onChange={e => setTitle(e.target.value)}
                     style={{ ...inputStyle, cursor: "pointer", fontWeight: "700", color: "var(--primary-dark)" }}
                   >
