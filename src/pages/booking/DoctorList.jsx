@@ -28,8 +28,22 @@ export default function DoctorList() {
           filter: bookingSpecialty 
         });
         const allDocs = Array.isArray(res) ? res : (res.list || res.data || []);
-        // Filter by specialty on frontend to ensure strict match
-        const specialtyDocs = allDocs.filter(d => d.specialty === bookingSpecialty);
+        // Filter by specialty and hospital city on frontend to ensure strict match
+        const specialtyDocs = allDocs.filter(d => {
+          const specialtyMatch = d.specialty === bookingSpecialty;
+          
+          let cityMatch = true;
+          if (bookingHospital && bookingHospital.city) {
+            const hospitalCity = bookingHospital.city.toLowerCase().trim();
+            const docCity = (d.city || "").toLowerCase().trim();
+            
+            // Check if primary city matches or if any of the doctor's locations match
+            cityMatch = (docCity === hospitalCity) || 
+              (d.locations && d.locations.some(loc => (loc.city || "").toLowerCase().trim() === hospitalCity));
+          }
+          
+          return specialtyMatch && cityMatch;
+        });
         
         setDoctors(specialtyDocs);
       } catch (err) {

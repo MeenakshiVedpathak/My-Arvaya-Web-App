@@ -5,6 +5,25 @@ import { useAuth } from "../../context/AuthContext";
 import { useBooking } from "../../context/BookingContext";
 import { useNavigate } from "react-router-dom";
 import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode } from "../../services/ambulanceService";
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LocationMarker({ position, setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+    },
+  });
+  return position === null ? null : <Marker position={position} />;
+}
 
 /* ── Small shared atoms ──────────────────────────────────────────────────── */
 
@@ -61,6 +80,20 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const [locating, setLocating]       = useState(false);
   const [err, setErr]                 = useState("");
   const [result, setResult]           = useState(null);
+
+  const handleMapClick = async (latlng) => {
+    setPickupLat(latlng.lat);
+    setPickupLng(latlng.lng);
+    try {
+      setLocating(true);
+      const addr = await reverseGeocode(latlng.lat, latlng.lng);
+      setPickup(addr);
+    } catch(e) {
+      // ignore
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const handleLocate = () => {
     if (!navigator.geolocation) { setErr("Geolocation is not supported by your browser."); return; }
@@ -192,7 +225,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
       {/* Pickup Address */}
       <div style={{ marginBottom: "20px" }}>
         <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
-          <span>Pickup Address *</span>
+          <span>Pickup Location *</span>
           <button type="button" onClick={handleLocate} disabled={locating}
             style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary-soft)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: "700", cursor: locating ? "wait" : "pointer", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.2s" }}
             onMouseEnter={e => { if (!locating) e.currentTarget.style.background = "var(--primary-soft)"; }}
@@ -200,10 +233,18 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
             {locating ? <><Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> Locating…</> : <><Navigation size={12} /> Use My Location</>}
           </button>
         </label>
+
+        <div style={{ height: "200px", borderRadius: "10px", overflow: "hidden", marginBottom: "12px", border: "1px solid var(--border)", position: "relative", zIndex: 1 }}>
+          <MapContainer center={pickupLat && pickupLng ? [pickupLat, pickupLng] : [20.5937, 78.9629]} zoom={pickupLat && pickupLng ? 15 : 4} style={{ height: "100%", width: "100%" }}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <LocationMarker position={pickupLat && pickupLng ? {lat: pickupLat, lng: pickupLng} : null} setPosition={handleMapClick} />
+          </MapContainer>
+        </div>
+
         <div style={{ border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
           onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
           onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
-          <textarea value={pickupAddress} onChange={e => setPickup(e.target.value)} placeholder="Enter or auto-detect your pickup address" rows={3}
+          <textarea value={pickupAddress} onChange={e => setPickup(e.target.value)} placeholder="Enter or select your pickup address on map" rows={3}
             style={{ width: "100%", padding: "14px", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", resize: "none", lineHeight: 1.5, fontFamily: "var(--font-sans)" }} />
         </div>
       </div>

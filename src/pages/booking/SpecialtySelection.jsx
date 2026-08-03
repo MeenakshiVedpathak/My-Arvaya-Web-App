@@ -21,11 +21,22 @@ export default function SpecialtySelection() {
       try {
         const res = await getDoctors({ pageSize: 200, location_key: bookingHospital.entitylocation });
         const docs = Array.isArray(res) ? res : (res.list || res.data || []);
-        // Filter doctors by selected hospital
+        // Filter doctors by selected hospital name and city
         const docsAtHospital = docs.filter(d => {
           const loc = d.locations && d.locations[0];
           const hospitalName = loc ? (loc.locname || loc.name || "") : "";
-          return hospitalName === bookingHospital.name;
+          
+          const nameMatch = hospitalName === bookingHospital.name;
+          
+          let cityMatch = true;
+          if (bookingHospital && bookingHospital.city) {
+            const hospitalCity = bookingHospital.city.toLowerCase().trim();
+            const docCity = (d.city || "").toLowerCase().trim();
+            cityMatch = (docCity === hospitalCity) || 
+              (d.locations && d.locations.some(l => (l.city || "").toLowerCase().trim() === hospitalCity));
+          }
+          
+          return nameMatch && cityMatch;
         });
 
         // Extract unique specialties
