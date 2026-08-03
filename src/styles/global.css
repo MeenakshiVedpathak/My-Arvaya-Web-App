@@ -1035,12 +1035,8 @@ input[type="radio"]:focus-visible {
 @media (max-width: 900px) {
   .wallet-grid,
   .rewards-grid,
-  .doctor-profile-grid,
-  .analytics-charts-grid {
+  .doctor-profile-grid {
     grid-template-columns: 1fr !important;
-  }
-  .analytics-kpi-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
@@ -1114,10 +1110,6 @@ input[type="radio"]:focus-visible {
   .record-item-actions {
     width: 100% !important;
     justify-content: flex-end !important;
-  }
-
-  .analytics-kpi-grid {
-    grid-template-columns: 1fr !important;
   }
 }
 

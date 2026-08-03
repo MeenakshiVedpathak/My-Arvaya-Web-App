@@ -14,7 +14,6 @@ import AllLabTests from "../pages/AllLabTests";
 import AllHealthPackages from "../pages/AllHealthPackages";
 import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
-import Analytics from "../pages/Analytics";
 import Ambulance from "../pages/Ambulance";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
@@ -64,7 +63,6 @@ export default function AppRoutes() {
       <Route path="/records" element={<P><Records /></P>} />
       <Route path="/wallet" element={<P><Wallet /></P>} />
       <Route path="/rewards" element={<P><Rewards /></P>} />
-      <Route path="/analytics" element={<P><Analytics /></P>} />
       <Route path="/ambulance" element={<P><Ambulance /></P>} />
       <Route path="/profile" element={<P><Profile /></P>} />
       <Route path="/settings" element={<P><Settings /></P>} />

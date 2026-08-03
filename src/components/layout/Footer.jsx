@@ -60,8 +60,7 @@ export default function Footer() {
                 ["ABHA Hub", "/abha"],
                 ["Patient Portal", "/records"],
                 ["Wallet", "/wallet"],
-                ["Rewards", "/rewards"],
-                ["Analytics", "/analytics"]
+                ["Rewards", "/rewards"]
               ].map(([label, path]) => (
                 <Link key={label} to={path} style={{ color: 'var(--text-muted)', transition: 'all 0.2s', display: 'inline-block' }} onMouseOver={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.paddingLeft = '4px'; }} onMouseOut={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.paddingLeft = '0'; }}>{label}</Link>
               ))}

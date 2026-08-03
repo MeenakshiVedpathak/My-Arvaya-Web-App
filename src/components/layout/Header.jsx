@@ -433,7 +433,6 @@ export default function Header() {
     ["Wallet", "/wallet"],
     ["Rewards", "/rewards"],
     // ["Refer & Earn", "/referrals"],
-    ["Analytics", "/analytics"],
     ["Ambulance", "/ambulance"],
     ["Support", "/support"]
   ];
