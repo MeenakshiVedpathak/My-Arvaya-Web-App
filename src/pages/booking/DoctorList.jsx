@@ -72,58 +72,65 @@ export default function DoctorList() {
       title="Select a Doctor" 
       subtitle={`${bookingSpecialty}s at ${bookingHospital?.name}`}
     >
-          {/* Search */}
-          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-app)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 16px', marginBottom: '32px' }}>
-            <Search size={18} color="var(--text-muted)" />
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+        
+        {/* Fixed Search Box inside Step */}
+        <div style={{ flexShrink: 0, marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+            <Search size={18} color="var(--primary)" />
             <input 
               type="text" 
-              placeholder="Search doctors by name..." 
+              placeholder="Search doctors by name or qualification..." 
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
-              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '15px', paddingLeft: '12px', color: 'var(--text-main)' }}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px', paddingLeft: '12px', color: 'var(--text-main)' }}
             />
           </div>
+        </div>
 
+        {/* Scrollable Doctor Cards List */}
+        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '16px' }}>
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-              <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '30px', height: '30px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+              <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px', padding: '4px' }}>
               {displayedDocs.map(doc => (
                 <div 
                   key={doc.doctor_id || doc.id} 
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '20px',
-                    padding: '20px',
+                    gap: '16px',
+                    padding: '18px',
                     borderRadius: '16px',
-                    background: 'transparent',
-                    border: '1px solid transparent',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                     transition: 'all 0.2s',
                   }}
-                  onMouseOver={e => { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.border = '1px solid var(--border)'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.border = '1px solid transparent'; }}
+                  onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 102, 110, 0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)'; e.currentTarget.style.transform = 'none'; }}
                 >
                   
                   {/* Avatar */}
                   {doc.image && !doc.image.includes('ui-avatars') ? (
-                    <img src={doc.image} alt={doc.name} style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover' }} />
+                    <img src={doc.image} alt={doc.name} style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'var(--bg-app)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '700', color: 'var(--text-muted)', flexShrink: 0 }}>
+                    <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'rgba(46, 102, 110, 0.08)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: 'var(--primary)', flexShrink: 0 }}>
                       {getInitials(doc.name)}
                     </div>
                   )}
                   
                   {/* Info */}
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>{doc.name}</h3>
-                    <div style={{ marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <GraduationCap size={14} />
+                    <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>{doc.name}</h3>
+                    <div style={{ marginBottom: '4px', fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <GraduationCap size={13} color="var(--primary)" />
                       {doc.qualification || "M.B.B.S"}
                     </div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)' }}>
                       {doc.specialty || bookingSpecialty}
                     </div>
                   </div>
@@ -136,9 +143,9 @@ export default function DoctorList() {
                     <button 
                       onClick={() => handleBook(doc)}
                       className="btn btn-primary"
-                      style={{ padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}
+                      style={{ padding: '8px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: '600' }}
                     >
-                      Select
+                      Select <ArrowRight size={14} style={{ marginLeft: '4px' }} />
                     </button>
                   </div>
                 </div>
@@ -150,6 +157,9 @@ export default function DoctorList() {
               )}
             </div>
           )}
+        </div>
+
+      </div>
     </BookingLayout>
   );
 }

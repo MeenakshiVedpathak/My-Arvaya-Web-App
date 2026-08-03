@@ -1,6 +1,6 @@
 import { api } from "./api";
-import { slots as mockSlots, packages as mockPackages } from "../mocks/data";
 import { getImageUrl } from "./uploadService";
+import { slots as mockSlots, packages as mockPackages } from "../mocks/data";
 const USE_MOCK = true; // Forced static data for the dashboard after login
 
 export function getStoredUserId() {
@@ -250,7 +250,6 @@ export async function getDoctorSlots(doctorId, dateObj) {
   }
 }
 
-/* ─── Plans ─── */
 export async function getPlans(filters = {}) {
   try {
     const res = await api.post("/api/plan/get", filters);
@@ -310,6 +309,48 @@ export async function getLabPackages(filters = {}) {
   const res = await api.post("/api/test/get", payload);
   const data = res.data || [];
   return Array.isArray(data) ? data.map(mapTest) : [];
+}
+
+export async function getDiagnosticTests(filters = {}) {
+  try {
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 300,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filter: filters.filter || "",
+      search: filters.search || filters.q || "",
+      q: filters.q || filters.search || "",
+      ...filters
+    };
+    const res = await api.post("/api/diagnostic/getTests", payload);
+    const list = res?.data || res?.tests || res?.list || res?.result || res || [];
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getDiagnosticTests API error:", err);
+    return [];
+  }
+}
+
+export async function getDiagnosticPackages(filters = {}) {
+  try {
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 200,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filter: filters.filter || "",
+      search: filters.search || filters.q || "",
+      q: filters.q || filters.search || "",
+      ...filters
+    };
+    const res = await api.post("/api/diagnostic/getPackages", payload);
+    const list = res?.data || res?.packages || res?.list || res?.result || res || [];
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getDiagnosticPackages API error:", err);
+    return [];
+  }
 }
 
 /* ─── Forms ─── */
