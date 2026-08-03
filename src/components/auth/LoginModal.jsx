@@ -176,7 +176,7 @@ export default function LoginModal({ forceOpen = false }) {
       };
 
       const res = await abhaVerifyUser(payload);
-      const abhaResponseToken = res?.UserData?.response?.token || res?.UserData?.response?.refreshToken || res?.response?.token || res?.UserData?.token || res?.token || res?.accessToken || res?.data?.token || res?.result?.token || tokenVal || "mock_abha_token_" + Date.now();
+      const abhaResponseToken = res?.UserData?.response?.refreshToken;
       const userId = res?.UserData?.user_id || res?.user_id || res?.user?.id || res?.user?.user_id;
       if (abhaResponseToken) {
         localStorage.setItem("abha_user_token", abhaResponseToken);
