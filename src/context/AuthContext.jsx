@@ -39,6 +39,8 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState("");
   const [isLoginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState(null);
+  const [loginMethod, setLoginMethod] = useState(() => localStorage.getItem("arvaya_login_method") || "user_verify_otp");
+  const [loginModalScreen, setLoginModalScreen] = useState("landing");
 
   async function fetchUserProfile(currentUser) {
     if (!currentUser) return;
@@ -105,17 +107,26 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function openLoginModal(redirectPath = null) {
+  function openLoginModal(redirectPath = null, screen = "landing") {
     if (redirectPath) setPendingRedirect(redirectPath);
+    setLoginModalScreen(screen);
     setLoginModalOpen(true);
   }
 
   function closeLoginModal() {
     setLoginModalOpen(false);
-    setTimeout(() => setPendingRedirect(null), 300); // clear after animation
+    setTimeout(() => {
+      setPendingRedirect(null);
+      setLoginModalScreen("landing");
+    }, 300); // clear after animation
   }
 
   function saveSession(data) {
+    if (data.loginMethod) {
+      localStorage.setItem("arvaya_login_method", data.loginMethod);
+      setLoginMethod(data.loginMethod);
+    }
+
     if (data.token) {
       localStorage.setItem("token", data.token);
       setCookie("token", data.token);
@@ -199,10 +210,12 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("token");
       localStorage.removeItem("arvaya_token");
       localStorage.removeItem("arvaya_user");
+      localStorage.removeItem("arvaya_login_method");
       deleteCookie("token");
       deleteCookie("arvaya_token");
       setToken(null);
       setUser(null);
+      setLoginMethod("user_verify_otp");
     }
   }
 
@@ -211,7 +224,7 @@ export function AuthProvider({ children }) {
       user, token, loading, error, 
       login, register, logout, setError,
       isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal,
-      saveSession
+      saveSession, loginMethod, setLoginMethod, loginModalScreen
     }}>
       {children}
     </AuthContext.Provider>

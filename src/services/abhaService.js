@@ -125,3 +125,43 @@ export async function abhaVerifyUser(data) {
   };
   return api.post("/login/verifyUser", payload);
 }
+
+/* ─────────────────────────────────────────────
+   Get Token API for ABHA Hub Page
+   POST /api/profile/getGetToken
+   Body: { token }
+───────────────────────────────────────────── */
+export async function getGetToken(token) {
+  if (USE_MOCK) {
+    await MOCK_DELAY(500);
+    return { success: true, token };
+  }
+  return api.post("/api/profile/getGetToken", { token });
+}
+
+/* ─────────────────────────────────────────────
+   Get Profile Info API
+   POST /api/profile/getInfo
+   Body: { token }
+───────────────────────────────────────────── */
+export async function getProfileInfo(token) {
+  if (USE_MOCK) {
+    await MOCK_DELAY(500);
+    return { success: true, token };
+  }
+  return api.post("/api/profile/getInfo", { token });
+}
+
+/* ─────────────────────────────────────────────
+   Get PHR Card API
+   POST /api/profile/getPhrCard
+   Body: { token, user_id }
+───────────────────────────────────────────── */
+export async function getPhrCard(token, userId) {
+  if (USE_MOCK) {
+    await MOCK_DELAY(500);
+    return { success: true, token, user_id: userId };
+  }
+  return api.post("/api/profile/getPhrCard", { token, user_id: userId });
+}
+
