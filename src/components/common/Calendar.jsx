@@ -35,24 +35,24 @@ export default function Calendar({ selectedDate, onSelectDate, minDate }) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   return (
-    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', width: '100%', maxWidth: '350px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
-          <ChevronLeft size={20} color="var(--text-main)" />
+    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', width: '100%', maxWidth: '320px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
+          <ChevronLeft size={18} color="var(--text-main)" />
         </button>
-        <b style={{ color: 'var(--text-main)', fontSize: '15px' }}>{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</b>
-        <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
-          <ChevronRight size={20} color="var(--text-main)" />
+        <b style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '700' }}>{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</b>
+        <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
+          <ChevronRight size={18} color="var(--text-main)" />
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', textAlign: 'center', marginBottom: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', marginBottom: '6px' }}>
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => (
-          <small key={d} style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '600' }}>{d}</small>
+          <small key={d} style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: '600' }}>{d}</small>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
         {days.map((date, i) => {
           if (!date) return <div key={i} />;
 
@@ -67,7 +67,7 @@ export default function Calendar({ selectedDate, onSelectDate, minDate }) {
               onClick={() => onSelectDate(date)}
               style={{
                 width: '100%',
-                aspectRatio: '1',
+                height: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -77,8 +77,8 @@ export default function Calendar({ selectedDate, onSelectDate, minDate }) {
                 borderRadius: '8px',
                 cursor: isPast ? 'not-allowed' : 'pointer',
                 fontWeight: isSelected || isToday ? '600' : '400',
-                fontSize: '14px',
-                transition: '0.2s'
+                fontSize: '13px',
+                transition: '0.15s ease'
               }}
             >
               {date.getDate()}

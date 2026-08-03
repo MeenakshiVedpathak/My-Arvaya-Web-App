@@ -28,14 +28,14 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
   if (date && slot && currentStep >= 5) breadcrumbParts.push({ label: `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${slot}`, bold: true, color: 'var(--primary)' });
 
   return (
-    <main className="page animate-fade-in-up" style={{ padding: '16px 20px 20px 20px', background: 'var(--bg-app)', minHeight: 'calc(100vh - 80px)', maxHeight: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div className="container" style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <main className="page animate-fade-in-up" style={{ padding: '12px 20px 16px 20px', background: 'var(--bg-app)', minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="container" style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
         
         {/* Top Fixed Section: Stepper, Summary & Title */}
-        <div style={{ flexShrink: 0, paddingBottom: '12px' }}>
+        <div style={{ flexShrink: 0, paddingBottom: '8px' }}>
           
           {/* Horizontal Progress Stepper */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', position: 'relative', padding: '0 12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', marginBottom: '14px', position: 'relative', padding: '0 12px' }}>
             {/* Connecting Line */}
             <div style={{ position: 'absolute', top: '15px', left: '24px', right: '24px', height: '2px', background: 'var(--border)', zIndex: 0 }} />
             

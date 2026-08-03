@@ -288,34 +288,59 @@ export default function AllLabTests() {
           background: var(--primary);
           box-shadow: 0 4px 12px rgba(46, 102, 110, 0.35);
           transform: translateY(-1px);
+        .all-tests-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+          gap: 20px;
         }
 
-        .all-tests-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 7px 14px;
-          border-radius: 20px;
-          background: #ffffff;
-          border: 1px solid var(--border);
-          font-size: 12.5px;
-          font-weight: 600;
-          color: var(--text-main);
-          cursor: pointer;
-          white-space: nowrap;
-          transition: all 0.2s;
+        @media (max-width: 768px) {
+          .all-tests-hero {
+            padding: 16px 0 20px 0;
+          }
+          .all-tests-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          .all-tests-card-body {
+            padding: 12px;
+          }
+          .all-tests-card-title {
+            font-size: 13.5px;
+            min-height: 34px;
+          }
+          .all-tests-card-sub {
+            font-size: 10.5px;
+            padding: 3px 8px;
+            margin-bottom: 10px;
+          }
+          .all-tests-card-price {
+            font-size: 16px;
+          }
+          .all-tests-card-btn {
+            padding: 6px 11px;
+            font-size: 11.5px;
+            border-radius: 16px;
+            white-space: nowrap;
+          }
         }
 
-        .all-tests-chip:hover {
-          border-color: var(--primary);
-          color: var(--primary);
-        }
-
-        .all-tests-chip.active {
-          background: var(--primary);
-          color: #ffffff;
-          border-color: var(--primary);
-          box-shadow: 0 4px 12px rgba(46, 102, 110, 0.25);
+        @media (max-width: 440px) {
+          .all-tests-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+          }
+          .all-tests-card-img-container {
+            height: 100px;
+          }
+          .all-tests-card-body {
+            padding: 10px 8px;
+          }
+          .all-tests-card-title {
+            font-size: 12.5px;
+            line-height: 1.25;
+            min-height: 32px;
+          }
         }
       `}</style>
 
@@ -424,7 +449,7 @@ export default function AllLabTests() {
         </div>
 
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
+          <div className="all-tests-grid">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="all-tests-card" style={{ height: '280px' }}>
                 <div className="skeleton" style={{ height: '120px' }} />
@@ -442,11 +467,7 @@ export default function AllLabTests() {
             <p>Try searching for a different test name or clearing your filter.</p>
           </div>
         ) : (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
-            gap: '24px' 
-          }}>
+          <div className="all-tests-grid">
             {filteredTests.map((test) => (
               <div className="all-tests-card" key={test.id}>
                 <div className="all-tests-card-img-container">

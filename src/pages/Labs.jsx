@@ -408,52 +408,160 @@ function toTitleCase(str) {
   return (
     <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)', color: 'var(--text-main)' }}>
       
-      {/* Embedded Modern Styling for Lab UI */}
+      {/* Embedded Responsive Styling for Lab UI */}
       <style>{`
+        .lab-container-custom {
+          padding: 32px 16px 64px 16px;
+        }
+
         .lab-hero-banner {
-          background: linear-gradient(135deg, #e8f5e9 0%, #e0f2f1 60%, #e4eeef 100%);
+          background: linear-gradient(135deg, #eef8f6 0%, #e0f2f0 55%, #d8eae7 100%);
           border-radius: 24px;
-          margin-top: 13px;
-          padding: 24px 28px;
+          margin-top: 12px;
+          padding: 28px 32px;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 4px 20px rgba(46, 102, 110, 0.06);
-          border: 1px solid rgba(46, 102, 110, 0.12);
+          box-shadow: 0 8px 24px rgba(46, 102, 110, 0.08);
+          border: 1px solid rgba(46, 102, 110, 0.15);
           display: flex;
           align-items: center;
           justify-content: space-between;
           margin-bottom: 24px;
+          gap: 24px;
+        }
+
+        .lab-hero-content {
+          flex: 1;
+          max-width: 600px;
+        }
+
+        .lab-hero-pill-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11.5px;
+          font-weight: 700;
+          color: #0d5c63;
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(4px);
+          padding: 4px 12px;
+          border-radius: 20px;
+          border: 1px solid rgba(13, 92, 99, 0.18);
+          margin-bottom: 12px;
         }
 
         .lab-hero-title {
           font-family: 'Plus Jakarta Sans', var(--font-sans);
           font-weight: 800;
-          font-size: 22px;
-          line-height: 1.3;
+          font-size: 24px;
+          line-height: 1.25;
           color: #12333A;
-          margin-bottom: 12px;
-          max-width: 480px;
+          margin: 0 0 6px 0;
+          letter-spacing: -0.02em;
+        }
+
+        .lab-hero-subtitle {
+          font-size: 13.5px;
+          color: #3b6066;
+          margin: 0 0 16px 0;
+          font-weight: 500;
+          line-height: 1.4;
+        }
+
+        .lab-hero-search-wrapper {
+          background: #ffffff;
+          border: 1.5px solid rgba(46, 102, 110, 0.22);
+          border-radius: 16px;
+          padding: 8px 14px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+          margin-bottom: 16px;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .lab-hero-search-wrapper:focus-within {
+          border-color: var(--primary);
+          box-shadow: 0 4px 16px rgba(46, 102, 110, 0.15);
+        }
+
+        .lab-hero-search-input {
+          border: none;
+          outline: none;
+          background: transparent;
+          width: 100%;
+          font-size: 13.5px;
+          color: var(--text-main);
+          font-weight: 500;
+        }
+
+        .lab-hero-search-clear {
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: var(--text-muted);
+          padding: 2px;
+          display: flex;
+          align-items: center;
         }
 
         .lab-hero-badges {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 10px;
           flex-wrap: wrap;
         }
 
         .lab-hero-badge {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          font-size: 13px;
+          gap: 5px;
+          font-size: 12px;
           font-weight: 600;
-          color: #1b4d3e;
-          background: rgba(255, 255, 255, 0.75);
-          backdrop-filter: blur(4px);
-          padding: 6px 12px;
+          color: #12333a;
+          background: #ffffff;
+          padding: 5px 12px;
           border-radius: 20px;
-          border: 1px solid rgba(27, 77, 62, 0.15);
+          border: 1px solid rgba(46, 102, 110, 0.14);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+          white-space: nowrap;
+        }
+
+        .lab-hero-img-col {
+          flex-shrink: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .lab-hero-img-card {
+          position: relative;
+          background: #ffffff;
+          padding: 12px;
+          border-radius: 20px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .lab-hero-img {
+          width: 135px;
+          height: auto;
+          object-fit: contain;
+        }
+
+        .lab-hero-stat-badge {
+          position: absolute;
+          bottom: -10px;
+          background: #ffffff;
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 4px 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          white-space: nowrap;
         }
 
         .lab-section-header {
@@ -540,11 +648,10 @@ function toTitleCase(str) {
           transform: translateY(-50%) scale(1.08);
         }
 
-        .lab-scroll-arrow.left { left: -16px; }
-        .lab-scroll-arrow.right { right: -16px; }
+        .lab-scroll-arrow.left { left: -14px; }
+        .lab-scroll-arrow.right { right: -14px; }
 
-        /* Card Styles: Lab Test (Vertical Compact Card matching screenshot) */
-        /* Card Styles: Lab Test (Spacious & Professional Card) */
+        /* Card Styles: Lab Test */
         .lab-card {
           width: 250px;
           background: #ffffff;
@@ -632,7 +739,7 @@ function toTitleCase(str) {
           padding: 4px 10px;
           border-radius: 10px;
           width: fit-content;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
           white-space: nowrap;
           max-width: 100%;
           overflow: hidden;
@@ -646,6 +753,7 @@ function toTitleCase(str) {
           margin-top: auto;
           padding-top: 12px;
           border-top: 1px dashed var(--border);
+          gap: 6px;
         }
 
         .lab-card-price-col {
@@ -680,6 +788,8 @@ function toTitleCase(str) {
           align-items: center;
           gap: 5px;
           cursor: pointer;
+          white-space: nowrap;
+          flex-shrink: 0;
           transition: all 0.2s;
           box-shadow: 0 2px 6px rgba(27, 77, 84, 0.2);
         }
@@ -690,11 +800,7 @@ function toTitleCase(str) {
           transform: translateY(-1px);
         }
 
-        .lab-card-btn:active {
-          transform: scale(0.97);
-        }
-
-        /* Card Styles: Package Card (Wider) */
+        /* Package Card */
         .pkg-card {
           width: 280px;
           background: #ffffff;
@@ -790,39 +896,9 @@ function toTitleCase(str) {
           background: var(--primary);
         }
 
-        /* Filter Chips */
-        .lab-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 16px;
-          border-radius: 24px;
-          background: #ffffff;
-          border: 1px solid var(--border);
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text-main);
-          cursor: pointer;
-          white-space: nowrap;
-          transition: all 0.2s;
-        }
-
-        .lab-chip:hover {
-          border-color: var(--primary);
-          color: var(--primary);
-        }
-
-        .lab-chip.active {
-          background: var(--primary);
-          color: #ffffff;
-          border-color: var(--primary);
-          box-shadow: 0 4px 12px rgba(46, 102, 110, 0.25);
-        }
-
-        /* Responsive Grid Adjustments */
         .lab-grid-view {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
           gap: 16px;
         }
 
@@ -832,23 +908,200 @@ function toTitleCase(str) {
           gap: 20px;
         }
 
+        .lab-appointments-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 16px;
+        }
+
+        .lab-features-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 24px;
+        }
+
+        /* ── MEDIA QUERIES FOR FULL RESPONSIVENESS ── */
+
+        /* Tablets & Laptops (641px to 1024px) */
+        @media (max-width: 1024px) {
+          .lab-container-custom {
+            padding: 24px 16px 48px 16px;
+          }
+          .lab-hero-banner {
+            padding: 20px 22px;
+          }
+          .lab-hero-title {
+            font-size: 19px;
+          }
+          .lab-card {
+            width: 225px;
+          }
+          .pkg-card {
+            width: 250px;
+          }
+          .lab-scroll-arrow.left { left: -4px; }
+          .lab-scroll-arrow.right { right: -4px; }
+          .lab-features-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+          }
+        }
+
+        /* Mobile Devices (320px to 640px) */
         @media (max-width: 640px) {
+          .lab-container-custom {
+            padding: 16px 12px 36px 12px;
+          }
           .lab-hero-banner {
             flex-direction: column;
+            padding: 20px 16px;
+            border-radius: 20px;
+            margin-top: 6px;
+            margin-bottom: 20px;
+            gap: 14px;
             text-align: left;
-            padding: 20px;
+            align-items: flex-start;
+          }
+          .lab-hero-content {
+            width: 100%;
+            max-width: 100%;
+          }
+          .lab-hero-pill-tag {
+            font-size: 11px;
+            padding: 3px 10px;
+            margin-bottom: 8px;
+          }
+          .lab-hero-title {
+            font-size: 19px;
+            line-height: 1.3;
+            margin-bottom: 6px;
+            text-align: left;
+          }
+          .lab-hero-subtitle {
+            font-size: 12.5px;
+            margin-bottom: 14px;
+          }
+          .lab-hero-search-wrapper {
+            padding: 8px 12px;
+            margin-bottom: 14px;
+            border-radius: 14px;
+          }
+          .lab-hero-search-input {
+            font-size: 13px;
+          }
+          .lab-hero-badges {
+            gap: 6px;
+            justify-content: flex-start;
+          }
+          .lab-hero-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 16px;
           }
           .lab-hero-img-col {
             display: none;
           }
+          .lab-section-header {
+            margin-bottom: 12px;
+          }
+          .lab-section-title {
+            font-size: 17px;
+          }
+          .lab-view-all-btn {
+            font-size: 12.5px;
+          }
           .lab-scroll-arrow {
             display: none;
           }
+          .lab-scroll-row {
+            gap: 12px;
+            padding: 4px 2px 12px 2px;
+          }
           .lab-card {
-            width: 175px;
+            width: 205px;
+            border-radius: 16px;
+          }
+          .lab-card-img-container {
+            height: 110px;
+          }
+          .lab-card-body {
+            padding: 12px;
+          }
+          .lab-card-title {
+            font-size: 13.5px;
+            min-height: 34px;
+            margin-bottom: 4px;
+          }
+          .lab-card-sub {
+            font-size: 10.5px;
+            padding: 3px 8px;
+            margin-bottom: 10px;
+          }
+          .lab-card-footer {
+            padding-top: 8px;
+          }
+          .lab-card-price {
+            font-size: 16px;
+          }
+          .lab-card-btn {
+            padding: 6px 11px;
+            font-size: 11.5px;
+            border-radius: 16px;
           }
           .pkg-card {
-            width: 240px;
+            width: 235px;
+            border-radius: 16px;
+          }
+          .pkg-card-img-container {
+            height: 120px;
+          }
+          .pkg-card-body {
+            padding: 12px 14px;
+          }
+          .pkg-card-title {
+            font-size: 14px;
+            min-height: 36px;
+          }
+          .pkg-card-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 16px;
+          }
+          .lab-grid-view {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+          }
+          .lab-grid-view .lab-card {
+            width: 100%;
+          }
+          .pkg-grid-view {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          .pkg-grid-view .pkg-card {
+            width: 100%;
+          }
+          .lab-appointments-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+          .lab-features-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+        }
+
+        /* Very Small Screens (< 420px) */
+        @media (max-width: 420px) {
+          .lab-features-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          .lab-card {
+            width: 195px;
+          }
+          .pkg-card {
+            width: 220px;
           }
         }
       `}</style>
@@ -862,37 +1115,57 @@ function toTitleCase(str) {
             <span style={{ color: 'var(--text-main)', fontWeight: '600' }}>Lab Tests & Packages</span>
           </div>
           
-          {/* Top Hero Banner matching attached UI */}
+          {/* Top Hero Banner */}
           <div className="lab-hero-banner">
-            <div>
+            <div className="lab-hero-content">
+              
+              {/* Pre-title Pill Tag */}
+              <div className="lab-hero-pill-tag">
+                <Sparkles size={13} color="#0d5c63" /> NABL & ISO Certified Partner Labs
+              </div>
+
+              {/* Title & Subtitle */}
               <h1 className="lab-hero-title">
-                Book trusted lab tests and health packages with ease.
+                Book trusted lab tests & health packages with ease.
               </h1>
+              <p className="lab-hero-subtitle">
+                Free doorstep sample collection by certified phlebotomists.
+              </p>
+
+              {/* Trust Micro Badges */}
               <div className="lab-hero-badges">
                 <span className="lab-hero-badge">
-                  <CheckCircle2 size={15} color="#16a34a" /> Certified Labs
+                  <CheckCircle2 size={14} color="#16a34a" /> Certified Labs
                 </span>
                 <span className="lab-hero-badge">
-                  <CheckCircle2 size={15} color="#16a34a" /> On-time Reports
+                  <Clock size={14} color="#0d5c63" /> 12-24h Reports
                 </span>
                 <span className="lab-hero-badge">
-                  <CheckCircle2 size={15} color="#16a34a" /> Free Home Sample Collection
+                  <ShieldCheck size={14} color="#f97316" /> Free Home Sample
                 </span>
               </div>
+
             </div>
-            <div className="lab-hero-img-col" style={{ flexShrink: 0, paddingLeft: '16px' }}>
-              <img 
-                src="/reward_lab.png" 
-                alt="Lab Diagnostics Illustration" 
-                style={{ width: '150px', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.08))' }} 
-              />
+
+            {/* Right Graphic/Illustration (Desktop & Tablet) */}
+            <div className="lab-hero-img-col">
+              <div className="lab-hero-img-card">
+                <img 
+                  src="/reward_lab.png" 
+                  alt="Lab Diagnostics Illustration" 
+                  className="lab-hero-img"
+                />
+                <div className="lab-hero-stat-badge">
+                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#12333a' }}>⭐ 4.9 Pathologist Rating</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="container" style={{ padding: '32px 16px 64px 16px' }}>
+      <div className="container lab-container-custom">
 
         {/* ── SECTION 1: LAB TESTS ── */}
         <section style={{ marginBottom: '48px' }}>
@@ -1058,11 +1331,7 @@ function toTitleCase(str) {
           </div>
 
           {appointments.length > 0 ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '16px'
-            }}>
+            <div className="lab-appointments-grid">
               {appointments.slice(0, 4).map((appt) => (
                 <div 
                   key={appt.id} 
@@ -1120,7 +1389,7 @@ function toTitleCase(str) {
           padding: '32px 24px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
+          <div className="lab-features-grid">
             {[
               { icon: <ShieldCheck size={26} />, title: "Certified Labs", sub: "100% NABL & ISO accredited partners", color: "#16a34a", bg: "#dcfce7" },
               { icon: <Clock size={26} />, title: "On-time Reports", sub: "Digital reports within 12 to 24 hours", color: "#2E666E", bg: "#E4EEEF" },
