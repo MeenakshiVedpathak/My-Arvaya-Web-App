@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { X, MapPin, Phone, User, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, Navigation } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -17,11 +17,19 @@ L.Icon.Default.mergeOptions({
 });
 
 function LocationMarker({ position, setPosition }) {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
       setPosition(e.latlng);
     },
   });
+
+  React.useEffect(() => {
+    if (position) {
+      const currentZoom = map.getZoom();
+      map.setView(position, currentZoom < 15 ? 15 : currentZoom);
+    }
+  }, [position, map]);
+
   return position === null ? null : <Marker position={position} />;
 }
 
@@ -112,6 +120,11 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
+
+  useEffect(() => {
+    handleLocate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async () => {
     if (!patientName.trim()) { setErr("Patient name is required."); return; }
@@ -324,7 +337,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
           <button onClick={onClose} style={{ position: "absolute", top: "16px", right: "16px", background: "var(--bg-app)", border: "1px solid var(--border)", width: "34px", height: "34px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", zIndex: 10 }} onMouseEnter={e => e.currentTarget.style.background="var(--border)"} onMouseLeave={e => e.currentTarget.style.background="var(--bg-app)"}>
             <X size={16} color="var(--text-muted)" />
           </button>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: step === 2 ? "center" : "flex-start" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: step === 2 ? "center" : "flex-start", overflowY: "auto", maxHeight: "80vh", paddingRight: "10px" }}>
             {step === 1 ? formPanel : successPanel}
           </div>
         </div>

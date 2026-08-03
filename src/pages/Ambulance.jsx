@@ -33,30 +33,40 @@ export default function AmbulancePage() {
   const getStatusIndex = (status) => {
     if (!status) return 0;
     const s = String(status).trim().toLowerCase().replace(/_/g, " ");
-    if (s.includes("dispatch")) return 1;
-    if (s.includes("en route") || s.includes("enroute") || s.includes("transit") || s.includes("on way")) return 2;
-    if (s.includes("arrive") || s.includes("reach") || s.includes("complete") || s.includes("done")) return 3;
+    if (s.includes("cancel") || s.includes("unavailable")) return -1;
+    if (s.includes("complete") || s.includes("done")) return 4;
+    if (s.includes("arriv") || s.includes("delay")) return 3;
+    if (s.includes("dispatch")) return 2;
+    if (s.includes("assign")) return 1;
     return 0;
   };
 
   const getStatusColor = (status) => {
+    const s = String(status).trim().toLowerCase().replace(/_/g, " ");
+    if (s.includes("cancel") || s.includes("unavailable")) return { bg: "#fee2e2", color: "#dc2626", border: "#fca5a5" };
+    if (s.includes("delay")) return { bg: "#ffedd5", color: "#ea580c", border: "#fdba74" };
     const idx = getStatusIndex(status);
     switch (idx) {
       case 0: return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
       case 1: return { bg: "#dbeafe", color: "#2563eb", border: "#93c5fd" };
       case 2: return { bg: "#e0e7ff", color: "#4f46e5", border: "#a5b4fc" };
-      case 3: return { bg: "var(--success-bg)", color: "var(--success)", border: "#86efac" };
+      case 3: return { bg: "#ccfbf1", color: "#0d9488", border: "#5eead4" };
+      case 4: return { bg: "var(--success-bg)", color: "var(--success)", border: "#86efac" };
       default: return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
     }
   };
 
   const getStatusIcon = (status) => {
+    const s = String(status).trim().toLowerCase().replace(/_/g, " ");
+    if (s.includes("cancel") || s.includes("unavailable")) return <FileX2 size={16} />;
+    if (s.includes("delay")) return <AlertTriangle size={16} />;
     const idx = getStatusIndex(status);
     switch (idx) {
       case 0: return <Clock size={16} />;
-      case 1: return <Truck size={16} />;
-      case 2: return <Navigation size={16} />;
-      case 3: return <CheckCircle2 size={16} />;
+      case 1: return <User size={16} />;
+      case 2: return <Truck size={16} />;
+      case 3: return <Navigation size={16} />;
+      case 4: return <CheckCircle2 size={16} />;
       default: return <Clock size={16} />;
     }
   };
@@ -64,12 +74,25 @@ export default function AmbulancePage() {
   const getEmergencyLabel = (val) => EMERGENCY_TYPES.find(t => t.value === val)?.label || val;
 
   const formatTime = (iso) => {
+    if (!iso) return "";
     const d = new Date(iso);
     return d.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
-  const activeRequests = requests.filter(r => getStatusIndex(r.status) < 3);
-  const pastRequests = requests.filter(r => getStatusIndex(r.status) === 3);
+  const formatTimeShort = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+  };
+
+  const activeRequests = requests.filter(r => {
+    const idx = getStatusIndex(r.status);
+    return idx >= 0 && idx < 4;
+  });
+  const pastRequests = requests.filter(r => {
+    const idx = getStatusIndex(r.status);
+    return idx === 4 || idx === -1;
+  });
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -138,25 +161,50 @@ export default function AmbulancePage() {
                         </div>
 
                         {/* Status progress */}
-                        <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "24px" }}>
-                          {STATUS_FLOW.map((s, i) => {
-                            const idx = getStatusIndex(req.status);
-                            const done = i <= idx;
-                            return (
-                              <React.Fragment key={s}>
-                                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: done ? "var(--primary)" : "var(--bg-app)", border: done ? "none" : "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", fontSize: "11px", fontWeight: "700", color: done ? "#fff" : "var(--text-muted)" }}>
-                                  {done ? <CheckCircle2 size={14} /> : i + 1}
+                        {getStatusIndex(req.status) !== -1 ? (
+                          <div style={{ display: "flex", width: "100%", paddingBottom: "32px", marginBottom: "24px" }}>
+                            {STATUS_FLOW.map((s, i) => {
+                              const idx = getStatusIndex(req.status);
+                              const done = i <= idx;
+                              const lineDone = i < idx;
+                              const isLast = i === STATUS_FLOW.length - 1;
+                              const isDelayed = String(req.status).toLowerCase().includes("delay");
+                              const stepLabel = (isDelayed && i === 3) ? "Delayed" : s;
+                              const stepColor = (isDelayed && i === 3 && done) ? "#ea580c" : (done ? "var(--primary)" : "var(--bg-app)");
+                              const textColor = (isDelayed && i === 3 && done) ? "#fff" : (done ? "#fff" : "var(--text-muted)");
+
+                              let stepTime = null;
+                              if (i === 0) stepTime = req.createdAt;
+                              if (i === 1) stepTime = req.assignedAt;
+                              if (i === 2) stepTime = req.dispatchedAt;
+                              if (i === 3 && done) stepTime = req.updatedAt;
+                              if (i === 4) stepTime = req.completedAt;
+
+                              return (
+                                <div key={s} style={{ flex: isLast ? 0 : 1, position: "relative" }}>
+                                  {!isLast && (
+                                    <div style={{ position: "absolute", top: "13px", left: "28px", right: "0", height: "3px", background: lineDone ? "var(--primary)" : "var(--border)", transition: "all 0.3s" }} />
+                                  )}
+                                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: stepColor, border: done ? "none" : "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", fontSize: "11px", fontWeight: "700", color: textColor, position: "relative", zIndex: 1 }}>
+                                    {done ? <CheckCircle2 size={14} /> : i + 1}
+                                  </div>
+                                  <div style={{ position: "absolute", top: "36px", left: "14px", transform: "translateX(-50%)", width: "100px", textAlign: "center", fontSize: "10px", fontWeight: "600", color: (isDelayed && i === 3 && done) ? "#ea580c" : "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                    {stepLabel}
+                                    {stepTime && (
+                                      <div style={{ fontSize: "9px", color: "var(--text-muted)", opacity: 0.7, marginTop: "2px", textTransform: "none", letterSpacing: "normal" }}>
+                                        {formatTimeShort(stepTime)}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                                {i < STATUS_FLOW.length - 1 && (
-                                  <div style={{ flex: 1, height: "3px", borderRadius: "2px", background: i < idx ? "var(--primary)" : "var(--border)", transition: "all 0.3s" }} />
-                                )}
-                              </React.Fragment>
-                            );
-                          })}
-                        </div>
-                        <div style={{ display: "flex", gap: "4px", marginBottom: "24px" }}>
-                          {STATUS_FLOW.map((s, i) => <span key={s} style={{ flex: 1, textAlign: "center", fontSize: "10px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{s}</span>)}
-                        </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div style={{ padding: "16px", background: "#fee2e2", borderRadius: "8px", color: "#dc2626", fontSize: "14px", fontWeight: "600", marginBottom: "24px", display: "flex", alignItems: "center", gap: "8px" }}>
+                            <FileX2 size={18} /> Request {req.status}
+                          </div>
+                        )}
 
                         {/* Live Map Tracking */}
                         <div style={{ height: "200px", background: "var(--bg-app)", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
