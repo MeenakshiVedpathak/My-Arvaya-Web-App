@@ -1072,9 +1072,9 @@ function QrModal({ abhaData, onClose }) {
    ═══════════════════════════════════════════════════ */
 function Overlay({ children, onClose }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.65)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "24px" }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.65)", backdropFilter: "blur(10px)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 2000, padding: "16px", overflowY: "auto" }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()}>{children}</div>
+      <div onClick={e => e.stopPropagation()} style={{ margin: "auto 0", flexShrink: 0, width: "100%", display: "flex", justifyContent: "center" }}>{children}</div>
     </div>
   );
 }

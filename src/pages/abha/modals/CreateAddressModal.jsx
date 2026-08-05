@@ -44,8 +44,8 @@ function StepIndicator({ current, total }) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 2px' }}>
         {steps.map((label, i) => (
-          <div key={i} style={{ 
-            fontSize: '11px', fontWeight: i === current ? '700' : '600', 
+          <div key={i} style={{
+            fontSize: '11px', fontWeight: i === current ? '700' : '600',
             color: i <= current ? 'var(--text-main)' : 'var(--text-muted)',
             textTransform: 'uppercase', letterSpacing: '0.04em',
             transition: 'color 0.3s'
@@ -60,15 +60,15 @@ function StepIndicator({ current, total }) {
 
 export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
   // Step: 'send_otp' | 'verify_otp' | 'select_address' | 'success'
-  const [step, setStep]               = useState("send_otp");
-  const [txnId, setTxnId]             = useState("");
-  const [otp, setOtp]                 = useState(["", "", "", "", "", ""]);
+  const [step, setStep] = useState("send_otp");
+  const [txnId, setTxnId] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [suggestions, setSuggestions] = useState([]);
   const [selectedAddr, setSelectedAddr] = useState("");
   const [customPrefix, setCustomPrefix] = useState("");
-  const [createdAddr, setCreatedAddr]   = useState("");
-  const [busy, setBusy]               = useState(false);
-  const [err, setErr]                 = useState("");
+  const [createdAddr, setCreatedAddr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
   const otpRefs = useRef([]);
 
   const mobileNumber = user?.mobile_number || user?.phone || user?.mobile || localStorage.getItem("mobile_number") || "";
@@ -196,9 +196,9 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
           animation: 'scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
         }}>
           <div style={{ padding: '36px 32px', textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ 
-              width: '88px', height: '88px', borderRadius: '50%', background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', 
+            <div style={{
+              width: '88px', height: '88px', borderRadius: '50%', background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px',
               boxShadow: '0 0 0 12px rgba(22,163,74,0.08)', position: 'relative'
             }}>
               <CheckCircle2 size={44} color="#16a34a" strokeWidth={2.5} style={{ animation: 'popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }} />
@@ -206,24 +206,24 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
             </div>
             <h3 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-0.02em' }}>Address Created!</h3>
             <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginBottom: '32px', lineHeight: 1.6 }}>Your digital health identity is now ready to use.</p>
-            
-            <div style={{ 
-              background: 'linear-gradient(145deg, #f0fdf4 0%, #ffffff 100%)', border: '1px solid #bbf7d0', 
-              borderRadius: '16px', padding: '20px 24px', fontFamily: 'monospace', fontSize: '18px', 
-              fontWeight: '700', color: '#166534', marginBottom: '36px', letterSpacing: '0.02em', 
+
+            <div style={{
+              background: 'linear-gradient(145deg, #f0fdf4 0%, #ffffff 100%)', border: '1px solid #bbf7d0',
+              borderRadius: '16px', padding: '20px 24px', fontFamily: 'monospace', fontSize: '18px',
+              fontWeight: '700', color: '#166534', marginBottom: '36px', letterSpacing: '0.02em',
               width: '100%', textAlign: 'center', boxShadow: 'inset 0 2px 8px rgba(22,163,74,0.05)'
             }}>
               {createdAddr}
             </div>
-            
+
             <button onClick={onClose} style={{
-              width: '100%', padding: '16px', background: 'linear-gradient(135deg, var(--primary) 0%, #1a4a50 100%)', 
-              color: '#fff', border: 'none', borderRadius: '14px', fontSize: '16px', fontWeight: '700', 
-              cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+              width: '100%', padding: '16px', background: 'linear-gradient(135deg, var(--primary) 0%, #1a4a50 100%)',
+              color: '#fff', border: 'none', borderRadius: '14px', fontSize: '16px', fontWeight: '700',
+              cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               boxShadow: '0 8px 20px rgba(46,102,110,0.3)'
             }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} 
-            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
               Continue to Dashboard
             </button>
           </div>
@@ -249,11 +249,11 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
         <div style={{ padding: '24px 32px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', zIndex: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {step !== "send_otp" && (
-              <button onClick={() => { setErr(""); setStep(step === "select_address" ? "verify_otp" : "send_otp"); }} style={{ 
+              <button onClick={() => { setErr(""); setStep(step === "select_address" ? "verify_otp" : "send_otp"); }} style={{
                 background: '#f3f4f6', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%',
-                display: 'flex', alignItems: 'center', transition: 'background 0.2s' 
+                display: 'flex', alignItems: 'center', transition: 'background 0.2s'
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#e5e7eb'} onMouseLeave={e => e.currentTarget.style.background = '#f3f4f6'}>
+                onMouseEnter={e => e.currentTarget.style.background = '#e5e7eb'} onMouseLeave={e => e.currentTarget.style.background = '#f3f4f6'}>
                 <ArrowLeft size={18} color="var(--text-main)" />
               </button>
             )}
@@ -268,7 +268,7 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
             </div>
           </div>
           <button onClick={onClose} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.transform = 'rotate(90deg)'; }} 
+            onMouseEnter={e => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.transform = 'rotate(90deg)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.transform = 'rotate(0deg)'; }}>
             <X size={16} color="#6b7280" />
           </button>
@@ -334,7 +334,7 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
                 </div>
                 <h3 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 8px' }}>Enter Verification Code</h3>
                 <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
-                  Please enter the 6-digit OTP sent to<br/><strong>{maskedMobile}</strong>
+                  Please enter the 6-digit OTP sent to<br /><strong>{maskedMobile}</strong>
                 </p>
               </div>
 
@@ -352,8 +352,8 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
                     onPaste={idx === 0 ? handleOtpPaste : undefined}
                     style={{
                       width: '52px', height: '60px', textAlign: 'center', fontSize: '24px',
-                      fontWeight: '700', border: digit ? '2px solid var(--primary)' : '2px solid #e5e7eb', 
-                      borderRadius: '14px', outline: 'none', background: digit ? 'var(--primary-light)' : '#f9fafb', 
+                      fontWeight: '700', border: digit ? '2px solid var(--primary)' : '2px solid #e5e7eb',
+                      borderRadius: '14px', outline: 'none', background: digit ? 'var(--primary-light)' : '#f9fafb',
                       color: 'var(--primary-dark)', transition: 'all 0.2s', fontFamily: 'monospace',
                       boxShadow: digit ? '0 4px 12px rgba(46,102,110,0.1)' : 'inset 0 2px 4px rgba(0,0,0,0.02)'
                     }}
@@ -393,7 +393,7 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
           {/* ── STEP 3: Select / Create Address ── */}
           {step === "select_address" && (
             <div style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-              
+
               {/* Suggestions */}
               {suggestions.length > 0 && (
                 <div style={{ marginBottom: '28px' }}>
@@ -421,8 +421,8 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
                           onMouseLeave={e => !isSelected && (e.currentTarget.style.borderColor = '#e5e7eb')}
                         >
                           <span style={{ letterSpacing: '0.02em' }}>{addr}</span>
-                          <div style={{ 
-                            width: '22px', height: '22px', borderRadius: '50%', 
+                          <div style={{
+                            width: '22px', height: '22px', borderRadius: '50%',
                             border: isSelected ? 'none' : '2px solid #d1d5db',
                             background: isSelected ? 'var(--primary)' : 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -444,9 +444,9 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
                   <span style={{ fontSize: '12px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OR CREATE CUSTOM</span>
                   <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
                 </div>
-                
-                <div style={{ 
-                  display: 'flex', border: selectedAddr ? '1.5px solid #e5e7eb' : '2px solid var(--primary)', 
+
+                <div style={{
+                  display: 'flex', border: selectedAddr ? '1.5px solid #e5e7eb' : '2px solid var(--primary)',
                   borderRadius: '14px', overflow: 'hidden', background: '#fff', transition: 'all 0.3s',
                   boxShadow: selectedAddr ? '0 2px 6px rgba(0,0,0,0.02)' : '0 4px 16px rgba(46,102,110,0.1)'
                 }}>

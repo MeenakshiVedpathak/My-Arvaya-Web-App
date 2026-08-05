@@ -25,7 +25,7 @@ const getRecordIcon = (type = "") => {
 };
 
 export default function Records() {
-  const { user, loginMethod } = useAuth();
+  const { user, loginMethod, openLoginModal } = useAuth();
   let go = useNavigate();
   let fileInputRef = useRef(null);
 
@@ -361,7 +361,18 @@ export default function Records() {
                 <Lock size={14} /> ISO 27001 Certified • 256-bit Encrypted Storage
               </p>
             </div>
-            <button className="btn btn-accent flex items-center gap-2 hover-glow" onClick={() => setShowUploadModal(true)} style={{ padding: '10px 20px', borderRadius: 'var(--radius-full)' }}>
+            <button
+              className={`btn btn-accent flex items-center gap-2 ${activeTab === 'abha' ? '' : 'hover-glow'}`}
+              disabled={activeTab === 'abha'}
+              onClick={() => setShowUploadModal(true)}
+              title={activeTab === 'abha' ? "Upload is disabled in ABHA Network view" : "Upload Record"}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-full)',
+                opacity: activeTab === 'abha' ? 0.5 : 1,
+                cursor: activeTab === 'abha' ? 'not-allowed' : 'pointer'
+              }}
+            >
               <CloudUpload size={18} /> Upload Record
             </button>
           </div>
@@ -558,7 +569,7 @@ export default function Records() {
                   <img src="/empty_reports.png" alt="No reports found" style={{ height: '120px', marginBottom: '24px', opacity: 0.5 }} />
                   <h3 style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '12px', fontWeight: '700' }}>No ABHA records found</h3>
                   <p style={{ color: 'var(--muted)', fontSize: '16px', maxWidth: '400px', margin: '0 auto 24px' }}>Link your ABHA ID to sync records from external hospitals and clinics.</p>
-                  <button onClick={() => go('/abha')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontWeight: '600', cursor: 'pointer' }}>Link ABHA ID</button>
+                  <button onClick={() => openLoginModal("/records", "abha_mobile")} style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontWeight: '600', cursor: 'pointer' }}>Link ABHA ID</button>
                 </div>
               )
             ) : (
