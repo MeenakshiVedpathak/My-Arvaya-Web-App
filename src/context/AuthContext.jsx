@@ -125,6 +125,9 @@ export function AuthProvider({ children }) {
     if (data.loginMethod) {
       localStorage.setItem("arvaya_login_method", data.loginMethod);
       setLoginMethod(data.loginMethod);
+      if (data.loginMethod === "user_verify_otp") {
+        localStorage.setItem("arvaya_abha_linked", "false");
+      }
     }
 
     if (data.token) {
