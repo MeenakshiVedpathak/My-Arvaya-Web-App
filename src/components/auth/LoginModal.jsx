@@ -6,12 +6,18 @@ import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress, abhaV
 import { useNavigate } from "react-router-dom";
 
 export default function LoginModal({ forceOpen = false }) {
-  const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession } = useAuth();
-  const [screen, setScreen] = useState("landing");
+  const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession, loginModalScreen } = useAuth();
+  const [screen, setScreen] = useState(loginModalScreen || "landing");
   const [phone, setPhone] = useState("");
   const [isAbhaFlow, setIsAbhaFlow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  useEffect(() => {
+    if (isLoginModalOpen) {
+      setScreen(loginModalScreen || "landing");
+    }
+  }, [isLoginModalOpen, loginModalScreen]);
 
   // ABHA-specific state
   const [abhaMobile, setAbhaMobile] = useState("");
@@ -101,7 +107,7 @@ export default function LoginModal({ forceOpen = false }) {
         phone: rawUser?.mobile_number || rawUser?.phone || rawUser?.mobile || phone
       };
 
-      saveSession({ token, user });
+      saveSession({ token, user, loginMethod: "user_verify_otp" });
       handleClose();
       if (pendingRedirect) go(pendingRedirect);
     } catch (e) { setErr(e.message || "Invalid OTP"); }
@@ -170,10 +176,28 @@ export default function LoginModal({ forceOpen = false }) {
       };
 
       const res = await abhaVerifyUser(payload);
-      const token = res?.token || res?.accessToken || res?.data?.token || res?.UserData?.token || res?.result?.token || tokenVal || "mock_abha_token_" + Date.now();
+      const abhaResponseToken = res?.UserData?.response?.refreshToken;
+      const userId = res?.UserData?.user_id || res?.user_id || res?.user?.id || res?.user?.user_id;
+      if (abhaResponseToken) {
+        localStorage.setItem("abha_user_token", abhaResponseToken);
+        localStorage.setItem("abha_token", abhaResponseToken);
+      }
+      if (userId) {
+        localStorage.setItem("user_id", userId);
+      }
       let user = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result || { name: payload.name || "ABHA User", abhaAddress: address };
 
-      saveSession({ token, user });
+      saveSession({
+        token: abhaResponseToken,
+        user: {
+          ...user,
+          abha_token: abhaResponseToken,
+          abhaAddress: address,
+          abhaNumber: payload.abha_number || user?.abhaNumber || user?.abha_number || "91-6780-5608-2723",
+          abha_number: payload.abha_number || user?.abha_number || user?.abhaNumber || "91-6780-5608-2723"
+        },
+        loginMethod: "abha"
+      });
       handleClose();
       if (pendingRedirect) go(pendingRedirect);
     } catch (e) { setErr(e.message || "Could not link ABHA. Please try again."); }
