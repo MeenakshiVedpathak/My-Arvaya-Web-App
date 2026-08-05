@@ -3,9 +3,9 @@ import { X } from "lucide-react";
 
 export function Overlay({ children, onClose }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(18, 51, 58, 0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "24px" }}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(18, 51, 58, 0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 2000, padding: "40px 24px", overflowY: "auto" }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", display: "flex", justifyContent: "center" }}>{children}</div>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", display: "flex", justifyContent: "center", margin: "auto" }}>{children}</div>
     </div>
   );
 }

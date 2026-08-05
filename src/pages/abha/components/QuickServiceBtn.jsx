@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronRight, QrCode, CreditCard, User, Users, Plus, LogOut, Download, X, Shield, Clock, CheckCircle2, XCircle, AlertCircle, Info, ArrowLeft, MapPin, ShieldCheck, Copy, FileText, Building2, Phone, Calendar, UserCircle } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
-import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress } from "../../../services/abhaService";
+import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress } from "../../../services/abhaService";
 
 
 export function QuickServiceBtn({ icon: Icon, label, onClick }) {

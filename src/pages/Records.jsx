@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { getRecords } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
 import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 const iconMap = {
   "Lab Report": { Icon: HeartPulse, color: "#38a169", bg: "#f0fff4" },
@@ -24,6 +25,7 @@ const getRecordIcon = (type = "") => {
 };
 
 export default function Records() {
+  const { user, loginMethod } = useAuth();
   let go = useNavigate();
   let fileInputRef = useRef(null);
 
@@ -39,23 +41,43 @@ export default function Records() {
   // Modal & Upload States
   let [showUploadModal, setShowUploadModal] = useState(false);
   let [selectedFile, setSelectedFile] = useState(null);
+  let [uploadedFileName, setUploadedFileName] = useState("");
+  let [uploadingFile, setUploadingFile] = useState(false);
   let [recordTitle, setRecordTitle] = useState("");
   let [recordType, setRecordType] = useState("Lab Report");
+  let [selectedDocTypeId, setSelectedDocTypeId] = useState(1);
   let [doctorName, setDoctorName] = useState("");
   let [uploading, setUploading] = useState(false);
   let [uploadSuccess, setUploadSuccess] = useState(false);
 
   // ABHA Linked Status
-  const [isAbhaLinked, setIsAbhaLinked] = useState(() => localStorage.getItem("arvaya_abha_linked") === "true");
+  const [isAbhaLinked, setIsAbhaLinked] = useState(() => {
+    const method = localStorage.getItem("arvaya_login_method");
+    const linked = localStorage.getItem("arvaya_abha_linked");
+    if (method === "user_verify_otp" && linked !== "true") return false;
+    return linked === "true";
+  });
 
   useEffect(() => {
     const checkAbhaStatus = () => {
-      setIsAbhaLinked(localStorage.getItem("arvaya_abha_linked") === "true");
+      const method = localStorage.getItem("arvaya_login_method") || loginMethod;
+      const linked = localStorage.getItem("arvaya_abha_linked");
+      const hasAbhaData = Boolean(user?.abhaAddress || user?.abha_address || user?.abhaNumber || user?.abha_number);
+
+      if (method === "user_verify_otp" && !hasAbhaData) {
+        setIsAbhaLinked(false);
+      } else {
+        setIsAbhaLinked(linked === "true" || hasAbhaData);
+      }
     };
     checkAbhaStatus();
     window.addEventListener("storage", checkAbhaStatus);
-    return () => window.removeEventListener("storage", checkAbhaStatus);
-  }, []);
+    window.addEventListener("arvaya_profile_updated", checkAbhaStatus);
+    return () => {
+      window.removeEventListener("storage", checkAbhaStatus);
+      window.removeEventListener("arvaya_profile_updated", checkAbhaStatus);
+    };
+  }, [loginMethod, user]);
 
   // ABHA Records State & Fetching
   const [abhaRecords, setAbhaRecords] = useState([]);
@@ -90,7 +112,9 @@ export default function Records() {
   };
 
   useEffect(() => {
-    if (activeTab === 'abha' && isAbhaLinked) {
+    if (activeTab === 'personal') {
+      fetchRecords(1);
+    } else if (activeTab === 'abha' && isAbhaLinked) {
       fetchAbhaRecords();
     }
   }, [activeTab, isAbhaLinked]);
@@ -98,25 +122,51 @@ export default function Records() {
   // Download State
   let [downloadingId, setDownloadingId] = useState(null);
 
-  const fetchRecords = (page) => {
+  const fetchRecords = async (page = 1) => {
     if (page === 1) setLoading(true);
     else setLoadingMore(true);
 
-    getRecords({ pageIndex: page, pageSize: 12 }).then(res => {
+    try {
+      const res = await getRecords({ pageIndex: page, pageSize: 12 });
       setRecords(prev => page === 1 ? (res.list || []) : [...prev, ...(res.list || [])]);
       setCount(res.count || 0);
-      setLoading(false);
-      setLoadingMore(false);
-    }).catch(err => {
+    } catch (err) {
       console.error("fetchRecords error:", err);
+    } finally {
       setLoading(false);
       setLoadingMore(false);
-    });
+    }
+  };
+
+  // Document Types State & Fetching
+  const [documentTypes, setDocumentTypes] = useState([]);
+
+  const fetchDocumentTypes = async () => {
+    try {
+      let res;
+      try {
+        res = await api.post("/api/documentType/get", {});
+      } catch (err) {
+        res = await api.get("/api/documentType/get");
+      }
+      const list = res?.data || res?.list || res?.records || res?.result || (Array.isArray(res) ? res : []);
+      if (Array.isArray(list) && list.length > 0) {
+        setDocumentTypes(list);
+        const firstItem = list[0];
+        const firstId = Number(firstItem?.id || firstItem?.document_type_id || firstItem?.value || 1);
+        const firstName = firstItem?.name || firstItem?.document_type || firstItem?.type || firstItem?.title || "Lab Report";
+        setSelectedDocTypeId(firstId);
+        setRecordType(firstName);
+      }
+    } catch (err) {
+      console.error("fetchDocumentTypes error:", err);
+    }
   };
 
   useEffect(() => {
     if (showUploadModal) {
       document.body.style.overflow = 'hidden';
+      fetchDocumentTypes();
     } else {
       document.body.style.overflow = '';
     }
@@ -125,17 +175,30 @@ export default function Records() {
     };
   }, [showUploadModal]);
 
-  useEffect(() => {
-    fetchRecords(1);
-  }, []);
-
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      if (!recordTitle) {
-        setRecordTitle(file.name.replace(/\.[^/.]+$/, ""));
-      }
+    if (!file) return;
+
+    setSelectedFile(file);
+    setUploadedFileName("");
+    if (!recordTitle) {
+      setRecordTitle(file.name.replace(/\.[^/.]+$/, ""));
+    }
+
+    // Instantly trigger upload to HealthRecords folder
+    setUploadingFile(true);
+    try {
+      const folderName = 'HealthRecords';
+      const fileExt = file.name.split('.').pop();
+      const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
+
+      const uploadRes = await uploadImage(file, folderName, generatedName);
+      const uploadedName = uploadRes?.filename || uploadRes?.fileName || uploadRes?.result || uploadRes?.data || generatedName;
+      setUploadedFileName(uploadedName);
+    } catch (err) {
+      console.error("Instant file upload error:", err);
+    } finally {
+      setUploadingFile(false);
     }
   };
 
@@ -204,72 +267,77 @@ export default function Records() {
 
   const handleUploadSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (!selectedFile) return;
+    if (!selectedFile && !uploadedFileName) return;
 
     setUploading(true);
     try {
-      const folderName = 'HealthRecords';
-      const fileExt = selectedFile.name.split('.').pop();
-      const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
-
-      // 1. Upload image/file via uploadService to HealthRecords folder
-      const uploadRes = await uploadImage(selectedFile, folderName, generatedName);
-      const uploadedFileName = uploadRes?.filename || uploadRes?.fileName || generatedName;
-      const fileUrl = getImageUrl(uploadedFileName, folderName) || URL.createObjectURL(selectedFile);
-
-      // 2. Save metadata via upsert API if backend endpoint is present
-      try {
-        const storedUser = localStorage.getItem("arvaya_user");
-        let userId = null;
-        if (storedUser) {
-          try {
-            const parsed = JSON.parse(storedUser);
-            userId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
-          } catch(err) {}
-        }
-        await api.post("/api/patientHealthRecord/upsert", {
-          title: recordTitle || selectedFile.name,
-          record_name: recordTitle || selectedFile.name,
-          record_type: recordType || "Lab Report",
-          type: recordType || "Lab Report",
-          doctor_name: doctorName || "Self Uploaded",
-          file_name: uploadedFileName,
-          file_path: uploadedFileName,
-          url: fileUrl,
-          ...(userId ? { app_user_id: userId, created_by: userId } : {})
-        });
-      } catch (err) {
-        console.warn("patientHealthRecord upsert notice:", err);
+      let finalFileName = uploadedFileName;
+      if (!finalFileName && selectedFile) {
+        const folderName = 'HealthRecords';
+        const fileExt = selectedFile.name.split('.').pop();
+        const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
+        const uploadRes = await uploadImage(selectedFile, folderName, generatedName);
+        finalFileName = uploadRes?.filename || uploadRes?.fileName || uploadRes?.result || uploadRes?.data || generatedName;
+        setUploadedFileName(finalFileName);
       }
 
-      // 3. Construct new record item
-      const newRecord = {
-        id: Date.now(),
-        title: recordTitle || selectedFile.name,
-        doctor: doctorName || "Self Uploaded",
-        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-        type: recordType || "Lab Report",
-        filePath: uploadedFileName,
-        fileUrl: fileUrl,
-        raw: { file_name: uploadedFileName, file_path: uploadedFileName }
-      };
+      const storedUser = localStorage.getItem("arvaya_user");
+      let parsedUser = {};
+      if (storedUser) {
+        try {
+          parsedUser = JSON.parse(storedUser);
+        } catch(err) {}
+      }
 
-      setRecords(prev => [newRecord, ...prev]);
-      setCount(prev => prev + 1);
-      setActiveTab("personal");
+      const appUserId = Number(user?.app_user_id || user?.user_id || user?.id || parsedUser?.app_user_id || parsedUser?.user_id || parsedUser?.id || 107609);
+      const clientId = Number(user?.client_id || parsedUser?.client_id || 1);
+      const fileExt = selectedFile?.name ? selectedFile.name.split('.').pop() : (finalFileName ? finalFileName.split('.').pop() : "jpg");
+      const currentDate = new Date().toISOString();
+
+      const matchedDocType = documentTypes.find(dt => Number(dt.id || dt.document_type_id || dt.value) === Number(selectedDocTypeId));
+      const docTypeName = matchedDocType?.name || matchedDocType?.document_type || matchedDocType?.type || matchedDocType?.title || recordType || "DiagnosticReport";
+      const hiTypeId = Number(selectedDocTypeId || matchedDocType?.id || 1);
+
+      // 1. Trigger /api/patientHealthRecord/upsert API with integer hi_type & id record_type
+      await api.post("/api/patientHealthRecord/upsert", {
+        id: 0,
+        app_user_id: appUserId,
+        file_type: fileExt,
+        title: recordTitle || selectedFile?.name || "Health Record",
+        status: 1,
+        hospital_name: doctorName || "",
+        lab_name: doctorName || "",
+        hi_type: hiTypeId,
+        creation_date: currentDate,
+        composition_data: "",
+        file_url: finalFileName,
+        description: "",
+        summary_data: "",
+        report_date: currentDate,
+        is_synced_abha: 0,
+        tags: "",
+        record_type: hiTypeId,
+        client_id: clientId
+      });
+
       setUploadSuccess(true);
+
+      // 2. Fetch latest records via /api/patientHealthRecord/get API
+      await fetchRecords(1);
+      setActiveTab("personal");
 
       setTimeout(() => {
         setShowUploadModal(false);
         setUploadSuccess(false);
         setSelectedFile(null);
+        setUploadedFileName("");
         setRecordTitle("");
         setDoctorName("");
       }, 1000);
 
     } catch (err) {
-      console.error("Upload error:", err);
-      alert("Failed to upload document. Please try again.");
+      console.error("Upload & Save error:", err);
+      alert("Failed to save health record. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -490,7 +558,7 @@ export default function Records() {
                   <img src="/empty_reports.png" alt="No reports found" style={{ height: '120px', marginBottom: '24px', opacity: 0.5 }} />
                   <h3 style={{ fontSize: '20px', color: 'var(--text-main)', marginBottom: '12px', fontWeight: '700' }}>No ABHA records found</h3>
                   <p style={{ color: 'var(--muted)', fontSize: '16px', maxWidth: '400px', margin: '0 auto 24px' }}>Link your ABHA ID to sync records from external hospitals and clinics.</p>
-                  <button style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontWeight: '600', cursor: 'pointer' }}>Link ABHA ID</button>
+                  <button onClick={() => go('/abha')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontWeight: '600', cursor: 'pointer' }}>Link ABHA ID</button>
                 </div>
               )
             ) : (
@@ -655,12 +723,22 @@ export default function Records() {
                   accept="image/*,.pdf,.doc,.docx" 
                   style={{ display: 'none' }} 
                 />
-                {selectedFile ? (
+                {uploadingFile ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Loader2 size={20} color="var(--primary)" className="animate-spin" />
+                    <div style={{ textAlign: 'left' }}>
+                      <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', fontSize: '12px' }}>Uploading to HealthRecords...</p>
+                      <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted)' }}>Sending file to server</p>
+                    </div>
+                  </div>
+                ) : selectedFile ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                     <FileText size={20} color="var(--primary)" />
                     <div style={{ textAlign: 'left' }}>
                       <p style={{ margin: 0, fontWeight: '700', color: 'var(--text-main)', fontSize: '12px' }}>{selectedFile.name}</p>
-                      <p style={{ margin: 0, fontSize: '10px', color: 'var(--muted)' }}>{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Click to change</p>
+                      <p style={{ margin: 0, fontSize: '10px', color: uploadedFileName ? 'var(--primary)' : 'var(--muted)' }}>
+                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB {uploadedFileName ? "• Uploaded (HealthRecords)" : "• Click to change"}
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -689,13 +767,30 @@ export default function Records() {
               <div style={{ marginBottom: '8px' }}>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '3px' }}>Record Type</label>
                 <select 
-                  value={recordType} 
-                  onChange={(e) => setRecordType(e.target.value)}
+                  value={selectedDocTypeId} 
+                  onChange={(e) => {
+                    const selId = Number(e.target.value);
+                    setSelectedDocTypeId(selId);
+                    const matched = documentTypes.find(dt => Number(dt.id || dt.document_type_id || dt.value) === selId);
+                    if (matched) {
+                      setRecordType(matched.name || matched.document_type || matched.type || matched.title || "");
+                    }
+                  }}
                   style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
                 >
-                  <option value="Lab Report">Lab Report</option>
-                  <option value="Prescription">Prescription</option>
-                  <option value="Diagnostic">Diagnostic Scan</option>
+                  {documentTypes.length > 0 ? (
+                    documentTypes.map((dt, idx) => {
+                      const idVal = Number(dt.id || dt.document_type_id || dt.value || idx + 1);
+                      const label = dt.name || dt.document_type || dt.label || dt.title || dt.type || `Type ${idVal}`;
+                      return <option key={idVal} value={idVal}>{label}</option>;
+                    })
+                  ) : (
+                    <>
+                      <option value={1}>Diagnostic Report</option>
+                      <option value={2}>Prescription</option>
+                      <option value={3}>Discharge Summary</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -716,24 +811,24 @@ export default function Records() {
                 <button 
                   type="button" 
                   onClick={() => setShowUploadModal(false)}
-                  disabled={uploading}
+                  disabled={uploading || uploadingFile}
                   style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  disabled={uploading || !selectedFile || uploadSuccess}
+                  disabled={uploading || uploadingFile || (!selectedFile && !uploadedFileName) || uploadSuccess}
                   className="btn btn-accent hover-glow"
                   style={{ padding: '6px 18px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', fontSize: '12px' }}
                 >
                   {uploading ? (
                     <>
-                      <Loader2 size={13} className="animate-spin" /> Uploading...
+                      <Loader2 size={13} className="animate-spin" /> Saving...
                     </>
                   ) : uploadSuccess ? (
                     <>
-                      <CheckCircle2 size={13} /> Uploaded!
+                      <CheckCircle2 size={13} /> Saved!
                     </>
                   ) : (
                     <>

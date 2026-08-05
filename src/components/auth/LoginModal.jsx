@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft } from "lucide-react";
+import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check } from "lucide-react";
 import { sendOtp, verifyOtp, getCloudId, getDeviceId } from "../../services/authService";
-import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress, abhaVerifyUser } from "../../services/abhaService";
+import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaVerifyUser, abhaSendCreationOtp, abhaCreateByAadhaar, abhaGetSuggestions } from "../../services/abhaService";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginModal({ forceOpen = false }) {
@@ -109,7 +109,7 @@ export default function LoginModal({ forceOpen = false }) {
 
       saveSession({ token, user, loginMethod: "user_verify_otp" });
       handleClose();
-      if (pendingRedirect) go(pendingRedirect);
+      go(pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Invalid OTP"); }
     finally { setBusy(false); }
   };
@@ -141,7 +141,7 @@ export default function LoginModal({ forceOpen = false }) {
       if (addresses.length === 0 && verifyAddress) {
         addresses = [{ address: verifyAddress, isPrimary: true }];
       } else if (addresses.length === 0) {
-        const addrRes = await abhaGetAddresses(newTxnId).catch(() => null);
+        const addrRes = await abhaGetSuggestions(newTxnId, { firstName: userObj.name || "" }).catch(() => null);
         addresses = addrRes?.abhaAddressList || addrRes?.addresses || (verifyAddress ? [{ address: verifyAddress }] : []);
       }
 
@@ -177,6 +177,7 @@ export default function LoginModal({ forceOpen = false }) {
 
       const res = await abhaVerifyUser(payload);
       const abhaResponseToken = res?.UserData?.response?.refreshToken;
+      const newtoken = res?.token;
       const userId = res?.UserData?.user_id || res?.user_id || res?.user?.id || res?.user?.user_id;
       if (abhaResponseToken) {
         localStorage.setItem("abha_user_token", abhaResponseToken);
@@ -188,7 +189,7 @@ export default function LoginModal({ forceOpen = false }) {
       let user = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result || { name: payload.name || "ABHA User", abhaAddress: address };
 
       saveSession({
-        token: abhaResponseToken,
+        token: newtoken,
         user: {
           ...user,
           abha_token: abhaResponseToken,
@@ -199,7 +200,7 @@ export default function LoginModal({ forceOpen = false }) {
         loginMethod: "abha"
       });
       handleClose();
-      if (pendingRedirect) go(pendingRedirect);
+      go(pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Could not link ABHA. Please try again."); }
     finally { setBusy(false); }
   };
@@ -228,12 +229,11 @@ export default function LoginModal({ forceOpen = false }) {
     case "abha_address":
       card = <AbhaSelectAddress addresses={abhaAddresses} selected={selectedAbhaAddress} onSelect={setSelectedAbhaAddress} onBack={() => setScreen("abha_otp")} onConfirm={doAbhaConfirm} {...p} />;
       break;
-    // ── ABHA Create flow ──
     case "abha_create_1":
     case "abha_create_2":
     case "abha_create_3":
     case "abha_create_done":
-      card = <AbhaCreate step={screen} onBack={() => setScreen(screen === "abha_create_1" ? "abha_mobile" : screen === "abha_create_2" ? "abha_create_1" : "abha_create_2")} onNext={(s) => setScreen(s)} onFinish={() => { handleClose(); go("/abha"); }} />;
+      card = <AbhaCreate step={screen} initialMobile={abhaMobile} abhaTransactionId={abhaTransactionId} setAbhaTransactionId={setAbhaTransactionId} saveSession={saveSession} onBack={() => setScreen(screen === "abha_create_1" ? "abha_mobile" : screen === "abha_create_2" ? "abha_create_1" : "abha_create_2")} onNext={(s) => setScreen(s)} onFinish={() => { handleClose(); go("/abha"); }} />;
       break;
     default:
       card = null;
@@ -253,9 +253,9 @@ export default function LoginModal({ forceOpen = false }) {
       zIndex: 9999, padding: '16px'
     }}>
       <div className="login-modal-container" style={{
-        background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px',
-        display: 'flex', position: 'relative',
-        boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35)', minHeight: '500px'
+        background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '840px',
+        maxHeight: 'min(620px, 92vh)', display: 'flex', position: 'relative',
+        boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35)', overflow: 'hidden'
       }}>
         {/* ── Close Button ── */}
         <button
@@ -282,22 +282,22 @@ export default function LoginModal({ forceOpen = false }) {
         ) : (
           <div className="login-modal-left" style={{
             flex: '1', background: 'linear-gradient(150deg, var(--primary-light) 0%, #ffffff 60%)',
-            padding: '48px 40px', display: 'flex', flexDirection: 'column',
+            padding: '36px 32px', display: 'flex', flexDirection: 'column',
             borderRight: '1px solid var(--border)',
             borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
           }}>
-            <img src="/logo.png" alt="Arvaya" style={{ height: '44px', mixBlendMode: 'multiply', marginBottom: '40px', width: 'fit-content' }} />
-            <h2 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.2', marginBottom: '16px', letterSpacing: '-0.02em' }}>
+            <img src="/logo.png" alt="Arvaya" style={{ height: '40px', mixBlendMode: 'multiply', marginBottom: '28px', width: 'fit-content' }} />
+            <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.2', marginBottom: '12px', letterSpacing: '-0.02em' }}>
               Your Health,<br /><span style={{ color: 'var(--primary)' }}>Simplified.</span>
             </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '40px', lineHeight: '1.7' }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '28px', lineHeight: '1.6' }}>
               Join India's most trusted healthcare platform. Experience hassle-free medical care.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {["Consult 10,000+ Top Doctors", "Book Lab Tests with Home Collection", "Manage Health Records Securely", "Connect with ABHA instantly"].map((text, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <CheckCircle2 size={18} style={{ color: 'var(--success)', flexShrink: 0 }} />
-                  <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{text}</span>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <CheckCircle2 size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-main)' }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -306,9 +306,10 @@ export default function LoginModal({ forceOpen = false }) {
 
         {/* ── Right Pane ── */}
         <div className="login-modal-right" style={{
-          flex: '1', padding: '48px 40px', display: 'flex', flexDirection: 'column',
-          justifyContent: 'center', background: '#fff', minWidth: '360px',
-          borderTopRightRadius: '24px', borderBottomRightRadius: '24px'
+          flex: '1.1', padding: '32px 36px', display: 'flex', flexDirection: 'column',
+          justifyContent: 'center', background: '#fff', minWidth: '340px',
+          borderTopRightRadius: '24px', borderBottomRightRadius: '24px',
+          overflowY: 'auto'
         }}>
           {card}
         </div>
@@ -327,32 +328,31 @@ function AbhaLeftPane({ step, isCreate = false }) {
   const title = isCreate ? "Create ABHA" : "Link ABHA Profile";
   return (
     <div className="login-modal-left" style={{
-      flex: '1', background: 'linear-gradient(150deg, var(--primary) 0%, var(--primary-dark) 100%)',
-      padding: '48px 40px', display: 'flex', flexDirection: 'column',
+      flex: '0.9', background: 'linear-gradient(145deg, #134e4a, #0f766e, #0d9488)',
+      padding: '32px 28px', display: 'flex', flexDirection: 'column',
       borderRight: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
       borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
     }}>
       {/* Background decoration */}
-      <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
-      <div style={{ position: 'absolute', left: '-60px', bottom: '-60px', width: '260px', height: '260px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+      <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+      <div style={{ position: 'absolute', left: '-60px', bottom: '-60px', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
       {/* ABHA Logo area */}
-      <div style={{ position: 'relative', zIndex: 2, marginBottom: '52px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '12px', padding: '10px', backdropFilter: 'blur(8px)' }}>
-            <img src="/abha.svg" alt="ABHA" style={{ height: '32px', filter: 'brightness(0) invert(1)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
-            <ShieldCheck size={32} color="white" style={{ display: 'none' }} />
+      <div style={{ position: 'relative', zIndex: 2, marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '10px', padding: '8px 10px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center' }}>
+            <img src="/abha.svg" alt="ABHA" style={{ height: '26px', filter: 'brightness(0) invert(1)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
           </div>
           <div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{isCreate ? "Creating" : "Linking"}</div>
-            <div style={{ color: '#fff', fontSize: '18px', fontWeight: '800', letterSpacing: '-0.01em' }}>{title}</div>
+            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{isCreate ? "Creating" : "Linking"}</div>
+            <div style={{ color: '#fff', fontSize: '17px', fontWeight: '800', letterSpacing: '-0.01em' }}>{title}</div>
           </div>
         </div>
       </div>
 
       {/* Step Tracker — vertical */}
-      <div style={{ position: 'relative', zIndex: 2, flex: 1, paddingBottom: '8px' }}>
-        <h3 style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '24px' }}>
+      <div style={{ position: 'relative', zIndex: 2, flex: 1 }}>
+        <h3 style={{ color: 'rgba(255,255,255,0.75)', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '18px' }}>
           Progress
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -361,39 +361,32 @@ function AbhaLeftPane({ step, isCreate = false }) {
             const isComplete = step > stepNum;
             const isActive = step === stepNum;
             return (
-              <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+              <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={{
-                    width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                    width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
                     background: isComplete ? '#22c55e' : isActive ? '#fff' : 'rgba(255,255,255,0.15)',
-                    border: isActive ? '3px solid rgba(255,255,255,0.4)' : 'none',
+                    border: isActive ? '2px solid rgba(255,255,255,0.5)' : 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'all 0.4s', boxShadow: isActive ? '0 0 0 6px rgba(255,255,255,0.1)' : 'none'
+                    transition: 'all 0.3s', boxShadow: isActive ? '0 0 0 4px rgba(255,255,255,0.15)' : 'none'
                   }}>
                     {isComplete
-                      ? <CheckCircle2 size={18} color="white" />
-                      : <span style={{ fontSize: '14px', fontWeight: '700', color: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.5)' }}>{stepNum}</span>
+                      ? <CheckCircle2 size={16} color="white" />
+                      : <span style={{ fontSize: '12.5px', fontWeight: '700', color: isActive ? '#0f766e' : 'rgba(255,255,255,0.6)' }}>{stepNum}</span>
                     }
                   </div>
                   {idx < steps.length - 1 && (
                     <div style={{
-                      width: '2px', height: '36px',
+                      width: '2px', height: '26px',
                       background: isComplete ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.15)',
-                      margin: '4px 0', transition: 'all 0.4s'
+                      margin: '2px 0', transition: 'all 0.3s'
                     }} />
                   )}
                 </div>
-                <div style={{ paddingTop: '8px', paddingBottom: idx < steps.length - 1 ? '32px' : '8px' }}>
-                  <div style={{ color: isActive ? '#fff' : isComplete ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)', fontSize: '14px', fontWeight: isActive ? '700' : '500', transition: 'all 0.3s' }}>
+                <div style={{ paddingTop: '5px', paddingBottom: idx < steps.length - 1 ? '16px' : '4px' }}>
+                  <div style={{ color: isActive ? '#fff' : isComplete ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.45)', fontSize: '13px', fontWeight: isActive ? '700' : '500', transition: 'all 0.3s' }}>
                     {label}
                   </div>
-                  {isActive && (
-                    <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '12px', marginTop: '2px' }}>
-                      {isCreate
-                        ? (stepNum === 1 ? 'Enter 12-digit Aadhaar' : stepNum === 2 ? 'Verify 6-digit OTP' : stepNum === 3 ? 'Fill personal details' : 'Your ABHA is ready')
-                        : (stepNum === 1 ? 'Enter Aadhaar-linked mobile' : stepNum === 2 ? 'Verify 6-digit OTP' : 'Choose your ABHA address')}
-                    </div>
-                  )}
                 </div>
               </div>
             );
@@ -402,11 +395,11 @@ function AbhaLeftPane({ step, isCreate = false }) {
       </div>
 
       {/* Bottom note */}
-      <div style={{ position: 'relative', zIndex: 2, marginTop: 'auto', padding: '14px', background: 'rgba(255,255,255,0.08)', borderRadius: '12px', backdropFilter: 'blur(8px)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ShieldCheck size={18} color="rgba(255,255,255,0.8)" />
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', lineHeight: '1.5' }}>
-            Secured by <strong style={{ color: '#fff' }}>NHA</strong> — Ayushman Bharat Digital Mission
+      <div style={{ position: 'relative', zIndex: 2, marginTop: 'auto', padding: '10px 12px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', backdropFilter: 'blur(8px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck size={16} color="rgba(255,255,255,0.9)" />
+          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '11px', lineHeight: '1.4' }}>
+            Secured by <strong style={{ color: '#fff' }}>NHA</strong> — ABDM Guidelines
           </span>
         </div>
       </div>
@@ -813,10 +806,10 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '8px' }}>
           Date of Birth
         </label>
-        <DobPicker 
-          value={dob} 
-          onChange={val => { setDob(val); setDobErr(""); }} 
-          error={dobErr} 
+        <DobPicker
+          value={dob}
+          onChange={val => { setDob(val); setDobErr(""); }}
+          error={dobErr}
         />
         {dobErr && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px', fontWeight: '500' }}>{dobErr}</p>}
       </div>
@@ -842,58 +835,200 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
 /* ═══════════════════════════════════════
    ABHA CREATE FLOW
    ═══════════════════════════════════════ */
-function AbhaCreate({ step, onBack, onNext, onFinish }) {
+function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaTransactionId, saveSession, onBack, onNext, onFinish }) {
   const [aadhaar, setAadhaar] = useState("");
+  const [mobile, setMobile] = useState(initialMobile || "");
   const [otp, setOtp] = useState("");
+  const [txnId, setTxnId] = useState(abhaTransactionId || "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [form, setForm] = useState({ name: "", dob: "", gender: "Male", mobile: "", address: "" });
   const [createdAbha, setCreatedAbha] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const fmtAadhaar = (v) => v.replace(/\D/g, "").slice(0, 12).replace(/(\d{4})(?=\d)/g, "$1 ");
 
+  const rawAadhaar = aadhaar.replace(/\s/g, "");
+  const isAadhaarValid = rawAadhaar.length === 12;
+
   const handleStep1 = async () => {
-    const raw = aadhaar.replace(/\s/g, "");
-    if (raw.length !== 12) { setErr("Please enter a valid 12-digit Aadhaar number."); return; }
+    if (!isAadhaarValid) { setErr("Please enter a valid 12-digit Aadhaar number."); return; }
     setErr(""); setBusy(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setBusy(false);
-    onNext("abha_create_2");
+    try {
+      const res = await abhaSendCreationOtp(rawAadhaar);
+      const newTxnId = res?.txnId || res?.transactionId || res?.data?.txnId || res?.data?.transactionId || res?.txn_id || res?.result?.txnId || "";
+      const fetchedMobile = res?.mobileNumber || res?.data?.mobileNumber || res?.mobile || res?.data?.mobile || "";
+      
+      if (newTxnId) {
+        setTxnId(newTxnId);
+        if (setAbhaTransactionId) setAbhaTransactionId(newTxnId);
+      }
+      if (fetchedMobile) {
+        setMobile(fetchedMobile);
+      }
+      setBusy(false);
+      onNext("abha_create_2");
+    } catch (e) {
+      setErr(e.message || "Failed to send OTP to Aadhaar-linked mobile");
+      setBusy(false);
+    }
   };
 
+  const [creationAuthData, setCreationAuthData] = useState(null);
+
   const handleStep2 = async () => {
+    const cleanMobile = mobile.replace(/\D/g, "");
+    if (cleanMobile.length < 10 && !mobile.includes('*')) { setErr("Please enter a valid 10-digit mobile number."); return; }
     if (otp.length < 6) { setErr("Enter the 6-digit OTP sent to your Aadhaar-linked mobile."); return; }
     setErr(""); setBusy(true);
-    await new Promise(r => setTimeout(r, 1000));
-    // Mock: pre-fill from Aadhaar
-    setForm(f => ({ ...f, name: "Shubham Harpanhalli", dob: "2000-04-10", mobile: "9876543210", address: "Miraj, Sangli, Maharashtra" }));
-    setBusy(false);
-    onNext("abha_create_3");
+    try {
+      const activeTxnId = txnId || abhaTransactionId;
+      const res = await abhaCreateByAadhaar(mobile.includes('*') ? mobile : cleanMobile, otp, activeTxnId);
+      
+      const profile = res?.ABHAProfile || res?.data?.ABHAProfile || res?.profile || {};
+      const tokens = res?.tokens || res?.data?.tokens || {};
+      
+      // Preferred ABHA Address or ABHA Number
+      const abhaAddress = profile?.preferredAddress || profile?.ABHANumber || res?.abhaNumber || res?.preferredAddress || res?.abha_number || res?.data?.abhaNumber || "";
+      
+      // Name construction from firstName, middleName, lastName
+      const constructedName = [profile?.firstName, profile?.middleName, profile?.lastName].filter(Boolean).join(" ");
+      const name = constructedName || res?.name || res?.fullName || res?.data?.name || res?.UserData?.name || "ABHA User";
+      
+      // Format Date of Birth (DD-MM-YYYY -> YYYY-MM-DD)
+      const rawDob = profile?.dob || res?.dob || res?.dateOfBirth || res?.data?.dob || "";
+      let dob = "2000-01-01";
+      if (rawDob && rawDob.includes("-")) {
+        const parts = rawDob.split("-");
+        if (parts.length === 3) {
+          if (parts[0].length === 4) dob = rawDob;
+          else dob = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+        }
+      }
+      
+      // Format Gender ("M" -> "Male", "F" -> "Female")
+      const rawGender = profile?.gender || res?.gender || res?.data?.gender || "Male";
+      const gender = (rawGender === "M" || rawGender === "MALE") ? "Male" : (rawGender === "F" || rawGender === "FEMALE") ? "Female" : rawGender;
+      
+      const address = profile?.address || res?.address || res?.data?.address || "";
+      const userMobile = profile?.mobile || cleanMobile;
+
+      setForm({ name, dob, gender, mobile: userMobile, address });
+      setCreatedAbha(abhaAddress || `${name.split(" ")[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}@abdm`);
+      
+      // Save tokens & profile to state to saveSession upon final step
+      setCreationAuthData({
+        token: tokens?.token || res?.token || "",
+        refreshToken: tokens?.refreshToken || "",
+        tokens,
+        profile,
+        user: {
+          name,
+          mobile: userMobile,
+          dob,
+          gender,
+          address,
+          abhaAddress,
+          abhaNumber: profile?.ABHANumber || abhaAddress,
+          abha_number: profile?.ABHANumber || abhaAddress,
+          abha_token: tokens?.token || "",
+          photo: profile?.photo || null,
+          isKycVerified: true,
+          abhaStatus: profile?.abhaStatus || "ACTIVE"
+        }
+      });
+
+      setBusy(false);
+      onNext("abha_create_3");
+    } catch (e) {
+      setErr(e.message || "Failed to create ABHA by Aadhaar.");
+      setBusy(false);
+    }
   };
 
   const handleStep3 = async () => {
     if (!form.name.trim() || !form.dob || !form.mobile) { setErr("Please fill all required fields."); return; }
     setErr(""); setBusy(true);
-    await new Promise(r => setTimeout(r, 1400));
-    const generated = `${form.name.split(" ")[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}@abdm`;
-    setCreatedAbha(generated);
+    await new Promise(r => setTimeout(r, 600));
     setBusy(false);
     onNext("abha_create_done");
   };
 
+  const copyToClipboard = () => {
+    if (createdAbha) {
+      navigator.clipboard.writeText(createdAbha);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (step === "abha_create_done") {
     return (
-      <div style={{ animation: 'fadeIn 0.35s ease-in-out', textAlign: 'center' }}>
-        <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-          <CheckCircle2 size={36} color="#16a34a" />
+      <div style={{ animation: 'fadeIn 0.35s ease-in-out', textAlign: 'center', padding: '8px 0' }}>
+        <div style={{
+          width: '68px', height: '68px', borderRadius: '50%',
+          background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 16px', boxShadow: '0 8px 20px rgba(34,197,94,0.18)'
+        }}>
+          <CheckCircle2 size={36} color="#15803d" />
         </div>
-        <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px', letterSpacing: '-0.02em' }}>ABHA Created!</h3>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.6' }}>Your ABHA ID has been successfully created and linked.</p>
-        <div style={{ background: 'var(--primary-light)', border: '1.5px solid var(--primary-soft)', borderRadius: '12px', padding: '16px 20px', fontFamily: 'monospace', fontSize: '15px', fontWeight: '700', color: 'var(--primary)', marginBottom: '28px' }}>
-          {createdAbha}
+
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          background: 'var(--primary-light)', padding: '4px 12px', borderRadius: '20px',
+          fontSize: '11.5px', fontWeight: '700', color: 'var(--primary-dark)', marginBottom: '10px'
+        }}>
+          <Sparkles size={13} /> ABHA ID CREATED SUCCESSFULLY
         </div>
-        <button onClick={onFinish} style={{ width: '100%', padding: '16px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 14px rgba(46,102,110,0.28)' }}>
-          Go to ABHA Hub
+
+        <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '6px', letterSpacing: '-0.02em' }}>
+          Welcome to ABHA!
+        </h3>
+        <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.5', maxWidth: '360px', margin: '0 auto 20px' }}>
+          Your Official Healthcare ID is active and ready to manage digital medical records.
+        </p>
+
+        <div style={{
+          background: 'var(--bg-app)', border: '1.5px solid var(--primary-soft)',
+          borderRadius: '14px', padding: '16px 18px', marginBottom: '24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px'
+        }}>
+          <div style={{ textAlign: 'left' }}>
+            <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>ABHA Address / ID</span>
+            <div style={{ fontFamily: 'monospace', fontSize: '15px', fontWeight: '700', color: 'var(--primary-dark)', marginTop: '2px' }}>
+              {createdAbha}
+            </div>
+          </div>
+          <button onClick={copyToClipboard} style={{
+            background: copied ? '#dcfce7' : 'white', border: '1px solid var(--border)',
+            borderRadius: '8px', padding: '7px 12px', fontSize: '12px', fontWeight: '700',
+            color: copied ? '#15803d' : 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px',
+            transition: 'all 0.2s'
+          }}>
+            {copied ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
+          </button>
+        </div>
+
+        <button
+          onClick={() => {
+            if (saveSession && creationAuthData) {
+              saveSession({
+                token: creationAuthData.token,
+                refreshToken: creationAuthData.refreshToken,
+                user: creationAuthData.user,
+                loginMethod: "abha"
+              });
+            }
+            onFinish();
+          }}
+          style={{
+            width: '100%', padding: '14px 20px', background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+            color: '#fff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '700',
+            cursor: 'pointer', boxShadow: '0 4px 14px rgba(46,102,110,0.3)', transition: 'all 0.25s'
+          }}
+        >
+          Go to ABHA Hub →
         </button>
       </div>
     );
@@ -901,71 +1036,224 @@ function AbhaCreate({ step, onBack, onNext, onFinish }) {
 
   return (
     <div style={{ animation: 'fadeIn 0.35s ease-in-out' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-        <button onClick={onBack} style={{ background: 'var(--bg-app)', border: 'none', cursor: 'pointer', color: 'var(--text-main)', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ArrowLeft size={18} />
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+        <button onClick={onBack} style={{
+          background: 'var(--bg-app)', border: '1px solid var(--border)', cursor: 'pointer',
+          color: 'var(--text-main)', width: '32px', height: '32px', borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', flexShrink: 0
+        }}>
+          <ArrowLeft size={16} />
         </button>
-        <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-          {step === 'abha_create_1' ? 'Aadhaar Verification' : step === 'abha_create_2' ? 'Verify OTP' : 'Personal Details'}
-        </h3>
+        <div>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10.5px',
+            fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase'
+          }}>
+            {step === 'abha_create_1' && <><FileText size={12} /> STEP 1 OF 3 • AADHAAR</>}
+            {step === 'abha_create_2' && <><KeyRound size={12} /> STEP 2 OF 3 • VERIFICATION</>}
+            {step === 'abha_create_3' && <><User size={12} /> STEP 3 OF 3 • DETAILS</>}
+          </span>
+          <h3 style={{ fontSize: '19px', fontWeight: '800', color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
+            {step === 'abha_create_1' ? 'Enter Aadhaar Number' : step === 'abha_create_2' ? 'Verify OTP & Mobile' : 'Confirm Personal Details'}
+          </h3>
+        </div>
       </div>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', paddingLeft: '44px', lineHeight: '1.6' }}>
-        {step === 'abha_create_1' ? 'Enter your 12-digit Aadhaar number to create your ABHA ID.'
-          : step === 'abha_create_2' ? 'Enter the OTP sent to your Aadhaar-linked mobile number.'
-            : 'Review and confirm your personal details fetched from Aadhaar.'}
+
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: '1.5' }}>
+        {step === 'abha_create_1' ? 'Enter your 12-digit Aadhaar number to initiate instant ABHA registration.'
+          : step === 'abha_create_2' ? 'Enter your 10-digit mobile number and the 6-digit OTP sent to your phone.'
+            : 'Review your details retrieved from Aadhaar to finalize your ABHA account.'}
       </p>
 
-      {err && <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px 14px', borderRadius: '10px', fontSize: '13px', fontWeight: '500', marginBottom: '16px', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '8px' }}><X size={15} />{err}</div>}
+      {err && (
+        <div style={{
+          background: '#fef2f2', color: '#dc2626', padding: '10px 12px', borderRadius: '10px',
+          fontSize: '12.5px', fontWeight: '500', marginBottom: '16px', border: '1px solid #fecaca',
+          display: 'flex', alignItems: 'center', gap: '8px'
+        }}>
+          <X size={15} style={{ flexShrink: 0 }} />
+          {err}
+        </div>
+      )}
 
+      {/* STEP 1: Aadhaar Input */}
       {step === 'abha_create_1' && (
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '8px' }}>Aadhaar Number</label>
-          <input className="input-field" autoFocus type="text" inputMode="numeric" placeholder="XXXX XXXX XXXX" value={aadhaar} onChange={e => setAadhaar(fmtAadhaar(e.target.value))} maxLength={14}
-            style={{ padding: '15px 16px', fontSize: '18px', letterSpacing: '0.12em', fontFamily: 'monospace', borderRadius: '12px', background: 'var(--bg-app)', width: '100%' }} />
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>An OTP will be sent to your Aadhaar-linked mobile number.</p>
-        </div>
-      )}
-
-      {step === 'abha_create_2' && (
-        <div style={{ marginBottom: '24px' }}>
-          <OtpInputGrid value={otp} onChange={setOtp} />
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
-            Didn't receive? <button onClick={() => setOtp('')} style={{ color: 'var(--primary)', fontWeight: '700', background: 'none', border: 'none', cursor: 'pointer' }}>Resend</button>
-          </p>
-        </div>
-      )}
-
-      {step === 'abha_create_3' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
-          {[['Full Name', 'name', 'text', 'Enter full name'], ['Mobile Number', 'mobile', 'tel', '10-digit mobile'], ['Address', 'address', 'text', 'Your address']].map(([lbl, key, type, ph]) => (
-            <div key={key}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>{lbl}</label>
-              <input className="input-field" type={type} placeholder={ph} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                style={{ padding: '13px 16px', borderRadius: '12px', background: 'var(--bg-app)', fontSize: '14px', width: '100%' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label style={{ fontSize: '12.5px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <FileText size={14} color="var(--primary)" /> 12-Digit Aadhaar Number
+              </label>
+              {isAadhaarValid && (
+                <span style={{ fontSize: '11.5px', fontWeight: '700', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '4px', background: '#dcfce7', padding: '1px 7px', borderRadius: '10px' }}>
+                  <CheckCircle2 size={12} /> Valid
+                </span>
+              )}
             </div>
-          ))}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Date of Birth</label>
-              <DobPicker 
-                value={form.dob} 
-                onChange={val => setForm(f => ({ ...f, dob: val }))} 
+
+            <input
+              className="input-field"
+              autoFocus
+              type="text"
+              inputMode="numeric"
+              placeholder="XXXX XXXX XXXX"
+              value={aadhaar}
+              onChange={e => setAadhaar(fmtAadhaar(e.target.value))}
+              maxLength={14}
+              style={{
+                padding: '12px 14px', fontSize: '18px', letterSpacing: '0.12em',
+                fontFamily: 'monospace', borderRadius: '10px', background: '#fff',
+                border: isAadhaarValid ? '1.5px solid #16a34a' : '1.5px solid var(--border)',
+                width: '100%', color: 'var(--text-main)', outline: 'none'
+              }}
+            />
+
+            <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '6px', marginBottom: 0 }}>
+              🔒 An authentication OTP will be dispatched to your Aadhaar-registered mobile.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px',
+            background: 'var(--primary-light)', borderRadius: '10px', border: '1px solid var(--primary-soft)'
+          }}>
+            <ShieldCheck size={16} color="var(--primary)" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '11.5px', color: 'var(--primary-dark)', lineHeight: '1.4' }}>
+              Protected by <strong>UIDAI & NHA 256-bit Encryption</strong>. Per ABDM consent guidelines.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2: Mobile + OTP Input */}
+      {step === 'abha_create_2' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+          {/* Mobile Field */}
+          <div>
+            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '6px' }}>
+              Mobile Number
+            </label>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                position: 'absolute', left: '0', top: '0', bottom: '0',
+                display: 'flex', alignItems: 'center', padding: '0 12px',
+                borderRight: '1.5px solid var(--border)', color: 'var(--text-main)',
+                fontWeight: '700', fontSize: '14px', gap: '4px', pointerEvents: 'none', zIndex: 2
+              }}>
+                🇮🇳 <span>+91</span>
+              </div>
+              <input
+                className="input-field"
+                type="tel"
+                placeholder="10-digit mobile number"
+                value={mobile}
+                onChange={e => setMobile(e.target.value.replace(/[^\d*]/g, ""))}
+                maxLength={10}
+                style={{
+                  paddingLeft: '84px', padding: '12px 14px 12px 84px',
+                  fontSize: '15px', borderRadius: '10px', background: '#fff',
+                  border: '1.5px solid var(--border)', width: '100%', letterSpacing: mobile ? '0.04em' : '0'
+                }}
               />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Gender</label>
-              <select className="input-field" value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
-                style={{ padding: '13px 16px', borderRadius: '12px', background: 'var(--bg-app)', fontSize: '14px', width: '100%' }}>
-                <option>Male</option><option>Female</option><option>Other</option>
-              </select>
+          </div>
+
+          {/* OTP Field */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label style={{ fontSize: '12.5px', fontWeight: '700', color: 'var(--text-main)' }}>
+                Enter 6-Digit OTP
+              </label>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Sent via SMS</span>
+            </div>
+
+            <OtpInputGrid value={otp} onChange={setOtp} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Didn't receive OTP?</span>
+              <button
+                onClick={() => setOtp('')}
+                style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Resend OTP
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <button disabled={busy} onClick={step === 'abha_create_1' ? handleStep1 : step === 'abha_create_2' ? handleStep2 : handleStep3}
-        style={{ width: '100%', padding: '16px', background: busy ? 'var(--border)' : 'var(--accent)', color: busy ? 'var(--text-muted)' : '#fff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '700', cursor: busy ? 'wait' : 'pointer', transition: 'all 0.25s', boxShadow: busy ? 'none' : '0 4px 16px rgba(251,145,63,0.38)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-        {busy ? 'Please wait...' : step === 'abha_create_1' ? 'Send OTP' : step === 'abha_create_2' ? 'Verify OTP' : <><UserPlus size={18} />Create My ABHA</>}
+      {/* STEP 3: Personal Details Confirmation */}
+      {step === 'abha_create_3' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+          <div style={{
+            background: 'var(--primary-light)', border: '1px solid var(--primary-soft)',
+            borderRadius: '10px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px'
+          }}>
+            <Sparkles size={14} color="var(--primary)" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '11.5px', color: 'var(--primary-dark)', fontWeight: '600' }}>
+              Details automatically retrieved from Aadhaar database. Please confirm below.
+            </span>
+          </div>
+
+          {/* Row 1: Full Name & Mobile */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Full Name</label>
+              <input className="input-field" type="text" placeholder="Enter full name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                style={{ padding: '8px 12px', borderRadius: '10px', background: '#fff', fontSize: '13px', width: '100%', border: '1.5px solid var(--border)', height: '38px' }} />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Mobile Number</label>
+              <input className="input-field" type="tel" placeholder="10-digit mobile" value={form.mobile} onChange={e => setForm(f => ({ ...f, mobile: e.target.value }))}
+                style={{ padding: '8px 12px', borderRadius: '10px', background: '#fff', fontSize: '13px', width: '100%', border: '1.5px solid var(--border)', height: '38px' }} />
+            </div>
+          </div>
+
+          {/* Row 2: Date of Birth & Gender */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Date of Birth</label>
+              <DobPicker
+                value={form.dob}
+                onChange={val => setForm(f => ({ ...f, dob: val }))}
+                compact={true}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Gender</label>
+              <select className="input-field" value={form.gender} onChange={e => setForm(f => ({ ...f, gender: e.target.value }))}
+                style={{ padding: '8px 12px', borderRadius: '10px', background: '#fff', fontSize: '13px', width: '100%', border: '1.5px solid var(--border)', height: '38px' }}>
+                <option>Male</option><option>Female</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 3: Address */}
+          <div>
+            <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Address</label>
+            <input className="input-field" type="text" placeholder="Your residential address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+              style={{ padding: '8px 12px', borderRadius: '10px', background: '#fff', fontSize: '13px', width: '100%', border: '1.5px solid var(--border)', height: '38px' }} />
+          </div>
+        </div>
+      )}
+
+      {/* Main CTA Button */}
+      <button
+        disabled={busy || (step === 'abha_create_1' && !isAadhaarValid)}
+        onClick={step === 'abha_create_1' ? handleStep1 : step === 'abha_create_2' ? handleStep2 : handleStep3}
+        style={{
+          width: '100%', padding: '14px 18px',
+          background: busy || (step === 'abha_create_1' && !isAadhaarValid) ? 'var(--border)' : 'linear-gradient(135deg, #f97316, #ea580c)',
+          color: busy || (step === 'abha_create_1' && !isAadhaarValid) ? 'var(--text-muted)' : '#fff',
+          border: 'none', borderRadius: '12px', fontSize: '14.5px', fontWeight: '700',
+          cursor: busy || (step === 'abha_create_1' && !isAadhaarValid) ? 'not-allowed' : 'pointer',
+          transition: 'all 0.25s', boxShadow: busy || (step === 'abha_create_1' && !isAadhaarValid) ? 'none' : '0 4px 16px rgba(234,88,12,0.32)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+        }}
+      >
+        {busy ? 'Please wait...' : step === 'abha_create_1' ? 'Send OTP →' : step === 'abha_create_2' ? 'Verify OTP & Proceed →' : <><UserPlus size={17} /> Complete & Create ABHA</>}
       </button>
     </div>
   );
@@ -1058,7 +1346,7 @@ function OtpInputGrid({ value, onChange }) {
   );
 }
 
-function DobPicker({ value, onChange, error }) {
+function DobPicker({ value, onChange, error, compact = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
 
@@ -1103,11 +1391,11 @@ function DobPicker({ value, onChange, error }) {
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} style={{ width: '14.28%', padding: '8px 0' }}></div>);
     }
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
-      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       const isSelected = value === dateStr;
-      
+
       const future = new Date(year, month, i) > new Date();
 
       days.push(
@@ -1124,8 +1412,8 @@ function DobPicker({ value, onChange, error }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { if(!isSelected && !future) { e.currentTarget.style.background = 'var(--bg-app)'; } }}
-            onMouseLeave={e => { if(!isSelected && !future) { e.currentTarget.style.background = 'transparent'; } }}
+            onMouseEnter={e => { if (!isSelected && !future) { e.currentTarget.style.background = 'var(--bg-app)'; } }}
+            onMouseLeave={e => { if (!isSelected && !future) { e.currentTarget.style.background = 'transparent'; } }}
           >
             {i}
           </button>
@@ -1138,13 +1426,13 @@ function DobPicker({ value, onChange, error }) {
     return (
       <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 8px' }}>
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronLeft size={20}/></button>
-          
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronLeft size={20} /></button>
+
           <button onClick={(e) => { e.preventDefault(); setView('months'); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             {currentMonth.toLocaleString('default', { month: 'long' })} {currentMonth.getFullYear()}
           </button>
-          
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronRight size={20}/></button>
+
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronRight size={20} /></button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '8px', padding: '0 4px' }}>
           {weekDays.map(wd => (
@@ -1191,18 +1479,18 @@ function DobPicker({ value, onChange, error }) {
   const renderYearsView = () => {
     const currentYear = currentMonth.getFullYear();
     const startYear = Math.floor(currentYear / 12) * 12;
-    const years = Array.from({length: 12}, (_, i) => startYear + i);
-    
+    const years = Array.from({ length: 12 }, (_, i) => startYear + i);
+
     return (
       <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 8px' }}>
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear - 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronLeft size={20}/></button>
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear - 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronLeft size={20} /></button>
           <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>{startYear} - {startYear + 11}</span>
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear + 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronRight size={20}/></button>
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear + 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronRight size={20} /></button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 8px' }}>
           {years.map(y => {
-            const isSelected = currentMonth.getFullYear() === y;
+            const isSelected = currentYear === y;
             const isFuture = y > new Date().getFullYear();
             return (
               <button
@@ -1227,14 +1515,18 @@ function DobPicker({ value, onChange, error }) {
 
   return (
     <div style={{ position: 'relative' }} ref={popoverRef}>
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          display: 'flex', alignItems: 'center', padding: '14px 16px', borderRadius: '12px',
-          background: 'var(--bg-app)', fontSize: '15px', width: '100%',
+          display: 'flex', alignItems: 'center',
+          padding: compact ? '8px 12px' : '14px 16px',
+          height: compact ? '38px' : 'auto',
+          borderRadius: compact ? '10px' : '12px',
+          background: compact ? '#fff' : 'var(--bg-app)',
+          fontSize: compact ? '13px' : '15px', width: '100%',
           border: error ? '1.5px solid var(--danger)' : isOpen ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
-          color: value ? 'var(--primary-dark)' : 'var(--text-muted)',
-          cursor: 'pointer', fontWeight: value ? '700' : '500',
+          color: value ? 'var(--text-main)' : 'var(--text-muted)',
+          cursor: 'pointer', fontWeight: value ? '600' : '500',
           fontFamily: value ? 'monospace' : 'inherit', letterSpacing: value ? '0.04em' : 'normal',
           transition: 'all 0.2s', boxShadow: isOpen ? '0 0 0 4px rgba(46,102,110,0.1)' : 'none'
         }}
@@ -1245,10 +1537,11 @@ function DobPicker({ value, onChange, error }) {
 
       {isOpen && (
         <div style={{
-          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, width: '100%', minWidth: '320px',
-          background: '#fff', borderRadius: '16px', padding: '16px',
-          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)', border: '1px solid #e5e7eb',
-          zIndex: 50, animation: 'fadeInUp 0.2s ease-out'
+          position: 'absolute', top: 'calc(100% + 6px)',
+          left: compact ? '-15px' : '0', width: '270px',
+          background: '#fff', borderRadius: '14px', padding: '12px',
+          boxShadow: '0 16px 36px -6px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)',
+          zIndex: 999, animation: 'fadeInUp 0.18s ease-out'
         }}>
           {view === 'days' && renderDaysView()}
           {view === 'months' && renderMonthsView()}

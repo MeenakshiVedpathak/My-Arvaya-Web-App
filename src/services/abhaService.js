@@ -24,15 +24,6 @@ export async function abhaVerifyOtp(otp, txnId) {
   });
 }
 
-/* ─────────────────────────────────────────────
-   STEP 2b — Get ABHA Addresses linked to mobile
-   POST /api/abha/getAddresses
-   Body: { txnId }
-   Response: { abhaAddressList: [{ address, isPrimary }] }
-───────────────────────────────────────────── */
-export async function abhaGetAddresses(txnId) {
-  return api.post("/api/abha/getAddresses", { txnId });
-}
 
 /* ─────────────────────────────────────────────
    STEP 3 — Confirm ABHA Address & Login
@@ -137,15 +128,24 @@ export async function abhaGetSuggestions(txnId, profileData) {
 }
 
 /* ─────────────────────────────────────────────
-   Create ABHA Address — STEP 4: Create/Save Address
-   POST /abhaAddress/createAddress
-   Body: { txnId, abhaAddress }
-   Response: { success, abhaAddress }
+   Create ABHA by Aadhaar — STEP 1: Send Creation OTP
+   POST /abhaNumber/sendCreationOtp
+   Body: { adhar }
 ───────────────────────────────────────────── */
-export async function abhaCreateAddress(txnId, abhaAddress) {
-  return api.post("/abhaAddress/createAddress", {
-    txnId,
-    abhaAddress,
+export async function abhaSendCreationOtp(adhar) {
+  return api.post("/abhaNumber/sendCreationOtp", { adhar: String(adhar) });
+}
+
+/* ─────────────────────────────────────────────
+   Create ABHA by Aadhaar — STEP 2: Create by Aadhaar
+   POST /abhaNumber/createByAadhaar
+   Body: { mobile, otp, txnId }
+───────────────────────────────────────────── */
+export async function abhaCreateByAadhaar(mobile, otp, txnId) {
+  return api.post("/abhaNumber/createByAadhaar", {
+    mobile: String(mobile),
+    otp: String(otp),
+    txnId: String(txnId)
   });
 }
 

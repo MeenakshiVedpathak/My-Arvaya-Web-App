@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowLeft, CheckCircle2, X, ArrowRight, RefreshCcw, Phone, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
-import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress } from "../../../services/abhaService";
+import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaGetSuggestions } from "../../../services/abhaService";
 import { Overlay, SplitModalShell } from "./SharedComponents";
 
 function ErrorBox({ msg }) {
@@ -213,7 +213,7 @@ export function SwitchProfileModal({ onClose }) {
       const res = await abhaVerifyOtp(otp, txnId);
       const newTxn = res?.transactionId || res?.txnId || txnId;
       setTxnId(newTxn);
-      const addrRes = await abhaGetAddresses(newTxn);
+      const addrRes = await abhaGetSuggestions(newTxn, {}).catch(() => null);
       const list = addrRes?.abhaAddressList || addrRes?.addresses || [
         { address: `91${mobile}@sbx`, isPrimary: true },
       ];

@@ -5,9 +5,11 @@ import { packages } from "../mocks/data";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 import { getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";
 import { getImageUrl } from "../services/uploadService";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
   const go = useNavigate();
+  const { user } = useAuth();
   const reviewsScrollRef = useRef(null);
   
   const scrollReviews = (dir) => {
@@ -26,6 +28,8 @@ export default function Home() {
   ]);
 
   useEffect(() => {
+    if (!user) return;
+
     let isMounted = true;
     getPatientReviews({ pageIndex: 0, pageSize: 0 })
       .then((apiReviews) => {
@@ -74,7 +78,7 @@ export default function Home() {
         console.error("Failed to fetch /api/diagnostic/getPackages for Home:", err);
       });
       return () => { isMounted = false; };
-  }, []);
+  }, [user]);
 
   const heroSlides = [
     {
