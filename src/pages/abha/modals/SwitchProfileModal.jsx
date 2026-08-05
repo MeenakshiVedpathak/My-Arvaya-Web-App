@@ -469,7 +469,7 @@ export function SwitchProfileModal({ onClose }) {
       <div style={{
         background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px',
         display: 'flex', overflow: 'hidden', position: 'relative',
-        boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35)', minHeight: '500px'
+        boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35)', minHeight: '400px', maxHeight: '90vh'
       }}>
         <button
           onClick={onClose}
@@ -489,7 +489,7 @@ export function SwitchProfileModal({ onClose }) {
         {leftPanel}
         <div style={{
           flex: 1, padding: '48px 40px', display: 'flex', flexDirection: 'column',
-          justifyContent: 'center', background: '#fff', minWidth: '360px'
+          justifyContent: 'center', background: '#fff', minWidth: '360px', overflowY: 'auto'
         }}>
           {rightPanel}
         </div>

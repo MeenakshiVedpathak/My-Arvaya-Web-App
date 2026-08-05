@@ -139,9 +139,10 @@ export default function ABHA() {
   }
 
   return (
-    <main className="page animate-fade-in-up" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0 }}>
-      
-      {/* ── Enterprise Top Header ── */}
+    <>
+      <main className="page animate-fade-in-up" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0 }}>
+        
+        {/* ── Enterprise Top Header ── */}
       <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)", padding: "24px 0" }}>
         <div className="container" style={{ maxWidth: "1280px", margin: "0 auto" }}>
           
@@ -243,12 +244,13 @@ export default function ABHA() {
         <div id="static-abha-tab-provider" style={{ display: activeTab === "provider" ? "block" : "none" }}>
           <ProviderTab />
         </div>
-      </div>
+        </div>
+      </main>
 
       {/* ── Modals ── */}
       {showQrModal  && <QrModal           abhaData={abhaData}          onClose={() => setShowQrModal(false)} />}
       {showSwitch   && <SwitchProfileModal onClose={() => setShowSwitch(false)} />}
       {showCreate   && <CreateAddressModal abhaData={abhaData} profileInfo={profileInfo} user={user} onClose={() => setShowCreate(false)} />}
-    </main>
+    </>
   );
 }
