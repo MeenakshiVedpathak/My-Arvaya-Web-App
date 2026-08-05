@@ -1,15 +1,80 @@
 import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation, TestTube, Clock, Flame } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { packages } from "../mocks/data";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
-import { getBanners } from "../services/dataService";
+import { getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";
 import { getImageUrl } from "../services/uploadService";
 
 export default function Home() {
   const go = useNavigate();
+  const reviewsScrollRef = useRef(null);
+  
+  const scrollReviews = (dir) => {
+    if (reviewsScrollRef.current) {
+      const scrollAmount = reviewsScrollRef.current.clientWidth / 2;
+      reviewsScrollRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showAmbulanceModal, setShowAmbulanceModal] = useState(false);
+  const [apiPackages, setApiPackages] = useState(packages.slice(0, 4));
+  const [reviews, setReviews] = useState([
+    { name: "Ananya Reddy", role: "Bangalore", text: "Booking an appointment was incredibly seamless. The doctor was available the same day and the consultation was thorough. Arvaya has become my go-to healthcare platform.", rating: 5 },
+    { name: "Vikram Singh", role: "Mumbai", text: "The home sample collection for lab tests is a game-changer. The phlebotomist was on time, professional, and I got my reports within 24 hours. Highly recommended!", rating: 5 },
+    { name: "Priya Nair", role: "Delhi", text: "Managing my family's health records in one place is so convenient. The ABHA integration makes sharing records with new doctors effortless. Love this platform!", rating: 5 },
+  ]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getPatientReviews({ pageIndex: 0, pageSize: 0 })
+      .then((apiReviews) => {
+        if (!isMounted) return;
+        if (Array.isArray(apiReviews) && apiReviews.length > 0) {
+          const normalized = apiReviews.map(r => ({
+            name: r.patient_name || "Patient",
+            role: "Verified Patient",
+            text: r.review || "",
+            rating: r.ratings || 5
+          }));
+          setReviews(normalized);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch /api/patientReview/get for Home:", err);
+      });
+
+    getDiagnosticPackages({ pageSize: 10 })
+      .then((apiPkgs) => {
+        if (!isMounted) return;
+        if (Array.isArray(apiPkgs) && apiPkgs.length > 0) {
+          const normalized = apiPkgs.map((p, idx) => {
+            const rawTitle = p.package_name || p.name || p.title || `Health Package ${idx+1}`;
+            const priceVal = parseFloat(p.package_price || p.price || p.cost || p.amount || 999);
+            const oldPriceVal = Math.round(priceVal * 1.25);
+            const itemCount = Array.isArray(p.subitems) && p.subitems.length > 0 
+              ? `${p.subitems.length}+ Tests Included` 
+              : "30+ Tests";
+
+            return {
+              id: p.rateplan_package_id || p.id || p.package_key || `api-pkg-${idx}`,
+              title: rawTitle,
+              tests: itemCount,
+              price: `₹${priceVal}`,
+              oldPrice: `₹${oldPriceVal}`,
+              discount: `${Math.round(((oldPriceVal - priceVal) / oldPriceVal) * 100)}% OFF`,
+              img: p.img || p.image || (idx % 2 === 0 ? "/checkup_fullbody.png" : "/checkup_heart.png"),
+              trend: p.badge || (idx === 0 ? "Most Booked" : idx === 1 ? "Popular" : "Doctor Verified")
+            };
+          });
+          setApiPackages(normalized.slice(0, 4));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch /api/diagnostic/getPackages for Home:", err);
+      });
+      return () => { isMounted = false; };
+  }, []);
 
   const heroSlides = [
     {
@@ -82,6 +147,27 @@ export default function Home() {
     }, 5000);
     return () => clearInterval(timer);
   }, [dynamicSlides.length]);
+
+  // Auto-scroll testimonials
+  useEffect(() => {
+    if (!reviews || reviews.length === 0) return;
+    
+    const interval = setInterval(() => {
+      if (reviewsScrollRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = reviewsScrollRef.current;
+        const maxScroll = scrollWidth - clientWidth;
+        const scrollAmount = clientWidth / 2;
+        
+        if (scrollLeft >= maxScroll - 10) {
+          reviewsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          reviewsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [reviews]);
 
   const tickerText = "🎉 Avail flat 20% off on all Full Body Checkups this week!  •  🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi  •  ⭐ Free consultation with our top specialists for ABHA card holders  •  ";
 
@@ -377,11 +463,121 @@ export default function Home() {
       <section style={{ padding: '0 0 56px 0' }}>
         <div className="container">
           <style>{`
-            .labs-pkg-card { background: #fff; border-radius: 16px; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; position: relative; }
-            .labs-pkg-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.06); transform: translateY(-4px); border-color: rgba(46,102,110,0.2); }
-            .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+            .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
             @media (max-width: 1024px) { .packages-grid { grid-template-columns: repeat(2, 1fr); } }
             @media (max-width: 600px) { .packages-grid { grid-template-columns: 1fr; } }
+            
+            .pkg-card {
+              width: 100%;
+              background: #ffffff;
+              border-radius: 18px;
+              border: 1px solid var(--border);
+              overflow: hidden;
+              display: flex;
+              flex-direction: column;
+              transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+              box-shadow: 0 2px 8px rgba(18, 51, 58, 0.04);
+              position: relative;
+            }
+            .pkg-card:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 12px 28px rgba(18, 51, 58, 0.1);
+              border-color: var(--primary-soft);
+            }
+            .pkg-card-img-container {
+              height: 135px;
+              width: 100%;
+              background: #f0f7f7;
+              overflow: hidden;
+              position: relative;
+            }
+            .pkg-card-badge {
+              position: absolute;
+              top: 10px;
+              left: 10px;
+              background: var(--primary);
+              color: #ffffff;
+              font-size: 10px;
+              font-weight: 700;
+              padding: 4px 10px;
+              border-radius: 12px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            }
+            .pkg-card-body {
+              padding: 16px;
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+            }
+            .pkg-card-title {
+              font-weight: 800;
+              font-size: 15px;
+              line-height: 1.3;
+              color: var(--text-main);
+              margin-bottom: 6px;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              min-height: 40px;
+            }
+            .pkg-card-tests-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 11px;
+              font-weight: 600;
+              color: #16a34a;
+              background: #dcfce7;
+              padding: 3px 8px;
+              border-radius: 6px;
+              width: fit-content;
+              margin-bottom: 12px;
+            }
+            .pkg-card-btn {
+              width: 100%;
+              background: #1b4d54;
+              color: #ffffff;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 20px;
+              font-size: 12.5px;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              cursor: pointer;
+              transition: background 0.2s, transform 0.15s;
+            }
+            .pkg-card-btn:hover {
+              background: var(--primary);
+            }
+            .lab-card-price-row {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-top: auto;
+              padding-top: 12px;
+              border-top: 1px dashed var(--border);
+              gap: 6px;
+              margin-bottom: 16px;
+            }
+            .lab-card-price {
+              font-weight: 800;
+              font-size: 18px;
+              color: #12333A;
+              line-height: 1.1;
+            }
+            .lab-card-img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              transition: transform 0.3s;
+            }
+            .pkg-card:hover .lab-card-img {
+              transform: scale(1.05);
+            }
           `}</style>
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -392,78 +588,32 @@ export default function Home() {
           </div>
           
           <div className="packages-grid">
-            {packages.slice(0, 4).map((pkg, idx) => (
-              <article key={pkg.title} className="labs-pkg-card animate-fade-in-up" style={{ animationDelay: `${idx * 80}ms` }}>
-                {idx === 0 && <div className="ribbon" style={{ display: 'flex', alignItems: 'center', zIndex: 10, fontSize: '10px', padding: '4px 8px' }}><Sparkles size={10} style={{ marginRight: '4px' }} /> Most Booked</div>}
-                
-                {/* Package Image */}
-                {pkg.img && (
-                  <div style={{ height: '150px', overflow: 'hidden', background: 'var(--primary-light)', position: 'relative', borderRadius: '16px 16px 0 0' }}>
-                    <img 
-                      src={pkg.img} 
-                      alt={pkg.title} 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }} 
-                      onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} 
-                      onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'} 
-                    />
-                    {pkg.discount && (
-                      <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--accent)', color: 'white', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700' }}>
-                        {pkg.discount}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <h3 style={{ fontSize: '16px', color: 'var(--text-main)', lineHeight: 1.3, fontWeight: '700', marginBottom: '8px' }}>{pkg.title}</h3>
-
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '11px', color: '#16a34a', background: '#dcfce7', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
-                      <ShieldCheck size={10} /> NABL Accredited
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--bg-app)', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <TestTube size={10} /> {pkg.tests || "30+ Tests"}
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--bg-app)', padding: '3px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={10} /> 24 Hrs Report
-                    </span>
-                  </div>
-
-                  {pkg.trend && <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '600', marginBottom: '12px' }}>
-                    {pkg.trend === "Popular" ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Star size={12} fill="#FBBF24" color="#FBBF24" /> {pkg.trend}
-                      </span>
-                    ) : (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Flame size={12} fill="#c2410c" /> {pkg.trend}
-                      </span>
-                    )}
-                  </div>}
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '1px dashed var(--border)' }}>
-                    <div>
-                      {pkg.oldPrice && <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}><s>{pkg.oldPrice}</s></span>}
-                      {pkg.price && <b style={{ fontSize: '20px', color: 'var(--text-main)', display: 'block', lineHeight: 1.2 }}>{pkg.price}</b>}
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>onwards</span>
-                    </div>
-                    <button 
-                      className="btn btn-accent" 
-                      onClick={() => go("/labs")}
-                      style={{ padding: '10px 20px', fontSize: '14px', fontWeight: '700', borderRadius: '10px' }}
-                    >
-                      Book Now
-                    </button>
-                  </div>
+            {apiPackages.map((pkg, idx) => (
+              <div className="pkg-card animate-fade-in-up" key={pkg.id || pkg.title} style={{ animationDelay: `${idx * 80}ms` }}>
+                <div className="pkg-card-img-container">
+                  <img src={pkg.img} alt={pkg.title} className="lab-card-img" />
+                  {pkg.trend && <div className="pkg-card-badge">{pkg.trend}</div>}
                 </div>
-              </article>
+                <div className="pkg-card-body">
+                  <div className="pkg-card-title">{pkg.title}</div>
+                  <div className="pkg-card-tests-badge">
+                    <ShieldCheck size={12} /> {pkg.tests}
+                  </div>
+                  <div className="lab-card-price-row">
+                    <span className="lab-card-price">{pkg.price}</span>
+                  </div>
+                  <button className="pkg-card-btn" onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id || pkg.title)}`, { state: { package: pkg } })}>
+                    View Details <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── Testimonials ── */}
-      <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+      <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 className="text-h2">What Our Patients Say</h2>
@@ -471,34 +621,72 @@ export default function Home() {
           </div>
 
           <style>{`
-            .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-            @media (max-width: 768px) { .testimonials-grid { grid-template-columns: 1fr; } }
+            .testimonials-slider { 
+              display: flex; 
+              overflow-x: auto; 
+              scroll-snap-type: x mandatory; 
+              gap: 24px; 
+              padding-bottom: 20px;
+              scrollbar-width: none;
+            }
+            .testimonials-slider::-webkit-scrollbar { display: none; }
+            .testimonial-card-wrap {
+              flex: 0 0 calc(33.333% - 16px);
+              scroll-snap-align: start;
+            }
+            @media (max-width: 1024px) { .testimonial-card-wrap { flex: 0 0 calc(50% - 12px); } }
+            @media (max-width: 768px) { .testimonial-card-wrap { flex: 0 0 100%; } }
+            .review-nav-btn {
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 44px; height: 44px; border-radius: 50%; background: #ffffff;
+              color: #1e293b; border: 1px solid var(--border); display: flex;
+              align-items: center; justify-content: center; cursor: pointer; z-index: 20;
+              box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.2s;
+            }
+            .review-nav-btn:hover {
+              background: var(--primary); color: white; border-color: var(--primary);
+            }
+            .review-nav-btn.left { left: -20px; }
+            .review-nav-btn.right { right: -20px; }
+            @media (max-width: 1024px) {
+              .review-nav-btn { display: none; }
+            }
           `}</style>
-          <div className="testimonials-grid">
-            {[
-              { name: "Ananya Reddy", role: "Bangalore", text: "Booking an appointment was incredibly seamless. The doctor was available the same day and the consultation was thorough. Arvaya has become my go-to healthcare platform.", rating: 5 },
-              { name: "Vikram Singh", role: "Mumbai", text: "The home sample collection for lab tests is a game-changer. The phlebotomist was on time, professional, and I got my reports within 24 hours. Highly recommended!", rating: 5 },
-              { name: "Priya Nair", role: "Delhi", text: "Managing my family's health records in one place is so convenient. The ABHA integration makes sharing records with new doctors effortless. Love this platform!", rating: 5 },
-            ].map((t, i) => (
-              <div key={i} className="card-elevated animate-fade-in-up" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px', animationDelay: `${i * 100}ms` }}>
-                <Quote size={24} style={{ color: 'var(--primary-soft)', transform: 'scaleX(-1)' }} />
-                <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: 1.7, flex: 1 }}>"{t.text}"</p>
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--primary-soft))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: 'var(--primary-dark)', fontSize: '14px' }}>
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{t.name}</b>
-                    <span className="text-muted" style={{ fontSize: '12px' }}>{t.role}</span>
-                  </div>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '2px' }}>
-                    {Array(t.rating).fill(null).map((_, si) => (
-                      <Star key={si} size={14} fill="#FBBF24" color="#FBBF24" />
-                    ))}
+          
+          <div style={{ position: 'relative' }}>
+            <button className="review-nav-btn left" onClick={() => scrollReviews('left')}>
+              <ChevronLeft size={20} />
+            </button>
+            <button className="review-nav-btn right" onClick={() => scrollReviews('right')}>
+              <ChevronRight size={20} />
+            </button>
+            
+            <div className="testimonials-slider" ref={reviewsScrollRef}>
+              {reviews.map((t, i) => (
+                <div key={i} className="testimonial-card-wrap">
+                  <div className="card-elevated animate-fade-in-up" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', animationDelay: `${(i % 3) * 100}ms` }}>
+                    <Quote size={24} style={{ color: 'var(--primary-soft)', transform: 'scaleX(-1)' }} />
+                    <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: 1.7, flex: 1 }}>"{t.text}"</p>
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--primary-soft))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: 'var(--primary-dark)', fontSize: '14px' }}>
+                        {t.name.charAt(0)}
+                      </div>
+                      <div>
+                        <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{t.name}</b>
+                        <span className="text-muted" style={{ fontSize: '12px' }}>{t.role}</span>
+                      </div>
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '2px' }}>
+                        {Array(t.rating).fill(null).map((_, si) => (
+                          <Star key={si} size={14} fill="#FBBF24" color="#FBBF24" />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>

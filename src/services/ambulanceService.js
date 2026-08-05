@@ -23,7 +23,7 @@ const EMERGENCY_TYPES = [
   { value: "other", label: "Other" },
 ];
 
-const STATUS_FLOW = ["Requested", "Dispatched", "En Route", "Arrived"];
+const STATUS_FLOW = ["Requested", "Assigned", "Dispatched", "Arriving", "Completed"];
 
 function getStoredPatientId() {
   try {
@@ -128,9 +128,13 @@ async function getAmbulanceRequests(currentUser) {
     function normalizeStatus(raw) {
       if (!raw || typeof raw !== "string") return "Requested";
       const s = raw.trim().toLowerCase().replace(/_/g, " ");
+      if (s.includes("cancel")) return "Cancelled";
+      if (s.includes("unavailable")) return "Unavailable";
+      if (s.includes("delay")) return "Delayed";
+      if (s.includes("complete") || s.includes("done")) return "Completed";
+      if (s.includes("arrive") || s.includes("reach") || s.includes("arriving")) return "Arriving";
       if (s.includes("dispatch")) return "Dispatched";
-      if (s.includes("en route") || s.includes("enroute") || s.includes("transit") || s.includes("on way")) return "En Route";
-      if (s.includes("arrive") || s.includes("reach") || s.includes("complete") || s.includes("done")) return "Arrived";
+      if (s.includes("assign")) return "Assigned";
       return "Requested";
     }
 
@@ -154,9 +158,13 @@ async function getAmbulanceRequests(currentUser) {
         status: normalizeStatus(rawStatus),
         eta: parsedEta,
         createdAt: item.created_at || item.createdAt || item.created_date || item.created_modified_date || new Date().toISOString(),
+        assignedAt: item.assigned_at || null,
+        dispatchedAt: item.dispatched_at || null,
+        completedAt: item.completed_at || null,
+        updatedAt: item.updated_at || null,
         ambulanceId: item.ambulance_number || item.ambulance_no || item.ambulance_num || item.ambulance_id || item.ambulanceId || item.vehicle_number || item.vehicle_no || item.vehicle_num || item.vehicleId || "N/A",
         driverName: item.driver_name || item.driverName || item.driver || "Unassigned",
-        driverPhone: item.driver_phone || item.driverPhone || item.driver_mobile || "",
+        driverPhone: item.driver_mobile_no || item.driver_phone || item.driverPhone || item.driver_mobile || "",
         raw: item
       };
     });

@@ -353,6 +353,25 @@ export async function getDiagnosticPackages(filters = {}) {
   }
 }
 
+export async function getPatientReviews(filters = {}) {
+  try {
+    const payload = {
+      pageIndex: filters.pageIndex || 1,
+      pageSize: filters.pageSize || 10,
+      sortKey: filters.sortKey || "id",
+      sortValue: filters.sortValue || "desc",
+      filter: filters.filter || " and is_active=1",
+      ...filters
+    };
+    const res = await api.post("/api/patientReview/get", payload);
+    const list = res?.data || res?.result || res || [];
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getPatientReviews API error:", err);
+    return [];
+  }
+}
+
 /* ─── Forms ─── */
 export async function getForms(filters = {}) {
   if (USE_MOCK) return [];

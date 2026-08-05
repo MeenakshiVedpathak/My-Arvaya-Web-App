@@ -3,27 +3,23 @@ import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckC
 import { useNavigate, Link } from "react-router-dom";
 import { getAmbulanceRequests, STATUS_FLOW, EMERGENCY_TYPES } from "../services/ambulanceService";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 export default function AmbulancePage() {
   const go = useNavigate();
-  const defaultRequests = [
-    {
-      id: "AMB-KA01-7892",
-      patientName: "Rahul Sharma",
-      contactNumber: "9876543210",
-      pickupAddress: "Koramangala 4th Block, Bangalore, Karnataka",
-      emergencyType: "cardiac",
-      status: "En Route",
-      eta: 12,
-      createdAt: new Date().toISOString(),
-      ambulanceId: "KA-01-7892",
-      driverName: "Ramesh K.",
-      driverPhone: "9876543210",
-    }
-  ];
+  const defaultRequests = [];
 
   const [requests, setRequests] = useState(defaultRequests);
-  const [loading, setLoading]  = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const load = async () => {
@@ -37,30 +33,40 @@ export default function AmbulancePage() {
   const getStatusIndex = (status) => {
     if (!status) return 0;
     const s = String(status).trim().toLowerCase().replace(/_/g, " ");
-    if (s.includes("dispatch")) return 1;
-    if (s.includes("en route") || s.includes("enroute") || s.includes("transit") || s.includes("on way")) return 2;
-    if (s.includes("arrive") || s.includes("reach") || s.includes("complete") || s.includes("done")) return 3;
+    if (s.includes("cancel") || s.includes("unavailable")) return -1;
+    if (s.includes("complete") || s.includes("done")) return 4;
+    if (s.includes("arriv") || s.includes("delay")) return 3;
+    if (s.includes("dispatch")) return 2;
+    if (s.includes("assign")) return 1;
     return 0;
   };
 
   const getStatusColor = (status) => {
+    const s = String(status).trim().toLowerCase().replace(/_/g, " ");
+    if (s.includes("cancel") || s.includes("unavailable")) return { bg: "#fee2e2", color: "#dc2626", border: "#fca5a5" };
+    if (s.includes("delay")) return { bg: "#ffedd5", color: "#ea580c", border: "#fdba74" };
     const idx = getStatusIndex(status);
     switch (idx) {
       case 0: return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
       case 1: return { bg: "#dbeafe", color: "#2563eb", border: "#93c5fd" };
       case 2: return { bg: "#e0e7ff", color: "#4f46e5", border: "#a5b4fc" };
-      case 3: return { bg: "var(--success-bg)", color: "var(--success)", border: "#86efac" };
+      case 3: return { bg: "#ccfbf1", color: "#0d9488", border: "#5eead4" };
+      case 4: return { bg: "var(--success-bg)", color: "var(--success)", border: "#86efac" };
       default: return { bg: "#fef3c7", color: "#d97706", border: "#fcd34d" };
     }
   };
 
   const getStatusIcon = (status) => {
+    const s = String(status).trim().toLowerCase().replace(/_/g, " ");
+    if (s.includes("cancel") || s.includes("unavailable")) return <FileX2 size={16} />;
+    if (s.includes("delay")) return <AlertTriangle size={16} />;
     const idx = getStatusIndex(status);
     switch (idx) {
       case 0: return <Clock size={16} />;
-      case 1: return <Truck size={16} />;
-      case 2: return <Navigation size={16} />;
-      case 3: return <CheckCircle2 size={16} />;
+      case 1: return <User size={16} />;
+      case 2: return <Truck size={16} />;
+      case 3: return <Navigation size={16} />;
+      case 4: return <CheckCircle2 size={16} />;
       default: return <Clock size={16} />;
     }
   };
@@ -68,12 +74,25 @@ export default function AmbulancePage() {
   const getEmergencyLabel = (val) => EMERGENCY_TYPES.find(t => t.value === val)?.label || val;
 
   const formatTime = (iso) => {
+    if (!iso) return "";
     const d = new Date(iso);
     return d.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
-  const activeRequests = requests.filter(r => getStatusIndex(r.status) < 3);
-  const pastRequests   = requests.filter(r => getStatusIndex(r.status) === 3);
+  const formatTimeShort = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+  };
+
+  const activeRequests = requests.filter(r => {
+    const idx = getStatusIndex(r.status);
+    return idx >= 0 && idx < 4;
+  });
+  const pastRequests = requests.filter(r => {
+    const idx = getStatusIndex(r.status);
+    return idx === 4 || idx === -1;
+  });
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -81,15 +100,15 @@ export default function AmbulancePage() {
       <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)", padding: '24px 0' }}>
         <div className="container">
           <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Track Ambulance</span>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.color = ''}>Home</Link> <ChevronRight size={12} /> <span>Track Ambulance</span>
           </div>
-          
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div>
               <h1 className="text-h2" style={{ fontSize: '24px', margin: 0 }}>Track Ambulance</h1>
               <p className="text-muted mt-2" style={{ fontSize: '14px', margin: 0 }}>Monitor your emergency ambulance requests.</p>
             </div>
-            <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontSize: "15px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter="brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter="none"}>
+            <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontSize: "15px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter = "none"}>
               <Ambulance size={18} /> Call Ambulance
             </button>
           </div>
@@ -113,7 +132,7 @@ export default function AmbulancePage() {
             <p style={{ fontSize: "15px", color: "var(--text-muted)", marginBottom: "32px", maxWidth: "400px", margin: "0 auto 32px", lineHeight: 1.6 }}>
               You haven't made any ambulance requests yet. In case of a medical emergency, click the button below to request one immediately.
             </p>
-            <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "16px 32px", fontSize: "16px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "10px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter="brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter="none"}>
+            <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "16px 32px", fontSize: "16px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "10px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter = "none"}>
               <Ambulance size={20} /> Call Ambulance Now
             </button>
           </div>
@@ -142,34 +161,68 @@ export default function AmbulancePage() {
                         </div>
 
                         {/* Status progress */}
-                        <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "24px" }}>
-                          {STATUS_FLOW.map((s, i) => {
-                            const idx = getStatusIndex(req.status);
-                            const done = i <= idx;
-                            return (
-                              <React.Fragment key={s}>
-                                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: done ? "var(--primary)" : "var(--bg-app)", border: done ? "none" : "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", fontSize: "11px", fontWeight: "700", color: done ? "#fff" : "var(--text-muted)" }}>
-                                  {done ? <CheckCircle2 size={14} /> : i + 1}
-                                </div>
-                                {i < STATUS_FLOW.length - 1 && (
-                                  <div style={{ flex: 1, height: "3px", borderRadius: "2px", background: i < idx ? "var(--primary)" : "var(--border)", transition: "all 0.3s" }} />
-                                )}
-                              </React.Fragment>
-                            );
-                          })}
-                        </div>
-                        <div style={{ display: "flex", gap: "4px", marginBottom: "24px" }}>
-                          {STATUS_FLOW.map((s, i) => <span key={s} style={{ flex: 1, textAlign: "center", fontSize: "10px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{s}</span>)}
-                        </div>
+                        {getStatusIndex(req.status) !== -1 ? (
+                          <div style={{ display: "flex", width: "100%", paddingBottom: "32px", marginBottom: "24px" }}>
+                            {STATUS_FLOW.map((s, i) => {
+                              const idx = getStatusIndex(req.status);
+                              const done = i <= idx;
+                              const lineDone = i < idx;
+                              const isLast = i === STATUS_FLOW.length - 1;
+                              const isDelayed = String(req.status).toLowerCase().includes("delay");
+                              const stepLabel = (isDelayed && i === 3) ? "Delayed" : s;
+                              const stepColor = (isDelayed && i === 3 && done) ? "#ea580c" : (done ? "var(--primary)" : "var(--bg-app)");
+                              const textColor = (isDelayed && i === 3 && done) ? "#fff" : (done ? "#fff" : "var(--text-muted)");
 
-                        {/* Live Map Placeholder */}
-                        <div style={{ height: "200px", background: "var(--bg-app)", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.1, backgroundImage: "radial-gradient(var(--text-muted) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
-                          <div style={{ textAlign: "center", zIndex: 1 }}>
-                            <Navigation size={32} color="var(--primary)" style={{ margin: "0 auto 8px" }} />
-                            <b style={{ color: "var(--text-main)", fontSize: "14px", display: "block" }}>Live Tracking</b>
-                            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Ambulance is {req.eta} mins away</span>
+                              let stepTime = null;
+                              if (i === 0) stepTime = req.createdAt;
+                              if (i === 1) stepTime = req.assignedAt;
+                              if (i === 2) stepTime = req.dispatchedAt;
+                              if (i === 3 && done) stepTime = req.updatedAt;
+                              if (i === 4) stepTime = req.completedAt;
+
+                              return (
+                                <div key={s} style={{ flex: isLast ? 0 : 1, position: "relative" }}>
+                                  {!isLast && (
+                                    <div style={{ position: "absolute", top: "13px", left: "28px", right: "0", height: "3px", background: lineDone ? "var(--primary)" : "var(--border)", transition: "all 0.3s" }} />
+                                  )}
+                                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: stepColor, border: done ? "none" : "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", fontSize: "11px", fontWeight: "700", color: textColor, position: "relative", zIndex: 1 }}>
+                                    {done ? <CheckCircle2 size={14} /> : i + 1}
+                                  </div>
+                                  <div style={{ position: "absolute", top: "36px", left: "14px", transform: "translateX(-50%)", width: "100px", textAlign: "center", fontSize: "10px", fontWeight: "600", color: (isDelayed && i === 3 && done) ? "#ea580c" : "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                    {stepLabel}
+                                    {stepTime && (
+                                      <div style={{ fontSize: "9px", color: "var(--text-muted)", opacity: 0.7, marginTop: "2px", textTransform: "none", letterSpacing: "normal" }}>
+                                        {formatTimeShort(stepTime)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
+                        ) : (
+                          <div style={{ padding: "16px", background: "#fee2e2", borderRadius: "8px", color: "#dc2626", fontSize: "14px", fontWeight: "600", marginBottom: "24px", display: "flex", alignItems: "center", gap: "8px" }}>
+                            <FileX2 size={18} /> Request {req.status}
+                          </div>
+                        )}
+
+                        {/* Live Map Tracking */}
+                        <div style={{ height: "200px", background: "var(--bg-app)", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
+                          {req.pickupLat && req.pickupLng ? (
+                            <MapContainer center={[req.pickupLat, req.pickupLng]} zoom={15} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false} style={{ height: "100%", width: "100%" }}>
+                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                              <Marker position={[req.pickupLat, req.pickupLng]} />
+                            </MapContainer>
+                          ) : (
+                            <>
+                              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.1, backgroundImage: "radial-gradient(var(--text-muted) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
+                              <div style={{ textAlign: "center", zIndex: 1 }}>
+                                <Navigation size={32} color="var(--primary)" style={{ margin: "0 auto 8px" }} />
+                                <b style={{ color: "var(--text-main)", fontSize: "14px", display: "block" }}>Live Tracking</b>
+                                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Ambulance is {req.eta} mins away</span>
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         {/* Details grid */}
@@ -205,7 +258,7 @@ export default function AmbulancePage() {
                           </div>
                           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                             <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>{req.driverName}</span>
-                            <a href={`tel:${req.driverPhone}`} style={{ background: "var(--success)", color: "#fff", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.filter="brightness(1.15)"} onMouseLeave={e => e.currentTarget.style.filter="none"}>
+                            <a href={`tel:${req.driverPhone}`} style={{ background: "var(--success)", color: "#fff", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.15)"} onMouseLeave={e => e.currentTarget.style.filter = "none"}>
                               <Phone size={16} />
                             </a>
                           </div>
@@ -264,7 +317,7 @@ export default function AmbulancePage() {
 
       {/* ── Modal (Used in React) ── */}
       {showModal && (
-        <AmbulanceRequestModal onClose={() => { setShowModal(false); load(); }} onSuccess={() => {}} />
+        <AmbulanceRequestModal onClose={() => { setShowModal(false); load(); }} onSuccess={() => { }} />
       )}
 
     </main>
