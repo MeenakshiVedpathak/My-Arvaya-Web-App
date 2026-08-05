@@ -201,7 +201,7 @@ export const getGetXToken = async (sessionData = null) => {
     };
 
     const baseUrl = ABHA_BASE_URL.endsWith('/') ? ABHA_BASE_URL : `${ABHA_BASE_URL}/`;
-    const response = await api.get(`${baseUrl}phr/web/login/profile/request/token`, headers);
+    const response = await api.get(`${baseUrl}phr/app/login/profile/request/token`, headers);
 
     return response?.tokens?.token || response?.data?.tokens?.token;
   } catch (error) {
