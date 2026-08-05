@@ -122,12 +122,33 @@ export default function Records() {
   // Download State
   let [downloadingId, setDownloadingId] = useState(null);
 
-  const fetchRecords = async (page = 1) => {
+  const fetchRecords = async (page = 1, query = searchQuery) => {
     if (page === 1) setLoading(true);
     else setLoadingMore(true);
 
     try {
-      const res = await getRecords({ pageIndex: page, pageSize: 12 });
+      const storedUser = localStorage.getItem("arvaya_user");
+      let userId = 107609;
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          userId = parsed?.user_id || parsed?.id || parsed?.app_user_id || 107609;
+        } catch(e) {}
+      }
+
+      let filterString = ` AND app_user_id = ${userId} AND status = 1 `;
+      if (query && query.trim()) {
+        const cleanQuery = query.trim().replace(/'/g, "''");
+        filterString += ` AND (title LIKE '%${cleanQuery}%' OR hospital_name LIKE '%${cleanQuery}%' OR lab_name LIKE '%${cleanQuery}%') `;
+      }
+
+      const res = await getRecords({
+        pageIndex: page,
+        pageSize: 12,
+        sortKey: "id",
+        sortValue: "desc",
+        filter: filterString
+      });
       setRecords(prev => page === 1 ? (res.list || []) : [...prev, ...(res.list || [])]);
       setCount(res.count || 0);
     } catch (err) {
@@ -135,6 +156,21 @@ export default function Records() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (val.length === 0) {
+      fetchRecords(1, "");
+    }
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      fetchRecords(1, searchQuery);
     }
   };
 
@@ -380,95 +416,154 @@ export default function Records() {
       </div>
 
       <div className="container" style={{ paddingBottom: '40px', paddingTop: '24px' }}>
-        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }} className="vault-layout">
+        {/* ── Control Bar: Tabs + Top Search Bar ── */}
+        <div className="vault-control-bar">
+          
+          {/* Tabs */}
+          <div className="vault-tabs">
+            <button
+              className={`vault-tab-btn ${activeTab === 'personal' ? 'active' : ''}`}
+              onClick={() => setActiveTab('personal')}
+            >
+              My Uploads & Hospital Records
+            </button>
+            <button
+              className={`vault-tab-btn ${activeTab === 'abha' ? 'active' : ''}`}
+              onClick={() => setActiveTab('abha')}
+            >
+              <Fingerprint size={18} /> ABHA Network
+            </button>
+          </div>
 
-          {/* ── Left Sidebar (Filters) ── */}
-          <aside style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '100px' }} className="vault-sidebar">
-
-            {/* Search */}
-            <div style={{ marginBottom: '32px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <Search size={18} color="var(--muted)" />
-                <input
-                  type="text"
-                  placeholder="Search records..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', marginLeft: '12px', color: 'var(--text-main)' }}
-                />
-              </div>
-            </div>
-
-            {/* Filter Group: Members */}
-            <div style={{ marginBottom: '32px' }}>
-              <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><User size={16} /> Family Members</h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['Self (Rahul)', 'Spouse (Priya)', 'Child (Aarav)'].map((member, i) => (
-                  <li key={i}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '15px', color: 'var(--text-main)', padding: '6px 0' }}>
-                      <input type="checkbox" defaultChecked={i === 0} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
-                      {member}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Filter Group: Record Type */}
-            <div>
-              <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><FileJson size={16} /> Record Type</h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['All Records', 'Prescriptions', 'Lab Reports', 'Diagnostic Scans'].map((type, i) => (
-                  <li key={i}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '15px', color: 'var(--text-main)', padding: '6px 0' }}>
-                      <input
-                        type="radio"
-                        name="recordType"
-                        checked={selectedType === type}
-                        onChange={() => setSelectedType(type)}
-                        style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
-                      />
-                      {type}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Filter Group: Admission Type */}
-            <div style={{ marginTop: '32px' }}>
-              <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Plus size={16} /> Admission Type</h3>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['Both', 'Inpatient (IP)', 'Outpatient (OP)'].map((type, i) => (
-                  <li key={i}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontSize: '15px', color: 'var(--text-main)', padding: '6px 0' }}>
-                      <input type="radio" name="admissionType" defaultChecked={i === 0} style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }} />
-                      {type}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-
-          {/* ── Right Content (Vault List) ── */}
-          <section style={{ flex: 1, width: '100%' }}>
-
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border)', marginBottom: '24px', flexWrap: 'wrap' }}>
+          {/* Top Search Bar */}
+          <form onSubmit={(e) => { e.preventDefault(); fetchRecords(1, searchQuery); }} className="vault-search-form">
+            <div className="vault-search-box">
+              <input
+                type="text"
+                placeholder="Search records..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchKeyDown}
+                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', color: 'var(--text-main)', fontSize: '13.5px' }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    fetchRecords(1, "");
+                  }}
+                  title="Clear search"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                >
+                  <X size={15} />
+                </button>
+              )}
               <button
-                style={{ background: 'transparent', border: 'none', padding: '12px 0', fontSize: '16px', fontWeight: '600', color: activeTab === 'personal' ? 'var(--primary)' : 'var(--muted)', borderBottom: activeTab === 'personal' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s', marginBottom: '-1px' }}
-                onClick={() => setActiveTab('personal')}
+                type="submit"
+                title="Search records"
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: searchQuery ? 'var(--primary)' : 'var(--muted)', padding: 0, display: 'flex', alignItems: 'center', marginLeft: '4px' }}
               >
-                My Uploads & Hospital Records
-              </button>
-              <button
-                style={{ background: 'transparent', border: 'none', padding: '12px 0', fontSize: '16px', fontWeight: '600', color: activeTab === 'abha' ? 'var(--primary)' : 'var(--muted)', borderBottom: activeTab === 'abha' ? '2px solid var(--primary)' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s', marginBottom: '-1px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                onClick={() => setActiveTab('abha')}
-              >
-                <Fingerprint size={18} /> ABHA Network
+                <Search size={16} />
               </button>
             </div>
+          </form>
+
+        </div>
+
+        <style>{`
+          .vault-control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            gap: 16px;
+          }
+
+          .vault-tabs {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            scrollbar-width: none;
+          }
+
+          .vault-tabs::-webkit-scrollbar {
+            display: none;
+          }
+
+          .vault-tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: -1px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+
+          .vault-tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+          }
+
+          .vault-search-form {
+            margin: 0;
+            padding-bottom: 8px;
+          }
+
+          .vault-search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-surface);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            width: 320px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+          }
+
+          @media (max-width: 768px) {
+            .vault-control-bar {
+              flex-direction: column;
+              align-items: stretch;
+              gap: 16px;
+              border-bottom: none;
+            }
+
+            .vault-tabs {
+              gap: 16px;
+              width: 100%;
+              border-bottom: 1px solid var(--border);
+              padding-bottom: 2px;
+            }
+
+            .vault-tab-btn {
+              font-size: 14px;
+              padding: 8px 0;
+            }
+
+            .vault-search-form {
+              width: 100%;
+              padding-bottom: 0;
+            }
+
+            .vault-search-box {
+              width: 100%;
+            }
+          }
+        `}</style>
+
+        {/* ── Content Section ── */}
+        <section style={{ width: '100%' }}>
 
             {activeTab === 'abha' ? (
               isAbhaLinked ? (
@@ -600,14 +695,7 @@ export default function Records() {
                   <div style={{ position: 'relative' }}>
                     <div style={{ position: 'absolute', left: '27px', top: '40px', bottom: '40px', width: '2px', background: 'var(--border)', zIndex: 0 }}></div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {records.filter(rec => {
-                      const matchesSearch = !searchQuery || rec.title?.toLowerCase().includes(searchQuery.toLowerCase()) || rec.doctor?.toLowerCase().includes(searchQuery.toLowerCase());
-                      const matchesType = selectedType === "All Records" ||
-                        (selectedType === "Prescriptions" && (rec.type?.toLowerCase().includes("prescription") || rec.type?.toLowerCase().includes("rx"))) ||
-                        (selectedType === "Lab Reports" && (rec.type?.toLowerCase().includes("lab") || rec.type?.toLowerCase().includes("blood"))) ||
-                        (selectedType === "Diagnostic Scans" && (rec.type?.toLowerCase().includes("diagnostic") || rec.type?.toLowerCase().includes("ecg") || rec.type?.toLowerCase().includes("scan")));
-                      return matchesSearch && matchesType;
-                    }).map((rec) => {
+                    {records.map((rec) => {
                       const { Icon, color, bg } = getRecordIcon(rec.type);
                       const targetFile = rec?.filePath || rec?.fileUrl || rec?.raw?.file_name || rec?.raw?.file_path || rec?.raw?.file_url || rec?.raw?.url || rec?.raw?.file;
                       const hasFile = Boolean(targetFile && targetFile !== "null" && targetFile !== "undefined");
@@ -699,8 +787,6 @@ export default function Records() {
               </>
             )}
           </section>
-
-        </div>
       </div>
 
 
