@@ -227,7 +227,7 @@ export default function Header() {
           return;
         } catch (e) {
           if (e.name !== 'AbortError') {
-            console.log("Share API error", e);
+            console.error("Share API error", e);
           }
         }
       }

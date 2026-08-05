@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft } from "lucide-react";
 import { sendOtp, verifyOtp, getCloudId, getDeviceId } from "../../services/authService";
 import { abhaSendOtp, abhaVerifyOtp, abhaGetAddresses, abhaConfirmAddress, abhaVerifyUser } from "../../services/abhaService";
 import { useNavigate } from "react-router-dom";
@@ -254,7 +254,7 @@ export default function LoginModal({ forceOpen = false }) {
     }}>
       <div className="login-modal-container" style={{
         background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '860px',
-        display: 'flex', overflow: 'hidden', position: 'relative',
+        display: 'flex', position: 'relative',
         boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35)', minHeight: '500px'
       }}>
         {/* ── Close Button ── */}
@@ -283,7 +283,8 @@ export default function LoginModal({ forceOpen = false }) {
           <div className="login-modal-left" style={{
             flex: '1', background: 'linear-gradient(150deg, var(--primary-light) 0%, #ffffff 60%)',
             padding: '48px 40px', display: 'flex', flexDirection: 'column',
-            borderRight: '1px solid var(--border)'
+            borderRight: '1px solid var(--border)',
+            borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
           }}>
             <img src="/logo.png" alt="Arvaya" style={{ height: '44px', mixBlendMode: 'multiply', marginBottom: '40px', width: 'fit-content' }} />
             <h2 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.2', marginBottom: '16px', letterSpacing: '-0.02em' }}>
@@ -306,7 +307,8 @@ export default function LoginModal({ forceOpen = false }) {
         {/* ── Right Pane ── */}
         <div className="login-modal-right" style={{
           flex: '1', padding: '48px 40px', display: 'flex', flexDirection: 'column',
-          justifyContent: 'center', background: '#fff', minWidth: '360px'
+          justifyContent: 'center', background: '#fff', minWidth: '360px',
+          borderTopRightRadius: '24px', borderBottomRightRadius: '24px'
         }}>
           {card}
         </div>
@@ -327,7 +329,8 @@ function AbhaLeftPane({ step, isCreate = false }) {
     <div className="login-modal-left" style={{
       flex: '1', background: 'linear-gradient(150deg, var(--primary) 0%, var(--primary-dark) 100%)',
       padding: '48px 40px', display: 'flex', flexDirection: 'column',
-      borderRight: '1px solid var(--border)', position: 'relative', overflow: 'hidden'
+      borderRight: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
+      borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
     }}>
       {/* Background decoration */}
       <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
@@ -745,7 +748,7 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
           display: 'flex', alignItems: 'center', gap: '8px'
         }}>
           <CheckCircle2 size={16} color="#16a34a" />
-          <span>Abha address find for this number</span>
+          <span>ABHA addresses found for this mobile number</span>
         </div>
       )}
 
@@ -758,7 +761,7 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
         {addresses.length > 1 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
             {addresses.map((addr, i) => {
-              const addrVal = addr.address || addr.id || addr;
+              const addrVal = addr.abhaAddress || addr.address || addr.id || (typeof addr === 'string' ? addr : '');
               const isSelected = selected === addrVal;
               return (
                 <button
@@ -810,17 +813,10 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '8px' }}>
           Date of Birth
         </label>
-        <input
-          type="date"
-          value={dob}
-          onChange={e => { setDob(e.target.value); setDobErr(""); }}
-          max={new Date().toISOString().split('T')[0]}
-          className="input-field"
-          style={{
-            padding: '14px 16px', borderRadius: '12px',
-            background: 'var(--bg-app)', fontSize: '15px', width: '100%',
-            borderColor: dobErr ? 'var(--danger)' : undefined
-          }}
+        <DobPicker 
+          value={dob} 
+          onChange={val => { setDob(val); setDobErr(""); }} 
+          error={dobErr} 
         />
         {dobErr && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px', fontWeight: '500' }}>{dobErr}</p>}
       </div>
@@ -951,8 +947,10 @@ function AbhaCreate({ step, onBack, onNext, onFinish }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Date of Birth</label>
-              <input className="input-field" type="date" value={form.dob} onChange={e => setForm(f => ({ ...f, dob: e.target.value }))} max={new Date().toISOString().split('T')[0]}
-                style={{ padding: '13px 16px', borderRadius: '12px', background: 'var(--bg-app)', fontSize: '14px', width: '100%' }} />
+              <DobPicker 
+                value={form.dob} 
+                onChange={val => setForm(f => ({ ...f, dob: val }))} 
+              />
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '6px' }}>Gender</label>
@@ -1056,6 +1054,207 @@ function OtpInputGrid({ value, onChange }) {
           }}
         />
       ))}
+    </div>
+  );
+}
+
+function DobPicker({ value, onChange, error }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
+
+  const [view, setView] = useState('days'); // 'days', 'months', 'years'
+
+  const popoverRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const formatValue = (dateStr) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${d} / ${m} / ${y}`;
+  };
+
+  const handleSelectDate = (day) => {
+    const y = currentMonth.getFullYear();
+    const m = String(currentMonth.getMonth() + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    onChange(`${y}-${m}-${d}`);
+    setIsOpen(false);
+  };
+
+  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+  const renderDaysView = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} style={{ width: '14.28%', padding: '8px 0' }}></div>);
+    }
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+      const isSelected = value === dateStr;
+      
+      const future = new Date(year, month, i) > new Date();
+
+      days.push(
+        <div key={i} style={{ width: '14.28%', padding: '4px' }}>
+          <button
+            disabled={future}
+            onClick={(e) => { e.preventDefault(); handleSelectDate(i); }}
+            style={{
+              width: '100%', height: '32px', border: 'none', borderRadius: '8px',
+              background: isSelected ? 'var(--primary)' : 'transparent',
+              color: isSelected ? '#fff' : future ? '#d1d5db' : 'var(--text-main)',
+              fontWeight: isSelected ? '700' : '500', fontSize: '13px',
+              cursor: future ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => { if(!isSelected && !future) { e.currentTarget.style.background = 'var(--bg-app)'; } }}
+            onMouseLeave={e => { if(!isSelected && !future) { e.currentTarget.style.background = 'transparent'; } }}
+          >
+            {i}
+          </button>
+        </div>
+      );
+    }
+
+    const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+    return (
+      <>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 8px' }}>
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronLeft size={20}/></button>
+          
+          <button onClick={(e) => { e.preventDefault(); setView('months'); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {currentMonth.toLocaleString('default', { month: 'long' })} {currentMonth.getFullYear()}
+          </button>
+          
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronRight size={20}/></button>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '8px', padding: '0 4px' }}>
+          {weekDays.map(wd => (
+            <div key={wd} style={{ width: '14.28%', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginBottom: '8px' }}>{wd}</div>
+          ))}
+          {days}
+        </div>
+      </>
+    );
+  };
+
+  const renderMonthsView = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return (
+      <>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '16px' }}>
+          <button onClick={(e) => { e.preventDefault(); setView('years'); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>
+            {currentMonth.getFullYear()}
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 8px' }}>
+          {months.map((m, idx) => {
+            const isSelected = currentMonth.getMonth() === idx;
+            return (
+              <button
+                key={m}
+                onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), idx, 1)); setView('days'); }}
+                style={{
+                  width: 'calc(33.33% - 6px)', padding: '12px 0', border: 'none', borderRadius: '8px',
+                  background: isSelected ? 'var(--primary)' : 'var(--bg-app)',
+                  color: isSelected ? '#fff' : 'var(--text-main)',
+                  fontWeight: isSelected ? '700' : '600', fontSize: '14px', cursor: 'pointer'
+                }}
+              >
+                {m}
+              </button>
+            )
+          })}
+        </div>
+      </>
+    );
+  };
+
+  const renderYearsView = () => {
+    const currentYear = currentMonth.getFullYear();
+    const startYear = Math.floor(currentYear / 12) * 12;
+    const years = Array.from({length: 12}, (_, i) => startYear + i);
+    
+    return (
+      <>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 8px' }}>
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear - 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronLeft size={20}/></button>
+          <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>{startYear} - {startYear + 11}</span>
+          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear + 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronRight size={20}/></button>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 8px' }}>
+          {years.map(y => {
+            const isSelected = currentMonth.getFullYear() === y;
+            const isFuture = y > new Date().getFullYear();
+            return (
+              <button
+                key={y}
+                disabled={isFuture}
+                onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(y, currentMonth.getMonth(), 1)); setView('months'); }}
+                style={{
+                  width: 'calc(33.33% - 6px)', padding: '12px 0', border: 'none', borderRadius: '8px',
+                  background: isSelected ? 'var(--primary)' : 'var(--bg-app)',
+                  color: isSelected ? '#fff' : isFuture ? '#d1d5db' : 'var(--text-main)',
+                  fontWeight: isSelected ? '700' : '600', fontSize: '14px', cursor: isFuture ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {y}
+              </button>
+            )
+          })}
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div style={{ position: 'relative' }} ref={popoverRef}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: 'flex', alignItems: 'center', padding: '14px 16px', borderRadius: '12px',
+          background: 'var(--bg-app)', fontSize: '15px', width: '100%',
+          border: error ? '1.5px solid var(--danger)' : isOpen ? '1.5px solid var(--primary)' : '1.5px solid var(--border)',
+          color: value ? 'var(--primary-dark)' : 'var(--text-muted)',
+          cursor: 'pointer', fontWeight: value ? '700' : '500',
+          fontFamily: value ? 'monospace' : 'inherit', letterSpacing: value ? '0.04em' : 'normal',
+          transition: 'all 0.2s', boxShadow: isOpen ? '0 0 0 4px rgba(46,102,110,0.1)' : 'none'
+        }}
+      >
+        <CalendarIcon size={18} style={{ marginRight: '12px', color: isOpen ? 'var(--primary)' : 'var(--text-muted)' }} />
+        {value ? formatValue(value) : "Select Date of Birth"}
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, width: '100%', minWidth: '320px',
+          background: '#fff', borderRadius: '16px', padding: '16px',
+          boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)', border: '1px solid #e5e7eb',
+          zIndex: 50, animation: 'fadeInUp 0.2s ease-out'
+        }}>
+          {view === 'days' && renderDaysView()}
+          {view === 'months' && renderMonthsView()}
+          {view === 'years' && renderYearsView()}
+        </div>
+      )}
     </div>
   );
 }

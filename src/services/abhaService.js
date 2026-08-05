@@ -1,43 +1,23 @@
 import { api } from "./api";
 import { getCloudId, getDeviceId } from "./authService";
 
-// Set to true to use mock data during development / when ABHA APIs are not yet integrated
-const USE_MOCK = false;
-
-const MOCK_DELAY = (ms = 800) => new Promise(r => setTimeout(r, ms));
-
 /* ─────────────────────────────────────────────
    STEP 1 — Send OTP to ABHA-linked mobile
-   POST /abhaAddress/requestOtp
+   POST /login/requestOtp
    Body: { mobile_no }
    Response: { txnId, message }
 ───────────────────────────────────────────── */
 export async function abhaSendOtp(mobile) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(900);
-    return {
-      txnId: "ABHA_TXN_" + Date.now(),
-      message: `OTP sent successfully to +91 ${mobile}`,
-    };
-  }
   return api.post("/login/requestOtp", { mobile_no: mobile });
 }
 
 /* ─────────────────────────────────────────────
    STEP 2 — Verify OTP
-   POST /abhaAddress/verifyOtp
+   POST /login/verifyOtp
    Body: { otp, txnId }
    Response: { txnId, verified: true }
 ───────────────────────────────────────────── */
 export async function abhaVerifyOtp(otp, txnId) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(900);
-    if (otp === "000000") throw new Error("Invalid OTP. Please try again.");
-    return {
-      txnId: txnId,
-      verified: true,
-    };
-  }
   return api.post("/login/verifyOtp", {
     otp: String(otp),
     txnId: String(txnId)
@@ -46,22 +26,12 @@ export async function abhaVerifyOtp(otp, txnId) {
 
 /* ─────────────────────────────────────────────
    STEP 2b — Get ABHA Addresses linked to mobile
-   POST /abha/getAddresses
+   POST /api/abha/getAddresses
    Body: { txnId }
    Response: { abhaAddressList: [{ address, isPrimary }] }
 ───────────────────────────────────────────── */
 export async function abhaGetAddresses(txnId) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(600);
-    // Simulate multiple addresses returned by ABDM
-    return {
-      abhaAddressList: [
-        { address: "rahul.sharma@abdm",  isPrimary: true  },
-        { address: "rahul@sbx",          isPrimary: false },
-      ],
-    };
-  }
-  return api.post("/abha/getAddresses", { txnId });
+  return api.post("/api/abha/getAddresses", { txnId });
 }
 
 /* ─────────────────────────────────────────────
@@ -71,21 +41,6 @@ export async function abhaGetAddresses(txnId) {
    Response: { token, user }
 ───────────────────────────────────────────── */
 export async function abhaConfirmAddress(abhaAddress, dateOfBirth, txnId) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(1000);
-    return {
-      token: "abha_mock_token_" + Date.now(),
-      user: {
-        id: "abha_user_1",
-        name: "Rahul Sharma",
-        abhaAddress,
-        abhaNumber: "91-1234-5678-9012",
-        dateOfBirth,
-        phone: "",
-        email: "",
-      },
-    };
-  }
   return api.post("/abha/confirmAddress", { abhaAddress, dateOfBirth, txnId });
 }
 
@@ -94,20 +49,6 @@ export async function abhaConfirmAddress(abhaAddress, dateOfBirth, txnId) {
    POST /login/verifyUser
 ───────────────────────────────────────────── */
 export async function abhaVerifyUser(data) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(1000);
-    return {
-      token: "abha_mock_token_" + Date.now(),
-      user: {
-        id: "abha_user_1",
-        name: data.name || "ABHA User",
-        abhaAddress: data.abhaAddress,
-        abhaNumber: data.abha_number,
-        dateOfBirth: data.date_of_birth,
-        phone: data.mobile_number,
-      },
-    };
-  }
   const payload = {
     txnId: data.txnId || "",
     abhaAddress: data.abhaAddress || "",
@@ -132,10 +73,6 @@ export async function abhaVerifyUser(data) {
    Body: { token }
 ───────────────────────────────────────────── */
 export async function getGetToken(token) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(500);
-    return { success: true, token };
-  }
   return api.post("/api/profile/getGetToken", { token });
 }
 
@@ -145,10 +82,6 @@ export async function getGetToken(token) {
    Body: { token }
 ───────────────────────────────────────────── */
 export async function getProfileInfo(token) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(500);
-    return { success: true, token };
-  }
   return api.post("/api/profile/getInfo", { token });
 }
 
@@ -158,10 +91,139 @@ export async function getProfileInfo(token) {
    Body: { token, user_id }
 ───────────────────────────────────────────── */
 export async function getPhrCard(token, userId) {
-  if (USE_MOCK) {
-    await MOCK_DELAY(500);
-    return { success: true, token, user_id: userId };
-  }
   return api.post("/api/profile/getPhrCard", { token, user_id: userId });
 }
 
+/* ─────────────────────────────────────────────
+   Create ABHA Address — STEP 1: Send OTP
+   POST /abhaAddress/requestOtp
+   Body: { mobile_no }
+   Response: { txnId, message }
+───────────────────────────────────────────── */
+export async function abhaCreateRequestOtp(mobile) {
+  return api.post("/abhaAddress/requestOtp", { mobile_no: mobile });
+}
+
+/* ─────────────────────────────────────────────
+   Create ABHA Address — STEP 2: Verify OTP
+   POST /abhaAddress/verifyOtp
+   Body: { txnId, otp, isAddress: 1 }
+   Response: { txnId }
+───────────────────────────────────────────── */
+export async function abhaCreateVerifyOtp(otp, txnId) {
+  return api.post("/abhaAddress/verifyOtp", {
+    txnId: String(txnId),
+    otp: String(otp),
+    isAddress: 1,
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Create ABHA Address — STEP 3: Get Suggestions
+   POST /abhaAddress/getSuggestions
+   Body: { txnId, firstName, lastName, dayOfBirth, monthOfBirth, yearOfBirth, email }
+   Response: { txnId, abhaAddressList: [...] }
+───────────────────────────────────────────── */
+export async function abhaGetSuggestions(txnId, profileData) {
+  return api.post("/abhaAddress/getSuggestions", {
+    txnId,
+    firstName: profileData.firstName || "",
+    lastName: profileData.lastName || "",
+    dayOfBirth: profileData.dayOfBirth ? String(profileData.dayOfBirth).padStart(2, "0") : undefined,
+    monthOfBirth: profileData.monthOfBirth ? String(profileData.monthOfBirth).padStart(2, "0") : undefined,
+    yearOfBirth: profileData.yearOfBirth || undefined,
+    email: profileData.email || "",
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Create ABHA Address — STEP 4: Create/Save Address
+   POST /abhaAddress/createAddress
+   Body: { txnId, abhaAddress }
+   Response: { success, abhaAddress }
+───────────────────────────────────────────── */
+export async function abhaCreateAddress(txnId, abhaAddress) {
+  return api.post("/abhaAddress/createAddress", {
+    txnId,
+    abhaAddress,
+  });
+}
+
+/* ─────────────────────────────────────────────
+   Consent Manager — Get Consent Requests
+   GET /api/hiecm/consent/v3/request
+───────────────────────────────────────────── */
+const ABDM_CLIENT_ID = import.meta.env.VITE_ABDM_CLIENT_ID || "";
+const ABDM_CLIENT_SECRET = import.meta.env.VITE_ABDM_CLIENT_SECRET || "";
+const PHR_BASE_URL = import.meta.env.VITE_PHR_BASE_URL || "https://dev.abdm.gov.in/";
+const ABHA_BASE_URL = import.meta.env.VITE_ABHA_BASE_URL || "https://dev.abdm.gov.in/";
+
+export const getSession = async () => {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      timestamp: new Date().toISOString(),
+      'REQUEST-ID': crypto.randomUUID(),
+      'X-CM-ID': 'sbx',
+    };
+
+    const body = {
+      clientId: ABDM_CLIENT_ID,
+      clientSecret: ABDM_CLIENT_SECRET,
+      grantType: 'client_credentials',
+    };
+
+    // Clean URL ensuring no double slashes
+    const baseUrl = PHR_BASE_URL.endsWith('/') ? PHR_BASE_URL : `${PHR_BASE_URL}/`;
+    const response = await api.post(`${baseUrl}api/hiecm/gateway/v3/sessions`, body, headers);
+
+    // Return the full response containing accessToken, refreshToken, etc.
+    return response?.data || response || {};
+  } catch (error) {
+    console.error('getSession Error:', error);
+    throw error;
+  }
+};
+
+export const getGetXToken = async (sessionData = null) => {
+  try {
+    if (!sessionData) {
+      sessionData = await getSession();
+    }
+    const accessToken = sessionData.accessToken;
+    const refreshToken = localStorage.getItem("abha_user_token") || "";
+
+    const headers = {
+      timestamp: new Date().toISOString(),
+      'REQUEST-ID': crypto.randomUUID(),
+      Authorization: `Bearer ${accessToken}`,
+      'R-token': `Bearer ${refreshToken}`,
+    };
+
+    const baseUrl = ABHA_BASE_URL.endsWith('/') ? ABHA_BASE_URL : `${ABHA_BASE_URL}/`;
+    const response = await api.get(`${baseUrl}phr/web/login/profile/request/token`, headers);
+
+    return response?.tokens?.token || response?.data?.tokens?.token;
+  } catch (error) {
+    console.error('getGetXToken Error:', error);
+    throw error;
+  }
+};
+
+export async function getAbhaConsentRequests(limit = 10, offset = 0) {
+  const sessionData = await getSession();
+  const xToken = await getGetXToken(sessionData);
+  const accessToken = sessionData.accessToken;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    "timestamp": new Date().toISOString(),
+    "REQUEST-ID": crypto.randomUUID(),
+    "X-CM-ID": "sbx",
+    "Authorization": `Bearer ${accessToken}`,
+    "X-AUTH-TOKEN": `Bearer ${xToken}`
+  };
+
+  const baseUrl = PHR_BASE_URL.endsWith('/') ? PHR_BASE_URL : `${PHR_BASE_URL}/`;
+  return api.get(`${baseUrl}api/hiecm/consent/v3/request?limit=${limit}&offset=${offset}`, headers);
+}

@@ -154,7 +154,15 @@ export async function getDoctors(filters = {}) {
   };
 }
 
+let cachedLocationsPromise = null;
+
 export async function getLocations(pageIndex = 1, pageSize = 10, filter = "") {
+  const isCacheable = pageIndex === 1 && !filter && pageSize >= 10;
+  
+  if (isCacheable && cachedLocationsPromise) {
+    return cachedLocationsPromise;
+  }
+
   const payload = {
     pageIndex,
     pageSize,
@@ -162,11 +170,20 @@ export async function getLocations(pageIndex = 1, pageSize = 10, filter = "") {
     sortValue: "desc",
     filter
   };
-  const res = await api.post("/get-hospitals-locations", payload);
-  return {
+
+  const requestPromise = api.post("/get-hospitals-locations", payload).then(res => ({
     list: res?.entitylocations || res?.data?.entitylocations || [],
     count: res?.count || res?.data?.count || 100
-  };
+  })).catch(err => {
+    if (isCacheable) cachedLocationsPromise = null;
+    throw err;
+  });
+
+  if (isCacheable) {
+    cachedLocationsPromise = requestPromise;
+  }
+
+  return requestPromise;
 }
 
 export async function getHospitalsForLocation(locationKey) {

@@ -1,23 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { QrCode, CreditCard, User, Users, Plus, LogOut, Download, CheckCircle2, Copy, MapPin, Calendar, ShieldCheck, UserCircle, RefreshCcw, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
-import { fetchImageBlob, getImageUrl } from "../../../services/uploadService";
+import { QrCode, CreditCard, User, Users, Plus, LogOut, Download, CheckCircle2, Copy, MapPin, Calendar, ShieldCheck, UserCircle, RefreshCcw, ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
+import { fetchImageBlob } from "../../../services/uploadService";
 
 export function AbhaTab({ abhaData, onShowQr, onLogout, onSwitch, onCreate }) {
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [phrBlobUrl, setPhrBlobUrl] = useState(null);
+  const [cardLoading, setCardLoading] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
     const rawUrl = abhaData?.phrCardUrl;
     if (rawUrl) {
-      fetchImageBlob(rawUrl, "abhaCard").then((blobUrl) => {
-        if (blobUrl) setPhrBlobUrl(blobUrl);
-      });
+      setCardLoading(true);
+      setPhrBlobUrl(null);
+      fetchImageBlob(rawUrl, "abhaCard")
+        .then((blobUrl) => {
+          if (blobUrl) setPhrBlobUrl(blobUrl);
+        })
+        .finally(() => {
+          setCardLoading(false);
+        });
     }
   }, [abhaData?.phrCardUrl]);
 
-  const cardDisplayUrl = phrBlobUrl || (abhaData?.phrCardUrl ? getImageUrl(abhaData.phrCardUrl, "abhaCard") : null);
+  const cardDisplayUrl = phrBlobUrl;
 
   const copyAbhaNumber = () => {
     if (abhaData.abhaNumber) {
@@ -85,7 +92,47 @@ export function AbhaTab({ abhaData, onShowQr, onLogout, onSwitch, onCreate }) {
           </div>
           
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
-            {cardDisplayUrl ? (
+            {cardLoading ? (
+              /* ── Shimmer Skeleton Loader ── */
+              <div style={{ marginBottom: "16px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div
+                  style={{
+                    position: "relative",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    border: "1px solid #e2e8f0",
+                    background: "linear-gradient(110deg, #f0f4f8 8%, #e2e8f0 18%, #f0f4f8 33%)",
+                    backgroundSize: "200% 100%",
+                    animation: "shimmer 1.5s linear infinite",
+                    minHeight: "440px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    gap: "12px"
+                  }}
+                >
+                  <Loader2
+                    size={28}
+                    color="#94a3b8"
+                    style={{ animation: "spin 1s linear infinite" }}
+                  />
+                  <span style={{ fontSize: "13px", color: "#94a3b8", fontWeight: "500" }}>
+                    Loading Digital Health Card…
+                  </span>
+                </div>
+                <style>{`
+                  @keyframes shimmer {
+                    0% { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                  }
+                  @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                  }
+                `}</style>
+              </div>
+            ) : cardDisplayUrl ? (
               <div style={{ marginBottom: "16px", flex: 1, display: "flex", flexDirection: "column" }}>
                 <div
                   style={{

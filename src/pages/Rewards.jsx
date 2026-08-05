@@ -114,10 +114,6 @@ export default function Rewards() {
           })
         ]);
 
-        console.log("Fetched patient loyalty response:", loyaltyRes);
-        console.log("Fetched loyalty config response:", configRes);
-        console.log("Fetched loyalty history response:", historyRes);
-
         if (!isMounted) return;
 
         // Process Patient Loyalty total_amount & max_redeem_points
@@ -310,7 +306,6 @@ export default function Rewards() {
     setIsRedeeming(true);
     try {
       const res = await redeemLoyaltyPoints(patient_id, points_to_redeem);
-      console.log("Redemption API response:", res);
 
       setPoints(prev => Math.max(0, prev - points_to_redeem));
       const newTx = {

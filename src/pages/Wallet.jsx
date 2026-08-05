@@ -148,10 +148,6 @@ export default function Wallet() {
           })
         ]);
 
-        console.log("Fetched wallet amount response:", walletRes);
-        console.log("Fetched appointment history response:", historyRes);
-        console.log("Fetched plans response:", plansRes);
-
         if (!isMounted) return;
 
         // Process Wallet Amount

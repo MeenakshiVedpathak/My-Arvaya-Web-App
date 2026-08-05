@@ -16,29 +16,32 @@ function getToken() {
   );
 }
 
-async function request(method, path, body) {
+async function request(method, path, body, customHeaders = {}) {
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
   const headers = { 
     "apikey": "JP76Ol1r5lMvzljKmeaTdP9EthTYzKFH",
     "applicationkey": "Xkit6MeT1Et4ZA2N",
+    ...customHeaders
   };
 
-  if (!isFormData) {
+  if (!isFormData && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
 
   const token = getToken();
-  if (token) {
+  if (token && !headers["Authorization"]) {
     headers["token"] = token;
     headers["Authorization"] = `Bearer ${token}`;
     headers["authorization"] = token;
   }
 
+  const isAbsolute = path.startsWith("http://") || path.startsWith("https://");
   const cleanBase = BASE.endsWith('/') ? BASE.slice(0, -1) : BASE;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  const url = isAbsolute ? path : `${cleanBase}/${cleanPath}`;
 
-  const res = await fetch(`${cleanBase}/${cleanPath}`, {
+  const res = await fetch(url, {
     method,
     headers,
     body: isFormData ? body : (body ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined),
@@ -69,8 +72,8 @@ async function request(method, path, body) {
 }
 
 export const api = {
-  get: (path) => request("GET", path),
-  post: (path, body) => request("POST", path, body),
-  put: (path, body) => request("PUT", path, body),
-  del: (path) => request("DELETE", path),
+  get: (path, customHeaders = {}) => request("GET", path, null, customHeaders),
+  post: (path, body, customHeaders = {}) => request("POST", path, body, customHeaders),
+  put: (path, body, customHeaders = {}) => request("PUT", path, body, customHeaders),
+  delete: (path, customHeaders = {}) => request("DELETE", path, null, customHeaders),
 };
