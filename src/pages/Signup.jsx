@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { User, Phone, Calendar, ArrowRight, Droplet } from "lucide-react";
+import { User, Phone, Calendar, ArrowRight, Droplet, Building, ChevronDown, CheckCircle2 } from "lucide-react";
+import { getLocations } from "../services/dataService";
 
 export default function Signup() {
   const [searchParams] = useSearchParams();
@@ -12,9 +13,42 @@ export default function Signup() {
   const [dob, setDob] = useState("");
   const [bloodGroup, setBloodGroup] = useState("B+");
   const [phone, setPhone] = useState(() => searchParams.get("phone") || "");
+  const [locations, setLocations] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [branchOpen, setBranchOpen] = useState(false);
 
   const { register, loading, error, setError } = useAuth();
   const go = useNavigate();
+  const dropdownRef = useRef(null);
+
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    async function fetchLocations() {
+      try {
+        const res = await getLocations(1, 100);
+        if (res && res.list) {
+          setLocations(res.list);
+        }
+      } catch (err) {
+        console.error("Failed to fetch locations", err);
+      }
+    }
+    fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setBranchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -38,8 +72,11 @@ export default function Signup() {
       setError("Please enter your Phone Number");
       return;
     }
+    if (locations.length > 0 && (selectedBranch === "" || selectedBranch === null || selectedBranch === undefined)) {
+      setError("Please select a Branch");
+      return;
+    }
 
-    // const fullName = `${title}${firstName.trim()} ${lastName.trim()}`;
     const genderCode = gender === "Female" ? "F" : gender === "Male" ? "M" : "O";
 
     const ok = await register({
@@ -48,7 +85,8 @@ export default function Signup() {
       gender: genderCode,
       date_of_birth: dob,
       mobile_number: phone.trim(),
-      blood_group: bloodGroup
+      blood_group: bloodGroup,
+      entitylocation: selectedBranch
     });
     if (ok) go("/");
   }
@@ -64,6 +102,21 @@ export default function Signup() {
     fontSize: "14px", background: "transparent", color: "#2d3748",
     minWidth: 0, width: "100%"
   };
+
+  const cleanText = (str) => {
+    if (!str) return '';
+    return str.replace(/<[^>]*>?/gm, '').trim();
+  };
+
+  const getBranchLabel = (loc) => {
+    if (!loc) return "Select Branch";
+    return [loc.alt_name, loc.street, loc.area, loc.landmark, loc.city]
+      .map(cleanText)
+      .filter(Boolean)
+      .join(', ');
+  };
+
+  const selectedLoc = locations.find(l => l.entitylocation === selectedBranch);
 
   return (
     <div style={{
@@ -84,13 +137,14 @@ export default function Signup() {
         border: "1px solid var(--border)",
         padding: "28px 32px",
         position: "relative",
-        overflow: "hidden",
+        overflow: "visible", // Changed for dropdown
         boxSizing: "border-box"
       }}>
         {/* Decorative Top Accent Bar */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: "4px",
           background: "linear-gradient(90deg, var(--accent), var(--primary))",
+          borderTopLeftRadius: "22px", borderTopRightRadius: "22px"
         }} />
 
         {/* Card Header */}
@@ -228,9 +282,73 @@ export default function Signup() {
             <div style={inputWrap}>
               <Phone size={15} color="var(--primary)" style={{ flexShrink: 0 }} />
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                placeholder="Enter 10-digit phone number" maxLength={10} style={inputStyle} />
+                placeholder="10-digit number" maxLength={10} style={inputStyle} />
             </div>
           </div>
+
+          {/* Branch */}
+          <div ref={dropdownRef} style={{ position: 'relative' }}>
+              <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-main)", display: "block", marginBottom: "5px" }}>
+                Branch *
+              </label>
+              <div 
+                onClick={() => setBranchOpen(!branchOpen)}
+                style={{ 
+                  ...inputWrap, 
+                  cursor: "pointer", 
+                  padding: "10px 12px",
+                  border: branchOpen ? "1.5px solid var(--primary)" : "1.5px solid #edf1f6"
+                }}
+              >
+                <Building size={15} color="var(--primary)" style={{ flexShrink: 0, marginLeft: "2px" }} />
+                <div style={{ flex: 1, fontSize: "14px", color: selectedLoc ? "var(--text-main)" : "#9ca3af", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {selectedLoc ? getBranchLabel(selectedLoc) : "Select Branch"}
+                </div>
+                <ChevronDown size={16} color="var(--text-muted)" style={{ transition: "transform 0.2s", transform: branchOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+              </div>
+
+              {/* Custom Dropdown Menu */}
+              {branchOpen && (
+                <div style={{
+                  position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0,
+                  background: "#fff", borderRadius: "14px", border: "1px solid #edf1f6",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                  maxHeight: "220px", overflowY: "auto", zIndex: 50, padding: "8px",
+                  display: "flex", flexDirection: "column", gap: "4px"
+                }}>
+                  {locations.length === 0 ? (
+                    <div style={{ padding: "12px", textAlign: "center", fontSize: "13px", color: "var(--text-muted)" }}>Loading branches...</div>
+                  ) : (
+                    locations.map(loc => {
+                      const isSelected = selectedBranch === loc.entitylocation;
+                      return (
+                        <button
+                          key={loc.entitylocation}
+                          type="button"
+                          onClick={() => { setSelectedBranch(loc.entitylocation); setBranchOpen(false); }}
+                          style={{
+                            display: "flex", alignItems: "flex-start", gap: "10px",
+                            padding: "12px", borderRadius: "10px", border: "none",
+                            background: isSelected ? "var(--primary-light)" : "transparent",
+                            cursor: "pointer", textAlign: "left", transition: "all 0.2s",
+                            width: "100%"
+                          }}
+                          onMouseEnter={(e) => !isSelected && (e.currentTarget.style.background = "#f8fafc")}
+                          onMouseLeave={(e) => !isSelected && (e.currentTarget.style.background = "transparent")}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: "13px", fontWeight: isSelected ? "700" : "600", color: isSelected ? "var(--primary-dark)" : "var(--text-main)", lineHeight: "1.4" }}>
+                              {getBranchLabel(loc)}
+                            </div>
+                          </div>
+                          {isSelected && <CheckCircle2 size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: "2px" }} />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
 
           {error && (
             <div style={{

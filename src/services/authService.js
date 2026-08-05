@@ -70,6 +70,8 @@ export async function register(data) {
     cloud_id: data.cloud_id || getCloudId(),
     device_id: data.device_id || getDeviceId(),
     client_id: data.client_id || getClientId(),
+    entitylocation: data.entitylocation,
+    entitykey: 'secure-hospitals',
     is_active: 1
   };
 

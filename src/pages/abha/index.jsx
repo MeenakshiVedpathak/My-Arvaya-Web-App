@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Shield, Building2, ArrowLeft, Link2, ShieldCheck, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CreditCard, Shield, Building2, ArrowLeft, Link2, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { MOCK_ABHA } from "./constants";
+
 import { AbhaTab } from "./components/AbhaTab";
 import { ConsentTab } from "./components/ConsentTab";
 import { ProviderTab } from "./components/ProviderTab";
@@ -13,12 +13,14 @@ import { getGetToken, getProfileInfo, getPhrCard } from "../../services/abhaServ
 
 export default function ABHA() {
   const { user, logout, loginMethod, openLoginModal } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab]           = useState("abha");
   const [showQrModal, setShowQrModal]       = useState(false);
   const [showSwitch, setShowSwitch]         = useState(false);
   const [showCreate, setShowCreate]         = useState(false);
   const [profileInfo, setProfileInfo]       = useState(null);
   const [phrCardUrl, setPhrCardUrl]         = useState(null);
+  const [pageLoading, setPageLoading]       = useState(true);
 
   // Check if login triggered user/verifyOtp and user is not yet ABHA-linked
   const isUserOtpLogin = loginMethod === "user_verify_otp" && !user?.abhaAddress && !user?.abha_number;
@@ -27,20 +29,18 @@ export default function ABHA() {
   useEffect(() => {
     const inputToken = localStorage.getItem("abha_user_token") || user?.abha_token || user?.abhaToken || localStorage.getItem("abha_token") || localStorage.getItem("token");
     if (inputToken) {
+      setPageLoading(true);
       getGetToken(inputToken)
         .then((getTokenRes) => {
-          console.log("/api/profile/getGetToken response:", getTokenRes);
           const profileToken = getTokenRes?.tokens?.token || getTokenRes?.token || getTokenRes?.data?.tokens?.token || inputToken;
           if (profileToken) {
             localStorage.setItem("abha_profile_token", profileToken);
             return getProfileInfo(profileToken).then((infoRes) => {
-              console.log("/api/profile/getInfo response:", infoRes);
               if (infoRes) {
                 setProfileInfo(infoRes);
               }
               const userId = user?.user_id || user?.id || user?.app_user_id || localStorage.getItem("user_id") || 107611;
               return getPhrCard(profileToken, userId).then((phrRes) => {
-                console.log("/api/profile/getPhrCard response:", phrRes);
                 const cardUrl = phrRes?.url || phrRes?.data?.url || phrRes?.result?.url;
                 if (cardUrl) {
                   setPhrCardUrl(cardUrl);
@@ -51,28 +51,33 @@ export default function ABHA() {
         })
         .catch((err) => {
           console.error("ABHA Hub profile API sequence error:", err);
+        })
+        .finally(() => {
+          setPageLoading(false);
         });
+    } else {
+      setPageLoading(false);
     }
   }, [user]);
 
-  let genderDisplay = profileInfo?.gender || user?.gender || MOCK_ABHA.gender;
+  let genderDisplay = profileInfo?.gender || user?.gender || "";
   if (genderDisplay === "F" || genderDisplay === "FEMALE") genderDisplay = "Female";
   else if (genderDisplay === "M" || genderDisplay === "MALE") genderDisplay = "Male";
 
   const abhaData = {
-    ...MOCK_ABHA,
-    name: profileInfo?.fullName || (profileInfo?.firstName ? `${profileInfo.firstName} ${profileInfo.middleName || ''} ${profileInfo.lastName || ''}`.trim() : null) || user?.name || user?.full_name || MOCK_ABHA.name,
-    abhaNumber: profileInfo?.abhaNumber || user?.abhaNumber || user?.abha_number || MOCK_ABHA.abhaNumber,
-    abhaAddress: profileInfo?.preferredAbhaAddress || profileInfo?.abhaAddress || user?.abhaAddress || user?.abha_address || MOCK_ABHA.abhaAddress,
-    gender: genderDisplay,
+    name: profileInfo?.fullName || (profileInfo?.firstName ? `${profileInfo.firstName} ${profileInfo.middleName || ''} ${profileInfo.lastName || ''}`.trim() : null) || user?.name || user?.full_name || "—",
+    abhaNumber: profileInfo?.abhaNumber || user?.abhaNumber || user?.abha_number || "—",
+    abhaAddress: profileInfo?.preferredAbhaAddress || profileInfo?.abhaAddress || user?.abhaAddress || user?.abha_address || "—",
+    gender: genderDisplay || "—",
     dateOfBirth: profileInfo?.dateOfBirth || (profileInfo?.dayOfBirth && profileInfo?.monthOfBirth && profileInfo?.yearOfBirth ? `${profileInfo.dayOfBirth}/${profileInfo.monthOfBirth}/${profileInfo.yearOfBirth}` : null),
     dob: {
-      day: profileInfo?.dayOfBirth || MOCK_ABHA.dob.day,
-      month: profileInfo?.monthOfBirth || MOCK_ABHA.dob.month,
-      year: profileInfo?.yearOfBirth || MOCK_ABHA.dob.year,
+      day: profileInfo?.dayOfBirth || "",
+      month: profileInfo?.monthOfBirth || "",
+      year: profileInfo?.yearOfBirth || "",
     },
-    address: profileInfo?.address || (profileInfo?.districtName ? `${profileInfo.districtName}, ${profileInfo.stateName || ''} ${profileInfo.pinCode || ''}`.trim() : null) || MOCK_ABHA.address,
-    photoInitials: (profileInfo?.fullName || user?.name || "SP").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2),
+    address: profileInfo?.address || (profileInfo?.districtName ? `${profileInfo.districtName}, ${profileInfo.stateName || ''} ${profileInfo.pinCode || ''}`.trim() : null) || "—",
+    photoInitials: (profileInfo?.fullName || user?.name || "").split(" ").filter(Boolean).map(n => n[0]).join("").toUpperCase().slice(0, 2) || "—",
+    photoColor: "#1F4F57",
     profilePhoto: profileInfo?.profilePhoto,
     phrCardUrl: phrCardUrl,
   };
@@ -86,6 +91,52 @@ export default function ABHA() {
     { id: "consent",  label: "Consents", icon: Shield     },
     { id: "provider", label: "Providers",icon: Building2  },
   ];
+
+  if (pageLoading) {
+    return (
+      <main className="page" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
+          <div style={{
+            width: "64px", height: "64px", borderRadius: "50%",
+            background: "linear-gradient(135deg, var(--primary) 0%, #1a4a50 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 32px rgba(46,102,110,0.25)"
+          }}>
+            <Loader2 size={28} color="#fff" style={{ animation: "abha-spin 1s linear infinite" }} />
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-main)", marginBottom: "6px" }}>
+              Loading ABHA Profile
+            </div>
+            <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+              Fetching your digital health data…
+            </div>
+          </div>
+          <div style={{
+            width: "200px", height: "4px", borderRadius: "99px",
+            background: "#e5e7eb", overflow: "hidden", marginTop: "4px"
+          }}>
+            <div style={{
+              width: "40%", height: "100%", borderRadius: "99px",
+              background: "linear-gradient(90deg, var(--primary), #3b9da8)",
+              animation: "abha-progress 1.5s ease-in-out infinite"
+            }} />
+          </div>
+        </div>
+        <style>{`
+          @keyframes abha-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes abha-progress {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(150%); }
+            100% { transform: translateX(400%); }
+          }
+        `}</style>
+      </main>
+    );
+  }
 
   return (
     <main className="page animate-fade-in-up" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0 }}>
@@ -183,7 +234,7 @@ export default function ABHA() {
               </div>
             </div>
           ) : (
-            <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={logout} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />
+            <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={() => { logout(); navigate("/"); }} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />
           )}
         </div>
         <div id="static-abha-tab-consent" style={{ display: activeTab === "consent" ? "block" : "none" }}>
@@ -197,7 +248,7 @@ export default function ABHA() {
       {/* ── Modals ── */}
       {showQrModal  && <QrModal           abhaData={abhaData}          onClose={() => setShowQrModal(false)} />}
       {showSwitch   && <SwitchProfileModal onClose={() => setShowSwitch(false)} />}
-      {showCreate   && <CreateAddressModal abhaData={abhaData}          onClose={() => setShowCreate(false)} />}
+      {showCreate   && <CreateAddressModal abhaData={abhaData} profileInfo={profileInfo} user={user} onClose={() => setShowCreate(false)} />}
     </main>
   );
 }

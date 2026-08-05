@@ -385,7 +385,7 @@ export function SwitchProfileModal({ onClose }) {
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {addresses.length > 0 ? addresses.map((addr, i) => {
-              const addrVal = addr.address || addr.id || addr;
+              const addrVal = addr.abhaAddress || addr.address || addr.id || (typeof addr === 'string' ? addr : '');
               const isSelected = selected === addrVal;
               return (
                 <button

@@ -1,9 +1,17 @@
-import React, { useState } from "react";
-import { Clock, CheckCircle2, XCircle, AlertCircle, Shield, FileText } from "lucide-react";
-import { MOCK_CONSENTS } from "../constants";
+import React, { useState, useEffect } from "react";
+import { Clock, CheckCircle2, XCircle, AlertCircle, Shield, FileText, Loader2 } from "lucide-react";
+import { getAbhaConsentRequests } from "../../../services/abhaService";
 
 export function ConsentTab() {
   const [activeFilter, setActiveFilter] = useState("Pending");
+  const [loading, setLoading] = useState(false);
+  const [consents, setConsents] = useState({
+    Pending: [],
+    Granted: [],
+    Denied: [],
+    Expired: [],
+  });
+
   const filters = ["Pending", "Granted", "Denied", "Expired"];
   const filterMeta = {
     Pending: { icon: Clock,         color: "#f59e0b", bg: "#fef3c7" },
@@ -11,7 +19,58 @@ export function ConsentTab() {
     Denied:  { icon: XCircle,       color: "#dc2626", bg: "#fee2e2" },
     Expired: { icon: AlertCircle,   color: "#6b7280", bg: "#f3f4f6" },
   };
-  const items = MOCK_CONSENTS[activeFilter] || [];
+  
+  useEffect(() => {
+    async function fetchConsents() {
+      setLoading(true);
+      try {
+        const res = await getAbhaConsentRequests(10, 0);
+        if (res && res.requests) {
+          const mapped = res.requests.map((item) => {
+            let type = 'Consent';
+            if (item.purpose?.code === 'SUBSCRIPTION') {
+              type = 'Subscription';
+            }
+            let hiTypesArr = [];
+            if (Array.isArray(item.hiTypes)) {
+              hiTypesArr = item.hiTypes;
+            } else if (Array.isArray(item.hiType)) {
+              hiTypesArr = item.hiType;
+            } else if (typeof item.hiType === 'string') {
+              hiTypesArr = item.hiType.split(',').map((s) => s.trim());
+            }
+
+            return {
+              ...item,
+              id: item.id || item.consentRequestId || Math.random().toString(),
+              type,
+              hiType: hiTypesArr,
+              requester: item.requester?.name || item.hip?.name || "Unknown Requester",
+              purpose: item.purpose?.text || item.purpose?.code || type,
+              period: `${item.permission?.dateRange?.from ? new Date(item.permission.dateRange.from).toLocaleDateString() : 'N/A'} - ${item.permission?.dateRange?.to ? new Date(item.permission.dateRange.to).toLocaleDateString() : 'N/A'}`,
+              records: hiTypesArr.join(", ") || "All Health Records",
+              granted: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A",
+              status: String(item.status).toUpperCase() || "REQUESTED"
+            };
+          });
+
+          setConsents({
+            Pending: mapped.filter(c => c.status === "REQUESTED"),
+            Granted: mapped.filter(c => c.status === "GRANTED"),
+            Denied: mapped.filter(c => c.status === "DENIED"),
+            Expired: mapped.filter(c => ["EXPIRED", "REVOKED"].includes(c.status)),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load consents", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchConsents();
+  }, []);
+
+  const items = consents[activeFilter] || [];
 
   return (
     <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
@@ -24,7 +83,7 @@ export function ConsentTab() {
           {filters.map(f => {
             const { icon: Icon, color, bg } = filterMeta[f];
             const isActive = activeFilter === f;
-            const count = (MOCK_CONSENTS[f] || []).length;
+            const count = (consents[f] || []).length;
             return (
               <button key={f} onClick={() => setActiveFilter(f)} style={{
                 display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", borderRadius: "6px",
@@ -41,8 +100,15 @@ export function ConsentTab() {
         </div>
       </div>
       
-      <div style={{ padding: "24px" }}>
-        {items.length === 0 ? <ConsentEmptyState filter={activeFilter} filterMeta={filterMeta} /> : (
+      <div style={{ padding: "24px", minHeight: "300px" }}>
+        {loading ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "250px", color: "var(--text-muted)", gap: "12px" }}>
+            <Loader2 className="spinner" size={28} color="var(--primary)" />
+            <span style={{ fontSize: "14px", fontWeight: "500" }}>Fetching Consents...</span>
+          </div>
+        ) : items.length === 0 ? (
+          <ConsentEmptyState filter={activeFilter} filterMeta={filterMeta} />
+        ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {items.map(item => <ConsentCard key={item.id} item={item} filter={activeFilter} filterMeta={filterMeta} />)}
           </div>
