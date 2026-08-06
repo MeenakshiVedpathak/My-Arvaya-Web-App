@@ -109,21 +109,11 @@ export default function DoctorList() {
               <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px', padding: '4px' }}>
+            <div className="booking-doctor-grid">
               {displayedDocs.map(doc => (
                 <div 
                   key={doc.doctor_id || doc.id} 
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    padding: '18px',
-                    borderRadius: '16px',
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border)',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                    transition: 'all 0.2s',
-                  }}
+                  className="booking-doctor-card"
                   onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(46, 102, 110, 0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)'; e.currentTarget.style.transform = 'none'; }}
                 >

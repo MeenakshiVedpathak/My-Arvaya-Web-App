@@ -321,12 +321,12 @@ export default function AllHealthPackages() {
           
           {/* Top Breadcrumb & Back */}
           <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: '12px' }}>
-            <div className="flex items-center gap-2 text-muted" style={{ fontSize: '12px', fontWeight: '500' }}>
-              <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> 
+            <div className="app-breadcrumbs">
+              <Link to="/">Home</Link> 
               <ChevronRight size={12} /> 
-              <Link to="/labs" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Lab Tests</Link> 
+              <Link to="/labs">Lab Tests</Link> 
               <ChevronRight size={12} /> 
-              <span style={{ color: 'var(--text-main)', fontWeight: '600' }}>All Health Packages</span>
+              <span>All Health Packages</span>
             </div>
 
             <button 

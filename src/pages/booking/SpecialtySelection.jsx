@@ -84,28 +84,14 @@ export default function SpecialtySelection() {
               <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', padding: '4px' }}>
+            <div className="booking-specialty-container">
               {specialties.map((spec) => {
                 const isSelected = bookingSpecialty === spec;
                 return (
                   <div 
                     key={spec}
                     onClick={() => handleSelect(spec)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '12px 20px',
-                      borderRadius: '32px',
-                      cursor: 'pointer',
-                      background: isSelected ? 'var(--primary)' : 'var(--bg-surface)',
-                      border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
-                      color: isSelected ? '#fff' : 'var(--text-main)',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      boxShadow: isSelected ? '0 4px 12px rgba(46, 102, 110, 0.2)' : '0 2px 6px rgba(0, 0, 0, 0.02)',
-                      transition: 'all 0.2s',
-                    }}
+                    className={`booking-specialty-chip ${isSelected ? 'selected' : ''}`}
                     onMouseOver={e => { if(!isSelected) { e.currentTarget.style.background = '#F2F8F8'; e.currentTarget.style.borderColor = 'var(--primary)'; } }}
                     onMouseOut={e => { if(!isSelected) { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.borderColor = 'var(--border)'; } }}
                   >
@@ -119,7 +105,7 @@ export default function SpecialtySelection() {
         </div>
 
         {/* Pinned Bottom Action Bar */}
-        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingTop: '14px', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-app)', marginTop: '8px' }}>
+        <div className="booking-action-bar">
           <div>
             {bookingSpecialty ? (
               <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Selected: <strong style={{ color: 'var(--primary-dark)' }}>{bookingSpecialty}</strong></span>

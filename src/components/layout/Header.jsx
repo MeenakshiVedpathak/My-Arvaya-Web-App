@@ -450,7 +450,7 @@ export default function Header() {
           </Link>
 
           {/* Location Picker */}
-          <div className="flex-1 flex items-center">
+          <div className="flex-1 flex items-center header-location-wrapper">
             <div ref={locationPickerRef} style={{ position: 'relative', height: '44px' }}>
               <div
                 className="header-location-picker flex items-center gap-1"
@@ -574,7 +574,7 @@ export default function Header() {
 
                 {/* Profile Dropdown */}
                 {isProfileMenuOpen && (
-                  <div style={{ position: 'absolute', top: '56px', right: 0, width: '220px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
+                  <div className="header-profile-dropdown" style={{ position: 'absolute', top: '56px', right: 0, width: '220px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
                     <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', marginBottom: '8px' }}>
                       <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{displayName}</b>
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{userPhone || '+91 XXXXX XXXXX'}</span>
@@ -1332,8 +1332,12 @@ export default function Header() {
           }
         }
         @media (max-width: 520px) {
+          .header-location-wrapper,
           .header-location-picker {
             display: none !important;
+          }
+          .header-desktop-auth {
+            margin-left: auto !important;
           }
         }
         @media (max-width: 426px) {
@@ -1350,6 +1354,7 @@ export default function Header() {
           }
           .header-desktop-auth {
             gap: 4px !important;
+            margin-left: auto !important;
           }
           .header-user-text {
             display: none !important;
@@ -1392,6 +1397,7 @@ export default function Header() {
             flex-shrink: 0 !important;
             padding: 5px !important;
             border-radius: 8px !important;
+            margin-left: 0 !important;
           }
           .mobile-hamburger-btn svg {
             width: 20px !important;
@@ -1406,6 +1412,12 @@ export default function Header() {
             height: 32px !important;
             gap: 4px !important;
             justify-content: center !important;
+          }
+          .header-profile-dropdown {
+            right: -38px !important;
+            top: 50px !important;
+            max-width: calc(100vw - 16px) !important;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22) !important;
           }
         }
       `}</style>

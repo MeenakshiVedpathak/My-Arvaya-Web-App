@@ -554,20 +554,23 @@ export default function Rewards() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '14px 16px',
+                          padding: '12px 14px',
                           borderRadius: '12px',
                           background: 'var(--bg-app)',
                           border: '1px solid var(--border)',
                           transition: 'all 0.15s ease',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          gap: '10px',
+                          width: '100%',
+                          boxSizing: 'border-box'
                         }}
-                        className="hover:border-primary"
+                        className="hover:border-primary earn-task-card"
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 auto', minWidth: 0 }}>
                           {/* Circular Icon Container */}
                           <div style={{
-                            width: '42px',
-                            height: '42px',
+                            width: '38px',
+                            height: '38px',
                             borderRadius: '50%',
                             background: 'rgba(15, 77, 88, 0.1)',
                             color: '#0F4D58',
@@ -576,14 +579,14 @@ export default function Rewards() {
                             justifyContent: 'center',
                             flexShrink: 0
                           }}>
-                            <IconComp size={20} color="#0F4D58" />
+                            <IconComp size={18} color="#0F4D58" />
                           </div>
-                          <div>
-                            <b style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '2px' }}>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <b style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '2px', lineHeight: 1.25 }}>
                               {task.moduleName || task.title}
                             </b>
                             {task.expiry_days && (
-                              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>
+                              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: '500', display: 'block' }}>
                                 Valid for {task.expiry_days} days
                               </span>
                             )}
@@ -591,14 +594,15 @@ export default function Rewards() {
                         </div>
 
                         {/* Earn Rate Badge */}
-                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
-                          <span style={{
+                        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                          <span className="earn-task-badge" style={{
                             color: '#16A34A',
                             fontWeight: '800',
-                            fontSize: '13px',
+                            fontSize: '12px',
                             background: 'rgba(22, 163, 74, 0.1)',
-                            padding: '6px 12px',
+                            padding: '5px 10px',
                             borderRadius: '20px',
+                            whiteSpace: 'nowrap',
                             display: 'inline-block'
                           }}>
                             {task.rateText || `+1 Pt / ₹${numAmt || task.points_per_amount}`}
@@ -754,6 +758,49 @@ export default function Rewards() {
         @media (max-width: 868px) {
           .loyalty-grid {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .earn-task-card {
+            padding: 10px 12px !important;
+            gap: 8px !important;
+          }
+          .earn-task-badge {
+            font-size: 11px !important;
+            padding: 4px 8px !important;
+          }
+        }
+        @media (max-width: 360px) {
+          .earn-task-card {
+            padding: 8px 10px !important;
+            gap: 6px !important;
+          }
+          .earn-task-card b {
+            font-size: 12.5px !important;
+          }
+          .earn-task-card span {
+            font-size: 10.5px !important;
+          }
+          .earn-task-badge {
+            font-size: 10px !important;
+            padding: 3px 6px !important;
+          }
+        }
+        @media (max-width: 320px) {
+          .earn-task-card {
+            padding: 6px 8px !important;
+            gap: 5px !important;
+          }
+          .earn-task-card b {
+            font-size: 11.5px !important;
+          }
+          .earn-task-card span {
+            font-size: 9.5px !important;
+          }
+          .earn-task-badge {
+            font-size: 9.5px !important;
+            padding: 3px 5px !important;
+            letter-spacing: -0.2px !important;
           }
         }
       `}} />

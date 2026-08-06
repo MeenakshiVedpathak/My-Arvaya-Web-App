@@ -217,6 +217,50 @@ export default function PackageDetails() {
           box-shadow: 0 10px 30px rgba(18, 51, 58, 0.12);
         }
 
+        /* Responsive Breadcrumbs */
+        .pkg-breadcrumbs {
+          margin-bottom: 16px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.75);
+          line-height: 1.6;
+        }
+
+        .pkg-breadcrumb-item {
+          color: rgba(255, 255, 255, 0.85);
+          white-space: nowrap;
+          display: inline;
+          transition: color 0.2s;
+        }
+
+        .pkg-breadcrumb-item:hover {
+          color: #ffffff;
+        }
+
+        .pkg-breadcrumb-arrow {
+          display: inline-block;
+          vertical-align: -1px;
+          margin: 0 4px;
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .pkg-breadcrumb-current {
+          color: #ffffff;
+          font-weight: 700;
+          display: inline;
+          word-break: break-word;
+        }
+
+        @media (max-width: 426px) {
+          .pkg-breadcrumbs {
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+          }
+          .pkg-breadcrumb-arrow {
+            margin: 0 3px;
+          }
+        }
+
         .web-pkg-hero::before {
           content: '';
           position: absolute;
@@ -523,14 +567,14 @@ export default function PackageDetails() {
         <div className="container">
           
           {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 mb-4" style={{ fontSize: "13px", color: "rgba(255,255,255,0.75)" }}>
-            <Link to="/" style={{ color: "rgba(255,255,255,0.85)" }}>Home</Link>
-            <ChevronRight size={13} />
-            <Link to="/labs" style={{ color: "rgba(255,255,255,0.85)" }}>Lab Tests</Link>
-            <ChevronRight size={13} />
-            <Link to="/labs/all-packages" style={{ color: "rgba(255,255,255,0.85)" }}>Health Packages</Link>
-            <ChevronRight size={13} />
-            <span style={{ color: "#ffffff", fontWeight: "700" }}>{title}</span>
+          <div className="pkg-breadcrumbs">
+            <Link to="/" className="pkg-breadcrumb-item">Home</Link>
+            <ChevronRight size={12} className="pkg-breadcrumb-arrow" />
+            <Link to="/labs" className="pkg-breadcrumb-item">Lab Tests</Link>
+            <ChevronRight size={12} className="pkg-breadcrumb-arrow" />
+            <Link to="/labs/all-packages" className="pkg-breadcrumb-item">Health Packages</Link>
+            <ChevronRight size={12} className="pkg-breadcrumb-arrow" />
+            <span className="pkg-breadcrumb-current" title={title}>{title}</span>
           </div>
 
           <div className="web-pkg-hero-inner">
