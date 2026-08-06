@@ -28,16 +28,16 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
   if (date && slot && currentStep >= 5) breadcrumbParts.push({ label: `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${slot}`, bold: true, color: 'var(--primary)' });
 
   return (
-    <main className="page animate-fade-in-up" style={{ padding: '12px 20px 16px 20px', background: 'var(--bg-app)', minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div className="container" style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
+    <main className="page booking-page-layout animate-fade-in-up">
+      <div className="container booking-main-container">
         
         {/* Top Fixed Section: Stepper, Summary & Title */}
         <div style={{ flexShrink: 0, paddingBottom: '8px' }}>
           
           {/* Horizontal Progress Stepper */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', marginBottom: '14px', position: 'relative', padding: '0 12px' }}>
+          <div className="booking-stepper">
             {/* Connecting Line */}
-            <div style={{ position: 'absolute', top: '15px', left: '24px', right: '24px', height: '2px', background: 'var(--border)', zIndex: 0 }} />
+            <div className="booking-stepper-line" />
             
             {STEPS.map((step) => {
               const isCompleted = currentStep > step.id;
@@ -63,21 +63,16 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
                 <div 
                   key={step.id} 
                   onClick={() => handleStepClick(step)}
+                  className="booking-step-item"
                   style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    alignItems: 'center', 
-                    gap: '4px', 
-                    position: 'relative', 
-                    zIndex: 1, 
                     cursor: canClick ? 'pointer' : 'default',
                     opacity: (isCompleted || isCurrent) ? 1 : 0.45
                   }}
                 >
-                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: iconBg, border: iconBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', color: iconColor, transition: 'all 0.3s' }}>
+                  <div className="booking-step-icon" style={{ background: iconBg, border: iconBorder, color: iconColor }}>
                     {isCompleted ? <CheckCircle2 size={15} /> : <Icon size={14} />}
                   </div>
-                  <div style={{ fontSize: '11px', fontWeight: isCurrent ? '700' : '600', color: isCurrent ? 'var(--primary-dark)' : 'var(--text-muted)' }}>
+                  <div className="booking-step-title" style={{ fontWeight: isCurrent ? '700' : '600', color: isCurrent ? 'var(--primary-dark)' : 'var(--text-muted)' }}>
                     {step.title}
                   </div>
                 </div>
@@ -101,11 +96,11 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
 
           {/* Header Title & Subtitle */}
           <div style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+            <h1 className="booking-header-title">
               {title}
             </h1>
             {subtitle && (
-              <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
+              <p className="booking-header-subtitle">
                 {subtitle}
               </p>
             )}
@@ -113,7 +108,7 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
         </div>
 
         {/* Scrollable & Pinned Step Content Area */}
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="booking-content-area">
           {children}
         </div>
 
