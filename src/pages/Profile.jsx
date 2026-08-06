@@ -44,27 +44,27 @@ export default function Profile() {
   });
   
   const [profile, setProfile] = useState(() => ({
-    name: user?.name || user?.full_name || user?.fullName || "John Doe",
-    phone: user?.phone || user?.mobile_number || user?.mobile || "+91 9876543210",
-    email: user?.email || "john.doe@example.com",
-    dob: user?.date_of_birth || user?.dob || "1985-05-15",
+    name: user?.name || user?.full_name || user?.fullName || "",
+    phone: user?.phone || user?.mobile_number || user?.mobile || "",
+    email: (user?.email && user.email !== "john.doe@example.com") ? user.email : "",
+    dob: user?.date_of_birth || user?.dob || "",
     gender: formatGender(user?.gender),
     patientId: user?.patientId || user?.user_id || user?.id || `ARV-${Math.floor(1000 + Math.random() * 9000)}`,
     
     bloodGroup: user?.blood_group || user?.bloodGroup || "O+",
-    height: user?.height || "175",
-    weight: user?.weight || "72",
-    allergies: user?.allergies || "Penicillin, Peanuts",
-    chronicDiseases: user?.chronicDiseases || "None",
-    medications: user?.medications || "Vitamin D3",
+    height: (user?.height && String(user.height) !== "175") ? String(user.height) : "",
+    weight: (user?.weight && String(user.weight) !== "72") ? String(user.weight) : "",
+    allergies: user?.allergies || "",
+    chronicDiseases: user?.chronicDiseases || "",
+    medications: user?.medications || "",
     
-    insuranceProvider: user?.insuranceProvider || "HDFC Ergo General",
-    policyNumber: user?.policyNumber || "POL-98765432100",
-    validity: user?.validity || "2027-12-31",
+    insuranceProvider: user?.insuranceProvider || "",
+    policyNumber: user?.policyNumber || "",
+    validity: user?.validity || "",
     
-    emergencyName: user?.emergencyName || "Jane Doe",
-    emergencyRelation: user?.emergencyRelation || "Spouse",
-    emergencyPhone: user?.emergencyPhone || "+91 9876500000"
+    emergencyName: user?.emergencyName || "",
+    emergencyRelation: user?.emergencyRelation || "",
+    emergencyPhone: user?.emergencyPhone || ""
   }));
 
   const [editingMemberId, setEditingMemberId] = useState(null);
@@ -303,18 +303,25 @@ export default function Profile() {
           if (resolvedBlob) setUserDisplayImage(resolvedBlob);
         }
 
+        const rawEmail = patientData.email || user?.email || "";
+        const cleanEmail = (rawEmail && rawEmail !== "john.doe@example.com") ? rawEmail : (prev.email !== "john.doe@example.com" ? prev.email : "");
+        const rawHeight = parsedHeight ?? user?.height;
+        const cleanHeight = (rawHeight !== null && rawHeight !== undefined && String(rawHeight).trim() !== "" && String(rawHeight) !== "175") ? String(rawHeight) : (prev.height !== "175" ? prev.height : "");
+        const rawWeight = parsedWeight ?? user?.weight;
+        const cleanWeight = (rawWeight !== null && rawWeight !== undefined && String(rawWeight).trim() !== "" && String(rawWeight) !== "72") ? String(rawWeight) : (prev.weight !== "72" ? prev.weight : "");
+
         setProfile(prev => ({
           ...prev,
           ...patientData,
           name: fullName || prev.name,
           phone: patientData.mobile_number || patientData.phone || patientData.mobile || patientData.mobile_no || prev.phone,
-          email: patientData.email || prev.email,
+          email: cleanEmail,
           dob: patientData.date_of_birth || patientData.dob || prev.dob,
           gender: formatGender(patientData.gender || prev.gender),
           patientId: patientData.patientId || patientData.user_id || patientData.id || prev.patientId,
           bloodGroup: patientData.blood_group || patientData.bloodGroup || prev.bloodGroup,
-          height: (parsedHeight !== null && parsedHeight !== undefined && String(parsedHeight).trim() !== "") ? String(parsedHeight) : prev.height,
-          weight: (parsedWeight !== null && parsedWeight !== undefined && String(parsedWeight).trim() !== "") ? String(parsedWeight) : prev.weight,
+          height: cleanHeight,
+          weight: cleanWeight,
           profile_image: userImgRaw || prev.profile_image || ""
         }));
       }
@@ -607,7 +614,13 @@ export default function Profile() {
                 <div style={{ background: 'var(--bg-app)', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Height / Weight</div>
                   <div style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: '700', marginTop: '2px', whiteSpace: 'nowrap' }}>
-                    {profile.height ? `${parseFloat(profile.height)}cm` : '--'} / {profile.weight ? `${parseFloat(profile.weight)}kg` : '--'}
+                    {profile.height && profile.weight 
+                      ? `${parseFloat(profile.height)}cm / ${parseFloat(profile.weight)}kg`
+                      : profile.height 
+                        ? `${parseFloat(profile.height)}cm`
+                        : profile.weight 
+                          ? `${parseFloat(profile.weight)}kg`
+                          : 'NA'}
                   </div>
                 </div>
               </div>
@@ -670,7 +683,7 @@ export default function Profile() {
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-muted" style={{ fontSize: '13px', fontWeight: '600' }}>Email Address</label>
-                        <input name="email" value={profile.email} onChange={handleChange} readOnly={!isEditing} className="input-field" style={inputStyle} />
+                        <input name="email" value={profile.email || ""} onChange={handleChange} readOnly={!isEditing} className="input-field" style={inputStyle} placeholder="Enter email address" />
                       </div>
                     </div>
 
