@@ -149,7 +149,7 @@ export default function AmbulancePage() {
                   {activeRequests.map(req => {
                     const sc = getStatusColor(req.status);
                     return (
-                      <div key={req.id} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "28px", boxShadow: "var(--shadow-sm)", borderLeft: "4px solid #dc2626" }}>
+                      <div key={req.id} className="ambulance-active-card" style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "28px", boxShadow: "var(--shadow-sm)", borderLeft: "4px solid #dc2626" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
                           <div>
                             <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--text-muted)", fontFamily: "monospace", marginBottom: "4px" }}>{req.id}</div>
@@ -162,11 +162,12 @@ export default function AmbulancePage() {
 
                         {/* Status progress */}
                         {getStatusIndex(req.status) !== -1 ? (
-                          <div style={{ display: "flex", width: "100%", paddingBottom: "32px", marginBottom: "24px" }}>
+                          <div className="ambulance-stepper-track" style={{ display: "flex", width: "100%", padding: "0 10px 36px 10px", marginBottom: "24px" }}>
                             {STATUS_FLOW.map((s, i) => {
                               const idx = getStatusIndex(req.status);
                               const done = i <= idx;
                               const lineDone = i < idx;
+                              const isFirst = i === 0;
                               const isLast = i === STATUS_FLOW.length - 1;
                               const isDelayed = String(req.status).toLowerCase().includes("delay");
                               const stepLabel = (isDelayed && i === 3) ? "Delayed" : s;
@@ -181,17 +182,17 @@ export default function AmbulancePage() {
                               if (i === 4) stepTime = req.completedAt;
 
                               return (
-                                <div key={s} style={{ flex: isLast ? 0 : 1, position: "relative" }}>
+                                <div key={s} className={`ambulance-step-item ${isFirst ? 'is-first' : ''} ${isLast ? 'is-last' : ''}`} style={{ flex: isLast ? 0 : 1, position: "relative" }}>
                                   {!isLast && (
-                                    <div style={{ position: "absolute", top: "13px", left: "28px", right: "0", height: "3px", background: lineDone ? "var(--primary)" : "var(--border)", transition: "all 0.3s" }} />
+                                    <div className="ambulance-step-line" style={{ position: "absolute", top: "13px", left: "28px", right: "0", height: "3px", background: lineDone ? "var(--primary)" : "var(--border)", transition: "all 0.3s" }} />
                                   )}
-                                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: stepColor, border: done ? "none" : "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", fontSize: "11px", fontWeight: "700", color: textColor, position: "relative", zIndex: 1 }}>
+                                  <div className="ambulance-step-circle" style={{ width: "28px", height: "28px", borderRadius: "50%", background: stepColor, border: done ? "none" : "1.5px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", fontSize: "11px", fontWeight: "700", color: textColor, position: "relative", zIndex: 1 }}>
                                     {done ? <CheckCircle2 size={14} /> : i + 1}
                                   </div>
-                                  <div style={{ position: "absolute", top: "36px", left: "14px", transform: "translateX(-50%)", width: "100px", textAlign: "center", fontSize: "10px", fontWeight: "600", color: (isDelayed && i === 3 && done) ? "#ea580c" : "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                    {stepLabel}
+                                  <div className={`ambulance-step-label-container ${isFirst ? 'is-first' : ''} ${isLast ? 'is-last' : ''}`} style={{ position: "absolute", top: "36px", left: isFirst ? "-4px" : isLast ? "auto" : "14px", right: isLast ? "-4px" : "auto", transform: isFirst || isLast ? "none" : "translateX(-50%)", width: isFirst || isLast ? "70px" : "80px", textAlign: isFirst ? "left" : isLast ? "right" : "center", fontSize: "10px", fontWeight: "600", color: (isDelayed && i === 3 && done) ? "#ea580c" : "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                                    <span className="ambulance-step-label-text">{stepLabel}</span>
                                     {stepTime && (
-                                      <div style={{ fontSize: "9px", color: "var(--text-muted)", opacity: 0.7, marginTop: "2px", textTransform: "none", letterSpacing: "normal" }}>
+                                      <div className="ambulance-step-time-text" style={{ fontSize: "9px", color: "var(--text-muted)", opacity: 0.7, marginTop: "2px", textTransform: "none", letterSpacing: "normal" }}>
                                         {formatTimeShort(stepTime)}
                                       </div>
                                     )}
@@ -276,11 +277,11 @@ export default function AmbulancePage() {
                 <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-main)", marginBottom: "20px", fontFamily: "var(--font-display)" }}>Request History</h2>
                 <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
                   <div className="table-responsive-wrapper">
-                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "680px" }}>
                       <thead>
                         <tr style={{ background: "var(--bg-app)", borderBottom: "1px solid var(--border)" }}>
                           {["Request ID", "Patient", "Emergency", "Address", "Date", "Status"].map(h => (
-                            <th key={h} style={{ textAlign: "left", padding: "14px 16px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>{h}</th>
+                            <th key={h} style={{ textAlign: "left", padding: "14px 16px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", minWidth: h === "Date" ? "170px" : h === "Address" ? "180px" : "auto", whiteSpace: h === "Date" ? "nowrap" : "normal" }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -291,7 +292,7 @@ export default function AmbulancePage() {
                             <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-main)" }}>{req.patientName}</td>
                             <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-main)" }}>{getEmergencyLabel(req.emergencyType)}</td>
                             <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{req.pickupAddress}</td>
-                            <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)" }}>{formatTime(req.createdAt)}</td>
+                            <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)", minWidth: "170px", whiteSpace: "nowrap" }}>{formatTime(req.createdAt)}</td>
                             <td style={{ padding: "14px 16px" }}>
                               <span style={{ background: "var(--success-bg)", color: "var(--success)", padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>Completed</span>
                             </td>
@@ -303,6 +304,190 @@ export default function AmbulancePage() {
                 </div>
               </section>
             )}
+
+            {/* Responsive styles for Ambulance page */}
+            <style>{`
+              .ambulance-active-card {
+                padding: 28px;
+              }
+              .ambulance-stepper-track {
+                display: flex;
+                width: 100%;
+                padding: 0 10px 36px 10px;
+                margin-bottom: 24px;
+              }
+              .ambulance-step-item {
+                flex: 1;
+                position: relative;
+              }
+              .ambulance-step-item.is-last {
+                flex: 0;
+              }
+              .ambulance-step-line {
+                position: absolute;
+                top: 13px;
+                left: 28px;
+                right: 0;
+                height: 3px;
+                transition: all 0.3s;
+              }
+              .ambulance-step-circle {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+                font-size: 11px;
+                font-weight: 700;
+                position: relative;
+                z-index: 1;
+              }
+              .ambulance-step-label-container {
+                position: absolute;
+                top: 34px;
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+              }
+
+              @media (max-width: 480px) {
+                .ambulance-active-card {
+                  padding: 16px 12px !important;
+                }
+                .ambulance-stepper-track {
+                  padding: 0 14px 46px 14px !important;
+                  margin-bottom: 16px !important;
+                }
+                .ambulance-step-circle {
+                  width: 22px !important;
+                  height: 22px !important;
+                  font-size: 9px !important;
+                }
+                .ambulance-step-line {
+                  top: 10px !important;
+                  left: 22px !important;
+                }
+                .ambulance-step-label-container {
+                  top: 26px !important;
+                  font-size: 8px !important;
+                  letter-spacing: -0.01em !important;
+                  line-height: 1.15 !important;
+                }
+                .ambulance-step-label-container:not(.is-first):not(.is-last) {
+                  left: 11px !important;
+                  width: 48px !important;
+                  transform: translateX(-50%) !important;
+                  text-align: center !important;
+                }
+                .ambulance-step-label-container.is-first {
+                  left: -4px !important;
+                  right: auto !important;
+                  transform: none !important;
+                  text-align: left !important;
+                  width: 48px !important;
+                }
+                .ambulance-step-label-container.is-last {
+                  left: auto !important;
+                  right: -4px !important;
+                  transform: none !important;
+                  text-align: right !important;
+                  width: 48px !important;
+                }
+                .ambulance-step-time-text {
+                  font-size: 8px !important;
+                  margin-top: 1px !important;
+                }
+              }
+
+              @media (max-width: 376px) {
+                .ambulance-active-card {
+                  padding: 14px 8px !important;
+                }
+                .ambulance-stepper-track {
+                  padding: 0 12px 46px 12px !important;
+                }
+                .ambulance-step-circle {
+                  width: 18px !important;
+                  height: 18px !important;
+                  font-size: 8px !important;
+                }
+                .ambulance-step-circle svg {
+                  width: 10px !important;
+                  height: 10px !important;
+                }
+                .ambulance-step-line {
+                  top: 8px !important;
+                  left: 18px !important;
+                }
+                .ambulance-step-label-container {
+                  top: 22px !important;
+                  font-size: 7.5px !important;
+                  letter-spacing: -0.02em !important;
+                  line-height: 1.1 !important;
+                }
+                .ambulance-step-label-container:not(.is-first):not(.is-last) {
+                  left: 9px !important;
+                  width: 40px !important;
+                }
+                .ambulance-step-label-container.is-first {
+                  left: -3px !important;
+                  width: 40px !important;
+                }
+                .ambulance-step-label-container.is-last {
+                  right: -3px !important;
+                  width: 40px !important;
+                }
+                .ambulance-step-time-text {
+                  font-size: 7px !important;
+                }
+              }
+
+              @media (max-width: 320px) {
+                .ambulance-active-card {
+                  padding: 10px 6px !important;
+                }
+                .ambulance-stepper-track {
+                  padding: 0 10px 42px 10px !important;
+                }
+                .ambulance-step-circle {
+                  width: 16px !important;
+                  height: 16px !important;
+                  font-size: 7px !important;
+                }
+                .ambulance-step-circle svg {
+                  width: 9px !important;
+                  height: 9px !important;
+                }
+                .ambulance-step-line {
+                  top: 7px !important;
+                  left: 16px !important;
+                }
+                .ambulance-step-label-container {
+                  top: 19px !important;
+                  font-size: 6.5px !important;
+                  letter-spacing: -0.03em !important;
+                  line-height: 1.05 !important;
+                }
+                .ambulance-step-label-container:not(.is-first):not(.is-last) {
+                  left: 8px !important;
+                  width: 34px !important;
+                }
+                .ambulance-step-label-container.is-first {
+                  left: -2px !important;
+                  width: 34px !important;
+                }
+                .ambulance-step-label-container.is-last {
+                  right: -2px !important;
+                  width: 34px !important;
+                }
+                .ambulance-step-time-text {
+                  font-size: 6px !important;
+                }
+              }
+            `}</style>
           </>
         )}
       </div>

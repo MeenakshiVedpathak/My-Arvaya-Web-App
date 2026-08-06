@@ -25,72 +25,94 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getWalletAmount, getAppointmentHistory, getPlans } from "../services/dataService";
 
+function formatPlanTitle(plan) {
+  if (!plan) return "Reward Offer";
+  const name = plan.plan_name || plan.name || plan.title || "";
+  const code = plan.plan_code || plan.code || "";
+  
+  if (name && name !== code) {
+    if (name === "WELCOME_BONUS") return "Welcome Registration Bonus";
+    if (name === "REFERRAL_REFERRED") return "Referral Bonus (New User)";
+    if (name === "REFERRAL_REFERRER") return "Referral Bonus (Referrer)";
+    return name;
+  }
+  
+  if (code === "OFFLINE_CASHBACK") return "Offline Payment Cashback";
+  if (code === "REFERRAL_REFERRED") return "Referral Bonus (New User)";
+  if (code === "REFERRAL_REFERRER") return "Referral Bonus (Referrer)";
+  if (code === "REGISTRATION_BONUS" || code === "WELCOME_BONUS") return "Welcome Registration Bonus";
+  
+  const raw = name || code || "Reward Offer";
+  return raw
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatPlanSubtitle(plan) {
+  if (!plan) return "Exclusive healthcare reward offer";
+  if (plan.subtitle || plan.description || plan.details) {
+    return plan.subtitle || plan.description || plan.details;
+  }
+  const val = parseFloat(plan.reward_value || plan.points || plan.reward_points || 0);
+  const valStr = isNaN(val) ? "0" : (val % 1 === 0 ? val.toFixed(0) : val.toString());
+  
+  if (plan.reward_type === "percentage" || plan.reward_type === "percent") {
+    const cap = plan.max_reward_cap ? ` (Up to ₹${plan.max_reward_cap})` : "";
+    return `${valStr}% Cashback${cap} on eligible bookings`;
+  }
+  
+  return `Flat ₹${valStr} reward cashback`;
+}
+
 const defaultOffers = [
   {
-    id: "off-1",
-    title: "Flat ₹100 off",
-    subtitle: "On your first appointment booking",
-    points: 120,
-    badge: "2d left",
+    id: "off-4",
+    title: "Offline Payment Cashback",
+    subtitle: "Flat ₹50 reward cashback",
+    points: 50,
+    validityDays: 30,
+    badge: "30d left",
     badgeType: "timer",
     category: "Consultation",
     image: "/reward_doctor.png",
-    code: "ARVAYA100"
-  },
-  {
-    id: "off-2",
-    title: "Free Consultation",
-    subtitle: "Redeem for any specialist visit",
-    points: 250,
-    badge: "12d left",
-    badgeType: "timer",
-    category: "Consultation",
-    image: "/reward_lab.png",
-    code: "FREECONSULT"
+    code: "OFFLINE_CASHBACK"
   },
   {
     id: "off-3",
-    title: "20% Off Medicines",
-    subtitle: "Valid on pharmacy orders above ₹499",
-    points: 180,
-    badge: "47k used",
-    badgeType: "users",
-    category: "Medicines",
-    image: "/reward_pharmacy.png",
-    code: "MEDS20OFF"
-  },
-  {
-    id: "off-4",
-    title: "Full Body Checkup",
-    subtitle: "Includes lipid profile & HbA1c test",
-    points: 320,
-    badge: "14k used",
-    badgeType: "users",
-    category: "Lab Tests",
-    image: "/reward_wellness.png",
-    code: "CHECKUP320"
-  },
-  {
-    id: "off-5",
-    title: "Flat ₹200 Off Dental",
-    subtitle: "On dental cleanings & consultations",
-    points: 150,
-    badge: "5d left",
-    badgeType: "timer",
-    category: "Consultation",
-    image: "/banner_appointments.png",
-    code: "DENTAL200"
-  },
-  {
-    id: "off-6",
-    title: "Free Eye Screening",
-    subtitle: "Complete optical & vision assessment",
-    points: 90,
-    badge: "8d left",
+    title: "Referral Bonus (New User)",
+    subtitle: "Flat ₹20 referral reward",
+    points: 20,
+    validityDays: 60,
+    badge: "60d left",
     badgeType: "timer",
     category: "Wellness",
-    image: "/banner_healthcare_1.png",
-    code: "EYECARE90"
+    image: "/reward_wellness.png",
+    code: "REFERRAL_REFERRED"
+  },
+  {
+    id: "off-2",
+    title: "Referral Bonus (Referrer)",
+    subtitle: "Flat ₹20 referral reward",
+    points: 20,
+    validityDays: 45,
+    badge: "45d left",
+    badgeType: "timer",
+    category: "Wellness",
+    image: "/reward_lab.png",
+    code: "REFERRAL_REFERRER"
+  },
+  {
+    id: "off-1",
+    title: "Welcome Registration Bonus",
+    subtitle: "Flat ₹100 welcome bonus",
+    points: 100,
+    validityDays: 30,
+    badge: "30d left",
+    badgeType: "timer",
+    category: "Wellness",
+    image: "/reward_pharmacy.png",
+    code: "REGISTRATION_BONUS"
   }
 ];
 
@@ -273,52 +295,63 @@ export default function Wallet() {
           if (Array.isArray(plansRes)) {
             rawPlanList = plansRes;
           } else if (typeof plansRes === 'object' && plansRes !== null) {
-            rawPlanList = plansRes.plans || plansRes.data || plansRes.result || plansRes.list || [];
+            rawPlanList = plansRes.data || plansRes.plans || plansRes.result || plansRes.list || [];
           }
 
           if (Array.isArray(rawPlanList) && rawPlanList.length > 0) {
             const defaultImages = [
               "/reward_doctor.png",
+              "/reward_wellness.png",
               "/reward_lab.png",
               "/reward_pharmacy.png",
-              "/reward_wellness.png",
               "/banner_appointments.png",
               "/banner_healthcare_1.png"
             ];
 
-            const formattedOffers = rawPlanList.map((p, idx) => {
-              const title = p.title || p.name || p.plan_name || p.package_name || p.reward_name || `Reward Offer #${idx + 1}`;
-              const subtitle = p.subtitle || p.description || p.details || p.short_desc || p.summary || "Exclusive healthcare reward offer";
-              
-              let pts = 100;
-              if (p.points !== undefined && p.points !== null) {
-                pts = parseInt(p.points) || 100;
-              } else if (p.reward_points) {
-                pts = parseInt(p.reward_points) || 100;
-              } else if (p.amount || p.price) {
-                pts = Math.round(parseFloat(p.amount || p.price) || 100);
-              }
+            const activePlans = rawPlanList.filter(p => p.is_active === undefined || p.is_active === null || p.is_active === 1 || p.is_active === "1");
+            const plansToMap = activePlans.length > 0 ? activePlans : rawPlanList;
 
-              const category = p.category || p.type || p.plan_type || (idx % 2 === 0 ? "Consultation" : "Lab Tests");
-              const badge = p.badge || p.validity || (p.duration ? `${p.duration}d left` : `${((idx % 5) + 2) * 3}d left`);
-              const badgeType = p.badgeType || (idx % 2 === 0 ? "timer" : "users");
+            const formattedOffers = plansToMap.map((p, idx) => {
+              const title = formatPlanTitle(p);
+              const subtitle = formatPlanSubtitle(p);
+              
+              const val = parseFloat(p.reward_value || p.points || p.reward_points || p.amount || 100);
+              const pts = isNaN(val) ? 100 : Math.round(val);
+              
+              const validityDays = p.validity_days !== undefined && p.validity_days !== null ? p.validity_days : 30;
+              const badge = `${validityDays}d left`;
+              const badgeType = "timer";
+              
+              let category = "Consultation";
+              const pCode = (p.plan_code || p.plan_name || "").toUpperCase();
+              if (pCode.includes("REFERRAL")) category = "Wellness";
+              else if (pCode.includes("REGISTRATION") || pCode.includes("WELCOME")) category = "Wellness";
+              else if (pCode.includes("OFFLINE")) category = "Consultation";
+
               const image = p.image || p.img || p.banner || defaultImages[idx % defaultImages.length];
-              const code = p.code || p.coupon_code || p.voucher_code || p.plan_code || `ARVAYA${pts}`;
+              const code = p.plan_code || p.code || p.coupon_code || `ARVAYA${pts}`;
 
               return {
                 id: p.id || p.plan_id || `plan-${idx + 1}`,
                 title,
                 subtitle,
                 points: pts,
+                validityDays,
+                rewardValue: p.reward_value || pts,
+                rewardType: p.reward_type || "flat",
+                maxRewardCap: p.max_reward_cap,
                 badge,
                 badgeType,
                 category,
                 image,
-                code
+                code,
+                raw: p
               };
             });
 
-            setOffers(formattedOffers);
+            if (formattedOffers.length > 0) {
+              setOffers(formattedOffers);
+            }
           }
         }
       } catch (err) {
@@ -707,36 +740,24 @@ export default function Wallet() {
                         </div>
                       )}
                     </div>
-
                     {/* White Content Area Background */}
                     <div style={{ 
                       background: '#FFFFFF', // Pure White Content Background
-                      padding: '16px 14px', 
+                      padding: '14px 12px', 
                       display: 'flex', 
-                      flexDirection: 'column', 
+                      alignItems: 'center',
                       flex: 1 
                     }}>
                       <b style={{
-                        fontSize: '15px',
+                        fontSize: '14px',
                         fontWeight: '800',
                         color: 'var(--text-main)', // Dark charcoal text
                         display: 'block',
-                        marginBottom: '6px',
-                        lineHeight: 1.25,
+                        lineHeight: 1.3,
                         letterSpacing: '-0.2px'
                       }}>
                         {offer.title}
                       </b>
-
-                      <p style={{
-                        fontSize: '12px',
-                        color: 'var(--text-muted)', // Muted text
-                        margin: 0,
-                        lineHeight: 1.4,
-                        fontWeight: '400'
-                      }}>
-                        {offer.subtitle}
-                      </p>
                     </div>
 
                   </div>
@@ -812,11 +833,35 @@ export default function Wallet() {
                 <Gift size={32} />
               </div>
               <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
-                Offer Unlocked!
+                {activeModal.title}
               </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                {activeModal.title} – {activeModal.subtitle}
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                {activeModal.subtitle}
               </p>
+
+              {/* Validity & Reward Summary Pill */}
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+                background: '#F0FDF4',
+                border: '1px solid #DCFCE7',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                color: '#166534',
+                fontWeight: '600'
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Clock size={13} color="#166534" />
+                  {activeModal.validityDays ? `${activeModal.validityDays} Days Validity` : "30 Days Validity"}
+                </span>
+                <span>•</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Sparkles size={13} color="#166534" />
+                  +{activeModal.points} Points
+                </span>
+              </div>
             </div>
 
             {/* Voucher Box */}
@@ -829,10 +874,10 @@ export default function Wallet() {
               marginBottom: '20px'
             }}>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.5px' }}>
-                YOUR VOUCHER CODE
+                PLAN CODE / VOUCHER
               </span>
               <div style={{
-                fontSize: '24px',
+                fontSize: '22px',
                 fontWeight: '900',
                 color: 'var(--primary)',
                 letterSpacing: '2px',
@@ -871,7 +916,7 @@ export default function Wallet() {
               borderRadius: '10px',
               marginBottom: '20px'
             }}>
-              💡 Apply this voucher code during appointment review or checkout to instantly redeem your reward.
+              💡 Valid for {activeModal.validityDays || 30} days from issue date. Apply voucher code <strong>{activeModal.code}</strong> during checkout to claim your reward.
             </div>
 
             <button

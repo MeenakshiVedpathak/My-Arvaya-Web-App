@@ -153,11 +153,11 @@ export default function ScheduleSelection() {
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
         
         {/* Calendar & Time Slot area */}
-        <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start', padding: '4px', overflow: 'hidden' }}>
+        <div className="booking-schedule-grid">
           
           {/* Calendar Area - Full Display on Screen */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 10px 0' }}>Select a Date</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 10px 0', alignSelf: 'flex-start' }}>Select a Date</h3>
             {(() => {
               const tomorrow = new Date();
               tomorrow.setDate(tomorrow.getDate() + 1);
@@ -269,7 +269,7 @@ export default function ScheduleSelection() {
         </div>
 
         {/* Pinned Bottom Action Bar */}
-        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingTop: '14px', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-app)', marginTop: '8px' }}>
+        <div className="booking-action-bar">
           <div>
             {slot ? (
               <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Selected Slot: <strong style={{ color: 'var(--primary-dark)' }}>{slot}</strong> on <strong>{date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>

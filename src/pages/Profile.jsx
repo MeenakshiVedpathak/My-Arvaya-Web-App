@@ -540,10 +540,10 @@ export default function Profile() {
           
           {/* Left Sticky Profile Card */}
           <aside className="profile-sidebar" style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="card-elevated" style={{ padding: '32px 24px', textAlign: 'center', borderRadius: '16px' }}>
+            <div className="card-elevated profile-header-card" style={{ padding: '32px 24px', textAlign: 'center', borderRadius: '16px' }}>
               <div style={{ position: 'relative', display: 'inline-block', marginBottom: '16px' }}>
                 <div 
-                  className="animate-scale-in" 
+                  className="animate-scale-in profile-avatar-circle" 
                   style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: '700', boxShadow: '0 8px 24px rgba(46,102,110,0.2)', margin: '0 auto', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}
                   onClick={() => userImageInputRef.current?.click()}
                   title="Click to upload profile photo"
@@ -562,7 +562,7 @@ export default function Profile() {
                 </div>
                 <button 
                   onClick={() => userImageInputRef.current?.click()}
-                  className="hover-glow" 
+                  className="hover-glow profile-camera-btn" 
                   style={{ position: 'absolute', bottom: '0', right: '0', width: '36px', height: '36px', borderRadius: '50%', background: 'white', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 2 }} 
                   title="Upload Profile Image"
                 >
@@ -576,24 +576,39 @@ export default function Profile() {
                   style={{ display: 'none' }} 
                 />
               </div>
-              <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px' }}>{profile.name}</h2>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                <span className="badge badge-success" style={{ padding: '6px 12px', fontSize: '13px' }}><Shield size={14} /> KYC Verified</span>
-              </div>
-              <div style={{ background: 'var(--bg-app)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Patient ID</div>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', marginTop: '2px', fontFamily: 'monospace' }}>{profile.patientId}</div>
+              <h2 className="profile-patient-name" style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '6px' }}>{profile.name}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                <span className="badge badge-success profile-kyc-badge" style={{ padding: '4px 10px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Shield size={13} /> KYC Verified
+                </span>
+                <span className="profile-patient-id-badge" style={{
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  color: 'var(--primary-dark, #0F4D58)',
+                  background: 'var(--primary-light, #E4EEEF)',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  fontFamily: 'monospace',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  border: '1px solid rgba(15, 77, 88, 0.15)'
+                }}>
+                  Patient ID: {profile.patientId}
+                </span>
               </div>
 
               {/* Quick Stats Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '24px' }}>
-                <div style={{ background: 'var(--primary-light)', padding: '12px', borderRadius: '12px', textAlign: 'center' }}>
+              <div className="profile-quick-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px' }}>
+                <div style={{ background: 'var(--primary-light)', padding: '10px 8px', borderRadius: '12px', textAlign: 'center' }}>
                   <div style={{ fontSize: '11px', color: 'var(--primary-dark)', fontWeight: '600' }}>Blood Group</div>
-                  <div style={{ fontSize: '16px', color: 'var(--primary-dark)', fontWeight: '800', marginTop: '2px' }}>{profile.bloodGroup}</div>
+                  <div style={{ fontSize: '15px', color: 'var(--primary-dark)', fontWeight: '800', marginTop: '2px' }}>{profile.bloodGroup || 'A+'}</div>
                 </div>
-                <div style={{ background: 'var(--bg-app)', padding: '12px', borderRadius: '12px', textAlign: 'center', border: '1px solid var(--border)' }}>
+                <div style={{ background: 'var(--bg-app)', padding: '10px 8px', borderRadius: '12px', textAlign: 'center', border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600' }}>Height / Weight</div>
-                  <div style={{ fontSize: '14px', color: 'var(--text-main)', fontWeight: '700', marginTop: '2px' }}>{profile.height}cm / {profile.weight}kg</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: '700', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                    {profile.height ? `${parseFloat(profile.height)}cm` : '--'} / {profile.weight ? `${parseFloat(profile.weight)}kg` : '--'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1053,6 +1068,39 @@ export default function Profile() {
             font-size: 13px !important;
             gap: 6px !important;
           }
+          .profile-header-card {
+            padding: 20px 16px !important;
+            border-radius: 14px !important;
+          }
+          .profile-avatar-circle {
+            width: 76px !important;
+            height: 76px !important;
+            font-size: 26px !important;
+          }
+          .profile-camera-btn {
+            width: 28px !important;
+            height: 28px !important;
+          }
+          .profile-camera-btn svg {
+            width: 13px !important;
+            height: 13px !important;
+          }
+          .profile-patient-name {
+            font-size: 18px !important;
+            margin-bottom: 6px !important;
+          }
+          .profile-kyc-badge {
+            padding: 4px 10px !important;
+            font-size: 11.5px !important;
+          }
+          .profile-patient-id-box {
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+          }
+          .profile-quick-stats-grid {
+            gap: 8px !important;
+            margin-top: 14px !important;
+          }
         }
         @media (max-width: 375px) {
           .profile-tabs-bar {
@@ -1070,6 +1118,104 @@ export default function Profile() {
             width: 13px !important;
             height: 13px !important;
             flex-shrink: 0 !important;
+          }
+        }
+        @media (max-width: 360px) {
+          .profile-header-card {
+            padding: 14px 10px !important;
+            border-radius: 12px !important;
+          }
+          .profile-avatar-circle {
+            width: 60px !important;
+            height: 60px !important;
+            font-size: 22px !important;
+          }
+          .profile-camera-btn {
+            width: 24px !important;
+            height: 24px !important;
+          }
+          .profile-camera-btn svg {
+            width: 11px !important;
+            height: 11px !important;
+          }
+          .profile-patient-name {
+            font-size: 16px !important;
+            margin-bottom: 4px !important;
+          }
+          .profile-kyc-badge {
+            padding: 3px 8px !important;
+            font-size: 10.5px !important;
+          }
+          .profile-patient-id-box {
+            padding: 6px 8px !important;
+          }
+          .profile-patient-id-box > div:first-child {
+            font-size: 9.5px !important;
+          }
+          .profile-patient-id-box > div:last-child {
+            font-size: 13px !important;
+          }
+          .profile-quick-stats-grid {
+            gap: 6px !important;
+            margin-top: 10px !important;
+          }
+          .profile-quick-stats-grid > div {
+            padding: 8px 6px !important;
+          }
+          .profile-quick-stats-grid > div > div:first-child {
+            font-size: 10px !important;
+          }
+          .profile-quick-stats-grid > div > div:last-child {
+            font-size: 12.5px !important;
+          }
+        }
+        @media (max-width: 320px) {
+          .profile-header-card {
+            padding: 12px 8px !important;
+            border-radius: 12px !important;
+          }
+          .profile-avatar-circle {
+            width: 52px !important;
+            height: 52px !important;
+            font-size: 18px !important;
+          }
+          .profile-camera-btn {
+            width: 22px !important;
+            height: 22px !important;
+          }
+          .profile-camera-btn svg {
+            width: 10px !important;
+            height: 10px !important;
+          }
+          .profile-patient-name {
+            font-size: 14.5px !important;
+            margin-bottom: 3px !important;
+          }
+          .profile-kyc-badge {
+            padding: 2px 6px !important;
+            font-size: 10px !important;
+          }
+          .profile-patient-id-box {
+            padding: 5px 6px !important;
+          }
+          .profile-patient-id-box > div:first-child {
+            font-size: 9px !important;
+          }
+          .profile-patient-id-box > div:last-child {
+            font-size: 12px !important;
+          }
+          .profile-quick-stats-grid {
+            gap: 5px !important;
+            margin-top: 8px !important;
+          }
+          .profile-quick-stats-grid > div {
+            padding: 6px 4px !important;
+          }
+          .profile-quick-stats-grid > div > div:first-child {
+            font-size: 9px !important;
+          }
+          .profile-quick-stats-grid > div > div:last-child {
+            font-size: 11px !important;
           }
         }
       `}} />

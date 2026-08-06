@@ -36,7 +36,7 @@ export default function VisitTypeSelection() {
         
         {/* Scrollable Content */}
         <div className="styled-scrollbar" style={{ flex: '0 1 auto', minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px', marginBottom: '16px', padding: '4px' }}>
+          <div className="booking-visittype-grid">
             
             {/* Option 1: Initial */}
             <div 
@@ -100,7 +100,7 @@ export default function VisitTypeSelection() {
         </div>
 
         {/* Pinned Bottom Action Bar */}
-        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingTop: '14px', paddingBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-app)', marginTop: '8px' }}>
+        <div className="booking-action-bar">
           <div>
             {bookingVisitType ? (
               <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Selected: <strong style={{ color: 'var(--primary-dark)' }}>{bookingVisitType}</strong></span>

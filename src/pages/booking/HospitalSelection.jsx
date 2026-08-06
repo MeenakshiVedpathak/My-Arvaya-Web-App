@@ -65,7 +65,7 @@ export default function HospitalSelection() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '14px', padding: '4px' }}>
+            <div className="booking-hospital-grid">
               {hospitals.map((hospital) => {
                 const isSelected = bookingHospital?.name === hospital.name;
                 const addressText = hospital.address || hospital.address_line_1 || hospital.address1 || hospital.city || "Kolhapur";
@@ -150,7 +150,7 @@ export default function HospitalSelection() {
         </div>
 
         {/* Pinned Action Bar */}
-        <div style={{ flexShrink: 0, borderTop: '1px solid var(--border)', paddingTop: '12px', paddingBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-app)', marginTop: '16px' }}>
+        <div className="booking-action-bar">
           <div>
             {bookingHospital ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-main)' }}>

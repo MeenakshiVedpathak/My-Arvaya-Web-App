@@ -129,7 +129,7 @@ export default function Notifications() {
           </div>
           <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: '650', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Notifications {unreadCount > 0 && <span style={{ background: 'var(--danger)', color: 'white', fontSize: '12px', padding: '2px 8px', borderRadius: '99px', verticalAlign: 'middle' }}>{unreadCount} New</span>}
               </h1>
               <p className="text-muted mt-1" style={{ fontSize: '14px' }}>Stay updated with your appointments and health alerts.</p>
@@ -202,24 +202,35 @@ export default function Notifications() {
               </div>
             ) : (
               filteredNotifications.map(notification => (
-                <div key={notification.id} className="card-elevated hover-glow" style={{ padding: '20px', borderRadius: '12px', display: 'flex', gap: '16px', background: notification.read ? 'var(--bg-surface)' : 'white', borderLeft: notification.read ? '1px solid var(--border)' : `4px solid ${notification.color}` }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: `${notification.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div key={notification.id} className="card-elevated hover-glow notification-item-card" style={{ padding: '20px', borderRadius: '12px', display: 'flex', gap: '16px', background: notification.read ? 'var(--bg-surface)' : 'white', borderLeft: notification.read ? '1px solid var(--border)' : `4px solid ${notification.color}` }}>
+                  <div className="notification-icon-box" style={{ width: '40px', height: '40px', borderRadius: '50%', background: `${notification.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <notification.icon size={20} color={notification.color} />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: notification.read ? '600' : '700', margin: 0, color: 'var(--text-main)' }}>{notification.title}</h3>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{notification.time}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Header Row: Title on left, Timestamp + Delete Icon on right (>426px) */}
+                    <div className="notification-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', gap: '8px' }}>
+                      <h3 className="notification-title" style={{ fontSize: '15px', fontWeight: notification.read ? '600' : '700', margin: 0, color: 'var(--text-main)' }}>{notification.title}</h3>
+                      <div className="notification-meta-right" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                        <span className="notification-time desktop-time" style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{notification.time}</span>
+                        <button 
+                          onClick={() => deleteNotification(notification.id)}
+                          className="notification-delete-btn"
+                          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5, paddingRight: '24px' }}>{notification.message}</p>
+
+                    {/* Mobile Date Row: Date timestamp below title (<=426px) */}
+                    <div className="notification-time-row mobile-time-row" style={{ marginBottom: '6px' }}>
+                      <span className="notification-time mobile-time" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{notification.time}</span>
+                    </div>
+
+                    {/* Body Message */}
+                    <p className="notification-message" style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>{notification.message}</p>
                   </div>
-                  <button 
-                    onClick={() => deleteNotification(notification.id)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', alignSelf: 'flex-start' }}
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               ))
             )}
@@ -232,9 +243,75 @@ export default function Notifications() {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        .desktop-time {
+          display: inline-block;
+        }
+        .mobile-time-row {
+          display: none;
+        }
         @media (max-width: 768px) {
           .notifications-grid { grid-template-columns: 1fr !important; }
           .notifications-sidebar { position: relative !important; top: 0 !important; }
+        }
+        @media (max-width: 426px) {
+          .desktop-time {
+            display: none !important;
+          }
+          .mobile-time-row {
+            display: block !important;
+          }
+          .notification-item-card {
+            gap: 12px !important;
+          }
+          .notification-icon-box {
+            width: 32px !important;
+            height: 32px !important;
+          }
+          .notification-icon-box svg {
+            width: 16px !important;
+            height: 16px !important;
+          }
+          .notification-title {
+            font-size: 14px !important;
+          }
+          .notification-time {
+            font-size: 11px !important;
+          }
+          .notification-delete-btn svg {
+            width: 15px !important;
+            height: 15px !important;
+          }
+          .notification-message {
+            font-size: 12.5px !important;
+            line-height: 1.4 !important;
+          }
+        }
+        @media (max-width: 320px) {
+          .notification-item-card {
+            gap: 10px !important;
+          }
+          .notification-icon-box {
+            width: 28px !important;
+            height: 28px !important;
+          }
+          .notification-icon-box svg {
+            width: 14px !important;
+            height: 14px !important;
+          }
+          .notification-title {
+            font-size: 13px !important;
+          }
+          .notification-time {
+            font-size: 10px !important;
+          }
+          .notification-delete-btn svg {
+            width: 14px !important;
+            height: 14px !important;
+          }
+          .notification-message {
+            font-size: 11.5px !important;
+            line-height: 1.35 !important;
+          }
         }
       `}} />
     </main>
