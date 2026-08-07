@@ -133,6 +133,7 @@ export async function verifyOtp(otp, mobile, options = {}) {
   if (!derivedName) {
     derivedName = mobile ? `User (${mobile})` : "User";
   }
+  derivedName = derivedName.replace(/\.\./g, ".");
 
   const user = {
     ...rawUser,

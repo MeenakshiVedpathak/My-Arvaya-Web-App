@@ -44,7 +44,7 @@ export default function Profile() {
   });
   
   const [profile, setProfile] = useState(() => ({
-    name: user?.name || user?.full_name || user?.fullName || "",
+    name: (user?.name || user?.full_name || user?.fullName || "").replace(/\.\./g, "."),
     phone: user?.phone || user?.mobile_number || user?.mobile || "",
     email: (user?.email && user.email !== "john.doe@example.com") ? user.email : "",
     dob: user?.date_of_birth || user?.dob || "",
@@ -313,7 +313,7 @@ export default function Profile() {
         setProfile(prev => ({
           ...prev,
           ...patientData,
-          name: fullName || prev.name,
+          name: (fullName || "").replace(/\.\./g, "."),
           phone: patientData.mobile_number || patientData.phone || patientData.mobile || patientData.mobile_no || prev.phone,
           email: cleanEmail,
           dob: patientData.date_of_birth || patientData.dob || prev.dob,

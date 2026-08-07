@@ -93,7 +93,7 @@ export function AuthProvider({ children }) {
         const updatedUser = {
           ...currentUser,
           ...patientData,
-          name: fullName || currentUser.name,
+          name: (fullName || currentUser.name || "").replace(/\.\./g, "."),
           phone: phone || currentUser.phone,
           gender: formattedGender
         };
@@ -152,7 +152,7 @@ export function AuthProvider({ children }) {
         }
       }
       if (derivedName) {
-        resolvedUser = { ...resolvedUser, name: derivedName };
+        resolvedUser = { ...resolvedUser, name: derivedName.replace(/\.\./g, ".") };
       }
     }
 
