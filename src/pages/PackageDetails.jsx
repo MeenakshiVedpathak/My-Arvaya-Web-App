@@ -61,7 +61,7 @@ export default function PackageDetails() {
 
   // Fetch package details if loaded via direct URL or refresh
   useEffect(() => {
-    if (packageData) return;
+    if (packageData && Array.isArray(packageData.subitems) && packageData.subitems.length > 0) return;
     let isMounted = true;
     setLoading(true);
 
