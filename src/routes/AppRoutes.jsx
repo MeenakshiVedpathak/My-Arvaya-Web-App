@@ -36,6 +36,7 @@ import BookingConfirmed from "../pages/booking/BookingConfirmed";
 
 import PackageDetails from "../pages/PackageDetails";
 import Login from "../pages/Login";
+import AccountDeletion from "../pages/AccountDeletion";
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -50,6 +51,7 @@ export default function AppRoutes() {
 
       {/* Public Pages */}
       <Route path="/" element={<Home />} />
+      <Route path="/account-deletion" element={<AccountDeletion />} />
       <Route path="/doctor" element={<DoctorProfile />} />
       <Route path="/labs" element={<Labs />} />
       <Route path="/labs/all-tests" element={<AllLabTests />} />
