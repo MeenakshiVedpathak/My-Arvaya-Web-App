@@ -100,12 +100,12 @@ export default function BookingReview() {
       
       let start = slot;
       let end = slot;
-      let session = "";
+      let sessionVal = "";
       if (slot && slot.includes('-')) {
         const parts = slot.split('-');
         start = parts[0].trim();
         end = parts[1].trim();
-        session = `${start}-${end}`;
+        sessionVal = `${start}-${end}`;
       }
 
       const payload = {
@@ -116,8 +116,8 @@ export default function BookingReview() {
         start: start,
         end: end,
         entitykey: "secure-hospitals",
-        session: session,
-        sessionval: session ? session : `${slot}-${slot}`,
+        session: "",
+        sessionval: sessionVal ? sessionVal : `${slot}-${slot}`,
         appnotes: "",
         referred_by: "",
         referredbykey: "",
