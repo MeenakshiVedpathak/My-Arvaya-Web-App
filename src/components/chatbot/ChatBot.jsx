@@ -242,7 +242,7 @@ export default function ChatBot() {
               id: 1,
               sender: "bot",
               type: "text",
-              text: "Hello!👋 I'm your Secure ANT Health Assistant. Ask me anything about your health records, lab results, medications, or appointments.",
+              text: "Hello! 👋 I'm your Secure ANT Health Assistant. Ask me anything about your health records, lab results, medications, or appointments.",
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }
           ]);
