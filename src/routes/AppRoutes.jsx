@@ -35,6 +35,7 @@ import BookingReview from "../pages/booking/BookingReview";
 import BookingConfirmed from "../pages/booking/BookingConfirmed";
 
 import PackageDetails from "../pages/PackageDetails";
+import Login from "../pages/Login";
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
@@ -45,6 +46,7 @@ export default function AppRoutes() {
     <Routes>
       {/* Public */}
       <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
 
       {/* Public Pages */}
       <Route path="/" element={<Home />} />

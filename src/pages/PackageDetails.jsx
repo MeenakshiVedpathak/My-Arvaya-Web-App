@@ -56,8 +56,26 @@ export default function PackageDetails() {
   const [loading, setLoading] = useState(!location.state?.package);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [visitType, setVisitType] = useState("home");
+  const [visitType, setVisitType] = useState("lab");
   const [activeTab, setActiveTab] = useState("all");
+  useEffect(() => {
+    if (user) {
+      const shouldOpen = sessionStorage.getItem("autoOpenBooking");
+      if (shouldOpen === "true") {
+        setShowBookingModal(true);
+        sessionStorage.removeItem("autoOpenBooking");
+      }
+    }
+  }, [user]);
+
+  const handleBookClick = () => {
+    if (!user) {
+      sessionStorage.setItem("autoOpenBooking", "true");
+      openLoginModal(location.pathname);
+    } else {
+      setShowBookingModal(true);
+    }
+  };
 
   // Fetch package details if loaded via direct URL or refresh
   useEffect(() => {
@@ -639,7 +657,7 @@ export default function PackageDetails() {
               <p style={{ fontSize: "12.5px", color: "rgba(255,255,255,0.8)", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
                 <CheckCircle2 size={14} color="#86efac" /> Includes Home Sample Collection & Tax
               </p>
-              <button onClick={() => setShowBookingModal(true)} className="web-book-btn" style={{ marginTop: "10px" }}>
+              <button onClick={handleBookClick} className="web-book-btn" style={{ marginTop: "10px" }}>
                 Book Package Now <ArrowRight size={18} />
               </button>
             </div>
@@ -843,7 +861,7 @@ export default function PackageDetails() {
                 </div>
               </div>
 
-              <button className="web-book-btn" onClick={() => setShowBookingModal(true)}>
+              <button className="web-book-btn" onClick={handleBookClick}>
                 Book Health Package <ArrowRight size={18} />
               </button>
 
@@ -873,60 +891,32 @@ export default function PackageDetails() {
         title="Schedule Health Package"
         maxWidth="680px"
       >
-        <div style={{ marginBottom: "20px", padding: "16px 20px", background: "#f8fafc", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <h3 style={{ fontSize: "18px", fontWeight: "800", color: "#0f172a", margin: "0 0 4px 0" }}>{title}</h3>
-              <span style={{ fontSize: "12.5px", color: "#64748b" }}>{packageData.category || "Full Body & Preventive Care"}</span>
+        {/* Unified, Premium Header */}
+        <div style={{ 
+          marginBottom: "20px", 
+          padding: "18px 20px", 
+          background: "linear-gradient(135deg, #1b4d54 0%, #11353a 100%)", 
+          borderRadius: "18px", 
+          color: "#fff", 
+          display: "flex", 
+          justifyContent: "space-between", 
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "16px"
+        }}>
+          <div style={{ flex: "1 1 280px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", background: "rgba(255, 255, 255, 0.15)", padding: "3px 8px", borderRadius: "20px", color: "#2dd4bf" }}>
+                🏥 Center Visit
+              </span>
+              <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", color: "rgba(255, 255, 255, 0.65)" }}>
+                {packageData?.category || "Full Body & Preventive Care"}
+              </span>
             </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "20px", fontWeight: "800", color: "#1b4d54" }}>₹{price.toLocaleString()}</div>
-            </div>
+            <h3 style={{ fontSize: "18px", fontWeight: "800", margin: "8px 0 0 0", color: "#ffffff", letterSpacing: "-0.01em" }}>{title}</h3>
           </div>
-        </div>
-
-        <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "#0f172a", marginBottom: "12px" }}>
-            Select Sample Collection Preference
-          </label>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <label style={{ 
-              background: visitType === 'home' ? '#f0fdfa' : '#ffffff', 
-              padding: '14px 16px', 
-              borderRadius: '16px', 
-              border: visitType === 'home' ? '2px solid #1b4d54' : '1px solid #e2e8f0', 
-              flex: 1, 
-              minWidth: '200px', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s' 
-            }}>
-              <input type="radio" name="labVisitTypePkgDetailsWeb" value="home" checked={visitType === 'home'} onChange={() => setVisitType('home')} style={{ display: 'none' }} />
-              <div>
-                <b style={{ display: 'block', color: visitType === 'home' ? '#1b4d54' : '#0f172a', marginBottom: '4px', fontSize: '14px' }}>
-                  🏡 Home Sample Collection
-                </b>
-                <small style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.4, display: "block" }}>Certified phlebotomist will visit your home address.</small>
-              </div>
-            </label>
-
-            <label style={{ 
-              background: visitType === 'lab' ? '#f0fdfa' : '#ffffff', 
-              padding: '14px 16px', 
-              borderRadius: '16px', 
-              border: visitType === 'lab' ? '2px solid #1b4d54' : '1px solid #e2e8f0', 
-              flex: 1, 
-              minWidth: '200px', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s' 
-            }}>
-              <input type="radio" name="labVisitTypePkgDetailsWeb" value="lab" checked={visitType === 'lab'} onChange={() => setVisitType('lab')} style={{ display: 'none' }} />
-              <div>
-                <b style={{ display: 'block', color: visitType === 'lab' ? '#1b4d54' : '#0f172a', marginBottom: '4px', fontSize: '14px' }}>
-                  🏥 Diagnostic Center Visit
-                </b>
-                <small style={{ color: "#64748b", fontSize: "12px", lineHeight: 1.4, display: "block" }}>Walk-in to nearest partner diagnostic center.</small>
-              </div>
-            </label>
+          <div style={{ minWidth: "120px" }}>
+            <div style={{ fontSize: "24px", fontWeight: "800", color: "#2dd4bf" }}>₹{price.toLocaleString()}</div>
           </div>
         </div>
 

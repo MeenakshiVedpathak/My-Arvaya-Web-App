@@ -6,7 +6,6 @@ import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { useAuth } from "./context/AuthContext";
 import ChatBot from "./components/chatbot/ChatBot";
-import LoginModal from "./components/auth/LoginModal";
 
 export default function App() {
   const { user, openLoginModal } = useAuth();
@@ -28,7 +27,6 @@ export default function App() {
       <AppRoutes />
       <Footer />
       <ChatBot />
-      <LoginModal />
     </>
   );
 }

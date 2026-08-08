@@ -40,12 +40,14 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
 
       <div className="slot-grid-layout">
         <div className="date-selector-section">
-          <div className="section-title-row">
-            <Calendar size={18} color="var(--primary)" />
-            <h4 className="step-prompt" style={{ margin: 0, color: 'var(--text-main)', fontSize: '15px' }}>
-              {type === "lab" ? "Select Collection Date" : "Select a Date"}
-            </h4>
-          </div>
+          {type !== "lab" && (
+            <div className="section-title-row">
+              <Calendar size={18} color="var(--primary)" />
+              <h4 className="step-prompt" style={{ margin: 0, color: 'var(--text-main)', fontSize: '15px' }}>
+                Select a Date
+              </h4>
+            </div>
+          )}
 
           <div className="full-calendar-card">
             <div className="fc-header">

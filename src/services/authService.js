@@ -72,7 +72,6 @@ export async function register(data) {
     client_id: data.client_id || getClientId(),
     entitylocation: data.entitylocation,
     entitykey: 'secure-hospitals',
-    is_active: 1
   };
 
   const res = await api.post("/appUser/register", payload);
@@ -134,6 +133,7 @@ export async function verifyOtp(otp, mobile, options = {}) {
   if (!derivedName) {
     derivedName = mobile ? `User (${mobile})` : "User";
   }
+  derivedName = derivedName.replace(/\.\./g, ".");
 
   const user = {
     ...rawUser,

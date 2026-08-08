@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
 import { getPatients } from "../services/dataService";
 
@@ -26,6 +27,7 @@ function deleteCookie(name) {
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("arvaya_user");
     try {
@@ -91,7 +93,7 @@ export function AuthProvider({ children }) {
         const updatedUser = {
           ...currentUser,
           ...patientData,
-          name: fullName || currentUser.name,
+          name: (fullName || currentUser.name || "").replace(/\.\./g, "."),
           phone: phone || currentUser.phone,
           gender: formattedGender
         };
@@ -111,6 +113,7 @@ export function AuthProvider({ children }) {
     if (redirectPath) setPendingRedirect(redirectPath);
     setLoginModalScreen(screen);
     setLoginModalOpen(true);
+    navigate("/login", { state: { redirectPath, screen } });
   }
 
   function closeLoginModal() {
@@ -149,7 +152,7 @@ export function AuthProvider({ children }) {
         }
       }
       if (derivedName) {
-        resolvedUser = { ...resolvedUser, name: derivedName };
+        resolvedUser = { ...resolvedUser, name: derivedName.replace(/\.\./g, ".") };
       }
     }
 

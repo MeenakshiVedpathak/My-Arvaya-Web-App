@@ -9,18 +9,18 @@ import { getPatients } from "../../services/dataService";
 
 function getUserDisplayName(user) {
   if (!user) return "User";
-  if (typeof user === "string") return user;
+  if (typeof user === "string") return user.replace(/\.\./g, ".");
 
   const rawName = user.name || user.full_name || user.fullName || user.user_name || user.userName;
   if (rawName && typeof rawName === "string" && !rawName.startsWith("User (") && rawName !== "User") {
-    return rawName;
+    return rawName.replace(/\.\./g, ".");
   }
 
   const title = user.title ? user.title.trim() + " " : "";
   const firstName = user.first_name || user.firstName || "";
   const lastName = user.last_name || user.lastName || "";
   if (firstName || lastName) {
-    return `${title}${firstName} ${lastName}`.trim();
+    return `${title}${firstName} ${lastName}`.trim().replace(/\.\./g, ".");
   }
 
   if (user.email) return user.email.split("@")[0];
@@ -31,17 +31,17 @@ function getUserDisplayName(user) {
       const parsed = JSON.parse(storedUser);
       const storedName = parsed?.name || parsed?.full_name || parsed?.fullName;
       if (storedName && !storedName.startsWith("User (") && storedName !== "User") {
-        return storedName;
+        return storedName.replace(/\.\./g, ".");
       }
       const pFirst = parsed?.first_name || parsed?.firstName || "";
       const pLast = parsed?.last_name || parsed?.lastName || "";
       if (pFirst || pLast) {
-        return `${pFirst} ${pLast}`.trim();
+        return `${pFirst} ${pLast}`.trim().replace(/\.\./g, ".");
       }
     }
   } catch (e) { }
 
-  return (rawName && rawName !== "User") ? rawName : "User";
+  return ((rawName && rawName !== "User") ? rawName : "User").replace(/\.\./g, ".");
 }
 
 function getUserPhone(user) {
