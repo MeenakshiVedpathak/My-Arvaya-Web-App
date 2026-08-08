@@ -911,6 +911,187 @@ input[type="radio"]:focus-visible {
   40% { transform: scale(1); background: var(--primary); }
 }
 
+/* ── Chatbot Custom Cards & Layouts ── */
+.chat-bubble-container {
+  display: flex;
+  width: 100%;
+}
+.chat-bubble-container.user-container {
+  justify-content: flex-end;
+}
+.chatbot-patient-card, .chatbot-list-card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 12px;
+  margin-top: 8px;
+  color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  width: 100%;
+  box-sizing: border-box;
+}
+.chatbot-patient-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+.chatbot-patient-header h4 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--primary);
+  font-weight: 700;
+}
+.chatbot-patient-details {
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.chatbot-patient-details p {
+  margin: 4px 0;
+}
+.chatbot-patient-stats {
+  display: flex;
+  justify-content: space-around;
+  background: var(--bg-app);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+.chatbot-patient-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.chatbot-patient-stats span {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.chatbot-patient-stats strong {
+  font-size: 14px;
+  color: var(--text-main);
+}
+.chatbot-timeline h5 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 700;
+}
+.chatbot-timeline-item {
+  border-left: 2px solid var(--primary-light);
+  padding-left: 8px;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+.chatbot-timeline-item.critical {
+  border-left-color: #ff6b6b;
+}
+.chatbot-timeline-item .timeline-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+.chatbot-timeline-item p {
+  margin: 2px 0;
+  font-weight: 500;
+}
+.pdf-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary);
+  color: #fff !important;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  margin-top: 4px;
+  transition: background 0.2s;
+}
+.pdf-link-btn:hover {
+  background: var(--primary-dark);
+}
+.chatbot-list-card h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+.chatbot-list-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.chatbot-list-card li {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  transition: background 0.2s;
+  border-radius: var(--radius-sm);
+}
+.chatbot-list-card li:hover {
+  background: var(--bg-app);
+}
+.chatbot-list-card li:last-child {
+  border-bottom: none;
+}
+
+/* ── Chatbot Formatted Text HTML Table Styles ── */
+.chatbot-formatted-text {
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.chatbot-formatted-text .chatbot-heading-3 {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--primary-dark);
+  margin: 2px 0 0 0;
+  display: block;
+}
+.chatbot-formatted-text .chatbot-heading-2 {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary-dark);
+  margin: 4px 0 0 0;
+  display: block;
+}
+.chatbot-formatted-text table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin: 6px 0 2px 0;
+  border: 1px solid var(--border);
+  background: #ffffff;
+}
+.chatbot-formatted-text th {
+  background-color: var(--bg-app);
+  font-weight: 700;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  color: var(--primary-dark);
+}
+.chatbot-formatted-text td {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+}
+.chatbot-formatted-text strong {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+.chatbot-formatted-text a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+
+
 /* ── Styled Scrollbar ── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
