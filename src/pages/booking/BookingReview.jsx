@@ -121,7 +121,7 @@ export default function BookingReview() {
         appnotes: "",
         referred_by: "",
         referredbykey: "",
-        extphid: "",
+        extphid: user?.external_id || "",
         fname: user?.name || "Guest",
         phone: user?.mobile || user?.phone || "N/A",
         wallet_amount_used: applyWallet ? walletAppliedAmount : 0
