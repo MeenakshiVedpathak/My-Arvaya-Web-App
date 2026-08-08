@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Globe, Send, ExternalLink } from "lucide-react";
+import { MapPin, Phone, Mail, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
@@ -14,106 +14,340 @@ const liPath = "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 
 export default function Footer() {
   const [email, setEmail] = useState("");
 
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    // Newsletter subscription logic can be added here
+    setEmail("");
+  };
+
   return (
-    <footer style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', paddingTop: '64px', paddingBottom: '0' }}>
+    <footer className="main-footer">
       <style>{`
-        .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
-        @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+        .main-footer {
+          background: #f8fafb;
+          border-top: 3px solid var(--primary);
+          padding-top: 64px;
+          padding-bottom: 0;
+          font-family: var(--font-sans);
+        }
+        .footer-grid { 
+          display: grid; 
+          grid-template-columns: 1.4fr 1fr 1fr 1.2fr; 
+          gap: 40px; 
+          margin-bottom: 48px;
+        }
+        .footer-col {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .footer-logo {
+          height: 38px;
+          width: fit-content;
+          transition: transform 0.3s ease;
+        }
+        .footer-logo:hover {
+          transform: scale(1.02);
+        }
+        .footer-desc {
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--text-muted);
+          margin: 0;
+        }
+        .footer-socials {
+          display: flex;
+          gap: 10px;
+          margin-top: 8px;
+        }
+        .social-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .social-btn:hover {
+          background: var(--primary);
+          color: #fff;
+          border-color: var(--primary);
+          transform: translateY(-3px);
+          box-shadow: 0 4px 12px rgba(46, 102, 110, 0.25);
+        }
+        .footer-title {
+          color: var(--text-main);
+          font-family: var(--font-display);
+          font-size: 13.5px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin: 0;
+          position: relative;
+          padding-bottom: 8px;
+        }
+        .footer-title::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 20px;
+          height: 2px;
+          background: var(--accent);
+          border-radius: 2px;
+        }
+        .footer-links {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          font-size: 14px;
+          margin-top: 8px;
+        }
+        .footer-link {
+          color: var(--text-muted);
+          text-decoration: none;
+          transition: all 0.2s var(--ease-out);
+          display: inline-flex;
+          align-items: center;
+          width: fit-content;
+        }
+        .footer-link:hover {
+          color: var(--primary);
+          transform: translateX(6px);
+          font-weight: 500;
+        }
+        .footer-link:focus, .footer-link:focus-visible, .footer-link:active {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        .footer-contact-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-top: 8px;
+        }
+        .footer-contact-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          font-size: 13.5px;
+          color: var(--text-muted);
+          transition: color 0.2s ease;
+          line-height: 1.4;
+        }
+        .footer-contact-item:hover {
+          color: var(--text-main);
+        }
+        .footer-contact-item:focus, .footer-contact-item:focus-visible, .footer-contact-item:active {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        .footer-contact-icon {
+          color: var(--primary);
+          opacity: 0.9;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .newsletter-section {
+          margin-top: 12px;
+          border-top: 1px solid var(--border);
+          padding-top: 16px;
+        }
+        .newsletter-title {
+          font-size: 12.5px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--text-main);
+          margin-bottom: 10px;
+        }
+        .newsletter-form {
+          display: flex;
+          border-radius: var(--radius-md);
+          overflow: hidden;
+          border: 1px solid var(--border);
+          background: var(--bg-surface);
+          transition: all 0.2s ease;
+          width: 100%;
+        }
+        .newsletter-form:focus-within {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(46, 102, 110, 0.15);
+        }
+        .newsletter-input {
+          flex: 1;
+          padding: 10px 14px;
+          border: none;
+          background: transparent;
+          color: var(--text-main);
+          font-size: 13.5px;
+          outline: none;
+        }
+        .newsletter-input::placeholder {
+          color: #a0b2b4;
+        }
+        .newsletter-btn {
+          background: var(--primary);
+          color: #fff;
+          border: none;
+          padding: 0 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s ease;
+        }
+        .newsletter-btn:hover {
+          background: var(--primary-dark);
+        }
+        .newsletter-btn:focus, .newsletter-btn:focus-visible, .newsletter-btn:active {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        .footer-bottom {
+          border-top: 1px solid var(--border);
+          padding: 24px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          margin-top: 16px;
+        }
+        .footer-copy {
+          font-size: 13px;
+          color: var(--text-muted);
+          margin: 0;
+        }
+        .bottom-links {
+          display: flex;
+          gap: 24px;
+          font-size: 13px;
+        }
+        .bottom-link {
+          color: var(--text-muted);
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+        .bottom-link:hover {
+          color: var(--primary);
+        }
+        .bottom-link:focus, .bottom-link:focus-visible, .bottom-link:active {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        @media (max-width: 992px) { 
+          .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; } 
+        }
+        @media (max-width: 576px) { 
+          .footer-grid { grid-template-columns: 1fr; gap: 28px; } 
+          .footer-bottom { flex-direction: column; align-items: flex-start; }
+          .bottom-links { flex-direction: column; gap: 12px; }
+        }
       `}</style>
       <div className="container">
         
         {/* ── Top Area: Brand & Links ── */}
-        <div className="footer-grid" style={{ marginBottom: '48px' }}>
+        <div className="footer-grid">
           
           {/* Column 1: Brand */}
-          <div className="flex flex-col gap-4">
-            <img src="/logo.png" alt="Arvaya" style={{ height: '40px', width: 'fit-content' }} />
-            <p style={{ fontSize: '13px', lineHeight: 1.7, maxWidth: '280px', color: 'var(--text-muted)' }}>
+          <div className="footer-col">
+            <img src="/logo.png" alt="Arvaya" className="footer-logo" />
+            <p className="footer-desc">
               India's most trusted healthcare platform. Connecting you with top doctors, diagnostic centers, and pharmacies across the country.
             </p>
             
-            <div className="flex flex-col gap-2 mt-4" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-              <span className="flex items-center gap-2"><MapPin size={16} style={{ color: 'var(--primary)' }}/> 123 Healthcare Ave, Bangalore, 560001</span>
-              <span className="flex items-center gap-2"><Phone size={16} style={{ color: 'var(--primary)' }}/> +91 1800-123-4567</span>
-              <span className="flex items-center gap-2"><Mail size={16} style={{ color: 'var(--primary)' }}/> support@arvaya.health</span>
-            </div>
-
             {/* Social Icons */}
-            <div className="flex gap-3 mt-4">
+            <div className="footer-socials">
               {[fbPath, twPath, igPath, liPath].map((d, i) => (
-                <a key={i} href="#" style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--bg-app)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', transition: 'all 0.25s' }} onMouseOver={e => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.background = 'var(--bg-app)'; e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}>
+                <a key={i} href="#" className="social-btn" aria-label="Social Link">
                   <SocialIcon d={d} />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Column 2: Patients */}
-          <div>
-            <h3 style={{ color: 'var(--text-main)', fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>For Patients</h3>
-            <div className="flex flex-col gap-3" style={{ fontSize: '14px' }}>
+          {/* Column 2: Healthcare Services */}
+          <div className="footer-col">
+            <h3 className="footer-title">Healthcare Services</h3>
+            <div className="footer-links">
               {[
-                ["Home", "/"],
                 ["Consult Doctors", "/doctors"],
                 ["Lab Tests", "/labs"],
                 ["ABHA Hub", "/abha"],
-                ["Patient Portal", "/records"],
+                ["Patient Portal", "/records"]
+              ].map(([label, path]) => (
+                <Link key={label} to={path} className="footer-link">{label}</Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Column 3: Patient Center */}
+          <div className="footer-col">
+            <h3 className="footer-title">Patient Center</h3>
+            <div className="footer-links">
+              {[
+                ["Home", "/"],
                 ["Wallet", "/wallet"],
                 ["Rewards", "/rewards"]
               ].map(([label, path]) => (
-                <Link key={label} to={path} style={{ color: 'var(--text-muted)', transition: 'all 0.2s', display: 'inline-block' }} onMouseOver={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.paddingLeft = '4px'; }} onMouseOut={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.paddingLeft = '0'; }}>{label}</Link>
+                <Link key={label} to={path} className="footer-link">{label}</Link>
               ))}
             </div>
           </div>
 
-          {/* Column 3: Providers & Partners */}
-          <div>
-            <h3 style={{ color: 'var(--text-main)', fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>For Providers</h3>
-            <div className="flex flex-col gap-3" style={{ fontSize: '14px' }}>
-              {["Arvaya Profile", "For Clinics", "Ray by Arvaya", "Arvaya Pro", "Arvaya Reach"].map(label => (
-                <Link key={label} to="/" style={{ color: 'var(--text-muted)', transition: 'all 0.2s', display: 'inline-block' }} onMouseOver={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.paddingLeft = '4px'; }} onMouseOut={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.paddingLeft = '0'; }}>{label}</Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Column 4: Corporate & Newsletter */}
-          <div>
-            <h3 style={{ color: 'var(--text-main)', fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>Corporate</h3>
-            <div className="flex flex-col gap-3" style={{ fontSize: '14px', marginBottom: '24px' }}>
-              {["About Us", "Careers", "Blog", "Press", "Contact Us"].map(label => (
-                <Link key={label} to="/" style={{ color: 'var(--text-muted)', transition: 'all 0.2s', display: 'inline-block' }} onMouseOver={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.paddingLeft = '4px'; }} onMouseOut={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.paddingLeft = '0'; }}>{label}</Link>
-              ))}
+          {/* Column 4: Contact & Update */}
+          <div className="footer-col">
+            <h3 className="footer-title">Contact & Update</h3>
+            
+            <div className="footer-contact-list">
+              <div className="footer-contact-item">
+                <MapPin size={16} className="footer-contact-icon" />
+                <span>123 Healthcare Ave, Bangalore, 560001</span>
+              </div>
+              <div className="footer-contact-item">
+                <Phone size={16} className="footer-contact-icon" />
+                <span>+91 1800-123-4567</span>
+              </div>
+              <div className="footer-contact-item">
+                <Mail size={16} className="footer-contact-icon" />
+                <span>support@arvaya.health</span>
+              </div>
             </div>
 
             {/* Newsletter */}
-            <div style={{ marginTop: '8px' }}>
-              <h4 style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>Stay Updated</h4>
-              <div style={{ display: 'flex', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+            <div className="newsletter-section">
+              <h4 className="newsletter-title">Stay Updated</h4>
+              <form onSubmit={handleSubscribe} className="newsletter-form">
                 <input 
                   type="email" 
-                  placeholder="Your email" 
+                  placeholder="Your email address" 
                   value={email} 
                   onChange={e => setEmail(e.target.value)}
-                  style={{ flex: 1, padding: '10px 12px', border: 'none', background: 'var(--bg-app)', color: 'var(--text-main)', fontSize: '13px', outline: 'none' }}
+                  className="newsletter-input"
+                  required
                 />
-                <button style={{ background: 'var(--primary)', color: '#fff', border: 'none', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--primary-dark)'} onMouseOut={e => e.currentTarget.style.background = 'var(--primary)'}>
-                  <Send size={16} />
+                <button type="submit" className="newsletter-btn" aria-label="Subscribe">
+                  <Send size={15} />
                 </button>
-              </div>
+              </form>
             </div>
           </div>
 
         </div>
 
         {/* ── Bottom Area: Copyright ── */}
-        <div style={{ borderTop: '1px solid var(--border)', padding: '24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            © {new Date().getFullYear()} Arvaya Healthcare. All rights reserved.
+        <div className="footer-bottom">
+          <p className="footer-copy">
+            &copy; {new Date().getFullYear()} Arvaya Healthcare. All rights reserved.
           </p>
-          <div className="flex gap-6" style={{ fontSize: '13px' }}>
+          <div className="bottom-links">
             {["Terms & Conditions", "Privacy Policy", "Refund Policy"].map(label => (
-              <Link key={label} to="/" style={{ color: 'var(--text-muted)', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.color = 'var(--text-muted)'}>{label}</Link>
+              <Link key={label} to="/" className="bottom-link">{label}</Link>
             ))}
           </div>
         </div>
