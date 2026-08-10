@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { User, Phone, Calendar, ArrowRight, Droplet, Building, ChevronDown, CheckCircle2 } from "lucide-react";
 import { getLocations } from "../services/dataService";
@@ -19,6 +19,7 @@ export default function Signup() {
 
   const { register, loading, error, setError } = useAuth();
   const go = useNavigate();
+  const location = useLocation();
   const dropdownRef = useRef(null);
 
   const fetchedRef = useRef(false);
@@ -88,7 +89,7 @@ export default function Signup() {
       blood_group: bloodGroup,
       entitylocation: selectedBranch
     });
-    if (ok) go("/");
+    if (ok) go(location.state?.from || "/");
   }
 
   const inputWrap = {

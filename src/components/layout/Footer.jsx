@@ -1,6 +1,7 @@
 import { MapPin, Phone, Mail, Send } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 /* Inline social SVGs (lucide-react doesn't ship brand icons) */
 const SocialIcon = ({ d, ...props }) => (
@@ -13,6 +14,8 @@ const liPath = "M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const { user } = useAuth();
+  const go = useNavigate();
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -281,7 +284,19 @@ export default function Footer() {
                 ["ABHA Hub", "/abha"],
                 ["Patient Portal", "/records"]
               ].map(([label, path]) => (
-                <Link key={label} to={path} className="footer-link">{label}</Link>
+                <Link
+                  key={label}
+                  to={path}
+                  onClick={(e) => {
+                    if (label === "Consult Doctors" && !user) {
+                      e.preventDefault();
+                      go("/login", { state: { from: path } });
+                    }
+                  }}
+                  className="footer-link"
+                >
+                  {label}
+                </Link>
               ))}
             </div>
           </div>
