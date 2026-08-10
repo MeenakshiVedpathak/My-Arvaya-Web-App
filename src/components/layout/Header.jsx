@@ -444,27 +444,50 @@ export default function Header() {
 
         <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px' }}>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-            <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
-          </Link>
+          {/* Logo & Location Group */}
+          <div className="flex items-center gap-4" style={{ flexShrink: 0 }}>
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
+            </Link>
 
-          {/* Location Picker */}
-          <div className="flex-1 flex items-center header-location-wrapper">
-            <div ref={locationPickerRef} style={{ position: 'relative', height: '44px' }}>
+            {/* Location Picker */}
+            <div ref={locationPickerRef} className="header-location-wrapper" style={{ position: 'relative', height: '40px' }}>
               <div
-                className="header-location-picker flex items-center gap-1"
+                className="header-location-picker flex items-center gap-1.5"
                 onClick={() => setIsLocationOpen(!isLocationOpen)}
-                style={{ padding: '0 16px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600', cursor: 'pointer', background: 'var(--bg-app)', height: '100%', transition: 'background 0.2s', userSelect: 'none', boxShadow: 'var(--shadow-sm)' }}
+                style={{
+                  padding: '0 14px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '30px',
+                  color: 'var(--text-main)',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  background: 'var(--bg-surface)',
+                  height: '100%',
+                  transition: 'all 0.2s ease',
+                  userSelect: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.background = 'var(--bg-app)';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.background = 'var(--bg-surface)';
+                }}
               >
-                <MapPin size={16} className="text-primary" />
+                <MapPin size={15} style={{ color: 'var(--primary)' }} />
                 <span>{selectedCity}</span>
-                <ChevronDown size={16} className="text-muted" style={{ transform: isLocationOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                <ChevronDown size={14} className="text-muted" style={{ transform: isLocationOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
               </div>
 
               {/* Location Dropdown Menu */}
               {isLocationOpen && (
-                <div className="styled-scrollbar" style={{ position: 'absolute', top: '50px', left: 0, width: '240px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '10px', animation: 'fadeIn 0.2s ease', maxHeight: '350px', overflowY: 'auto' }}>
+                <div className="styled-scrollbar" style={{ position: 'absolute', top: '46px', left: 0, width: '240px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '10px', animation: 'fadeIn 0.2s ease', maxHeight: '350px', overflowY: 'auto' }}>
 
                   {/* Location Search Box */}
                   <div style={{ marginBottom: '8px', padding: '0 4px' }}>
@@ -516,6 +539,9 @@ export default function Header() {
               )}
             </div>
           </div>
+
+          {/* Flex Spacer to push Auth CTA to the right */}
+          <div className="flex-1" />
 
           {/* Right Auth CTA (Desktop & Mobile Icon) */}
           <div className="header-desktop-auth flex items-center gap-3" style={{ flexShrink: 0 }}>

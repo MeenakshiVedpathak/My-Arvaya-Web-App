@@ -564,7 +564,6 @@ export default function Wallet() {
                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <History size={20} /> Transaction History
                 </h3>
-                <span className="text-primary cursor-pointer hover:underline" style={{ fontSize: '13px', fontWeight: '600' }}>Download PDF</span>
               </div>
               
               {/* Scrollable Container for Transaction History */}
