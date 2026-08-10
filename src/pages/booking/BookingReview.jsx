@@ -98,20 +98,30 @@ export default function BookingReview() {
       const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? date.toISOString().split('T')[0] : "");
       const dStr = dStrRaw.replace(/-/g, '');
       
+      let start = slot;
+      let end = slot;
+      let sessionVal = "";
+      if (slot && slot.includes('-')) {
+        const parts = slot.split('-');
+        start = parts[0].trim();
+        end = parts[1].trim();
+        sessionVal = `${start}-${end}`;
+      }
+
       const payload = {
         patient_id: patient_id,
         dr: doctor.id || doctor.drkey,
         entitylocation: doctor.locations?.[0]?.location_key || "",
         date: dStr,
-        start: slot,
-        end: slot,
+        start: start,
+        end: end,
         entitykey: "secure-hospitals",
         session: "",
-        sessionval: `${slot}-${slot}`,
+        sessionval: sessionVal ? sessionVal : `${slot}-${slot}`,
         appnotes: "",
         referred_by: "",
         referredbykey: "",
-        extphid: "",
+        extphid: user?.external_id || "",
         fname: user?.name || "Guest",
         phone: user?.mobile || user?.phone || "N/A",
         wallet_amount_used: applyWallet ? walletAppliedAmount : 0

@@ -85,6 +85,10 @@ export default function ScheduleSelection() {
     }
   };
 
+  const renderSlotText = (slotStr) => {
+    return <span>{slotStr}</span>;
+  };
+
   if (!doctor) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -104,7 +108,7 @@ export default function ScheduleSelection() {
       <style>{`
         .time-slots-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
           gap: 12px;
         }
 
@@ -125,6 +129,7 @@ export default function ScheduleSelection() {
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
           user-select: none;
           outline: none;
+          white-space: nowrap;
         }
 
         .slot-chip:hover:not(.selected):not(.active) {
@@ -199,7 +204,7 @@ export default function ScheduleSelection() {
                             className={`slot-chip ${isSel ? 'selected active' : ''}`}
                           >
                             {isSel && <Check size={14} strokeWidth={2.5} />}
-                            <span>{slotStr}</span>
+                            {renderSlotText(slotStr)}
                           </button>
                         );
                       })}
@@ -224,7 +229,7 @@ export default function ScheduleSelection() {
                             className={`slot-chip ${isSel ? 'selected active' : ''}`}
                           >
                             {isSel && <Check size={14} strokeWidth={2.5} />}
-                            <span>{slotStr}</span>
+                            {renderSlotText(slotStr)}
                           </button>
                         );
                       })}
@@ -249,7 +254,7 @@ export default function ScheduleSelection() {
                             className={`slot-chip ${isSel ? 'selected active' : ''}`}
                           >
                             {isSel && <Check size={14} strokeWidth={2.5} />}
-                            <span>{slotStr}</span>
+                            {renderSlotText(slotStr)}
                           </button>
                         );
                       })}
