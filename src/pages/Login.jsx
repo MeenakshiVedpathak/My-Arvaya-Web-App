@@ -50,13 +50,13 @@ export default function Login({ forceOpen = false }) {
     try {
       const res = await sendOtp(mobile);
       if (res && (res.is_registered === false || res.registered === false || res.userExists === false || res.isNewUser === true)) {
-        handleClose(); go(`/signup?phone=${mobile}`); return;
+        handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || pendingRedirect } }); return;
       }
       setScreen("otp");
     } catch (e) {
       const msg = (e.message || "").toLowerCase();
       if (msg.includes("not found") || msg.includes("not registered") || msg.includes("no user") || msg.includes("invalid number") || msg.includes("doesn't exist")) {
-        handleClose(); go(`/signup?phone=${mobile}`);
+        handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || pendingRedirect } });
       } else { setErr(e.message || "Failed to send OTP"); }
     } finally { setBusy(false); }
   };
@@ -82,7 +82,7 @@ export default function Login({ forceOpen = false }) {
         setPhone("");
         setErr("");
         closeLoginModal();
-        go(`/signup?phone=${phone}`);
+        go(`/signup?phone=${phone}`, { state: { from: location.state?.from || pendingRedirect } });
         return;
       }
 
@@ -117,7 +117,7 @@ export default function Login({ forceOpen = false }) {
       setPhone("");
       setErr("");
       closeLoginModal();
-      go("/");
+      go(location.state?.from || pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Invalid OTP"); }
     finally { setBusy(false); }
   };
@@ -208,7 +208,7 @@ export default function Login({ forceOpen = false }) {
         loginMethod: "abha"
       });
       handleClose();
-      go(pendingRedirect || "/");
+      go(location.state?.from || pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Could not link ABHA. Please try again."); }
     finally { setBusy(false); }
   };

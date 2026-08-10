@@ -410,7 +410,8 @@ export default function Profile() {
         height: String(profile.height || ""),
         weight: String(profile.weight || ""),
         profile_image: filenameToSend,
-        client_id: user?.client_id || 1
+        client_id: user?.client_id || 1,
+        is_active: 1
       };
 
       await updateAppUser(payload);
@@ -470,7 +471,8 @@ export default function Profile() {
         height: String(profile.height || ""),
         weight: String(profile.weight || ""),
         profile_image: profile.profile_image || "",
-        client_id: user?.client_id || 1
+        client_id: user?.client_id || 1,
+        is_active: 1
       };
 
       // Trigger /api/appUser/upsert
