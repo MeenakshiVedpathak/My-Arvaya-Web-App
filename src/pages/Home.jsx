@@ -28,8 +28,6 @@ export default function Home() {
   ]);
 
   useEffect(() => {
-    if (!user) return;
-
     let isMounted = true;
     getPatientReviews({ pageIndex: 0, pageSize: 0 })
       .then((apiReviews) => {

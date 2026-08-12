@@ -442,7 +442,7 @@ export default function Header() {
       {/* ── Main Header ── */}
       <header className="glass" style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
 
-        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px' }}>
+        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px', position: 'relative' }}>
 
           {/* Logo & Location Group */}
           <div className="flex items-center gap-4" style={{ flexShrink: 0 }}>
@@ -451,7 +451,7 @@ export default function Header() {
             </Link>
 
             {/* Location Picker */}
-            <div ref={locationPickerRef} className="header-location-wrapper" style={{ position: 'relative', height: '40px' }}>
+            <div ref={locationPickerRef} className="header-location-wrapper" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', height: '40px', zIndex: 10 }}>
               <div
                 className="header-location-picker flex items-center gap-1.5"
                 onClick={() => setIsLocationOpen(!isLocationOpen)}

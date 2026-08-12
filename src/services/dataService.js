@@ -17,7 +17,7 @@ export function getStoredUserId() {
 export async function getPatients(filters = {}) {
   try {
     const storedUserId = getStoredUserId();
-    let filterQuery = filters.filterQuery || filters.filter || "";
+    let filterQuery = filters.filter || filters.filterQuery || "";
 
     if (storedUserId) {
       if (!filterQuery.includes("id=")) {
@@ -25,11 +25,12 @@ export async function getPatients(filters = {}) {
       }
     }
 
+    const { filterQuery: _, filter: __, ...restFilters } = filters;
+
     const payload = {
-      filterQuery: filterQuery.trim(),
       filter: filterQuery.trim(),
       ...(storedUserId ? { id: storedUserId } : {}),
-      ...filters
+      ...restFilters
     };
 
     const res = await api.post("/api/appUser/get", payload);
