@@ -721,12 +721,6 @@ export default function Header() {
               <NavLink
                 key={label}
                 to={path}
-                onClick={(e) => {
-                  if (label === "Consult Doctors" && !user) {
-                    e.preventDefault();
-                    go("/login", { state: { from: path } });
-                  }
-                }}
                 style={({ isActive }) => ({
                   color: isActive ? 'var(--primary)' : 'var(--text-main)',
                   fontWeight: isActive ? '600' : '500',
@@ -874,12 +868,8 @@ export default function Header() {
                 <NavLink
                   key={label}
                   to={path}
-                  onClick={(e) => {
+                  onClick={() => {
                     setMobileDrawerOpen(false);
-                    if (label === "Consult Doctors" && !user) {
-                      e.preventDefault();
-                      go("/login", { state: { from: path } });
-                    }
                   }}
                   style={({ isActive }) => ({
                     padding: '12px 16px',
