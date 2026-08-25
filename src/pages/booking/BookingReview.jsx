@@ -9,7 +9,7 @@ import BookingLayout from "../../components/layout/BookingLayout";
 export default function BookingReview() {
   const { doctor, date, slot, setBookingId } = useBooking();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   
   const [loadingData, setLoadingData] = useState(true);
@@ -92,6 +92,10 @@ export default function BookingReview() {
   };
 
   const confirm = async () => {
+    if (!user) {
+      openLoginModal("/doctors/review");
+      return;
+    }
     setSubmitting(true);
     try {
       const patient_id = user?.id || user?.user_id || user?.patient_id || "";

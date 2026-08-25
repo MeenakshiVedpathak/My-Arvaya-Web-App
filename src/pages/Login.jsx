@@ -50,13 +50,13 @@ export default function Login({ forceOpen = false }) {
     try {
       const res = await sendOtp(mobile);
       if (res && (res.is_registered === false || res.registered === false || res.userExists === false || res.isNewUser === true)) {
-        handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || pendingRedirect } }); return;
+        handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || location.state?.redirectPath || pendingRedirect } }); return;
       }
       setScreen("otp");
     } catch (e) {
       const msg = (e.message || "").toLowerCase();
       if (msg.includes("not found") || msg.includes("not registered") || msg.includes("no user") || msg.includes("invalid number") || msg.includes("doesn't exist")) {
-        handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || pendingRedirect } });
+        handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || location.state?.redirectPath || pendingRedirect } });
       } else { setErr(e.message || "Failed to send OTP"); }
     } finally { setBusy(false); }
   };
@@ -82,7 +82,7 @@ export default function Login({ forceOpen = false }) {
         setPhone("");
         setErr("");
         closeLoginModal();
-        go(`/signup?phone=${phone}`, { state: { from: location.state?.from || pendingRedirect } });
+        go(`/signup?phone=${phone}`, { state: { from: location.state?.from || location.state?.redirectPath || pendingRedirect } });
         return;
       }
 
@@ -117,7 +117,7 @@ export default function Login({ forceOpen = false }) {
       setPhone("");
       setErr("");
       closeLoginModal();
-      go(location.state?.from || pendingRedirect || "/");
+      go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Invalid OTP"); }
     finally { setBusy(false); }
   };
@@ -208,7 +208,7 @@ export default function Login({ forceOpen = false }) {
         loginMethod: "abha"
       });
       handleClose();
-      go(location.state?.from || pendingRedirect || "/");
+      go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Could not link ABHA. Please try again."); }
     finally { setBusy(false); }
   };
@@ -866,7 +866,7 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
       const res = await abhaSendCreationOtp(rawAadhaar);
       const newTxnId = res?.txnId || res?.transactionId || res?.data?.txnId || res?.data?.transactionId || res?.txn_id || res?.result?.txnId || "";
       const fetchedMobile = res?.mobileNumber || res?.data?.mobileNumber || res?.mobile || res?.data?.mobile || "";
-      
+
       if (newTxnId) {
         setTxnId(newTxnId);
         if (setAbhaTransactionId) setAbhaTransactionId(newTxnId);
@@ -892,17 +892,17 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
     try {
       const activeTxnId = txnId || abhaTransactionId;
       const res = await abhaCreateByAadhaar(mobile.includes('*') ? mobile : cleanMobile, otp, activeTxnId);
-      
+
       const profile = res?.ABHAProfile || res?.data?.ABHAProfile || res?.profile || {};
       const tokens = res?.tokens || res?.data?.tokens || {};
-      
+
       // Preferred ABHA Address or ABHA Number
       const abhaAddress = profile?.preferredAddress || profile?.ABHANumber || res?.abhaNumber || res?.preferredAddress || res?.abha_number || res?.data?.abhaNumber || "";
-      
+
       // Name construction from firstName, middleName, lastName
       const constructedName = [profile?.firstName, profile?.middleName, profile?.lastName].filter(Boolean).join(" ");
       const name = constructedName || res?.name || res?.fullName || res?.data?.name || res?.UserData?.name || "ABHA User";
-      
+
       // Format Date of Birth (DD-MM-YYYY -> YYYY-MM-DD)
       const rawDob = profile?.dob || res?.dob || res?.dateOfBirth || res?.data?.dob || "";
       let dob = "2000-01-01";
@@ -913,17 +913,17 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
           else dob = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
         }
       }
-      
+
       // Format Gender ("M" -> "Male", "F" -> "Female")
       const rawGender = profile?.gender || res?.gender || res?.data?.gender || "Male";
       const gender = (rawGender === "M" || rawGender === "MALE") ? "Male" : (rawGender === "F" || rawGender === "FEMALE") ? "Female" : rawGender;
-      
+
       const address = profile?.address || res?.address || res?.data?.address || "";
       const userMobile = profile?.mobile || cleanMobile;
 
       setForm({ name, dob, gender, mobile: userMobile, address });
       setCreatedAbha(abhaAddress || `${name.split(" ")[0].toLowerCase()}.${Math.floor(Math.random() * 9000 + 1000)}@abdm`);
-      
+
       // Save tokens & profile to state to saveSession upon final step
       setCreationAuthData({
         token: tokens?.token || res?.token || "",

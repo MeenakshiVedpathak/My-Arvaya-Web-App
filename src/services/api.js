@@ -19,9 +19,14 @@ function getToken() {
 async function request(method, path, body, customHeaders = {}) {
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
-  const headers = { 
+  const headers = {
+    // testing
     "apikey": "JP76Ol1r5lMvzljKmeaTdP9EthTYzKFH",
     "applicationkey": "Xkit6MeT1Et4ZA2N",
+
+    // local 
+    // "apikey": "hLLSzt9IolCXGcdVbHUF5q0r52NaBOHb",
+    // "applicationkey": "OXaAGQqANmAPsHz",
     ...customHeaders
   };
 
