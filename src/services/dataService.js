@@ -371,6 +371,42 @@ export async function getDiagnosticPackages(filters = {}) {
   }
 }
 
+export async function getLabOrderHistory(patient_id) {
+  try {
+    const payload = { patient_id };
+    const res = await api.post("/api/lims/laborder/history", payload);
+    const list = res?.data || res?.list || res?.orders || res?.result || res || [];
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getLabOrderHistory API error:", err);
+    return [];
+  }
+}
+
+export function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
+export async function createLabOrder(payload) {
+  const res = await api.post("/api/lims/laborder/create-order", payload);
+  return res.data || res;
+}
+
+export async function verifyLabPayment(payload) {
+  const res = await api.post("/api/lims/laborder/verify-payment", payload);
+  return res.data || res;
+}
+
 export async function getPatientReviews(filters = {}) {
   try {
     const payload = {

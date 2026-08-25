@@ -176,14 +176,14 @@ export default function Home() {
   return (
     <main className="page page-enter" style={{ padding: 0 }}>
       {/* ── Emergency & Ticker ── */}
-      <div style={{ background: 'linear-gradient(90deg, #b91c1c, #dc2626)', color: 'white' }}>
+      <div style={{ background: 'linear-gradient(90deg, #0d5c63, #2E666E)', color: 'white' }}>
         <div className="container" style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Emergency Call Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px' }}>
               🚨 Medical Emergency?
             </div>
-            <button onClick={() => setShowAmbulanceModal(true)} className="btn" style={{ background: 'white', color: '#dc2626', padding: '6px 16px', fontSize: '13px', fontWeight: 'bold', borderRadius: 'var(--radius-full)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={() => setShowAmbulanceModal(true)} className="btn" style={{ background: 'white', color: '#2E666E', padding: '6px 16px', fontSize: '13px', fontWeight: 'bold', borderRadius: 'var(--radius-full)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               🚑 Call Ambulance
             </button>
             </div>

@@ -42,8 +42,13 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
 
   const token = getToken();
   const headers = {
+    // testing 
     "apikey": "JP76Ol1r5lMvzljKmeaTdP9EthTYzKFH",
     "applicationkey": "Xkit6MeT1Et4ZA2N",
+
+    // local 
+    // "apikey": "hLLSzt9IolCXGcdVbHUF5q0r52NaBOHb",
+    // "applicationkey": "OXaAGQqANmAPsHz",
   };
   if (token) {
     headers["token"] = token;

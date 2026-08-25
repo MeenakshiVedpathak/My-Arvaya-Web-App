@@ -287,12 +287,6 @@ export default function Footer() {
                 <Link
                   key={label}
                   to={path}
-                  onClick={(e) => {
-                    if (label === "Consult Doctors" && !user) {
-                      e.preventDefault();
-                      go("/login", { state: { from: path } });
-                    }
-                  }}
                   className="footer-link"
                 >
                   {label}

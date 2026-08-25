@@ -5,10 +5,12 @@ import { useBooking } from "../../context/BookingContext";
 import BookingLayout from "../../components/layout/BookingLayout";
 import Calendar from "../../components/common/Calendar";
 import { getDoctorSlots } from "../../services/dataService";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ScheduleSelection() {
   const navigate = useNavigate();
   const { doctor, bookingVisitType, date, setDate, slot, setSlot } = useBooking();
+  const { user, openLoginModal } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [availableSlots, setAvailableSlots] = useState({ morning: [], afternoon: [], evening: [] });
@@ -81,7 +83,11 @@ export default function ScheduleSelection() {
 
   const handleConfirm = () => {
     if (slot && date && doctor) {
-      navigate("/doctors/review");
+      if (!user) {
+        openLoginModal("/doctors/review");
+      } else {
+        navigate("/doctors/review");
+      }
     }
   };
 

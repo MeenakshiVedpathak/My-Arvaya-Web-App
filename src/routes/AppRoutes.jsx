@@ -53,38 +53,39 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/account-deletion" element={<AccountDeletion />} />
       <Route path="/doctor" element={<DoctorProfile />} />
+      <Route path="/pharmacy" element={<Pharmacy />} />
       <Route path="/labs" element={<Labs />} />
       <Route path="/labs/all-tests" element={<AllLabTests />} />
       <Route path="/labs/all-packages" element={<AllHealthPackages />} />
       <Route path="/labs/package-details" element={<PackageDetails />} />
       <Route path="/labs/package-details/:id" element={<PackageDetails />} />
+      <Route path="/abha" element={<ABHA />} />
+      <Route path="/records" element={<Records />} />
+      <Route path="/wallet" element={<Wallet />} />
+      <Route path="/rewards" element={<Rewards />} />
+      <Route path="/ambulance" element={<Ambulance />} />
+      <Route path="/support" element={<Support />} />
 
-      {/* Protected Routes (Require Login) */}
+      {/* Doctors Public Flow */}
+      <Route path="/doctors" element={<HospitalSelection />} />
+      <Route path="/doctors/specialty" element={<SpecialtySelection />} />
+      <Route path="/doctors/list" element={<DoctorList />} />
+      <Route path="/doctors/visit-type" element={<VisitTypeSelection />} />
+      <Route path="/doctors/schedule" element={<ScheduleSelection />} />
+
+      {/* Protected Routes (Require Login for Checkout/Booking Completion/Account) */}
       <Route path="/slot" element={<P><SelectSlot /></P>} />
       <Route path="/review" element={<P><Review /></P>} />
       <Route path="/confirmed" element={<P><Confirmed /></P>} />
-      <Route path="/abha" element={<P><ABHA /></P>} />
-      <Route path="/records" element={<P><Records /></P>} />
-      <Route path="/wallet" element={<P><Wallet /></P>} />
-      <Route path="/rewards" element={<P><Rewards /></P>} />
-      <Route path="/ambulance" element={<P><Ambulance /></P>} />
       <Route path="/profile" element={<P><Profile /></P>} />
       <Route path="/settings" element={<P><Settings /></P>} />
       <Route path="/notifications" element={<P><Notifications /></P>} />
       <Route path="/my-appointments" element={<P><MyAppointments /></P>} />
       <Route path="/prescriptions" element={<P><Prescriptions /></P>} />
-      <Route path="/pharmacy" element={<P><Pharmacy /></P>} />
       <Route path="/orders" element={<P><Orders /></P>} />
       <Route path="/payments" element={<P><Payments /></P>} />
       <Route path="/referrals" element={<P><Referrals /></P>} />
-      <Route path="/support" element={<P><Support /></P>} />
       <Route path="/ai-assistant" element={<P><AIAssistant /></P>} />
-      {/* Doctors Booking Flow */}
-      <Route path="/doctors" element={<P><HospitalSelection /></P>} />
-      <Route path="/doctors/specialty" element={<P><SpecialtySelection /></P>} />
-      <Route path="/doctors/list" element={<P><DoctorList /></P>} />
-      <Route path="/doctors/visit-type" element={<P><VisitTypeSelection /></P>} />
-      <Route path="/doctors/schedule" element={<P><ScheduleSelection /></P>} />
       <Route path="/doctors/review" element={<P><BookingReview /></P>} />
       <Route path="/doctors/confirmed" element={<P><BookingConfirmed /></P>} />
     </Routes>
