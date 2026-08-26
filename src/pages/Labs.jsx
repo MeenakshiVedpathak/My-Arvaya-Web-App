@@ -2,11 +2,11 @@ import {
   Search, ChevronRight, ChevronLeft, Activity, FlaskConical, Clock, Heart, ShieldCheck, 
   Sparkles, Droplets, Bone, Brain, Baby, Eye, Ribbon, Flame, Wind, Pill, Syringe, 
   Scissors, Apple, Zap, Users, Dumbbell, Beaker, Microscope, TestTube, Stethoscope, 
-  CalendarDays, MapPin, ArrowRight, CheckCircle2, Filter, X
+  CalendarDays, MapPin, ArrowRight, CheckCircle2, Filter, X, Wallet
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getLabPackages, getDiagnosticTests, getDiagnosticPackages, getAppointments } from "../services/dataService";
+import { getLabPackages, getDiagnosticTests, getDiagnosticPackages, getAppointments, createLabOrder, verifyLabPayment, loadRazorpayScript, getWalletAmount } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
 import { packages as defaultPackages } from "../mocks/data";
@@ -210,7 +210,7 @@ const mockLabAppointments = [
 
 export default function Labs({ forceModalOpen = false }) {
   const go = useNavigate();
-  const { setBookingType, setLabPackage, setDate, setSlot, setBookingId } = useBooking();
+  const { setBookingType, setLabPackage, setDate, setSlot, setBookingId, globalLocation } = useBooking();
   const { user, openLoginModal } = useAuth();
 
   const [q, setQ] = useState("");
@@ -219,6 +219,11 @@ export default function Labs({ forceModalOpen = false }) {
   const [visitType, setVisitType] = useState("home");
   const [showAllTests, setShowAllTests] = useState(false);
   const [showAllPackages, setShowAllPackages] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [applyWallet, setApplyWallet] = useState(false);
+  const [walletAppliedAmount, setWalletAppliedAmount] = useState(0);
+  const [loadingWallet, setLoadingWallet] = useState(false);
 
   // Dynamic state populated by APIs
   const [labTests, setLabTests] = useState(mockLabTests.slice(0, 8));
@@ -265,6 +270,8 @@ function toTitleCase(str) {
 
             return {
               id: t.id || t.service_key || `api-test-${idx}`,
+              service_key: t.service_key,
+              service_name: t.service_name || rawTitle,
               title: toTitleCase(rawTitle),
               category: rawCategory,
               department: rawCategory,
@@ -359,6 +366,48 @@ function toTitleCase(str) {
     return () => { isMounted = false; };
   }, []);
 
+  useEffect(() => {
+    if (!selectedItem || !user) return;
+    setLoadingWallet(true);
+    setApplyWallet(false);
+    setWalletAppliedAmount(0);
+    const patientId = user?.id || user?.user_id || user?.patient_id || "";
+    getWalletAmount(patientId)
+      .then((res) => {
+        let wData = Array.isArray(res) ? res[0] : res;
+        if (typeof wData === 'number' || typeof wData === 'string') {
+          setWalletBalance(parseFloat(wData) || 0);
+        } else if (wData && typeof wData === 'object') {
+          setWalletBalance(parseFloat(wData.total_amount || wData.balance || wData.amount || wData.wallet_balance || wData.wallet_amount || wData.walletBalance || wData.total || 0));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch wallet balance:", err);
+        setWalletBalance(0);
+      })
+      .finally(() => {
+        setLoadingWallet(false);
+      });
+  }, [selectedItem, user]);
+
+  const maxWalletApplicable = Math.min(walletBalance, selectedItem?.price || 0);
+
+  useEffect(() => {
+    if (applyWallet) {
+      setWalletAppliedAmount(maxWalletApplicable);
+    } else {
+      setWalletAppliedAmount(0);
+    }
+  }, [applyWallet, maxWalletApplicable]);
+
+  const handleWalletInputChange = (e) => {
+    let val = parseFloat(e.target.value);
+    if (isNaN(val)) val = 0;
+    if (val > maxWalletApplicable) val = maxWalletApplicable;
+    if (val < 0) val = 0;
+    setWalletAppliedAmount(val);
+  };
+
   const scrollContainer = (ref, direction) => {
     if (ref.current) {
       const scrollAmount = direction === "left" ? -320 : 320;
@@ -395,14 +444,132 @@ function toTitleCase(str) {
     });
   }, [healthPackages, q, selectedFilter]);
 
-  const confirmBooking = (slotData) => {
-    setBookingType("lab");
-    setLabPackage(selectedItem);
-    setDate(new Date(slotData.date));
-    setSlot(slotData.time);
-    if (!user) return openLoginModal("/confirmed");
-    setBookingId("LAB" + Math.floor(Math.random() * 100000000));
-    go("/confirmed");
+  const confirmBooking = async (slotData) => {
+    if (!user) {
+      openLoginModal("/confirmed");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const patient_id = user?.id || user?.user_id || user?.patient_id || "";
+      const entitylocation = globalLocation?.location_key || globalLocation?.entitylocation || globalLocation?.key || "location7";
+      const registrationdate = (() => {
+        const raw = user?.created_at || user?.registration_date || user?.registrationdate || new Date().toISOString();
+        const d = new Date(raw);
+        if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}${mm}${dd}`;
+      })();
+
+      const tests = [];
+      if (selectedItem?.subitems && Array.isArray(selectedItem.subitems) && selectedItem.subitems.length > 0) {
+        selectedItem.subitems.forEach(sub => {
+          tests.push({
+            key: sub.service_key || sub.id || sub.key,
+            Name: sub.service_name || sub.name || sub.title
+          });
+        });
+      } else {
+        tests.push({
+          key: selectedItem?.service_key || selectedItem?.id || selectedItem?.key,
+          Name: selectedItem?.service_name || selectedItem?.name || selectedItem?.title
+        });
+      }
+
+      const payload = {
+        entitykey: "secure-hospitals",
+        entitylocation: entitylocation,
+        patient_id: patient_id,
+        wallet_amount_used: applyWallet ? walletAppliedAmount : 0,
+        patientInfo: {
+          patientName: user?.name || "Guest",
+          mobileNumber: user?.mobile_number || user?.mobile || user?.phone || "",
+          registrationdate: registrationdate
+        },
+        drInfo: {
+          drKey: "sh-dummy",
+          drName: "Dummy",
+          drSpeciality: ["Paediatrician"]
+        },
+        tests: tests
+      };
+
+      const result = await createLabOrder(payload);
+
+      setBookingType("lab");
+      setLabPackage(selectedItem);
+      setDate(new Date(slotData.date));
+      setSlot(slotData.time);
+
+      const labPrice = selectedItem?.price || 0;
+      const amountToPay = labPrice - (applyWallet ? walletAppliedAmount : 0);
+
+      if (amountToPay <= 0) {
+        const bookingId = result.order_id || result.bookingId || result.razorpay_order_id || "LAB" + Math.floor(Math.random() * 100000000);
+        setBookingId(bookingId);
+        go("/confirmed");
+        return;
+      }
+
+      const res = await loadRazorpayScript();
+      if (!res) {
+        alert("Razorpay SDK failed to load. Are you offline?");
+        setSubmitting(false);
+        return;
+      }
+
+      const options = {
+        key: "rzp_test_Awy3RfMG9T9BYe",
+        amount: amountToPay * 100,
+        currency: "INR",
+        name: "Arvaya Healthcare",
+        description: "Lab Test Booking",
+        order_id: result.razorpay_order_id,
+        handler: async function (response) {
+          try {
+            await verifyLabPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              ...payload
+            });
+            const bookingId = result.razorpay_order_id || result.bookingId || result.order_id || "LAB" + Math.floor(Math.random() * 100000000);
+            setBookingId(bookingId);
+            go("/confirmed");
+          } catch (err) {
+            console.error("Payment verification failed", err);
+            alert("Payment verification failed. Please contact support.");
+            setSubmitting(false);
+          }
+        },
+        prefill: {
+          name: user?.name || "Guest",
+          contact: user?.mobile || user?.phone || "",
+        },
+        theme: {
+          color: "#2e666e",
+        },
+        modal: {
+          ondismiss: function() {
+            setSubmitting(false);
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (err) {
+      console.error("Lab booking failed:", err);
+      if (err.status === 409) {
+        alert(err.message || "Slot already booked");
+      } else {
+        alert("Booking failed. Please try again.");
+      }
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -1451,6 +1618,74 @@ function toTitleCase(str) {
           </div>
         )}
 
+        {!loadingWallet && walletBalance > 0 && (
+          <div style={{ marginBottom: "24px", background: '#ffffff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '50%' }}>
+                  <Wallet size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>Wallet Balance</h3>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Available to redeem</span>
+                </div>
+              </div>
+              <b style={{ color: '#16a34a', fontSize: '18px' }}>₹{walletBalance}</b>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+              <span style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '500' }}>Apply wallet balance</span>
+              <div 
+                onClick={() => { if(walletBalance > 0) setApplyWallet(!applyWallet) }}
+                style={{
+                  width: '40px',
+                  height: '22px',
+                  borderRadius: '11px',
+                  background: applyWallet ? '#114c54' : '#e5e7eb',
+                  position: 'relative',
+                  cursor: walletBalance > 0 ? 'pointer' : 'not-allowed',
+                  opacity: walletBalance > 0 ? 1 : 0.5,
+                  transition: 'background 0.3s'
+                }}
+              >
+                <div style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: '#fff',
+                  position: 'absolute',
+                  top: '2px',
+                  left: applyWallet ? '20px' : '2px',
+                  transition: 'left 0.3s',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }} />
+              </div>
+            </div>
+
+            {applyWallet && (
+              <div style={{ marginTop: '12px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: '600' }}>
+                  <span>₹</span>
+                  <input 
+                    type="number" 
+                    value={walletAppliedAmount} 
+                    onChange={handleWalletInputChange}
+                    style={{ background: 'transparent', border: 'none', outline: 'none', width: '80px', fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}
+                  />
+                </div>
+                <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>Max ₹{maxWalletApplicable}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {loadingWallet && (
+          <div style={{ marginBottom: "24px", textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
+            <div className="spinner" style={{ width: '20px', height: '20px', borderTopColor: 'var(--primary)', border: '2px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite', display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}></div>
+            Loading wallet balance...
+          </div>
+        )}
+
         <div style={{ marginBottom: "24px" }}>
           <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px" }}>
             Select Collection Preference
@@ -1495,7 +1730,7 @@ function toTitleCase(str) {
           </div>
         </div>
 
-        <SelectSlotUI onConfirm={confirmBooking} type="lab" />
+        <SelectSlotUI onConfirm={confirmBooking} type="lab" submitting={submitting} />
       </Modal>
 
     </main>

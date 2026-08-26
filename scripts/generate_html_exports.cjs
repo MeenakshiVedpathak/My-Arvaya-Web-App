@@ -183,10 +183,10 @@ function wrapHTML(title, content, activePage) {
 
 // 1. HOME PAGE (index.html)
 const homeContent = `
-  <div style="background: linear-gradient(90deg, #b91c1c, #dc2626); color: white; padding: 10px 0;">
+  <div style="background: linear-gradient(90deg, #0d5c63, #2E666E); color: white; padding: 10px 0;">
     <div class="container flex justify-between items-center" style="font-size: 14px; font-weight: 600;">
       <div>🚨 Medical Emergency? Call Ambulance Instantly</div>
-      <a href="ambulance.html" style="background: white; color: #dc2626; padding: 6px 16px; border-radius: 99px; font-size: 13px; font-weight: 800; text-decoration: none;">
+      <a href="ambulance.html" style="background: white; color: #2E666E; padding: 6px 16px; border-radius: 99px; font-size: 13px; font-weight: 800; text-decoration: none;">
         🚑 Call Ambulance
       </a>
     </div>

@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronDown, CalendarX2, Calendar } from "lucide-react";
 import { useState } from "react";
 
-export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
+export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submitting = false }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -118,12 +118,18 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor" }) {
       <div className="bottom-fixed-action" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
         <button
           className="btn btn-accent"
-          disabled={!selectedTime}
+          disabled={!selectedTime || submitting}
           onClick={() => onConfirm({ date: formatDateForDisplay(selectedDateObj), time: selectedTime })}
-          style={{ padding: '12px 24px', fontSize: '15px' }}
+          style={{ padding: '12px 24px', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
-          <Calendar size={18} style={{ marginRight: '8px' }} />
-          {type === "lab" ? "Confirm Schedule" : "Confirm Booking"}
+          {submitting ? (
+            <div className="spinner" style={{ width: '16px', height: '16px', borderTopColor: '#fff', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          ) : (
+            <>
+              <Calendar size={18} style={{ marginRight: '8px' }} />
+              {type === "lab" ? "Confirm Schedule" : "Confirm Booking"}
+            </>
+          )}
         </button>
       </div>
     </div>
