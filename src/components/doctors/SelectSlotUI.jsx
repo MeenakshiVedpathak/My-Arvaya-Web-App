@@ -91,6 +91,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
           </div>
         </div>
 
+        {type !== "lab" && (
         <div className="slots-section">
           <div className="section-title-row" style={{ justifyContent: "space-between", width: "100%" }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -112,6 +113,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
             ))}
           </div>
         </div>
+        )}
       </div>
 
       {/* Sticky Bottom Button */}
