@@ -39,15 +39,14 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
       )}
 
       <div className="slot-grid-layout">
+        {type !== "lab" && (
         <div className="date-selector-section">
-          {type !== "lab" && (
-            <div className="section-title-row">
-              <Calendar size={18} color="var(--primary)" />
-              <h4 className="step-prompt" style={{ margin: 0, color: 'var(--text-main)', fontSize: '15px' }}>
-                Select a Date
-              </h4>
-            </div>
-          )}
+          <div className="section-title-row">
+            <Calendar size={18} color="var(--primary)" />
+            <h4 className="step-prompt" style={{ margin: 0, color: 'var(--text-main)', fontSize: '15px' }}>
+              Select a Date
+            </h4>
+          </div>
 
           <div className="full-calendar-card">
             <div className="fc-header">
@@ -90,6 +89,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
             </div>
           </div>
         </div>
+        )}
 
         {type !== "lab" && (
         <div className="slots-section">

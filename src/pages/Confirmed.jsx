@@ -101,8 +101,8 @@ export default function Confirmed() {
           </p>
 
           <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
-            <button className="btn btn-primary" onClick={() => go("/")} style={{ padding: '16px', justifyContent: 'center', fontSize: '16px', height: '56px' }}>
-              Go to My Appointments
+            <button className="btn btn-primary" onClick={() => go(bookingType === 'lab' ? "/orders" : "/my-appointments")} style={{ padding: '16px', justifyContent: 'center', fontSize: '16px', height: '56px' }}>
+              {bookingType === 'lab' ? "My Orders" : "Go to My Appointments"}
             </button>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
               <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
