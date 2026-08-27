@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Edit2, Check, Shield, Camera, Plus, Trash2, ChevronRight, User, HeartPulse, FileText, Users, Loader2, X, Upload } from "lucide-react";
+import { Edit2, Check, Shield, Camera, Plus, Trash2, ChevronRight, User, HeartPulse, FileText, Users, Loader2, X, Upload, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-import { getPatients, getFamilyDetails, upsertFamilyDetails, updateAppUser } from "../services/dataService";
+import { getPatients, getFamilyDetails, upsertFamilyDetails, updateAppUser, getLocations } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
 
 function formatGender(g) {
@@ -13,6 +13,13 @@ function formatGender(g) {
   if (code === "M" || code.startsWith("MALE")) return "Male";
   if (code === "O" || code.startsWith("OTHER")) return "Other";
   return g;
+}
+
+function getLocationLabel(loc) {
+  if (!loc) return "Select Location";
+  return [loc.alt_name, loc.area, loc.street, loc.landmark, loc.zip, loc.city, loc.state]
+    .filter(Boolean)
+    .join(', ');
 }
 
 export default function Profile() {
@@ -40,8 +47,14 @@ export default function Profile() {
     height: "",
     profileImage: "",
     imageFile: null,
-    abhaNumber: ""
+    abhaNumber: "",
+    app_user_id:"",
+    entitylocation: ""
   });
+
+  const [locations, setLocations] = useState([]);
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const locationDropdownRef = useRef(null);
   
   const [profile, setProfile] = useState(() => ({
     name: (user?.name || user?.full_name || user?.fullName || "").replace(/\.\./g, "."),
@@ -104,12 +117,14 @@ export default function Profile() {
       profileImage: "",
       displayImage: "",
       imageFile: null,
-      abhaNumber: ""
+      abhaNumber: "",
+      entitylocation: ""
     });
     setIsMemberModalOpen(true);
   };
 
   const handleEditMember = (member) => {
+    // console.log(member)
     setEditingMemberId(member.family_detail_id || member.id);
     setMemberForm({
       name: member.name || "",
@@ -123,7 +138,9 @@ export default function Profile() {
       profileImage: member.profileImage || "",
       displayImage: member.displayImage || "",
       imageFile: null,
-      abhaNumber: member.abhaNumber || ""
+      abhaNumber: member.abhaNumber || "",
+      app_user_id: member.app_user_id || "",
+      entitylocation: member.entitylocation || ""
     });
     setIsMemberModalOpen(true);
   };
@@ -172,7 +189,9 @@ export default function Profile() {
             profileImage: rawImg,
             displayImage: resolvedDisplayImg,
             abhaNumber: item.abha_number || item.abhaNumber || "",
-            age: age !== undefined && age !== "" ? age : 25
+            age: age !== undefined && age !== "" ? age : 25,
+            isPrimary: !!item.isPrimary,
+            app_user_id: item.app_user_id
           };
         });
         setFamilyMembers(mapped);
@@ -212,7 +231,7 @@ export default function Profile() {
 
       const appUserId = user?.user_id || user?.id || user?.app_user_id || user?.userKey || 1;
       const payload = {
-        app_user_id: appUserId,
+        app_user_id:  memberForm.app_user_id ?? appUserId,
         name: memberForm.name.trim(),
         relation: memberForm.relation,
         dob: memberForm.dob,
@@ -224,6 +243,7 @@ export default function Profile() {
         height: memberForm.height,
         profile_image: finalImageUrl,
         abha_number: memberForm.abhaNumber,
+        entitylocation: memberForm.entitylocation,
         client_id: user?.client_id || 1
       };
 
@@ -250,7 +270,8 @@ export default function Profile() {
         height: "",
         profileImage: "",
         imageFile: null,
-        abhaNumber: ""
+        abhaNumber: "",
+        entitylocation: ""
       });
     } catch (err) {
       console.error("Failed to save family member:", err);
@@ -336,6 +357,47 @@ export default function Profile() {
     document.title = "Patient Profile | Arvaya Patient Portal";
     loadPatientProfile();
   }, [user]);
+
+  useEffect(() => {
+    async function fetchLocations() {
+      try {
+        const saved = localStorage.getItem("arvaya_location");
+        let defaultLoc = "";
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            defaultLoc = parsed?.entitylocation || parsed?.location_key || "";
+          } catch {}
+        }
+        const res = await getLocations(1, 100);
+        const allLocs = res?.list || [];
+        setLocations(allLocs);
+        if (!defaultLoc && allLocs.length > 0) {
+          defaultLoc = allLocs[0].entitylocation || "";
+        }
+        if (defaultLoc) {
+          setMemberForm(prev => ({ ...prev, entitylocation: defaultLoc }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch locations:", err);
+      }
+    }
+    fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(e.target)) {
+        setLocationDropdownOpen(false);
+      }
+    }
+    if (locationDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [locationDropdownOpen]);
 
   useEffect(() => {
     if (isMemberModalOpen) {
@@ -861,8 +923,14 @@ export default function Profile() {
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <button className="btn btn-ghost" onClick={() => handleEditMember(member)} style={{ padding: '8px', color: 'var(--text-muted)' }} title="Edit Member"><Edit2 size={16} /></button>
-                          <button className="btn btn-ghost" onClick={() => setFamilyMembers(prev => prev.filter(m => m.id !== member.id))} style={{ padding: '8px', color: 'var(--danger, #dc2626)' }} title="Delete Member"><Trash2 size={16} /></button>
+                          {member.isPrimary ? (
+                            <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>● Primary Account</span>
+                          ) : (
+                            <>
+                              <button className="btn btn-ghost" onClick={() => handleEditMember(member)} style={{ padding: '8px', color: 'var(--text-muted)' }} title="Edit Member"><Edit2 size={16} /></button>
+                              <button className="btn btn-ghost" onClick={() => setFamilyMembers(prev => prev.filter(m => m.id !== member.id))} style={{ padding: '8px', color: 'var(--danger, #dc2626)' }} title="Delete Member"><Trash2 size={16} /></button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -1013,10 +1081,86 @@ export default function Profile() {
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>ABHA Number / Address</label>
                     <input name="abhaNumber" value={memberForm.abhaNumber} onChange={handleMemberFormChange} placeholder="E.g., 919876543210@sbx" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
-                  </div>
-                </div>
+                   </div>
+                 </div>
 
-              </div>
+                  {/* Row 5: Entity Location */}
+                  <div className="flex flex-col gap-0.5">
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Entity Location</label>
+                    <div ref={locationDropdownRef} style={{ position: 'relative' }}>
+                      <div
+                        onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          border: '1.5px solid var(--border)', borderRadius: '12px', padding: '6px 10px',
+                          background: '#fff', cursor: 'pointer',
+                          width: '100%', boxSizing: 'border-box',
+                          transition: 'all 0.2s', minHeight: '38px'
+                        }}
+                      >
+                        <div style={{
+                          flex: 1, fontSize: '13px', fontWeight: '600',
+                          color: memberForm.entitylocation ? 'var(--text-main)' : '#9ca3af',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                        }}>
+                          {memberForm.entitylocation
+                            ? (getLocationLabel(locations.find(l => l.entitylocation === memberForm.entitylocation)) || memberForm.entitylocation)
+                            : "Select Location"}
+                        </div>
+                        <ChevronDown size={14} color="var(--text-muted)" style={{ flexShrink: 0, transition: 'transform 0.2s', transform: locationDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                      </div>
+
+                      {locationDropdownOpen && (
+                        <div style={{
+                          position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                          background: '#fff', borderRadius: '12px', border: '1px solid var(--border)',
+                          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                          maxHeight: '220px', overflowY: 'auto', zIndex: 50, padding: '6px',
+                          display: 'flex', flexDirection: 'column', gap: '4px'
+                        }}>
+                          {locations.length === 0 ? (
+                            <div style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>Loading locations...</div>
+                          ) : (
+                            locations.map(loc => {
+                              const isSelected = memberForm.entitylocation === loc.entitylocation;
+                              return (
+                                <button
+                                  key={loc.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setMemberForm(prev => ({ ...prev, entitylocation: loc.entitylocation || "" }));
+                                    setLocationDropdownOpen(false);
+                                  }}
+                                  style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: '8px',
+                                    padding: '10px 12px', borderRadius: '8px', border: 'none',
+                                    background: isSelected ? 'var(--primary-light)' : 'transparent',
+                                    cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                                    width: '100%'
+                                  }}
+                                  onMouseEnter={(e) => !isSelected && (e.currentTarget.style.background = '#f8fafc')}
+                                  onMouseLeave={(e) => !isSelected && (e.currentTarget.style.background = 'transparent')}
+                                >
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{
+                                      fontSize: '13px', fontWeight: isSelected ? '700' : '600',
+                                      color: isSelected ? 'var(--primary-dark)' : 'var(--text-main)',
+                                      lineHeight: '1.4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                                    }}>
+                                      {getLocationLabel(loc) || loc.entitylocation || "Location"}
+                                    </div>
+                                  </div>
+                                  {isSelected && <Check size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+               </div>
 
               {/* Form Footer Actions */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>

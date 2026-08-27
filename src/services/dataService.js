@@ -60,13 +60,19 @@ export async function getFamilyDetails(filters = {}) {
     const clientId = filters.client_id || 1;
 
     const payload = {
-      app_user_id: appUserId,
-      client_id: clientId,
-      filter: filters.filter || ` AND app_user_id = ${appUserId}`,
-      ...filters
+      user_id: appUserId,
     };
     const res = await api.post("/api/familyDetails/get", payload);
-    return res?.data || res?.list || res?.result || res?.familyDetails || res || [];
+    const data = res?.data || res?.list || res?.result || res?.familyDetails || [];
+    const primaryAccount = res?.primary_account;
+
+    const list = Array.isArray(data) ? data.slice() : [];
+
+    if (primaryAccount) {
+      list.unshift({ ...primaryAccount, isPrimary: true });
+    }
+
+    return list;
   } catch (err) {
     console.error("getFamilyDetails error:", err);
     return [];
