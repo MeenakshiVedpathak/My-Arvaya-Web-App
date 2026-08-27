@@ -96,12 +96,6 @@ export async function sendOtp(mobile, clientId) {
 export async function verifyOtp(otp, mobile, options = {}) {
   if (USE_MOCK) {
     await new Promise(r => setTimeout(r, 600));
-    if (options?.external_id !== undefined) {
-      return {
-        token: "mock_token_" + Date.now(),
-        user: { ...MOCK_USER, phone: mobile ? `+91 ${mobile}` : MOCK_USER.phone, external_id: options.external_id }
-      };
-    }
     return {
       token: "mock_token_" + Date.now(),
       user: { ...MOCK_USER, phone: mobile ? `+91 ${mobile}` : MOCK_USER.phone }
@@ -117,7 +111,6 @@ export async function verifyOtp(otp, mobile, options = {}) {
     client_id: clientId || getClientId(),
     cloud_id: cloudId,
     referred_by_code: referredByCode,
-    ...(options?.external_id !== undefined ? { external_id: options.external_id } : {})
   };
 
   const res = await api.post("/user/verifyOtp", payload);
@@ -154,6 +147,34 @@ export async function verifyOtp(otp, mobile, options = {}) {
     ...res
   };
 }
+
+/* ─── Select Profile ─── */
+export async function selectProfile(data) {
+  if (USE_MOCK) {
+    return {
+      code: 200,
+      message: "SUCCESS",
+      UserData: {
+        id: data.user_id,
+        external_id: data.external_id,
+        mobile_number: data.mobile_number,
+      }
+    };
+  }
+  const payload = {
+    user_id: data.user_id,
+    mobile_number: data.mobile_number || data.phone || "",
+    is_notification_on: data.is_notification_on !== undefined ? data.is_notification_on : 1,
+    cloud_id: data.cloud_id || getCloudId(),
+    device_id: data.device_id || getDeviceId(),
+    external_id: data.external_id !== undefined ? data.external_id : "",
+    referred_by_code: data.referred_by_code !== undefined ? data.referred_by_code : (getReferredByCode() || null),
+  };
+
+  const res = await api.post("/user/selectProfile", payload);
+  return res;
+}
+
 
 /* ─── Forgot Password ─── */
 export async function forgotPassword(email) {

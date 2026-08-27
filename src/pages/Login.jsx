@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check, ChevronUp, ChevronDown } from "lucide-react";
-import { sendOtp, verifyOtp, getCloudId, getDeviceId } from "../services/authService";
+import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { sendOtp, verifyOtp, getCloudId, getDeviceId, selectProfile } from "../services/authService";
 import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaVerifyUser, abhaSendCreationOtp, abhaCreateByAadhaar, abhaGetSuggestions } from "../services/abhaService";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -13,6 +13,12 @@ export default function Login({ forceOpen = false }) {
   const [isAbhaFlow, setIsAbhaFlow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  // Multiple Profiles state
+  const [profilesData, setProfilesData] = useState([]);
+  const [selectedProfileId, setSelectedProfileId] = useState(null);
+  const [uhidInputs, setUhidInputs] = useState({});
+  const [verifyOtpRawRes, setVerifyOtpRawRes] = useState(null);
 
   useEffect(() => {
     if (location.state?.screen) {
@@ -29,27 +35,21 @@ export default function Login({ forceOpen = false }) {
   const [abhaTransactionId, setAbhaTransactionId] = useState("");
   const [abhaVerifyData, setAbhaVerifyData] = useState(null);
 
-  // Multiple Profiles state
-  const [savedOtp, setSavedOtp] = useState("");
-  const [profilesList, setProfilesList] = useState([]);
-  const [activeFlow, setActiveFlow] = useState("mobile"); // "mobile" or "abha"
-  const [savedAbhaData, setSavedAbhaData] = useState(null);
-
   const go = useNavigate();
 
   const handleClose = () => {
     setScreen("landing");
     setPhone("");
     setErr("");
-    setSavedOtp("");
-    setProfilesList([]);
-    setActiveFlow("mobile");
-    setSavedAbhaData(null);
     setAbhaMobile("");
     setAbhaAddresses([]);
     setSelectedAbhaAddress("");
     setAbhaTransactionId("");
     setAbhaVerifyData(null);
+    setProfilesData([]);
+    setSelectedProfileId(null);
+    setUhidInputs({});
+    setVerifyOtpRawRes(null);
     closeLoginModal();
     go(-1);
   };
@@ -71,12 +71,10 @@ export default function Login({ forceOpen = false }) {
     } finally { setBusy(false); }
   };
 
-  const doVerify = async (otp, extraOptions = {}) => {
+  const doVerify = async (otp) => {
     setErr(""); setBusy(true);
-    if (otp) setSavedOtp(otp);
-    const otpToUse = otp || savedOtp;
     try {
-      const res = await verifyOtp(otpToUse, phone, extraOptions);
+      const res = await verifyOtp(otp, phone);
       const userData = res?.UserData || res?.userData || res?.data || res?.result || {};
       const rawNewUser = userData?.is_new_user !== undefined
         ? userData.is_new_user
@@ -98,27 +96,26 @@ export default function Login({ forceOpen = false }) {
         return;
       }
 
-      // Check if multiple_profiles is 1
-      const rawMultipleProfiles = userData?.multiple_profiles !== undefined
-        ? userData.multiple_profiles
-        : res?.multiple_profiles !== undefined
-          ? res.multiple_profiles
-          : res?.UserData?.multiple_profiles;
+      // Check if multiple_profiles === 1
+      const rawMultProfiles = userData?.multiple_profiles !== undefined ? userData.multiple_profiles : res?.multiple_profiles;
+      const isMultipleProfiles = rawMultProfiles === 1 || rawMultProfiles === "1" || rawMultProfiles === true;
 
-      const hasMultipleProfiles = (rawMultipleProfiles === 1 || rawMultipleProfiles === "1" || rawMultipleProfiles === true)
-        && Array.isArray(userData?.profiles || res?.profiles || res?.UserData?.profiles)
-        && (userData?.profiles || res?.profiles || res?.UserData?.profiles).length > 0;
+      if (isMultipleProfiles && Array.isArray(userData?.profiles) && userData.profiles.length > 0) {
+        setVerifyOtpRawRes(res);
+        setProfilesData(userData.profiles);
+        const primary = userData.profiles.find(p => !p.parent_account_id || p.relation === null) || userData.profiles[0];
+        setSelectedProfileId(primary?.id || userData.profiles[0].id);
 
-      if (hasMultipleProfiles && extraOptions?.external_id === undefined) {
-        const profs = userData?.profiles || res?.profiles || res?.UserData?.profiles || [];
-        setProfilesList(profs);
-        setActiveFlow("mobile");
+        const initialUhids = {};
+        userData.profiles.forEach(p => {
+          initialUhids[p.id] = "";
+        });
+        setUhidInputs(initialUhids);
         setScreen("choose_profile");
-        setBusy(false);
         return;
       }
 
-      // If is_new_user is 0 (existing user), login directly
+      // If is_new_user is 0 (existing user) and single profile, login directly
       const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || "token_" + Date.now();
       let rawUser = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result;
       if (!rawUser || typeof rawUser !== "object") {
@@ -152,6 +149,56 @@ export default function Login({ forceOpen = false }) {
       go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
     } catch (e) { setErr(e.message || "Invalid OTP"); }
     finally { setBusy(false); }
+  };
+
+  /* ── Select Profile Continue Handler ── */
+  const handleSelectProfileContinue = async (profile) => {
+    setErr(""); setBusy(true);
+    try {
+      const enteredUhid = uhidInputs[profile.id] !== undefined ? uhidInputs[profile.id] : "";
+      const rawUserMobile = verifyOtpRawRes?.UserData?.mobile_number || phone;
+      const selectPayload = {
+        user_id: profile.id,
+        mobile_number: rawUserMobile,
+        is_notification_on: 1,
+        cloud_id: getCloudId(),
+        device_id: getDeviceId(),
+        external_id: enteredUhid,
+        referred_by_code: null
+      };
+
+      const selectRes = await selectProfile(selectPayload);
+
+      const token = selectRes?.token || selectRes?.accessToken || verifyOtpRawRes?.token || verifyOtpRawRes?.accessToken || verifyOtpRawRes?.UserData?.token || "token_" + Date.now();
+      const rawUser = verifyOtpRawRes?.UserData || verifyOtpRawRes?.userData || verifyOtpRawRes?.user || {};
+
+      let derivedName = profile?.name || selectRes?.UserData?.name || rawUser?.name || "User";
+      derivedName = derivedName.replace(/\.\./g, ".");
+
+      const user = {
+        ...rawUser,
+        ...selectRes?.UserData,
+        ...profile,
+        id: profile.id,
+        user_id: profile.id,
+        app_user_id: profile.id,
+        name: derivedName,
+        external_id: enteredUhid || profile.external_id || selectRes?.UserData?.external_id || null,
+        phone: rawUserMobile || phone,
+        mobile_number: rawUserMobile || phone
+      };
+
+      saveSession({ token, user, loginMethod: "user_verify_otp" });
+      setScreen("landing");
+      setPhone("");
+      setErr("");
+      closeLoginModal();
+      go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
+    } catch (e) {
+      setErr(e.message || "Failed to select profile");
+    } finally {
+      setBusy(false);
+    }
   };
 
   /* ── ABHA 3-Step Flow ── */
@@ -194,9 +241,8 @@ export default function Login({ forceOpen = false }) {
     finally { setBusy(false); }
   };
 
-  const doAbhaConfirm = async (address, dob, extraData = {}) => {
+  const doAbhaConfirm = async (address, dob) => {
     setErr(""); setBusy(true);
-    setSavedAbhaData({ address, dob });
     try {
       const userObj = abhaVerifyData?.users?.[0] || abhaVerifyData?.data?.users?.[0] || abhaVerifyData?.user || {};
       const tokenVal = abhaVerifyData?.tokens?.token || abhaVerifyData?.token || abhaVerifyData?.accessToken || abhaVerifyData?.data?.token || "";
@@ -213,31 +259,10 @@ export default function Login({ forceOpen = false }) {
         abha_type: "sbx",
         abha_status: "active",
         gender: userObj?.gender || abhaVerifyData?.gender || "",
-        date_of_birth: dob,
-        ...extraData
+        date_of_birth: dob
       };
 
       const res = await abhaVerifyUser(payload);
-      const userData = res?.UserData || res?.userData || res?.data || res?.result || {};
-      const rawMultipleProfiles = userData?.multiple_profiles !== undefined
-        ? userData.multiple_profiles
-        : res?.multiple_profiles !== undefined
-          ? res.multiple_profiles
-          : res?.UserData?.multiple_profiles;
-
-      const hasMultipleProfiles = (rawMultipleProfiles === 1 || rawMultipleProfiles === "1" || rawMultipleProfiles === true)
-        && Array.isArray(userData?.profiles || res?.profiles || res?.UserData?.profiles)
-        && (userData?.profiles || res?.profiles || res?.UserData?.profiles).length > 0;
-
-      if (hasMultipleProfiles && extraData?.external_id === undefined) {
-        const profs = userData?.profiles || res?.profiles || res?.UserData?.profiles || [];
-        setProfilesList(profs);
-        setActiveFlow("abha");
-        setScreen("choose_profile");
-        setBusy(false);
-        return;
-      }
-
       const abhaResponseToken = res?.UserData?.response?.refreshToken;
       const newtoken = res?.token;
       const userId = res?.UserData?.user_id || res?.user_id || res?.user?.id || res?.user?.user_id;
@@ -284,16 +309,13 @@ export default function Login({ forceOpen = false }) {
     case "choose_profile":
       card = (
         <ChooseProfile
-          profiles={profilesList}
-          onBack={() => setScreen(activeFlow === "abha" ? "abha_address" : "otp")}
-          onContinue={(profile, uhid) => {
-            const externalIdToSend = uhid !== undefined && uhid !== "" ? uhid : (profile.external_id || "");
-            if (activeFlow === "abha" && savedAbhaData) {
-              doAbhaConfirm(savedAbhaData.address, savedAbhaData.dob, { external_id: externalIdToSend });
-            } else {
-              doVerify(savedOtp, { external_id: externalIdToSend });
-            }
-          }}
+          profiles={profilesData}
+          selectedProfileId={selectedProfileId}
+          onSelectProfile={setSelectedProfileId}
+          uhidInputs={uhidInputs}
+          onUhidChange={(id, val) => setUhidInputs(prev => ({ ...prev, [id]: val }))}
+          onContinue={handleSelectProfileContinue}
+          onBack={() => setScreen("otp")}
           {...p}
         />
       );
@@ -1632,78 +1654,58 @@ function DobPicker({ value, onChange, error, compact = false }) {
 }
 
 /* ═══════════════════════════════════════
-   CHOOSE PROFILE (Multiple Profiles Selection)
+   CHOOSE PROFILE (Multiple Profiles Selection UI)
    ═══════════════════════════════════════ */
-function ChooseProfile({ profiles = [], onContinue, busy, err }) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [uhid, setUhid] = useState(() => {
-    return profiles[0]?.external_id || "";
-  });
-
-  const handleSelectProfile = (idx) => {
-    setSelectedIndex(idx);
-    setUhid(profiles[idx]?.external_id || "");
-  };
-
+function ChooseProfile({ profiles = [], selectedProfileId, onSelectProfile, uhidInputs, onUhidChange, onContinue, onBack, busy, err }) {
   const getInitials = (name) => {
     if (!name) return "U";
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    const cleanParts = parts.filter(p => !["mr", "mrs", "ms", "dr", "prof"].includes(p.toLowerCase().replace(/\./g, "")));
-    if (cleanParts.length >= 2) {
-      return (cleanParts[0][0] + cleanParts[cleanParts.length - 1][0]).toUpperCase();
-    } else if (cleanParts.length === 1) {
-      return cleanParts[0][0].toUpperCase();
+    const cleaned = name.trim().replace(/^(Mr\.|Mrs\.|Ms\.|Dr\.)\s+/i, "");
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
-    return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+    return (parts[0] ? parts[0][0] : "U").toUpperCase();
   };
 
-  const selectedProfile = profiles[selectedIndex] || profiles[0] || {};
-
   return (
-    <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-      {/* Top drag handle line */}
-      <div style={{
-        width: '36px', height: '4px', background: '#d1d5db',
-        borderRadius: '2px', margin: '0 auto 16px'
-      }} />
+    <div style={{ animation: 'fadeIn 0.35s ease-in-out', width: '100%' }}>
+      {/* Top drag bar visual */}
+      <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '0 auto 16px' }} />
 
-      {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
           Choose a Profile
         </h3>
-        <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+        <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
           Select the profile you want to access.
         </p>
       </div>
 
       {err && <ErrorBox msg={err} />}
 
-      {/* List of profiles */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-        {profiles.map((prof, idx) => {
-          const isSelected = selectedIndex === idx;
-          const isPrimary = !prof.relation || prof.relation === "" || !prof.parent_account_id;
-          const initials = getInitials(prof.name);
-          const avatarBg = isPrimary ? '#1a6e70' : '#e88836';
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+        {profiles.map((p) => {
+          const isSelected = p.id === selectedProfileId;
+          const isPrimary = !p.relation && (!p.parent_account_id || p.parent_account_id === p.id);
+          const initials = getInitials(p.name);
+          const currentUhid = uhidInputs[p.id] !== undefined ? uhidInputs[p.id] : "";
 
           return (
             <div
-              key={prof.id || idx}
+              key={p.id}
               style={{
+                border: isSelected ? '2px solid #1b6b72' : '1.5px solid var(--border)',
                 borderRadius: '16px',
-                border: isSelected ? '1.5px solid #1a6e70' : '1.5px solid #e2e8f0',
-                background: '#fff',
-                overflow: 'hidden',
-                transition: 'all 0.2s ease-in-out',
-                boxShadow: isSelected ? '0 4px 16px rgba(26, 110, 112, 0.08)' : 'none'
+                background: '#ffffff',
+                padding: '16px',
+                transition: 'all 0.25s ease',
+                boxShadow: isSelected ? '0 4px 16px rgba(27, 107, 114, 0.08)' : 'none'
               }}
             >
-              {/* Card Header row */}
+              {/* Card Top Row - Clickable */}
               <div
-                onClick={() => handleSelectProfile(idx)}
+                onClick={() => onSelectProfile(p.id)}
                 style={{
-                  padding: '16px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -1711,103 +1713,142 @@ function ChooseProfile({ profiles = [], onContinue, busy, err }) {
                   userSelect: 'none'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {/* Circle Avatar */}
-                  <div style={{
-                    width: '46px', height: '46px', borderRadius: '50%',
-                    background: prof.profile_image ? 'transparent' : avatarBg,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', fontWeight: '700', fontSize: '16px', flexShrink: 0,
-                    overflow: 'hidden'
-                  }}>
-                    {prof.profile_image ? (
-                      <img src={prof.profile_image} alt={prof.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      initials
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  {/* Avatar Circle */}
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: isPrimary ? '#1b6b72' : '#ea580c',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      lineHeight: '1',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      overflow: 'hidden',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', textAlign: 'center', lineHeight: '1', margin: 0, padding: 0 }}>
+                      {initials}
+                    </span>
                   </div>
 
-                  {/* Profile info */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                      {prof.name}
+                  {/* Name and Relation Badge */}
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', lineHeight: '1.2' }}>
+                      {p.name}
                     </div>
-                    <div>
+                    <div style={{ marginTop: '4px' }}>
                       {isPrimary ? (
-                        <span style={{
-                          background: '#e6f4f1', color: '#1a6e70',
-                          fontSize: '11px', fontWeight: '600',
-                          padding: '3px 10px', borderRadius: '99px',
-                          display: 'inline-block'
-                        }}>
+                        <span
+                          style={{
+                            background: '#e0f2f1',
+                            color: '#1b6b72',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            padding: '3px 10px',
+                            borderRadius: '12px',
+                            display: 'inline-block'
+                          }}
+                        >
                           Primary Account
                         </span>
                       ) : (
-                        <span style={{
-                          background: '#fff3e0', color: '#e88836',
-                          fontSize: '11px', fontWeight: '600',
-                          padding: '3px 10px', borderRadius: '99px',
-                          display: 'inline-block'
-                        }}>
-                          {prof.relation}
+                        <span
+                          style={{
+                            background: '#ffedd5',
+                            color: '#c2410c',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            padding: '3px 10px',
+                            borderRadius: '12px',
+                            display: 'inline-block'
+                          }}
+                        >
+                          {p.relation || "Member"}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Chevron icon */}
-                <div style={{ color: isSelected ? '#64748b' : '#94a3b8' }}>
+                {/* Accordion Chevron */}
+                <div style={{ color: isSelected ? '#1b6b72' : '#94a3b8', display: 'flex', alignItems: 'center' }}>
                   {isSelected ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
               </div>
 
-              {/* Expanded Card Body */}
+              {/* Card Expanded Content */}
               {isSelected && (
-                <div style={{ padding: '0 16px 16px 16px', animation: 'fadeIn 0.2s ease-in-out' }}>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: '#64748b', marginBottom: '6px' }}>
-                      UHID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter UHID to continue"
-                      value={uhid}
-                      onChange={(e) => setUhid(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        borderRadius: '10px',
-                        border: '1.5px solid #d1d5db',
-                        fontSize: '14.5px',
-                        color: 'var(--text-main)',
-                        outline: 'none',
-                        background: '#fff',
-                        boxSizing: 'border-box'
-                      }}
-                      onFocus={e => e.target.style.borderColor = 'var(--primary)'}
-                      onBlur={e => e.target.style.borderColor = '#d1d5db'}
-                    />
-                  </div>
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      color: '#475569',
+                      marginBottom: '6px',
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    UHID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter UHID to continue"
+                    value={currentUhid}
+                    onChange={(e) => onUhidChange(p.id, e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '10px',
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: '15px',
+                      color: 'var(--text-main)',
+                      background: '#ffffff',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#1b6b72';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(27,107,114,0.12)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#cbd5e1';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
 
                   <button
                     disabled={busy}
-                    onClick={() => onContinue(selectedProfile, uhid)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onContinue(p);
+                    }}
                     style={{
                       width: '100%',
-                      padding: '14px',
-                      borderRadius: '12px',
-                      background: busy ? 'var(--border)' : '#f28538',
+                      marginTop: '16px',
+                      background: busy ? '#cbd5e1' : 'linear-gradient(135deg, #f97316, #ea580c)',
                       color: '#ffffff',
                       border: 'none',
+                      padding: '15px',
+                      borderRadius: '12px',
                       fontSize: '15px',
                       fontWeight: '700',
                       cursor: busy ? 'not-allowed' : 'pointer',
-                      boxShadow: busy ? 'none' : '0 4px 14px rgba(242, 133, 56, 0.35)',
-                      transition: 'all 0.2s'
+                      boxShadow: busy ? 'none' : '0 4px 14px rgba(249, 115, 22, 0.35)',
+                      transition: 'all 0.25s ease'
                     }}
                   >
-                    {busy ? "Verifying..." : "Continue"}
+                    {busy ? "Continuing..." : "Continue"}
                   </button>
                 </div>
               )}
@@ -1818,3 +1859,4 @@ function ChooseProfile({ profiles = [], onContinue, busy, err }) {
     </div>
   );
 }
+
