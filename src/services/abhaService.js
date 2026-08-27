@@ -53,7 +53,8 @@ export async function abhaVerifyUser(data) {
     abha_type: "sbx",
     abha_status: "active",
     gender: data.gender || "",
-    date_of_birth: data.date_of_birth || ""
+    date_of_birth: data.date_of_birth || "",
+    ...(data.external_id !== undefined ? { external_id: data.external_id } : {})
   };
   return api.post("/login/verifyUser", payload);
 }

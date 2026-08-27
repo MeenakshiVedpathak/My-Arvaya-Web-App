@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check } from "lucide-react";
+import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check, ChevronUp, ChevronDown } from "lucide-react";
 import { sendOtp, verifyOtp, getCloudId, getDeviceId } from "../services/authService";
 import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaVerifyUser, abhaSendCreationOtp, abhaCreateByAadhaar, abhaGetSuggestions } from "../services/abhaService";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -29,12 +29,22 @@ export default function Login({ forceOpen = false }) {
   const [abhaTransactionId, setAbhaTransactionId] = useState("");
   const [abhaVerifyData, setAbhaVerifyData] = useState(null);
 
+  // Multiple Profiles state
+  const [savedOtp, setSavedOtp] = useState("");
+  const [profilesList, setProfilesList] = useState([]);
+  const [activeFlow, setActiveFlow] = useState("mobile"); // "mobile" or "abha"
+  const [savedAbhaData, setSavedAbhaData] = useState(null);
+
   const go = useNavigate();
 
   const handleClose = () => {
     setScreen("landing");
     setPhone("");
     setErr("");
+    setSavedOtp("");
+    setProfilesList([]);
+    setActiveFlow("mobile");
+    setSavedAbhaData(null);
     setAbhaMobile("");
     setAbhaAddresses([]);
     setSelectedAbhaAddress("");
@@ -61,10 +71,12 @@ export default function Login({ forceOpen = false }) {
     } finally { setBusy(false); }
   };
 
-  const doVerify = async (otp) => {
+  const doVerify = async (otp, extraOptions = {}) => {
     setErr(""); setBusy(true);
+    if (otp) setSavedOtp(otp);
+    const otpToUse = otp || savedOtp;
     try {
-      const res = await verifyOtp(otp, phone);
+      const res = await verifyOtp(otpToUse, phone, extraOptions);
       const userData = res?.UserData || res?.userData || res?.data || res?.result || {};
       const rawNewUser = userData?.is_new_user !== undefined
         ? userData.is_new_user
@@ -83,6 +95,26 @@ export default function Login({ forceOpen = false }) {
         setErr("");
         closeLoginModal();
         go(`/signup?phone=${phone}`, { state: { from: location.state?.from || location.state?.redirectPath || pendingRedirect } });
+        return;
+      }
+
+      // Check if multiple_profiles is 1
+      const rawMultipleProfiles = userData?.multiple_profiles !== undefined
+        ? userData.multiple_profiles
+        : res?.multiple_profiles !== undefined
+          ? res.multiple_profiles
+          : res?.UserData?.multiple_profiles;
+
+      const hasMultipleProfiles = (rawMultipleProfiles === 1 || rawMultipleProfiles === "1" || rawMultipleProfiles === true)
+        && Array.isArray(userData?.profiles || res?.profiles || res?.UserData?.profiles)
+        && (userData?.profiles || res?.profiles || res?.UserData?.profiles).length > 0;
+
+      if (hasMultipleProfiles && extraOptions?.external_id === undefined) {
+        const profs = userData?.profiles || res?.profiles || res?.UserData?.profiles || [];
+        setProfilesList(profs);
+        setActiveFlow("mobile");
+        setScreen("choose_profile");
+        setBusy(false);
         return;
       }
 
@@ -162,8 +194,9 @@ export default function Login({ forceOpen = false }) {
     finally { setBusy(false); }
   };
 
-  const doAbhaConfirm = async (address, dob) => {
+  const doAbhaConfirm = async (address, dob, extraData = {}) => {
     setErr(""); setBusy(true);
+    setSavedAbhaData({ address, dob });
     try {
       const userObj = abhaVerifyData?.users?.[0] || abhaVerifyData?.data?.users?.[0] || abhaVerifyData?.user || {};
       const tokenVal = abhaVerifyData?.tokens?.token || abhaVerifyData?.token || abhaVerifyData?.accessToken || abhaVerifyData?.data?.token || "";
@@ -180,10 +213,31 @@ export default function Login({ forceOpen = false }) {
         abha_type: "sbx",
         abha_status: "active",
         gender: userObj?.gender || abhaVerifyData?.gender || "",
-        date_of_birth: dob
+        date_of_birth: dob,
+        ...extraData
       };
 
       const res = await abhaVerifyUser(payload);
+      const userData = res?.UserData || res?.userData || res?.data || res?.result || {};
+      const rawMultipleProfiles = userData?.multiple_profiles !== undefined
+        ? userData.multiple_profiles
+        : res?.multiple_profiles !== undefined
+          ? res.multiple_profiles
+          : res?.UserData?.multiple_profiles;
+
+      const hasMultipleProfiles = (rawMultipleProfiles === 1 || rawMultipleProfiles === "1" || rawMultipleProfiles === true)
+        && Array.isArray(userData?.profiles || res?.profiles || res?.UserData?.profiles)
+        && (userData?.profiles || res?.profiles || res?.UserData?.profiles).length > 0;
+
+      if (hasMultipleProfiles && extraData?.external_id === undefined) {
+        const profs = userData?.profiles || res?.profiles || res?.UserData?.profiles || [];
+        setProfilesList(profs);
+        setActiveFlow("abha");
+        setScreen("choose_profile");
+        setBusy(false);
+        return;
+      }
+
       const abhaResponseToken = res?.UserData?.response?.refreshToken;
       const newtoken = res?.token;
       const userId = res?.UserData?.user_id || res?.user_id || res?.user?.id || res?.user?.user_id;
@@ -226,6 +280,23 @@ export default function Login({ forceOpen = false }) {
       break;
     case "otp":
       card = <Otp phone={phone} onBack={() => setScreen("mobile")} onVerify={doVerify} onResend={() => doSendOtp(phone)} {...p} />;
+      break;
+    case "choose_profile":
+      card = (
+        <ChooseProfile
+          profiles={profilesList}
+          onBack={() => setScreen(activeFlow === "abha" ? "abha_address" : "otp")}
+          onContinue={(profile, uhid) => {
+            const externalIdToSend = uhid !== undefined && uhid !== "" ? uhid : (profile.external_id || "");
+            if (activeFlow === "abha" && savedAbhaData) {
+              doAbhaConfirm(savedAbhaData.address, savedAbhaData.dob, { external_id: externalIdToSend });
+            } else {
+              doVerify(savedOtp, { external_id: externalIdToSend });
+            }
+          }}
+          {...p}
+        />
+      );
       break;
     // ── ABHA Login 3-step ──
     case "abha_mobile":
@@ -1556,6 +1627,194 @@ function DobPicker({ value, onChange, error, compact = false }) {
           {view === 'years' && renderYearsView()}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   CHOOSE PROFILE (Multiple Profiles Selection)
+   ═══════════════════════════════════════ */
+function ChooseProfile({ profiles = [], onContinue, busy, err }) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [uhid, setUhid] = useState(() => {
+    return profiles[0]?.external_id || "";
+  });
+
+  const handleSelectProfile = (idx) => {
+    setSelectedIndex(idx);
+    setUhid(profiles[idx]?.external_id || "");
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    const cleanParts = parts.filter(p => !["mr", "mrs", "ms", "dr", "prof"].includes(p.toLowerCase().replace(/\./g, "")));
+    if (cleanParts.length >= 2) {
+      return (cleanParts[0][0] + cleanParts[cleanParts.length - 1][0]).toUpperCase();
+    } else if (cleanParts.length === 1) {
+      return cleanParts[0][0].toUpperCase();
+    }
+    return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+  };
+
+  const selectedProfile = profiles[selectedIndex] || profiles[0] || {};
+
+  return (
+    <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+      {/* Top drag handle line */}
+      <div style={{
+        width: '36px', height: '4px', background: '#d1d5db',
+        borderRadius: '2px', margin: '0 auto 16px'
+      }} />
+
+      {/* Header */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
+          Choose a Profile
+        </h3>
+        <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+          Select the profile you want to access.
+        </p>
+      </div>
+
+      {err && <ErrorBox msg={err} />}
+
+      {/* List of profiles */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+        {profiles.map((prof, idx) => {
+          const isSelected = selectedIndex === idx;
+          const isPrimary = !prof.relation || prof.relation === "" || !prof.parent_account_id;
+          const initials = getInitials(prof.name);
+          const avatarBg = isPrimary ? '#1a6e70' : '#e88836';
+
+          return (
+            <div
+              key={prof.id || idx}
+              style={{
+                borderRadius: '16px',
+                border: isSelected ? '1.5px solid #1a6e70' : '1.5px solid #e2e8f0',
+                background: '#fff',
+                overflow: 'hidden',
+                transition: 'all 0.2s ease-in-out',
+                boxShadow: isSelected ? '0 4px 16px rgba(26, 110, 112, 0.08)' : 'none'
+              }}
+            >
+              {/* Card Header row */}
+              <div
+                onClick={() => handleSelectProfile(idx)}
+                style={{
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {/* Circle Avatar */}
+                  <div style={{
+                    width: '46px', height: '46px', borderRadius: '50%',
+                    background: prof.profile_image ? 'transparent' : avatarBg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontWeight: '700', fontSize: '16px', flexShrink: 0,
+                    overflow: 'hidden'
+                  }}>
+                    {prof.profile_image ? (
+                      <img src={prof.profile_image} alt={prof.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+
+                  {/* Profile info */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                      {prof.name}
+                    </div>
+                    <div>
+                      {isPrimary ? (
+                        <span style={{
+                          background: '#e6f4f1', color: '#1a6e70',
+                          fontSize: '11px', fontWeight: '600',
+                          padding: '3px 10px', borderRadius: '99px',
+                          display: 'inline-block'
+                        }}>
+                          Primary Account
+                        </span>
+                      ) : (
+                        <span style={{
+                          background: '#fff3e0', color: '#e88836',
+                          fontSize: '11px', fontWeight: '600',
+                          padding: '3px 10px', borderRadius: '99px',
+                          display: 'inline-block'
+                        }}>
+                          {prof.relation}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chevron icon */}
+                <div style={{ color: isSelected ? '#64748b' : '#94a3b8' }}>
+                  {isSelected ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </div>
+              </div>
+
+              {/* Expanded Card Body */}
+              {isSelected && (
+                <div style={{ padding: '0 16px 16px 16px', animation: 'fadeIn 0.2s ease-in-out' }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: '#64748b', marginBottom: '6px' }}>
+                      UHID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter UHID to continue"
+                      value={uhid}
+                      onChange={(e) => setUhid(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #d1d5db',
+                        fontSize: '14.5px',
+                        color: 'var(--text-main)',
+                        outline: 'none',
+                        background: '#fff',
+                        boxSizing: 'border-box'
+                      }}
+                      onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+                      onBlur={e => e.target.style.borderColor = '#d1d5db'}
+                    />
+                  </div>
+
+                  <button
+                    disabled={busy}
+                    onClick={() => onContinue(selectedProfile, uhid)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: '12px',
+                      background: busy ? 'var(--border)' : '#f28538',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontSize: '15px',
+                      fontWeight: '700',
+                      cursor: busy ? 'not-allowed' : 'pointer',
+                      boxShadow: busy ? 'none' : '0 4px 14px rgba(242, 133, 56, 0.35)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {busy ? "Verifying..." : "Continue"}
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
