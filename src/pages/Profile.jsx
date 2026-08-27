@@ -48,9 +48,10 @@ export default function Profile() {
     height: "",
     profileImage: "",
     imageFile: null,
-    abhaNumber: "",
+     abhaNumber: "",
     app_user_id:"",
-    entitylocation: ""
+    entitylocation: "",
+    title: ""
   });
 
   const [locations, setLocations] = useState([]);
@@ -119,7 +120,8 @@ export default function Profile() {
       displayImage: "",
       imageFile: null,
       abhaNumber: "",
-      entitylocation: ""
+      entitylocation: "",
+      title: ""
     });
     setIsMemberModalOpen(true);
   };
@@ -141,7 +143,8 @@ export default function Profile() {
       imageFile: null,
       abhaNumber: member.abhaNumber || "",
       app_user_id: member.app_user_id || "",
-      entitylocation: member.entitylocation || member.entity_location || ""
+      entitylocation: member.entitylocation || member.entity_location || "",
+      title: member.title || ""
     });
     setIsMemberModalOpen(true);
   };
@@ -194,7 +197,8 @@ export default function Profile() {
             age: age !== undefined && age !== "" ? age : 25,
             isPrimary: !!item.isPrimary,
             app_user_id: item.app_user_id,
-            entitylocation: item.entitylocation || item.entity_location || item.location_key || ""
+            entitylocation: item.entitylocation || item.entity_location || item.location_key || "",
+            title: item.title || ""
           };
         });
         setFamilyMembers(mapped);
@@ -237,6 +241,7 @@ export default function Profile() {
       const appUserId = user?.user_id || user?.id || user?.app_user_id || user?.userKey || 1;
       const payload = {
         app_user_id:  memberForm.app_user_id ?? appUserId,
+        primaryAccountId: memberForm.app_user_id ?? appUserId,
         name: memberForm.name.trim(),
         relation: memberForm.relation,
         dob: memberForm.dob,
@@ -249,7 +254,9 @@ export default function Profile() {
         profile_image: finalImageUrl,
         abha_number: memberForm.abhaNumber,
         entitylocation: memberForm.entitylocation,
-        client_id: user?.client_id || 1
+        entity_location: memberForm.entitylocation,
+        client_id: user?.client_id || 1,
+        title: memberForm.title
       };
 
       if (editingMemberId) {
@@ -276,7 +283,8 @@ export default function Profile() {
         profileImage: "",
         imageFile: null,
         abhaNumber: "",
-        entitylocation: ""
+        entitylocation: "",
+        title: ""
       });
     } catch (err) {
       console.error("Failed to save family member:", err);
@@ -1042,9 +1050,23 @@ export default function Profile() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                </div>
+                 </div>
 
-                {/* Row 2: Date of Birth & Gender */}
+                 {/* Row 1.5: Title */}
+                 <div className="flex flex-col gap-0.5">
+                   <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Title</label>
+                   <select name="title" value={memberForm.title} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
+                     <option value="">None</option>
+                     <option value="Mr">Mr</option>
+                     <option value="Mrs">Mrs</option>
+                     <option value="Ms">Ms</option>
+                     <option value="Miss">Miss</option>
+                     <option value="Baby">Baby</option>
+                     <option value="Dr">Dr</option>
+                   </select>
+                 </div>
+
+                 {/* Row 2: Date of Birth & Gender */}
                 <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Date of Birth</label>
