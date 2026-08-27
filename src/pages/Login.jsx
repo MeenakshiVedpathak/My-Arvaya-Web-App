@@ -103,8 +103,7 @@ export default function Login({ forceOpen = false }) {
       if (isMultipleProfiles && Array.isArray(userData?.profiles) && userData.profiles.length > 0) {
         setVerifyOtpRawRes(res);
         setProfilesData(userData.profiles);
-        const primary = userData.profiles.find(p => !p.parent_account_id || p.relation === null) || userData.profiles[0];
-        setSelectedProfileId(primary?.id || userData.profiles[0].id);
+        setSelectedProfileId(null);
 
         const initialUhids = {};
         userData.profiles.forEach(p => {
@@ -348,13 +347,13 @@ export default function Login({ forceOpen = false }) {
 
   return (
     <div style={{
-      minHeight: '80vh',
+      minHeight: '70vh',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '48px 16px', background: 'var(--bg-app)'
+      padding: '32px 16px', background: 'var(--bg-app)'
     }}>
       <div className="login-modal-container" style={{
         background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '840px',
-        maxHeight: 'min(620px, 92vh)', display: 'flex', position: 'relative',
+        maxHeight: screen === "choose_profile" ? 'min(410px, 80vh)' : 'min(500px, 85vh)', display: 'flex', position: 'relative',
         boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05)',
         overflow: 'hidden'
       }}>
@@ -407,9 +406,15 @@ export default function Login({ forceOpen = false }) {
 
         {/* ── Right Pane ── */}
         <div className="login-modal-right" style={{
-          flex: '1.1', padding: '32px 36px', display: 'flex', flexDirection: 'column',
-          justifyContent: 'center', background: '#fff', minWidth: '340px',
-          borderTopRightRadius: '24px', borderBottomRightRadius: '24px',
+          flex: '1.1',
+          padding: screen === "choose_profile" ? '36px 32px 20px' : '32px 36px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: screen === "choose_profile" ? 'flex-start' : 'center',
+          background: '#fff',
+          minWidth: '340px',
+          borderTopRightRadius: '24px',
+          borderBottomRightRadius: '24px',
           overflowY: 'auto'
         }}>
           {card}
@@ -1669,9 +1674,6 @@ function ChooseProfile({ profiles = [], selectedProfileId, onSelectProfile, uhid
 
   return (
     <div style={{ animation: 'fadeIn 0.35s ease-in-out', width: '100%' }}>
-      {/* Top drag bar visual */}
-      <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '0 auto 16px' }} />
-
       <div style={{ marginBottom: '16px' }}>
         <h3 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
           Choose a Profile
@@ -1683,7 +1685,18 @@ function ChooseProfile({ profiles = [], selectedProfileId, onSelectProfile, uhid
 
       {err && <ErrorBox msg={err} />}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        maxHeight: '265px',
+        overflowY: 'auto',
+        paddingRight: '6px',
+        paddingLeft: '2px',
+        paddingTop: '2px',
+        paddingBottom: '2px',
+        marginBottom: '10px'
+      }}>
         {profiles.map((p) => {
           const isSelected = p.id === selectedProfileId;
           const isPrimary = !p.relation && (!p.parent_account_id || p.parent_account_id === p.id);
@@ -1704,7 +1717,7 @@ function ChooseProfile({ profiles = [], selectedProfileId, onSelectProfile, uhid
             >
               {/* Card Top Row - Clickable */}
               <div
-                onClick={() => onSelectProfile(p.id)}
+                onClick={() => onSelectProfile(isSelected ? null : p.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
