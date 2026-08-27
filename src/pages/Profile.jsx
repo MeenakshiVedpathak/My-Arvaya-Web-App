@@ -27,6 +27,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const [loadingData, setLoadingData] = useState(false);
+  const [loadingFamily, setLoadingFamily] = useState(false);
   const [savingMember, setSavingMember] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -140,12 +141,13 @@ export default function Profile() {
       imageFile: null,
       abhaNumber: member.abhaNumber || "",
       app_user_id: member.app_user_id || "",
-      entitylocation: member.entitylocation || ""
+      entitylocation: member.entitylocation || member.entity_location || ""
     });
     setIsMemberModalOpen(true);
   };
 
   const fetchFamilyMembers = async () => {
+    setLoadingFamily(true);
     try {
       const storedUser = JSON.parse(localStorage.getItem("arvaya_user") || "{}");
       const appUserId = user?.app_user_id || user?.user_id || user?.id || storedUser?.app_user_id || storedUser?.user_id || storedUser?.id || 107602;
@@ -191,13 +193,16 @@ export default function Profile() {
             abhaNumber: item.abha_number || item.abhaNumber || "",
             age: age !== undefined && age !== "" ? age : 25,
             isPrimary: !!item.isPrimary,
-            app_user_id: item.app_user_id
+            app_user_id: item.app_user_id,
+            entitylocation: item.entitylocation || item.entity_location || item.location_key || ""
           };
         });
         setFamilyMembers(mapped);
       }
     } catch (err) {
       console.error("fetchFamilyMembers error:", err);
+    } finally {
+      setLoadingFamily(false);
     }
   };
 
@@ -898,49 +903,61 @@ export default function Profile() {
                     </button>
                   </div>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {familyMembers.map(member => (
-                      <div key={member.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-app)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--primary-soft))', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', overflow: 'hidden', position: 'relative' }}>
-                            {member.displayImage ? (
-                              <img 
-                                src={member.displayImage} 
-                                alt={member.name} 
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }} 
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            ) : null}
-                            {(member.name || "M").charAt(0)}
+                  {loadingFamily ? (
+                    <div style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      padding: '60px 20px', gap: '12px', background: 'var(--bg-app)', borderRadius: '16px',
+                      border: '1px solid var(--border)', minHeight: '220px'
+                    }}>
+                      <Loader2 size={36} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite' }} />
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                        Loading family members...
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {familyMembers.map(member => (
+                        <div key={member.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid var(--border)', borderRadius: '12px', background: 'var(--bg-app)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--primary-soft))', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', overflow: 'hidden', position: 'relative' }}>
+                              {member.displayImage ? (
+                                <img 
+                                  src={member.displayImage} 
+                                  alt={member.name} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }} 
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : null}
+                              {(member.name || "M").charAt(0)}
+                            </div>
+                            <div>
+                              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>{member.name}</h4>
+                              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                {member.relation} • {member.age} yrs {member.bloodGroup ? `• ${member.bloodGroup}` : ''} {member.mobile ? `• ${member.mobile}` : ''}
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}>{member.name}</h4>
-                            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                              {member.relation} • {member.age} yrs {member.bloodGroup ? `• ${member.bloodGroup}` : ''} {member.mobile ? `• ${member.mobile}` : ''}
-                            </span>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {member.isPrimary ? (
+                              <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>● Primary Account</span>
+                            ) : (
+                              <>
+                                <button className="btn btn-ghost" onClick={() => handleEditMember(member)} style={{ padding: '8px', color: 'var(--text-muted)' }} title="Edit Member"><Edit2 size={16} /></button>
+                              </>
+                            )}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {member.isPrimary ? (
-                            <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>● Primary Account</span>
-                          ) : (
-                            <>
-                              <button className="btn btn-ghost" onClick={() => handleEditMember(member)} style={{ padding: '8px', color: 'var(--text-muted)' }} title="Edit Member"><Edit2 size={16} /></button>
-                              <button className="btn btn-ghost" onClick={() => setFamilyMembers(prev => prev.filter(m => m.id !== member.id))} style={{ padding: '8px', color: 'var(--danger, #dc2626)' }} title="Delete Member"><Trash2 size={16} /></button>
-                            </>
-                          )}
+                      ))}
+                      
+                      {familyMembers.length === 0 && (
+                        <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-app)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+                          No family members added yet. Click "Add Member" or click tab to refresh.
                         </div>
-                      </div>
-                    ))}
-                    
-                    {familyMembers.length === 0 && (
-                      <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-app)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
-                        No family members added yet. Click "Add Member" or click tab to refresh.
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1104,7 +1121,7 @@ export default function Profile() {
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                         }}>
                           {memberForm.entitylocation
-                            ? (getLocationLabel(locations.find(l => l.entitylocation === memberForm.entitylocation)) || memberForm.entitylocation)
+                            ? (getLocationLabel(locations.find(l => l.entitylocation === memberForm.entitylocation || String(l.id) === String(memberForm.entitylocation) || String(l.location_key) === String(memberForm.entitylocation))) || memberForm.entitylocation)
                             : "Select Location"}
                         </div>
                         <ChevronDown size={14} color="var(--text-muted)" style={{ flexShrink: 0, transition: 'transform 0.2s', transform: locationDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -1112,10 +1129,10 @@ export default function Profile() {
 
                       {locationDropdownOpen && (
                         <div style={{
-                          position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                          position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0,
                           background: '#fff', borderRadius: '12px', border: '1px solid var(--border)',
-                          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
-                          maxHeight: '220px', overflowY: 'auto', zIndex: 50, padding: '6px',
+                          boxShadow: '0 -10px 25px -5px rgba(0,0,0,0.15), 0 -8px 10px -6px rgba(0,0,0,0.1)',
+                          maxHeight: '200px', overflowY: 'auto', zIndex: 99, padding: '6px',
                           display: 'flex', flexDirection: 'column', gap: '4px'
                         }}>
                           {locations.length === 0 ? (
