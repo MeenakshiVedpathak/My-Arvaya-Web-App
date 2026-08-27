@@ -31,7 +31,9 @@ export default function Review() {
     setSubmitting(true);
     try {
       const patient_id = user?.id || user?.user_id || user?.patient_id || "";
-      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? date.toISOString().split('T')[0] : "");
+      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? 
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` 
+        : "");
       const dStr = dStrRaw.replace(/-/g, '');
 
       const payload = {

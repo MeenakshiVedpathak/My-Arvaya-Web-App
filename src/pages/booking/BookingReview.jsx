@@ -27,7 +27,17 @@ export default function BookingReview() {
         return;
       }
       try {
-        const dStr = typeof date === 'string' ? date : (date instanceof Date ? date.toISOString().split('T')[0] : "");
+        const toLocalDate = (d) => {
+          if (typeof d === 'string') return d;
+          if (d instanceof Date) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          }
+          return "";
+        };
+        const dStr = toLocalDate(date);
         const patient_id = user?.id || user?.user_id || user?.patient_id || 20546;
 
         const [walletRes, visitRes] = await Promise.all([
@@ -99,7 +109,9 @@ export default function BookingReview() {
     setSubmitting(true);
     try {
       const patient_id = user?.id || user?.user_id || user?.patient_id || "";
-      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? date.toISOString().split('T')[0] : "");
+      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? 
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` 
+        : "");
       const dStr = dStrRaw.replace(/-/g, '');
       
       let start = slot;
