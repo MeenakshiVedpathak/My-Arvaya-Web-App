@@ -907,7 +907,7 @@ export default function Wallet() {
             </div>
 
             <div style={{
-              fontSize: '12px',
+              fontSize: '15px',
               color: 'var(--text-muted)',
               lineHeight: 1.5,
               background: 'var(--bg-app)',
