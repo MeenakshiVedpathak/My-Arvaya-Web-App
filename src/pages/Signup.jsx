@@ -18,7 +18,7 @@ export default function Signup() {
   const [branchOpen, setBranchOpen] = useState(false);
   const [branchSearch, setBranchSearch] = useState("");
 
-  const { register, loading, error, setError } = useAuth();
+  const { register, loading, error, setError, showToast } = useAuth();
   const go = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
@@ -55,27 +55,39 @@ export default function Signup() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!firstName.trim()) {
-      setError("Please enter your First Name");
+      const msg = "Please enter your First Name";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
     if (!lastName.trim()) {
-      setError("Please enter your Last Name");
+      const msg = "Please enter your Last Name";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
     if (!gender) {
-      setError("Please select your Gender");
+      const msg = "Please select your Gender";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
     if (!dob) {
-      setError("Please select your Date of Birth");
+      const msg = "Please select your Date of Birth";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
     if (!phone.trim()) {
-      setError("Please enter your Phone Number");
+      const msg = "Please enter your Phone Number";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
     if (locations.length > 0 && (selectedBranch === "" || selectedBranch === null || selectedBranch === undefined)) {
-      setError("Please select a Branch");
+      const msg = "Please select a Branch";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
 

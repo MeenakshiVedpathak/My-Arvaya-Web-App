@@ -1,6 +1,46 @@
 import { api } from "./api";
 import { getCloudId, getDeviceId } from "./authService";
 
+/* Helper to validate OTP & auth responses */
+export function checkOtpResponse(res) {
+  if (!res) {
+    throw new Error("No response from server. Please try again.");
+  }
+  const isFalse = (val) => val === false || val === "false" || val === 0;
+
+  if (
+    isFalse(res.verified) ||
+    isFalse(res.status) ||
+    isFalse(res.success) ||
+    isFalse(res.valid) ||
+    isFalse(res.is_valid) ||
+    res.status === "FAILED" || res.status === "failed" || res.status === "ERROR" || res.status === "error" ||
+    res.authResult === "FAILED" || res.authResult === "failed" ||
+    (res.code && Number(res.code) >= 400) ||
+    res.error || res.err || res.errorMessage
+  ) {
+    const msg = res.message || res.error || res.err || res.errorMessage || res.details || "OTP is invalid or has expired.";
+    throw new Error(typeof msg === "string" ? msg : "OTP is invalid or has expired.");
+  }
+
+  if (res.message && typeof res.message === "string") {
+    const lower = res.message.toLowerCase();
+    if (
+      lower.includes("expire") ||
+      lower.includes("invalid") ||
+      lower.includes("incorrect") ||
+      lower.includes("wrong") ||
+      lower.includes("fail") ||
+      lower.includes("not match") ||
+      lower.includes("denied")
+    ) {
+      if (res.verified !== true && res.status !== true && res.success !== true) {
+        throw new Error(res.message);
+      }
+    }
+  }
+}
+
 /* ─────────────────────────────────────────────
    STEP 1 — Send OTP to ABHA-linked mobile
    POST /login/requestOtp
@@ -18,10 +58,12 @@ export async function abhaSendOtp(mobile) {
    Response: { txnId, verified: true }
 ───────────────────────────────────────────── */
 export async function abhaVerifyOtp(otp, txnId) {
-  return api.post("/login/verifyOtp", {
+  const res = await api.post("/login/verifyOtp", {
     otp: String(otp),
     txnId: String(txnId)
   });
+  checkOtpResponse(res);
+  return res;
 }
 
 
@@ -32,7 +74,9 @@ export async function abhaVerifyOtp(otp, txnId) {
    Response: { token, user }
 ───────────────────────────────────────────── */
 export async function abhaConfirmAddress(abhaAddress, dateOfBirth, txnId) {
-  return api.post("/abha/confirmAddress", { abhaAddress, dateOfBirth, txnId });
+  const res = await api.post("/abha/confirmAddress", { abhaAddress, dateOfBirth, txnId });
+  checkOtpResponse(res);
+  return res;
 }
 
 /* ─────────────────────────────────────────────
@@ -55,7 +99,9 @@ export async function abhaVerifyUser(data) {
     gender: data.gender || "",
     date_of_birth: data.date_of_birth || ""
   };
-  return api.post("/login/verifyUser", payload);
+  const res = await api.post("/login/verifyUser", payload);
+  checkOtpResponse(res);
+  return res;
 }
 
 /* ─────────────────────────────────────────────
@@ -102,11 +148,13 @@ export async function abhaCreateRequestOtp(mobile) {
    Response: { txnId }
 ───────────────────────────────────────────── */
 export async function abhaCreateVerifyOtp(otp, txnId) {
-  return api.post("/abhaAddress/verifyOtp", {
+  const res = await api.post("/abhaAddress/verifyOtp", {
     txnId: String(txnId),
     otp: String(otp),
     isAddress: 1,
   });
+  checkOtpResponse(res);
+  return res;
 }
 
 /* ─────────────────────────────────────────────
@@ -142,11 +190,13 @@ export async function abhaSendCreationOtp(adhar) {
    Body: { mobile, otp, txnId }
 ───────────────────────────────────────────── */
 export async function abhaCreateByAadhaar(mobile, otp, txnId) {
-  return api.post("/abhaNumber/createByAadhaar", {
+  const res = await api.post("/abhaNumber/createByAadhaar", {
     mobile: String(mobile),
     otp: String(otp),
     txnId: String(txnId)
   });
+  checkOtpResponse(res);
+  return res;
 }
 
 /* ─────────────────────────────────────────────

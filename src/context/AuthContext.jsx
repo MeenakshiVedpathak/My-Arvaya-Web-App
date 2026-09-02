@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
 import { getPatients } from "../services/dataService";
+import Toast from "../components/common/Toast";
 
 function setCookie(name, value, days = 365) {
   if (typeof document === "undefined" || !value) return;
@@ -43,6 +44,11 @@ export function AuthProvider({ children }) {
   const [pendingRedirect, setPendingRedirect] = useState(null);
   const [loginMethod, setLoginMethod] = useState(() => localStorage.getItem("arvaya_login_method") || "user_verify_otp");
   const [loginModalScreen, setLoginModalScreen] = useState("landing");
+  const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
+
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ isOpen: true, message, type });
+  }, []);
 
   async function fetchUserProfile(currentUser) {
     if (!currentUser) return;
@@ -124,7 +130,7 @@ export function AuthProvider({ children }) {
     }, 300); // clear after animation
   }
 
-  function saveSession(data) {
+  function saveSession(data, notify = true) {
     if (data.loginMethod) {
       localStorage.setItem("arvaya_login_method", data.loginMethod);
       setLoginMethod(data.loginMethod);
@@ -169,6 +175,10 @@ export function AuthProvider({ children }) {
     if (resolvedUser) {
       fetchUserProfile(resolvedUser);
     }
+
+    if (notify) {
+      showToast("Logged in successfully!", "success");
+    }
   }
 
   useEffect(() => {
@@ -185,7 +195,9 @@ export function AuthProvider({ children }) {
       saveSession(data);
       return true;
     } catch (e) {
-      setError(e.message || "Login failed");
+      const msg = e.message || "Login failed";
+      setError(msg);
+      showToast(msg, "error");
       return false;
     } finally {
       setLoading(false);
@@ -200,7 +212,9 @@ export function AuthProvider({ children }) {
       saveSession(data);
       return true;
     } catch (e) {
-      setError(e.message || "Registration failed");
+      const msg = e.message || "Registration failed";
+      setError(msg);
+      showToast(msg, "error");
       return false;
     } finally {
       setLoading(false);
@@ -222,6 +236,7 @@ export function AuthProvider({ children }) {
       setToken(null);
       setUser(null);
       setLoginMethod("user_verify_otp");
+      showToast("Logged out successfully!", "success");
     }
   }
 
@@ -230,9 +245,16 @@ export function AuthProvider({ children }) {
       user, token, loading, error, 
       login, register, logout, setError,
       isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal,
-      saveSession, loginMethod, setLoginMethod, loginModalScreen
+      saveSession, loginMethod, setLoginMethod, loginModalScreen,
+      showToast
     }}>
       {children}
+      <Toast
+        isOpen={toast.isOpen}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+      />
     </AuthContext.Provider>
   );
 }

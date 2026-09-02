@@ -6,7 +6,7 @@ import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaVerifyUser, abhaSen
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Login({ forceOpen = false }) {
-  const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession, loginModalScreen } = useAuth();
+  const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession, loginModalScreen, showToast } = useAuth();
   const location = useLocation();
   const [screen, setScreen] = useState(location.state?.screen || loginModalScreen || "landing");
   const [phone, setPhone] = useState("");
@@ -62,12 +62,17 @@ export default function Login({ forceOpen = false }) {
       if (res && (res.is_registered === false || res.registered === false || res.userExists === false || res.isNewUser === true)) {
         handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || location.state?.redirectPath || pendingRedirect } }); return;
       }
+      if (showToast) showToast("OTP sent successfully", "success");
       setScreen("otp");
     } catch (e) {
       const msg = (e.message || "").toLowerCase();
       if (msg.includes("not found") || msg.includes("not registered") || msg.includes("no user") || msg.includes("invalid number") || msg.includes("doesn't exist")) {
         handleClose(); go(`/signup?phone=${mobile}`, { state: { from: location.state?.from || location.state?.redirectPath || pendingRedirect } });
-      } else { setErr(e.message || "Failed to send OTP"); }
+      } else {
+        const errMsg = e.message || "Failed to send OTP";
+        setErr(errMsg);
+        if (showToast) showToast(errMsg, "error");
+      }
     } finally { setBusy(false); }
   };
 
@@ -146,7 +151,11 @@ export default function Login({ forceOpen = false }) {
       setErr("");
       closeLoginModal();
       go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
-    } catch (e) { setErr(e.message || "Invalid OTP"); }
+    } catch (e) {
+      const errMsg = e.message || "Invalid OTP";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
+    }
     finally { setBusy(false); }
   };
 
@@ -194,7 +203,9 @@ export default function Login({ forceOpen = false }) {
       closeLoginModal();
       go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
     } catch (e) {
-      setErr(e.message || "Failed to select profile");
+      const errMsg = e.message || "Failed to select profile";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
     } finally {
       setBusy(false);
     }
@@ -207,8 +218,13 @@ export default function Login({ forceOpen = false }) {
       const res = await abhaSendOtp(mobile);
       const txnId = res?.transactionId || res?.txnId || res?.txn_id || res?.data?.transactionId || res?.data?.txnId || res?.data?.txn_id || res?.result?.txnId || res?.result?.transactionId || "mock_txn_" + Date.now();
       setAbhaTransactionId(txnId);
+      if (showToast) showToast("OTP sent to your ABHA mobile", "success");
       setScreen("abha_otp");
-    } catch (e) { setErr(e.message || "Failed to send OTP to ABHA mobile"); }
+    } catch (e) {
+      const errMsg = e.message || "Failed to send OTP to ABHA mobile";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
+    }
     finally { setBusy(false); }
   };
 
@@ -235,8 +251,13 @@ export default function Login({ forceOpen = false }) {
 
       setAbhaAddresses(addresses);
       setSelectedAbhaAddress(primaryAddress);
+      if (showToast) showToast("OTP verified successfully", "success");
       setScreen("abha_address");
-    } catch (e) { setErr(e.message || "Invalid OTP. Please try again."); }
+    } catch (e) {
+      const errMsg = e.message || "Invalid OTP. Please try again.";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
+    }
     finally { setBusy(false); }
   };
 
@@ -287,7 +308,11 @@ export default function Login({ forceOpen = false }) {
       });
       handleClose();
       go(location.state?.from || location.state?.redirectPath || pendingRedirect || "/");
-    } catch (e) { setErr(e.message || "Could not link ABHA. Please try again."); }
+    } catch (e) {
+      const errMsg = e.message || "Could not link ABHA. Please try again.";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
+    }
     finally { setBusy(false); }
   };
 
@@ -942,6 +967,7 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
    ABHA CREATE FLOW
    ═══════════════════════════════════════ */
 function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaTransactionId, saveSession, onBack, onNext, onFinish }) {
+  const { showToast } = useAuth();
   const [aadhaar, setAadhaar] = useState("");
   const [mobile, setMobile] = useState(initialMobile || "");
   const [otp, setOtp] = useState("");
@@ -958,7 +984,12 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
   const isAadhaarValid = rawAadhaar.length === 12;
 
   const handleStep1 = async () => {
-    if (!isAadhaarValid) { setErr("Please enter a valid 12-digit Aadhaar number."); return; }
+    if (!isAadhaarValid) {
+      const msg = "Please enter a valid 12-digit Aadhaar number.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     setErr(""); setBusy(true);
     try {
       const res = await abhaSendCreationOtp(rawAadhaar);
@@ -972,10 +1003,13 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
       if (fetchedMobile) {
         setMobile(fetchedMobile);
       }
+      if (showToast) showToast("OTP sent to Aadhaar-registered mobile", "success");
       setBusy(false);
       onNext("abha_create_2");
     } catch (e) {
-      setErr(e.message || "Failed to send OTP to Aadhaar-linked mobile");
+      const errMsg = e.message || "Failed to send OTP to Aadhaar-linked mobile";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
       setBusy(false);
     }
   };
@@ -984,8 +1018,18 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
 
   const handleStep2 = async () => {
     const cleanMobile = mobile.replace(/\D/g, "");
-    if (cleanMobile.length < 10 && !mobile.includes('*')) { setErr("Please enter a valid 10-digit mobile number."); return; }
-    if (otp.length < 6) { setErr("Enter the 6-digit OTP sent to your Aadhaar-linked mobile."); return; }
+    if (cleanMobile.length < 10 && !mobile.includes('*')) {
+      const msg = "Please enter a valid 10-digit mobile number.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    if (otp.length < 6) {
+      const msg = "Enter the 6-digit OTP sent to your Aadhaar-linked mobile.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     setErr(""); setBusy(true);
     try {
       const activeTxnId = txnId || abhaTransactionId;
@@ -1044,16 +1088,24 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
         }
       });
 
+      if (showToast) showToast("OTP verified successfully", "success");
       setBusy(false);
       onNext("abha_create_3");
     } catch (e) {
-      setErr(e.message || "Failed to create ABHA by Aadhaar.");
+      const errMsg = e.message || "Failed to create ABHA by Aadhaar.";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
       setBusy(false);
     }
   };
 
   const handleStep3 = async () => {
-    if (!form.name.trim() || !form.dob || !form.mobile) { setErr("Please fill all required fields."); return; }
+    if (!form.name.trim() || !form.dob || !form.mobile) {
+      const msg = "Please fill all required fields.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     setErr(""); setBusy(true);
     await new Promise(r => setTimeout(r, 600));
     setBusy(false);

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { CheckCircle2, X, ArrowRight, ArrowLeft, UserPlus, Loader2, KeyRound, Sparkles, User, FileText, ChevronRight } from "lucide-react";
 import { Overlay } from "./SharedComponents";
 import { abhaCreateRequestOtp, abhaCreateVerifyOtp, abhaGetSuggestions } from "../../../services/abhaService";
+import { useAuth } from "../../../context/AuthContext";
 
 function ErrorBox({ msg }) {
   return !msg ? null : (
@@ -59,6 +60,7 @@ function StepIndicator({ current, total }) {
 }
 
 export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
+  const { showToast } = useAuth();
   // Step: 'send_otp' | 'verify_otp' | 'select_address' | 'success'
   const [step, setStep] = useState("send_otp");
   const [txnId, setTxnId] = useState("");
@@ -77,7 +79,9 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
   // ── STEP 1: Send OTP ──
   const handleSendOtp = async () => {
     if (!mobileNumber) {
-      setErr("Mobile number not found. Please login again.");
+      const msg = "Mobile number not found. Please login again.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
       return;
     }
     setErr(""); setBusy(true);
@@ -85,12 +89,17 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
       const res = await abhaCreateRequestOtp(mobileNumber);
       if (res?.txnId) {
         setTxnId(res.txnId);
+        if (showToast) showToast("OTP sent successfully", "success");
         setStep("verify_otp");
       } else {
-        setErr(res?.message || "You have exceeded ABHA address creation limit");
+        const msg = res?.message || "You have exceeded ABHA address creation limit";
+        setErr(msg);
+        if (showToast) showToast(msg, "error");
       }
     } catch (error) {
-      setErr(error?.message || "You have exceeded ABHA address creation limit");
+      const msg = error?.message || "You have exceeded ABHA address creation limit";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
     } finally {
       setBusy(false);
     }
@@ -99,15 +108,23 @@ export function CreateAddressModal({ abhaData, profileInfo, user, onClose }) {
   // ── STEP 2: Verify OTP ──
   const handleVerifyOtp = async () => {
     const otpValue = otp.join("");
-    if (otpValue.length < 6) { setErr("Please enter the full 6-digit OTP."); return; }
+    if (otpValue.length < 6) {
+      const msg = "Please enter the full 6-digit OTP.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     setErr(""); setBusy(true);
     try {
       const verifyRes = await abhaCreateVerifyOtp(otpValue, txnId);
       const newTxnId = verifyRes?.txnId || txnId;
       setTxnId(newTxnId);
+      if (showToast) showToast("OTP verified successfully", "success");
       await fetchSuggestions(newTxnId);
     } catch (error) {
-      setErr(error?.message || "OTP verification failed. Please try again.");
+      const msg = error?.message || "OTP verification failed. Please try again.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
       setBusy(false);
     }
   };

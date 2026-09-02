@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { checkOtpResponse } from "./abhaService";
 
 const USE_MOCK = false; // Set to false for real API calls
 
@@ -91,7 +92,6 @@ export async function sendOtp(mobile, clientId) {
     client_id: clientId || getClientId()
   });
 }
-
 /* ─── Verify OTP ─── */
 export async function verifyOtp(otp, mobile, options = {}) {
   if (USE_MOCK) {
@@ -114,6 +114,8 @@ export async function verifyOtp(otp, mobile, options = {}) {
   };
 
   const res = await api.post("/user/verifyOtp", payload);
+  checkOtpResponse(res);
+
   const token = res?.token || res?.accessToken || res?.data?.token || res?.result?.token || res?.UserData?.token || res?.UserData?.accessToken || res?.jwt || "token_" + Date.now();
 
   let rawUser = res?.UserData || res?.userData || res?.user || res?.data?.user || res?.result?.user || res?.data || res?.result;

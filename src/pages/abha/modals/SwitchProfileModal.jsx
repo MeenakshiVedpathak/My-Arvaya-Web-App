@@ -171,7 +171,7 @@ function AbhaLeftPane({ step }) {
 }
 
 export function SwitchProfileModal({ onClose }) {
-  const { saveSession } = useAuth();
+  const { saveSession, showToast } = useAuth();
   const [step, setStep]           = useState(1);
   const [mobile, setMobile]       = useState("");
   const [otp, setOtp]             = useState("");
@@ -195,19 +195,34 @@ export function SwitchProfileModal({ onClose }) {
   const secs = String(countdown % 60).padStart(2, '0');
 
   const handleSendOtp = async () => {
-    if (mobile.length < 10) { setErr("Enter a valid 10-digit mobile number."); return; }
+    if (mobile.length < 10) {
+      const msg = "Enter a valid 10-digit mobile number.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     setErr(""); setBusy(true);
     try {
       const res = await abhaSendOtp(mobile);
       setTxnId(res?.transactionId || res?.txnId || "mock_txn_" + Date.now());
       setOtp(""); setCountdown(120); setCanResend(false);
+      if (showToast) showToast("OTP sent successfully", "success");
       setStep(2);
-    } catch (e) { setErr(e.message || "Failed to send OTP."); }
+    } catch (e) {
+      const msg = e.message || "Failed to send OTP.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+    }
     finally { setBusy(false); }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length < 6) { setErr("Enter the 6-digit OTP."); return; }
+    if (otp.length < 6) {
+      const msg = "Enter the 6-digit OTP.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     setErr(""); setBusy(true);
     try {
       const res = await abhaVerifyOtp(otp, txnId);
@@ -219,8 +234,13 @@ export function SwitchProfileModal({ onClose }) {
       ];
       setAddresses(list);
       setSelected(list[0]?.address || "");
+      if (showToast) showToast("OTP verified successfully", "success");
       setStep(3);
-    } catch (e) { setErr(e.message || "Invalid OTP."); }
+    } catch (e) {
+      const msg = e.message || "Invalid OTP.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+    }
     finally { setBusy(false); }
   };
 
