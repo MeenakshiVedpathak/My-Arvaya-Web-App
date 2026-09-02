@@ -133,7 +133,3 @@ export async function fetchHealthRecordBlob(recordPath) {
 export function getHealthRecordUrl(recordPath) {
   return getImageUrl(recordPath, 'HealthRecords');
 }
-
-
-
-
