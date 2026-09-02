@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { User, Phone, Calendar, ArrowRight, Droplet, Building, ChevronDown, CheckCircle2 } from "lucide-react";
+import { User, Phone, Calendar, ArrowRight, Droplet, Building, ChevronDown, CheckCircle2, Search } from "lucide-react";
 import { getLocations } from "../services/dataService";
 
 export default function Signup() {
@@ -16,6 +16,7 @@ export default function Signup() {
   const [locations, setLocations] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [branchOpen, setBranchOpen] = useState(false);
+  const [branchSearch, setBranchSearch] = useState("");
 
   const { register, loading, error, setError } = useAuth();
   const go = useNavigate();
@@ -293,7 +294,7 @@ export default function Signup() {
                 Branch *
               </label>
               <div 
-                onClick={() => setBranchOpen(!branchOpen)}
+                 onClick={() => { setBranchOpen(!branchOpen); if (branchOpen) setBranchSearch(""); }}
                 style={{ 
                   ...inputWrap, 
                   cursor: "pointer", 
@@ -314,38 +315,81 @@ export default function Signup() {
                   position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0,
                   background: "#fff", borderRadius: "14px", border: "1px solid #edf1f6",
                   boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-                  maxHeight: "220px", overflowY: "auto", zIndex: 50, padding: "8px",
-                  display: "flex", flexDirection: "column", gap: "4px"
+                  maxHeight: "240px", overflowY: "auto", zIndex: 50, padding: "8px"
                 }}>
+                  {/* Search Box */}
+                  <div style={{ display: "flex", alignItems: "center", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "10px", padding: "8px 12px", marginBottom: "6px" }}>
+                    <Search size={16} color="var(--primary)" />
+                    <input
+                      type="text"
+                      placeholder="Search branches..."
+                      value={branchSearch}
+                      onChange={e => setBranchSearch(e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                      style={{ border: "none", background: "transparent", outline: "none", width: "100%", fontSize: "13px", paddingLeft: "8px", color: "var(--text-main)" }}
+                    />
+                  </div>
+
                   {locations.length === 0 ? (
                     <div style={{ padding: "12px", textAlign: "center", fontSize: "13px", color: "var(--text-muted)" }}>Loading branches...</div>
                   ) : (
-                    locations.map(loc => {
-                      const isSelected = selectedBranch === loc.entitylocation;
-                      return (
-                        <button
-                          key={loc.entitylocation}
-                          type="button"
-                          onClick={() => { setSelectedBranch(loc.entitylocation); setBranchOpen(false); }}
-                          style={{
-                            display: "flex", alignItems: "flex-start", gap: "10px",
-                            padding: "12px", borderRadius: "10px", border: "none",
-                            background: isSelected ? "var(--primary-light)" : "transparent",
-                            cursor: "pointer", textAlign: "left", transition: "all 0.2s",
-                            width: "100%"
-                          }}
-                          onMouseEnter={(e) => !isSelected && (e.currentTarget.style.background = "#f8fafc")}
-                          onMouseLeave={(e) => !isSelected && (e.currentTarget.style.background = "transparent")}
-                        >
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: "13px", fontWeight: isSelected ? "700" : "600", color: isSelected ? "var(--primary-dark)" : "var(--text-main)", lineHeight: "1.4" }}>
-                              {getBranchLabel(loc)}
+                    locations
+                      .filter(loc => {
+                        if (!branchSearch.trim()) return true;
+                        const q = branchSearch.toLowerCase();
+                        return (
+                          loc.alt_name?.toLowerCase().includes(q) ||
+                          loc.name?.toLowerCase().includes(q) ||
+                          loc.city?.toLowerCase().includes(q) ||
+                          loc.area?.toLowerCase().includes(q) ||
+                          loc.street?.toLowerCase().includes(q) ||
+                          loc.landmark?.toLowerCase().includes(q) ||
+                          loc.entitylocation?.toLowerCase().includes(q)
+                        );
+                      })
+                      .map(loc => {
+                        const isSelected = selectedBranch === loc.entitylocation;
+                        return (
+                          <button
+                            key={loc.entitylocation}
+                            type="button"
+                            onClick={() => { setSelectedBranch(loc.entitylocation); setBranchOpen(false); setBranchSearch(""); }}
+                            style={{
+                              display: "flex", alignItems: "flex-start", gap: "10px",
+                              padding: "12px", borderRadius: "10px", border: "none",
+                              background: isSelected ? "var(--primary-light)" : "transparent",
+                              cursor: "pointer", textAlign: "left", transition: "all 0.2s",
+                              width: "100%"
+                            }}
+                            onMouseEnter={(e) => !isSelected && (e.currentTarget.style.background = "#f8fafc")}
+                            onMouseLeave={(e) => !isSelected && (e.currentTarget.style.background = "transparent")}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: "13px", fontWeight: isSelected ? "700" : "600", color: isSelected ? "var(--primary-dark)" : "var(--text-main)", lineHeight: "1.4" }}>
+                                {getBranchLabel(loc)}
+                              </div>
                             </div>
-                          </div>
-                          {isSelected && <CheckCircle2 size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: "2px" }} />}
-                        </button>
-                      );
-                    })
+                            {isSelected && <CheckCircle2 size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: "2px" }} />}
+                          </button>
+                        );
+                      })
+                  )}
+                  {locations.length > 0 && locations.filter(loc => {
+                    if (!branchSearch.trim()) return true;
+                    const q = branchSearch.toLowerCase();
+                    return (
+                      loc.alt_name?.toLowerCase().includes(q) ||
+                      loc.name?.toLowerCase().includes(q) ||
+                      loc.city?.toLowerCase().includes(q) ||
+                      loc.area?.toLowerCase().includes(q) ||
+                      loc.street?.toLowerCase().includes(q) ||
+                      loc.landmark?.toLowerCase().includes(q) ||
+                      loc.entitylocation?.toLowerCase().includes(q)
+                    );
+                  }).length === 0 && (
+                    <div style={{ padding: "16px", textAlign: "center", fontSize: "13px", color: "var(--text-muted)" }}>
+                      No branches found matching your search.
+                    </div>
                   )}
                 </div>
               )}

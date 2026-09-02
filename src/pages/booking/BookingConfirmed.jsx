@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { CheckCircle2, CalendarDays, Clock, MapPin, Share2 } from "lucide-react";
+import { useEffect, useCallback } from "react";
+import { CheckCircle2, CalendarDays, Clock, MapPin, Share2, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
 
@@ -16,6 +16,53 @@ export default function BookingConfirmed() {
   const formattedDate = date && date instanceof Date
     ? date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
     : "";
+
+  const handleAddToCalendar = useCallback(() => {
+    if (!date || !(date instanceof Date)) return;
+    const startDate = new Date(date);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    const formatIcsDate = (d) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}Z`;
+    const icsContent = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Arvaya Healthcare//Booking Confirmation//EN",
+      "BEGIN:VEVENT",
+      `DTSTART:${formatIcsDate(startDate)}`,
+      `DTEND:${formatIcsDate(endDate)}`,
+      `SUMMARY:${doctor?.name || "Appointment with Arvaya Healthcare"}`,
+      "DESCRIPTION:Appointment confirmed with Arvaya Healthcare",
+      "END:VEVENT",
+      "END:VCALENDAR"
+    ].join("\r\n");
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "arvaya-booking.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [date, doctor]);
+
+  const handleShareDetails = useCallback(() => {
+    const details = `My appointment is confirmed with Arvaya Healthcare.\nBooking ID: ${bookingId || "APMNT" + Date.now().toString().slice(-8)}\nDoctor: Dr. ${doctor?.name || "N/A"}\nDate: ${formattedDate}\nTime: ${slot}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Arvaya Healthcare Booking Confirmation",
+        text: details,
+      }).catch((err) => {
+        navigator.clipboard.writeText(details).then(() => {
+          alert("Booking details copied to clipboard!");
+        });
+      });
+    } else {
+      navigator.clipboard.writeText(details).then(() => {
+        alert("Booking details copied to clipboard!");
+      }).catch(() => {
+        alert("Unable to share. Please copy the details manually.");
+      });
+    }
+  }, [bookingId, doctor, slot, formattedDate]);
 
   return (
     <main className="page animate-fade-in-up" style={{ background: 'var(--bg-app)', minHeight: 'calc(100vh - 80px)', padding: '40px 12px' }}>
@@ -96,10 +143,10 @@ export default function BookingConfirmed() {
               View My Appointments
             </button>
             <div className="booking-confirmed-sub-actions">
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '12px', borderRadius: '12px', fontSize: '13px' }}>
+              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '12px', borderRadius: '12px', fontSize: '13px' }} onClick={handleAddToCalendar}>
                 <CalendarDays size={16} /> Add to Calendar
               </button>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '12px', borderRadius: '12px', fontSize: '13px' }}>
+              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '12px', borderRadius: '12px', fontSize: '13px' }} onClick={handleShareDetails}>
                 <Share2 size={16} /> Share Details
               </button>
             </div>

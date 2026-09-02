@@ -15,7 +15,9 @@ export function BookingProvider({ children }) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow;
   });
-  const [slot, setSlot] = useState("10:30 AM");
+  const [slot, setSlot] = useState(() => {
+    return sessionStorage.getItem("arvaya_slot") || "10:30 AM";
+  });
   const [bookingId, setBookingId] = useState("");
   const [bookingType, setBookingType] = useState(() => {
     return sessionStorage.getItem("arvaya_booking_type") || "doctor";
@@ -67,6 +69,10 @@ export function BookingProvider({ children }) {
   }, [bookingType]);
   
   useEffect(() => {
+    sessionStorage.setItem("arvaya_slot", slot);
+  }, [slot]);
+  
+  useEffect(() => {
     if (bookingHospital) sessionStorage.setItem("arvaya_booking_hospital", JSON.stringify(bookingHospital));
     else sessionStorage.removeItem("arvaya_booking_hospital");
   }, [bookingHospital]);
@@ -105,6 +111,7 @@ export function BookingProvider({ children }) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     setDate(tomorrow);
     setSlot("10:30 AM");
+    sessionStorage.removeItem("arvaya_slot");
   };
 
   return (
