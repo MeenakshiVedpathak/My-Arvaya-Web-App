@@ -19,6 +19,57 @@ export default function Confirmed() {
     ? date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
     : "";
 
+  const handleAddToCalendar = () => {
+    if (!date || !(date instanceof Date)) return;
+    const startDate = new Date(date);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    const formatIcsDate = (d) => {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}Z`;
+    };
+    const title = bookingType === 'lab' ? labPackage?.title : doctor?.name;
+    const icsContent = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Arvaya Healthcare//Booking Confirmation//EN",
+      "BEGIN:VEVENT",
+      `DTSTART:${formatIcsDate(startDate)}`,
+      `DTEND:${formatIcsDate(endDate)}`,
+      `SUMMARY:${title || "Booking with Arvaya Healthcare"}`,
+      "DESCRIPTION:Booking confirmed with Arvaya Healthcare",
+      "END:VEVENT",
+      "END:VCALENDAR"
+    ].join("\r\n");
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "arvaya-booking.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleShareDetails = () => {
+    const details = `My ${bookingType === 'lab' ? 'lab test' : 'appointment'} is confirmed with Arvaya Healthcare.\nBooking ID: ${bookingId || "APMNT12345678"}\nDate: ${formattedDate}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Arvaya Healthcare Booking Confirmation",
+        text: details,
+      }).catch((err) => {
+        console.error("Share failed:", err);
+        navigator.clipboard.writeText(details).then(() => {
+          alert("Booking details copied to clipboard!");
+        });
+      });
+    } else {
+      navigator.clipboard.writeText(details).then(() => {
+        alert("Booking details copied to clipboard!");
+      }).catch(() => {
+        alert("Unable to share. Please copy the details manually.");
+      });
+    }
+  };
+
   return (
     <main className="page page-enter" style={{ background: 'var(--bg-app)', minHeight: '100vh', padding: '24px 0' }}>
       <div className="container" style={{ maxWidth: '720px', margin: '0 auto' }}>
@@ -83,17 +134,19 @@ export default function Confirmed() {
               )}
             </div>
             
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <span className="receipt-row">
-                <CalendarDays size={20} /> {formattedDate}
-              </span>
-              <span className="receipt-row">
-                <Clock size={20} /> {slot}
-              </span>
-              <span className="receipt-row">
-                <MapPin size={20} /> {bookingType === 'lab' ? "Home Collection" : (doctor?.hospital || "Arvaya Clinic")}
-              </span>
-            </div>
+             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+               <span className="receipt-row">
+                 <CalendarDays size={20} /> {formattedDate}
+               </span>
+               {bookingType !== 'lab' && (
+               <span className="receipt-row">
+                 <Clock size={20} /> {slot}
+               </span>
+               )}
+               <span className="receipt-row">
+                 <MapPin size={20} /> {bookingType === 'lab' ? "Home Collection" : (doctor?.hospital || "Arvaya Clinic")}
+               </span>
+             </div>
           </div>
 
           <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 32px", lineHeight: 1.5 }}>
@@ -105,10 +158,10 @@ export default function Confirmed() {
               {bookingType === 'lab' ? "My Orders" : "Go to My Appointments"}
             </button>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
+              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleAddToCalendar}>
                 <CalendarDays size={16} /> Add to Calendar
               </button>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
+              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleShareDetails}>
                 <Share2 size={16} /> Share Details
               </button>
             </div>

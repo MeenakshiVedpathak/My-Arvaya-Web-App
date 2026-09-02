@@ -41,11 +41,25 @@ export default function Orders() {
           if (s.includes("deliver") || s.includes("complete") || s.includes("ready") || s.includes("report")) statusTracking = 3;
           else if (s.includes("process") || s.includes("collect") || s.includes("confirm")) statusTracking = 2;
 
-          const formattedDate = typeof rawDate === "string" ? rawDate : new Date(rawDate).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const parsedDate = (() => {
+            if (rawDate && rawDate !== "Recent") {
+              const d = new Date(rawDate);
+              if (!isNaN(d.getTime())) return d;
+            }
+            return null;
+          })();
+
+          const formattedDate = parsedDate
+            ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            : (typeof rawDate === "string" ? rawDate : "Recent");
+          const formattedTime = parsedDate
+            ? parsedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+            : "";
 
           return {
             id: String(rawId),
             date: formattedDate,
+            time: formattedTime,
             status: String(rawStatus),
             items: typeof rawItems === "string" ? rawItems : Array.isArray(rawItems) ? rawItems.join(", ") : String(rawItems),
             amount: typeof rawAmount === "number" ? rawAmount : parseFloat(rawAmount) || 0,
@@ -120,7 +134,10 @@ export default function Orders() {
                       {order.items}
                     </p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '500' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{order.date}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>{order.date}</span>
+                        {order.time && <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{order.time}</span>}
+                      </div>
                       <span style={{ 
                         color: order.status === 'Delivered' || order.status === 'Completed' || order.status === 'Ready' ? '#16a34a' : '#d97706',
                         background: order.status === 'Delivered' || order.status === 'Completed' || order.status === 'Ready' ? '#dcfce7' : '#fef3c7',
@@ -155,9 +172,15 @@ export default function Orders() {
                       <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px' }}>
                         Lab Order {selectedOrder.id}
                       </h2>
-                      <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                        Booked on {selectedOrder.date}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                        <span>Booked on {selectedOrder.date}</span>
+                        {selectedOrder.time && (
+                          <>
+                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)' }}></span>
+                            <span>at {selectedOrder.time}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <b style={{ fontSize: '24px', color: 'var(--primary)', display: 'block' }}>₹{selectedOrder.amount}</b>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Stethoscope, ArrowRight } from "lucide-react";
+import { Stethoscope, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getDoctors } from "../../services/dataService";
 import { useBooking } from "../../context/BookingContext";
@@ -8,6 +8,7 @@ import BookingLayout from "../../components/layout/BookingLayout";
 export default function SpecialtySelection() {
   const [specialties, setSpecialties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQ, setSearchQ] = useState("");
   const navigate = useNavigate();
   const { bookingHospital, bookingSpecialty, setBookingSpecialty } = useBooking();
 
@@ -75,8 +76,22 @@ export default function SpecialtySelection() {
       title="Select Specialty" 
       subtitle={`What do you need help with at ${bookingHospital?.name}?`}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
         
+        {/* Fixed Search Box */}
+        <div style={{ flexShrink: 0, marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px 16px', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+            <Search size={18} color="var(--primary)" />
+            <input 
+              type="text" 
+              placeholder="Search specialties..." 
+              value={searchQ}
+              onChange={e => setSearchQ(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px', paddingLeft: '12px', color: 'var(--text-main)' }}
+            />
+          </div>
+        </div>
+
         {/* Scrollable Specialties Content */}
         <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '12px' }}>
           {loading ? (
@@ -85,7 +100,9 @@ export default function SpecialtySelection() {
             </div>
           ) : (
             <div className="booking-specialty-container">
-              {specialties.map((spec) => {
+             {specialties
+                .filter(spec => spec.toLowerCase().includes(searchQ.toLowerCase()))
+                .map((spec) => {
                 const isSelected = bookingSpecialty === spec;
                 return (
                   <div 
@@ -100,6 +117,11 @@ export default function SpecialtySelection() {
                   </div>
                 );
               })}
+              {specialties.filter(spec => spec.toLowerCase().includes(searchQ.toLowerCase())).length === 0 && (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No specialties found matching your search.
+                </div>
+              )}
             </div>
           )}
         </div>

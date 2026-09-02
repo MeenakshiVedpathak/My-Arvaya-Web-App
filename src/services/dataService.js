@@ -575,13 +575,8 @@ export async function getLoyaltyHistory(patient_id) {
   }
 }
 export async function checkVisitType(payload) {
-  try {
-    const res = await api.post("/api/appointments/check-visit-type", payload);
-    return res?.data || res || {};
-  } catch (err) {
-    console.error("checkVisitType error:", err);
-    return {};
-  }
+  const res = await api.post("/api/appointments/check-visit-type", payload);
+  return res?.data || res || {};
 }
 
 /* ─── Reports ─── */

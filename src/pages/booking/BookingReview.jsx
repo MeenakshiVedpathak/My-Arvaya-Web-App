@@ -5,6 +5,7 @@ import { useBooking } from "../../context/BookingContext";
 import { useAuth } from "../../context/AuthContext";
 import { bookAppointment, getWalletAmount, checkVisitType, verifyPayment } from "../../services/dataService";
 import BookingLayout from "../../components/layout/BookingLayout";
+import Toast from "../../components/common/Toast";
 
 export default function BookingReview() {
   const { doctor, date, slot, setBookingId } = useBooking();
@@ -16,6 +17,8 @@ export default function BookingReview() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [visitType, setVisitType] = useState("Initial");
   const [consultationFee, setConsultationFee] = useState(0);
+  const [slotConflict, setSlotConflict] = useState(false);
+  const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
   
   const [applyWallet, setApplyWallet] = useState(false);
   const [walletAppliedAmount, setWalletAppliedAmount] = useState(0);
@@ -26,7 +29,7 @@ export default function BookingReview() {
         setLoadingData(false);
         return;
       }
-      try {
+       try {
         const toLocalDate = (d) => {
           if (typeof d === 'string') return d;
           if (d instanceof Date) {
@@ -40,10 +43,24 @@ export default function BookingReview() {
         const dStr = toLocalDate(date);
         const patient_id = user?.id || user?.user_id || user?.patient_id || 20546;
 
-        const [walletRes, visitRes] = await Promise.all([
-          getWalletAmount(patient_id),
-          checkVisitType({ patient_id, drkey: doctor.id || doctor.drkey, date: dStr })
-        ]);
+        let start = slot;
+        let end = slot;
+        if (slot && slot.includes('-')) {
+          const parts = slot.split('-');
+          start = parts[0].trim().replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+          end = parts[1].trim().replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+        }
+        start = start.replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+        end = end.replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+
+        const entitylocation = doctor.locations?.[0]?.location_key || "";
+
+        let walletRes = null;
+        try {
+          walletRes = await getWalletAmount(patient_id);
+        } catch (err) {
+          console.error("Failed to fetch wallet balance:", err);
+        }
 
         let bal = 0;
         let wData = Array.isArray(walletRes) ? walletRes[0] : walletRes;
@@ -54,13 +71,26 @@ export default function BookingReview() {
         }
         setWalletBalance(isNaN(bal) ? 0 : bal);
 
-        let vData = Array.isArray(visitRes) ? visitRes[0] : visitRes;
-        const vType = vData?.visit_type || vData?.type || vData?.Consultation_type || "Initial";
-        const cFee = parseFloat(vData?.fee || vData?.amount || vData?.Consultation_Fee || doctor.fee || 0);
-        
-        setVisitType(vType);
-        setConsultationFee(isNaN(cFee) ? 0 : cFee);
-        
+        try {
+          const visitRes = await checkVisitType({ patient_id, drkey: doctor.id || doctor.drkey, date: dStr, entitylocation, start, end });
+          let vData = Array.isArray(visitRes) ? visitRes[0] : visitRes;
+          const vType = vData?.visit_type || vData?.type || vData?.Consultation_type || "Initial";
+          const cFee = parseFloat(vData?.fee || vData?.amount || vData?.Consultation_Fee || doctor.fee || 0);
+          setVisitType(vType);
+          setConsultationFee(isNaN(cFee) ? 0 : cFee);
+        } catch (err) {
+          if (err.status === 409) {
+            setToast({
+              isOpen: true,
+              message: "This slot is currently being booked by another user. Please try again in a few minutes or select another slot.",
+              type: "error"
+            });
+            setSlotConflict(true);
+          } else {
+            console.error("checkVisitType error:", err);
+          }
+        }
+       
       } catch (err) {
         console.error("Error loading review data", err);
       } finally {
@@ -68,7 +98,16 @@ export default function BookingReview() {
       }
     }
     loadData();
-  }, [doctor, date, user]);
+  }, [doctor, date, slot, user]);
+
+  useEffect(() => {
+    if (slotConflict) {
+      const timer = setTimeout(() => {
+        navigate("/doctors/schedule");
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [slotConflict, navigate]);
 
   const maxWalletApplicable = Math.min(walletBalance, consultationFee);
   
@@ -106,6 +145,9 @@ export default function BookingReview() {
       openLoginModal("/doctors/review");
       return;
     }
+    if (slotConflict) {
+      return;
+    }
     setSubmitting(true);
     try {
       const patient_id = user?.id || user?.user_id || user?.patient_id || "";
@@ -119,10 +161,12 @@ export default function BookingReview() {
       let sessionVal = "";
       if (slot && slot.includes('-')) {
         const parts = slot.split('-');
-        start = parts[0].trim();
-        end = parts[1].trim();
+        start = parts[0].trim().replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+        end = parts[1].trim().replace(/\s*(AM|PM|am|pm)\s*$/i, '');
         sessionVal = `${start}-${end}`;
       }
+      start = start.replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+      end = end.replace(/\s*(AM|PM|am|pm)\s*$/i, '');
 
       const payload = {
         patient_id: patient_id,
@@ -223,10 +267,27 @@ export default function BookingReview() {
     );
   }
 
+  if (slotConflict && !loadingData) {
+    return (
+      <>
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-muted)' }}>Redirecting to slot selection...</p>
+        </div>
+        <Toast
+          isOpen={toast.isOpen}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, isOpen: false })}
+        />
+      </>
+    );
+  }
+
   const finalAmountToPay = consultationFee - (applyWallet ? walletAppliedAmount : 0);
 
   return (
-    <BookingLayout 
+    <>
+      <BookingLayout 
       currentStep={5} 
       title="Confirm Booking" 
       subtitle="Please review your appointment details before confirming."
@@ -438,7 +499,14 @@ export default function BookingReview() {
         </div>
       )}
       </div>
-    </div>
-    </BookingLayout>
+      </div>
+      </BookingLayout>
+      <Toast
+        isOpen={toast.isOpen}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, isOpen: false })}
+      />
+    </>
   );
 }

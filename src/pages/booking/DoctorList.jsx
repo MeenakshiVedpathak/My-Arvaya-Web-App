@@ -76,6 +76,7 @@ export default function DoctorList() {
     const q = searchQ.toLowerCase();
     return (
       d.name?.toLowerCase().includes(q) ||
+      d.qualification?.toLowerCase().includes(q) ||
       d.specialty?.toLowerCase().includes(q)
     );
   });
@@ -155,7 +156,7 @@ export default function DoctorList() {
                 </div>
               ))}
               {displayedDocs.length === 0 && (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ gridColumn: '1 / -1', width: '100%', padding: '60px 0', textAlign: 'center', color: 'var(--text-muted)' }}>
                   No doctors found matching your search.
                 </div>
               )}

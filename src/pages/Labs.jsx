@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { getLabPackages, getDiagnosticTests, getDiagnosticPackages, getAppointments, createLabOrder, verifyLabPayment, loadRazorpayScript, getWalletAmount } from "../services/dataService";
+import { getLabPackages, getDiagnosticTests, getDiagnosticPackages, getAppointments, getLabOrderHistory, createLabOrder, verifyLabPayment, loadRazorpayScript, getWalletAmount } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
 import { packages as defaultPackages } from "../mocks/data";
@@ -328,28 +328,35 @@ function toTitleCase(str) {
         console.error("Failed to fetch /api/diagnostic/getPackages:", err);
       });
 
-    // Trigger API 3: /api/appointments/getPatientAppointments
-    getAppointments()
-      .then((apiAppts) => {
+    // Trigger API 3: /api/lims/laborder/history
+    const patientId = user?.id || user?.user_id || user?.patient_id || "";
+    getLabOrderHistory(patientId)
+      .then((apiOrders) => {
         if (!isMounted) return;
-        if (Array.isArray(apiAppts) && apiAppts.length > 0) {
-          const normalized = apiAppts.map((apt, idx) => {
-            let dateStr = apt.date;
-            if (dateStr && typeof dateStr === 'string' && dateStr.includes('-')) {
-              try {
-                dateStr = new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-              } catch (e) {}
+        if (Array.isArray(apiOrders) && apiOrders.length > 0) {
+          const normalized = apiOrders.map((order, idx) => {
+            const rawDate = order.order_date || order.created_at || order.created_on || order.date || order.orderDate;
+            let dateStr = "Recent";
+            let timeStr = "";
+            if (rawDate) {
+              const d = new Date(rawDate);
+              if (!isNaN(d.getTime())) {
+                dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                timeStr = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+              } else if (typeof rawDate === 'string') {
+                dateStr = rawDate;
+              }
             }
-            const rawStatus = (apt.status || "Upcoming");
+            const rawStatus = (order.order_status || order.status || "Processing");
             const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
 
             return {
-              id: apt.id || `apt-${idx}`,
-              date: dateStr || "July 15, 2026",
+              id: order.order_id || order.lab_order_id || order.id || `order-${idx}`,
+              date: dateStr,
+              time: timeStr,
               status: formattedStatus,
-              name: apt.doctor || apt.specialty || apt.name || apt.raw?.test_name || `Lab Appointment ${idx + 1}`,
-              lab: apt.hospital || apt.clinic || apt.lab || "Arvaya Health Lab",
-              time: apt.time || "10:00 AM"
+              name: order.test_names || order.tests || order.items || order.test_category_name || `Lab Test ${idx + 1}`,
+              lab: order.lab_name || order.center_name || order.lab || order.hospital_name || "Arvaya Health Lab"
             };
           });
 
@@ -359,7 +366,7 @@ function toTitleCase(str) {
         }
       })
       .catch((err) => {
-        console.error("Failed to fetch /api/appointments/getPatientAppointments:", err);
+        console.error("Failed to fetch /api/lims/laborder/history:", err);
         setAppointments([]);
       });
 
@@ -1488,11 +1495,11 @@ function toTitleCase(str) {
           )}
         </section>
 
-        {/* ── SECTION 3: YOUR APPOINTMENTS ── */}
+        {/* ── SECTION 3: MY ORDERS ── */}
         <section style={{ marginBottom: '48px' }}>
           <div className="lab-section-header">
-            <h2 className="lab-section-title">Your Appointments</h2>
-            <button className="lab-view-all-btn" onClick={() => go('/my-appointments')}>
+            <h2 className="lab-section-title">My Orders</h2>
+            <button className="lab-view-all-btn" onClick={() => go('/orders')}>
               View All <ArrowRight size={16} />
             </button>
           </div>
@@ -1510,24 +1517,30 @@ function toTitleCase(str) {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>{appt.date}</span>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>{appt.date}</span>
+                      {appt.time && <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{appt.time}</span>}
+                    </div>
                     <span style={{
                       padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
-                      background: (appt.status || '').toLowerCase() === 'upcoming' ? '#dcfce7' : 'var(--primary-light)',
-                      color: (appt.status || '').toLowerCase() === 'upcoming' ? '#16a34a' : 'var(--primary-dark)',
-                      textTransform: 'capitalize'
+                      background: (appt.status || '').toLowerCase() === 'delivered' || (appt.status || '').toLowerCase() === 'completed' || (appt.status || '').toLowerCase() === 'ready' ? '#dcfce7' : 'var(--primary-light)',
+                      color: (appt.status || '').toLowerCase() === 'delivered' || (appt.status || '').toLowerCase() === 'completed' || (appt.status || '').toLowerCase() === 'ready' ? '#16a34a' : 'var(--primary-dark)',
+                      textTransform: 'capitalize',
+                      flexShrink: 0
                     }}>
                       {appt.status}
                     </span>
                   </div>
-                  <h4 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px' }}>{appt.name}</h4>
+                  <h4 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>
+                    {typeof appt.name === 'string' && appt.name.length > 60 ? appt.name.substring(0, 60) + '...' : appt.name}
+                  </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <MapPin size={14} color="var(--primary)" /> {appt.lab}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Clock size={14} color="var(--primary)" /> {appt.time}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'monospace', fontSize: '11px' }}>
+                      ID: {appt.id}
                     </span>
                   </div>
                 </div>
@@ -1543,7 +1556,7 @@ function toTitleCase(str) {
               color: 'var(--text-muted)',
               fontSize: '14px'
             }}>
-              No appointments found.
+              No orders found.
             </div>
           )}
         </section>
