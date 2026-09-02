@@ -181,7 +181,11 @@ export default function Records() {
     try {
       let res;
       try {
-        res = await api.post("/api/documentType/get", {});
+        res = await api.post("/api/documentType/get", {
+          filters: [
+            { column: "is_active", operator: "=", value: 1 }
+          ]
+        });
       } catch (err) {
         res = await api.get("/api/documentType/get");
       }

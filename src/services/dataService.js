@@ -13,25 +13,65 @@ export function getStoredUserId() {
 }
 
 
+/**
+ * Helper to build/normalize filters array of objects:
+ * [
+ *   { column: "is_active", operator: "=", value: 1 },
+ *   { column: "client_id", operator: "IN", value: [10, 20, 30] },
+ *   { column: "created_modified_date", operator: "BETWEEN", value: ["2026-01-01", "2026-12-31"] }
+ * ]
+ */
+export function buildFiltersArray(filtersParam = {}, defaultFilters = []) {
+  let filtersArray = [];
+
+  if (Array.isArray(filtersParam)) {
+    filtersArray = [...filtersParam];
+  } else if (filtersParam && typeof filtersParam === "object") {
+    const { filters, filter, filterQuery, ...rest } = filtersParam;
+
+    if (Array.isArray(filters)) {
+      filtersArray = [...filters];
+    } else {
+      Object.entries(rest).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== "") {
+          let operator = "=";
+          if (Array.isArray(val)) {
+            operator = key.includes("date") || key.includes("between") ? "BETWEEN" : "IN";
+          }
+          filtersArray.push({
+            column: key,
+            operator: operator,
+            value: val
+          });
+        }
+      });
+    }
+  }
+
+  if (Array.isArray(defaultFilters)) {
+    defaultFilters.forEach(defFilter => {
+      if (defFilter && defFilter.column) {
+        const exists = filtersArray.some(f => f.column === defFilter.column);
+        if (!exists) {
+          filtersArray.push(defFilter);
+        }
+      }
+    });
+  }
+
+  return filtersArray;
+}
+
 /* ─── Patients / App Users ─── */
-export async function getPatients(filters = {}) {
+export async function getPatients(filtersParam = {}) {
   try {
     const storedUserId = getStoredUserId();
-    let filterQuery = filters.filter || filters.filterQuery || "";
+    const defaultFilters = storedUserId
+      ? [{ column: "id", operator: "=", value: Number(storedUserId) || storedUserId }]
+      : [];
 
-    if (storedUserId) {
-      if (!filterQuery.includes("id=")) {
-        filterQuery += ` AND id=${storedUserId}`;
-      }
-    }
-
-    const { filterQuery: _, filter: __, ...restFilters } = filters;
-
-    const payload = {
-      filter: filterQuery.trim(),
-      ...(storedUserId ? { id: storedUserId } : {}),
-      ...restFilters
-    };
+    const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
+    const payload = { filters: filtersArray };
 
     const res = await api.post("/api/appUser/get", payload);
     return res?.data || res?.patients || res?.list || res?.result || res?.UserData || res || [];
@@ -53,15 +93,32 @@ export async function updateAppUser(payload) {
 
 
 /* ─── Family Details ─── */
-export async function getFamilyDetails(filters = {}) {
+export async function getFamilyDetails(filtersParam = {}) {
   try {
     const storedUserId = getStoredUserId();
-    const appUserId = filters.app_user_id || filters.appUserId || filters.user_id || storedUserId || 107602;
-    const clientId = filters.client_id || 1;
+    const appUserId =
+      (typeof filtersParam === "object" && !Array.isArray(filtersParam)
+        ? filtersParam.app_user_id || filtersParam.user_id || filtersParam.appUserId
+        : null) || storedUserId || 107602;
+
+    const defaultFilters = [
+      { column: "user_id", operator: "=", value: Number(appUserId) || appUserId }
+    ];
+
+    const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
+
+    let extraPayload = {};
+    if (typeof filtersParam === "object" && !Array.isArray(filtersParam)) {
+      const { filters, filter, filterQuery, ...rest } = filtersParam;
+      extraPayload = rest;
+    }
 
     const payload = {
-      user_id: appUserId,
+      user_id: Number(appUserId) || appUserId,
+      filters: filtersArray,
+      ...extraPayload
     };
+
     const res = await api.post("/api/familyDetails/get", payload);
     const data = res?.data || res?.list || res?.result || res?.familyDetails || [];
     const primaryAccount = res?.primary_account;
@@ -99,6 +156,8 @@ export async function upsertFamilyDetails(payload) {
     throw err;
   }
 }
+
+
 
 function getUserId() {
   try {
@@ -285,17 +344,15 @@ export async function getPlans(filters = {}) {
 }
 
 /* ─── Banners ─── */
-export async function getBanners() {
-  const payload = {
-    pageIndex: 0,
-    pageSize: 0,
-    sortKey: "seq_no",
-    sortValue: "asc",
-    filterQuery: "and is_active=1",
-  };
+export async function getBanners(filtersParam = {}) {
   try {
+    const defaultFilters = [{ column: "is_active", operator: "=", value: 1 }];
+    const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
+    const payload = {
+      filters: filtersArray
+    };
     const res = await api.post("/banner/get", payload);
-    return res.data || res || [];
+    return res?.data || res?.result || res?.list || res || [];
   } catch (error) {
     console.error("Failed to fetch banners", error);
     return [];
@@ -654,47 +711,32 @@ export async function getRewards() {
 
 
 /* ─── Health Records ─── */
-export async function getRecords(filters = {}) {
+export async function getRecords(filtersParam = {}) {
   try {
     const storedUserId = getStoredUserId();
-    const isExplicitObject = typeof filters === "object" && filters !== null;
+    const appUserId =
+      (typeof filtersParam === "object" && filtersParam !== null && !Array.isArray(filtersParam)
+        ? filtersParam.app_user_id || filtersParam.user_id || filtersParam.appUserId
+        : null) || storedUserId;
 
-    let payload = {};
+    const defaultFilters = [
+      ...(appUserId ? [{ column: "app_user_id", operator: "=", value: Number(appUserId) || appUserId }] : []),
+      { column: "is_active", operator: "=", value: 1 }
+    ];
 
-    if (isExplicitObject && filters.filter !== undefined) {
-      payload = {
-        pageIndex: filters.pageIndex || 1,
-        pageSize: filters.pageSize || 12,
-        sortKey: filters.sortKey || "id",
-        sortValue: filters.sortValue || "desc",
-        filter: filters.filter
-      };
-    } else {
-      let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || "");
+    const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
 
-      if (storedUserId) {
-        if (!filterQuery.toLowerCase().includes("app_user_id=") && !filterQuery.toLowerCase().includes("user_id=")) {
-          if (filterQuery.trim()) {
-            filterQuery = filterQuery.trim().toLowerCase().startsWith("and ")
-              ? `and app_user_id=${storedUserId} ${filterQuery.trim()}`
-              : `and app_user_id=${storedUserId} and ${filterQuery.trim()}`;
-          } else {
-            filterQuery = `and app_user_id=${storedUserId}`;
-          }
-        }
-      }
-
-      payload = {
-        pageIndex: filters.pageIndex || 1,
-        pageSize: filters.pageSize || 12,
-        sortKey: filters.sortKey || "id",
-        sortValue: filters.sortValue || "desc",
-        filter: filterQuery ? filterQuery.trim() : "",
-        ...(storedUserId ? { app_user_id: storedUserId } : {}),
-        ...(isExplicitObject ? filters : {})
-      };
-      delete payload.filterQuery;
+    let extraPayload = {};
+    if (typeof filtersParam === "object" && filtersParam !== null && !Array.isArray(filtersParam)) {
+      const { filters, filter, filterQuery, ...rest } = filtersParam;
+      extraPayload = rest;
     }
+
+    const payload = {
+      ...(appUserId ? { app_user_id: Number(appUserId) || appUserId } : {}),
+      filters: filtersArray,
+      ...extraPayload
+    };
 
     const res = await api.post("/api/patientHealthRecord/get", payload);
     const rawList = res?.data || res?.list || res?.records || res?.result || res?.UserData || (Array.isArray(res) ? res : []);
@@ -785,50 +827,55 @@ export async function rescheduleAppointment(payload) {
 }
 
 /* ─── Notifications ─── */
-export async function getNotifications(filters = {}) {
+export async function getNotifications(filtersParam = {}) {
   try {
     const storedUserId = getStoredUserId();
-    let filterQuery = typeof filters === "string" ? filters : (filters.filterQuery || filters.filter || "");
+    const userId =
+      (typeof filtersParam === "object" && filtersParam !== null && !Array.isArray(filtersParam)
+        ? filtersParam.user_id || filtersParam.userId || filtersParam.app_user_id
+        : null) || storedUserId;
 
-    if (storedUserId) {
-      if (!filterQuery.toLowerCase().includes("user_id=")) {
-        if (filterQuery.trim()) {
-          if (filterQuery.trim().toLowerCase().startsWith("and ")) {
-            filterQuery = `and user_id=${storedUserId} ${filterQuery.trim()}`;
-          } else {
-            filterQuery = `and user_id=${storedUserId} and ${filterQuery.trim()}`;
-          }
-        } else {
-          filterQuery = `and user_id=${storedUserId}`;
-        }
-      }
+    const defaultFilters = [
+      ...(userId ? [{ column: "user_id", operator: "=", value: Number(userId) || userId }] : []),
+      { column: "is_active", operator: "=", value: 1 }
+    ];
+
+    const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
+
+    let extraPayload = {};
+    if (typeof filtersParam === "object" && filtersParam !== null && !Array.isArray(filtersParam)) {
+      const { filters, filter, filterQuery, ...rest } = filtersParam;
+      extraPayload = rest;
     }
 
     const payload = {
-      pageIndex: filters.pageIndex || 1,
-      pageSize: filters.pageSize || 100,
-      sortKey: filters.sortKey || "id",
-      sortValue: filters.sortValue || "desc",
-      filterQuery: filterQuery ? filterQuery.trim() : "",
-      filter: filterQuery ? filterQuery.trim() : "",
-      ...(storedUserId ? { user_id: storedUserId } : {}),
-      ...((typeof filters === "object" && filters) ? filters : {})
+      ...(userId ? { user_id: Number(userId) || userId } : {}),
+      filters: filtersArray,
+      ...extraPayload
     };
 
     const res = await api.post("/api/notification/get", payload);
     const data = res?.data || res?.list || res?.notifications || res?.result || (Array.isArray(res) ? res : []);
     return Array.isArray(data) ? data : [];
   } catch (err) {
-    console.error("getNotifications error with filterQuery, retrying fallback:", err);
-    try {
-      const storedUserId = getStoredUserId();
-      const res = await api.post("/api/notification/get", storedUserId ? { user_id: storedUserId } : {});
-      const data = res?.data || res?.list || res?.notifications || res?.result || (Array.isArray(res) ? res : []);
-      return Array.isArray(data) ? data : [];
-    } catch (fallbackErr) {
-      console.error("getNotifications fallback error:", fallbackErr);
-      return [];
-    }
+    console.error("getNotifications error:", err);
+    return [];
+  }
+}
+
+/* ─── Document Types ─── */
+export async function getDocumentTypes(filtersParam = {}) {
+  try {
+    const defaultFilters = [{ column: "is_active", operator: "=", value: 1 }];
+    const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
+    const payload = { filters: filtersArray };
+
+    const res = await api.post("/api/documentType/get", payload);
+    const list = res?.data || res?.list || res?.records || res?.result || (Array.isArray(res) ? res : []);
+    return Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error("getDocumentTypes error:", err);
+    return [];
   }
 }
 

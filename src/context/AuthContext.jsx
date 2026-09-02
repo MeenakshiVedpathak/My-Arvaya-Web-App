@@ -63,10 +63,10 @@ export function AuthProvider({ children }) {
       }
 
       const mobile = currentUser.phone || currentUser.mobile_number || currentUser.mobile;
-      const filters = {
-        ...(storedUserId ? { id: storedUserId, filterQuery: ` AND id=${storedUserId}` } : {}),
-        ...(mobile ? { mobile_number: mobile } : {})
-      };
+      const filters = [
+        ...(storedUserId ? [{ column: "id", operator: "=", value: storedUserId }] : []),
+        ...(mobile ? [{ column: "mobile_number", operator: "=", value: mobile }] : [])
+      ];
       const res = await getPatients(filters);
       
       let patientData = null;
