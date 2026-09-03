@@ -19,8 +19,11 @@ export function checkOtpResponse(res) {
     (res.code && Number(res.code) >= 400) ||
     res.error || res.err || res.errorMessage
   ) {
-    const msg = res.message || res.error || res.err || res.errorMessage || res.details || "OTP is invalid or has expired.";
-    throw new Error(typeof msg === "string" ? msg : "OTP is invalid or has expired.");
+    const rawMsg = res.message || res.error || res.err || res.errorMessage || res.details;
+    const msg = (typeof rawMsg === "string" && rawMsg.trim() && rawMsg !== "Request failed")
+      ? rawMsg.trim()
+      : "This Aadhaar number is not recognized. Try again.";
+    throw new Error(msg);
   }
 
   if (res.message && typeof res.message === "string") {
@@ -180,8 +183,24 @@ export async function abhaGetSuggestions(txnId, profileData) {
    POST /abhaNumber/sendCreationOtp
    Body: { adhar }
 ───────────────────────────────────────────── */
+export function validateAadhaarNumber(adhar) {
+  const clean = String(adhar || "").replace(/\D/g, "");
+  if (clean.length !== 12) {
+    throw new Error("Please enter a valid 12-digit Aadhaar number.");
+  }
+  if (clean.startsWith("0") || clean.startsWith("1")) {
+    throw new Error("Aadhaar number cannot start with 0 or 1. Please enter a valid Aadhaar number.");
+  }
+  if (/^(\d)\1{11}$/.test(clean)) {
+    throw new Error("Aadhaar number cannot contain all identical digits. Please enter a valid Aadhaar number.");
+  }
+}
+
 export async function abhaSendCreationOtp(adhar) {
-  return api.post("/abhaNumber/sendCreationOtp", { adhar: String(adhar) });
+  validateAadhaarNumber(adhar);
+  const res = await api.post("/abhaNumber/sendCreationOtp", { adhar: String(adhar).replace(/\D/g, "") });
+  checkOtpResponse(res);
+  return res;
 }
 
 /* ─────────────────────────────────────────────

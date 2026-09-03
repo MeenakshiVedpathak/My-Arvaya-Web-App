@@ -51,12 +51,39 @@ export default function Login({ forceOpen = false }) {
     setUhidInputs({});
     setVerifyOtpRawRes(null);
     closeLoginModal();
-    go(-1);
+    const target = location.state?.from || location.state?.redirectPath || pendingRedirect;
+    if (target && target !== "/login") {
+      go(target, { replace: true });
+    } else {
+      go("/", { replace: true });
+    }
+  };
+
+  const handleAbhaMobileBack = () => {
+    const fromAbhaHub = location.state?.fromAbhaHub === true || (location.state?.redirectPath === "/abha" && location.state?.screen === "abha_mobile");
+    const redirectPath = location.state?.redirectPath || location.state?.from || pendingRedirect;
+
+    if (fromAbhaHub) {
+      closeLoginModal();
+      go("/abha", { replace: true });
+    } else if (redirectPath && redirectPath !== "/login" && location.state?.screen === "abha_mobile") {
+      closeLoginModal();
+      go(redirectPath, { replace: true });
+    } else {
+      setScreen("landing");
+    }
   };
 
   /* ── Regular Mobile OTP Flow ── */
   const doSendOtp = async (mobile) => {
-    setPhone(mobile); setErr(""); setBusy(true);
+    const cleanMobile = mobile.replace(/\D/g, "");
+    if (!cleanMobile || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+      const msg = "Mobile number must start with a digit between 6 and 9";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    setPhone(cleanMobile); setErr(""); setBusy(true);
     try {
       const res = await sendOtp(mobile);
       if (res && (res.is_registered === false || res.registered === false || res.userExists === false || res.isNewUser === true)) {
@@ -213,7 +240,14 @@ export default function Login({ forceOpen = false }) {
 
   /* ── ABHA 3-Step Flow ── */
   const doAbhaSendOtp = async (mobile) => {
-    setAbhaMobile(mobile); setErr(""); setBusy(true);
+    const cleanMobile = mobile.replace(/\D/g, "");
+    if (!cleanMobile || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+      const msg = "Mobile number must start with a digit between 6 and 9";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    setAbhaMobile(cleanMobile); setErr(""); setBusy(true);
     try {
       const res = await abhaSendOtp(mobile);
       const txnId = res?.transactionId || res?.txnId || res?.txn_id || res?.data?.transactionId || res?.data?.txnId || res?.data?.txn_id || res?.result?.txnId || res?.result?.transactionId || "mock_txn_" + Date.now();
@@ -346,7 +380,7 @@ export default function Login({ forceOpen = false }) {
       break;
     // ── ABHA Login 3-step ──
     case "abha_mobile":
-      card = <AbhaMobile onBack={() => setScreen("landing")} onSend={doAbhaSendOtp} onCreateNow={() => { setErr(""); setScreen("abha_create_1"); }} {...p} />;
+      card = <AbhaMobile onBack={handleAbhaMobileBack} onSend={doAbhaSendOtp} onCreateNow={() => { setErr(""); setScreen("abha_create_1"); }} {...p} />;
       break;
     case "abha_otp":
       card = <AbhaOtp mobile={abhaMobile} onBack={() => setScreen("abha_mobile")} onVerify={doAbhaVerifyOtp} onResend={() => doAbhaSendOtp(abhaMobile)} {...p} />;
@@ -599,7 +633,33 @@ function Landing({ onAbha, onMobile }) {
    MOBILE (Regular OTP Login)
    ═══════════════════════════════════════ */
 function Mobile({ onBack, onSend, busy, err }) {
+  const { showToast } = useAuth();
   const [m, setM] = useState("");
+  const [localErr, setLocalErr] = useState("");
+
+  const handleInputChange = (e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setLocalErr("");
+    setM(val);
+  };
+
+  const handleSend = () => {
+    if (!m || m.length < 10) {
+      const msg = "Please enter a valid 10-digit mobile number";
+      setLocalErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(m)) {
+      const msg = "Mobile number must start with a digit between 6 and 9";
+      setLocalErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    setLocalErr("");
+    onSend(m);
+  };
+
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -610,21 +670,37 @@ function Mobile({ onBack, onSend, busy, err }) {
       </div>
       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '32px', paddingLeft: '44px' }}>We'll send a 6-digit OTP to verify.</p>
 
-      {err && <ErrorBox msg={err} />}
+      {(localErr || err) && <ErrorBox msg={localErr || err} />}
 
       <div style={{ display: 'flex', alignItems: 'center', position: 'relative', marginBottom: '32px' }}>
         <span style={{ position: 'absolute', left: '16px', color: 'var(--text-muted)', fontWeight: '600', fontSize: '16px' }}>+91</span>
         <div style={{ position: 'absolute', left: '56px', top: '50%', transform: 'translateY(-50%)', width: '1px', height: '22px', background: 'var(--border)' }} />
-        <input className="input-field" autoFocus type="tel" placeholder="Enter your 10-digit number" value={m} onChange={e => setM(e.target.value.replace(/\D/g, ""))} maxLength={10} style={{ paddingLeft: '72px', padding: '16px 16px 16px 72px', fontSize: '16px', borderRadius: '12px', background: 'var(--bg-app)' }} />
+        <input
+          className="input-field"
+          autoFocus
+          type="tel"
+          placeholder="Enter your 10-digit number"
+          value={m}
+          onChange={handleInputChange}
+          maxLength={10}
+          style={{
+            paddingLeft: '72px', padding: '16px 16px 16px 72px', fontSize: '16px', borderRadius: '12px',
+            background: 'var(--bg-app)', border: localErr ? '1.5px solid var(--danger)' : '1.5px solid var(--border)'
+          }}
+        />
       </div>
 
-      <button disabled={busy || m.length < 10} onClick={() => onSend(m)} style={{
-        width: '100%', background: busy || m.length < 10 ? 'var(--border)' : 'var(--primary)',
-        color: busy || m.length < 10 ? 'var(--text-muted)' : '#fff', border: 'none', padding: '16px',
-        borderRadius: '12px', fontSize: '15px', fontWeight: '600',
-        cursor: busy || m.length < 10 ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-        boxShadow: busy || m.length < 10 ? 'none' : '0 4px 12px rgba(46,102,110,0.28)'
-      }}>
+      <button
+        disabled={busy || m.length < 10}
+        onClick={handleSend}
+        style={{
+          width: '100%', background: busy || m.length < 10 ? 'var(--border)' : 'var(--primary)',
+          color: busy || m.length < 10 ? 'var(--text-muted)' : '#fff', border: 'none', padding: '16px',
+          borderRadius: '12px', fontSize: '15px', fontWeight: '600',
+          cursor: busy || m.length < 10 ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+          boxShadow: busy || m.length < 10 ? 'none' : '0 4px 12px rgba(46,102,110,0.28)'
+        }}
+      >
         {busy ? "Sending OTP..." : "Get OTP"}
       </button>
     </div>
@@ -675,7 +751,32 @@ function Otp({ phone, onBack, onVerify, onResend, busy, err }) {
    ABHA STEP 1 — Mobile Number
    ═══════════════════════════════════════ */
 function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
+  const { showToast } = useAuth();
   const [m, setM] = useState("");
+  const [localErr, setLocalErr] = useState("");
+
+  const handleInputChange = (e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setLocalErr("");
+    setM(val);
+  };
+
+  const handleSend = () => {
+    if (!m || m.length < 10) {
+      const msg = "Please enter a valid 10-digit mobile number";
+      setLocalErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(m)) {
+      const msg = "Mobile number must start with a digit between 6 and 9";
+      setLocalErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    setLocalErr("");
+    onSend(m);
+  };
 
   return (
     <div style={{ animation: 'fadeIn 0.35s ease-in-out' }}>
@@ -694,7 +795,7 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
         Enter the 10-digit mobile number linked with your Aadhaar / ABHA account.
       </p>
 
-      {err && <ErrorBox msg={err} />}
+      {(localErr || err) && <ErrorBox msg={localErr || err} />}
 
       {/* Mobile Input */}
       <div style={{ marginBottom: '12px' }}>
@@ -716,9 +817,13 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
             type="tel"
             placeholder="10-digit mobile number"
             value={m}
-            onChange={e => setM(e.target.value.replace(/\D/g, ""))}
+            onChange={handleInputChange}
             maxLength={10}
-            style={{ paddingLeft: '88px', padding: '15px 16px 15px 88px', fontSize: '16px', borderRadius: '12px', background: 'var(--bg-app)', letterSpacing: m ? '0.06em' : '0' }}
+            style={{
+              paddingLeft: '88px', padding: '15px 16px 15px 88px', fontSize: '16px', borderRadius: '12px',
+              background: 'var(--bg-app)', letterSpacing: m ? '0.06em' : '0',
+              border: localErr ? '1.5px solid var(--danger)' : '1.5px solid var(--border)'
+            }}
           />
         </div>
       </div>
@@ -733,7 +838,7 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
 
       <button
         disabled={busy || m.length < 10}
-        onClick={() => onSend(m)}
+        onClick={handleSend}
         style={{
           width: '100%', background: busy || m.length < 10 ? 'var(--border)' : 'var(--accent)',
           color: busy || m.length < 10 ? 'var(--text-muted)' : '#fff', border: 'none', padding: '16px',
@@ -761,7 +866,7 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
    ═══════════════════════════════════════ */
 function AbhaOtp({ mobile, onBack, onVerify, onResend, busy, err }) {
   const [o, setO] = useState("");
-  const [countdown, setCountdown] = useState(120);
+  const [countdown, setCountdown] = useState(600);
   const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
@@ -771,7 +876,7 @@ function AbhaOtp({ mobile, onBack, onVerify, onResend, busy, err }) {
   }, [countdown]);
 
   const handleResend = () => {
-    setO(""); setCountdown(120); setCanResend(false);
+    setO(""); setCountdown(600); setCanResend(false);
     onResend();
   };
 
@@ -989,14 +1094,72 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
   const [createdAbha, setCreatedAbha] = useState("");
   const [copied, setCopied] = useState(false);
 
+  const [countdown, setCountdown] = useState(600);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    if (step === 'abha_create_2') {
+      setCountdown(600);
+      setCanResend(false);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== 'abha_create_2') return;
+    if (countdown <= 0) {
+      setCanResend(true);
+      return;
+    }
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [step, countdown]);
+
   const fmtAadhaar = (v) => v.replace(/\D/g, "").slice(0, 12).replace(/(\d{4})(?=\d)/g, "$1 ");
 
   const rawAadhaar = aadhaar.replace(/\s/g, "");
   const isAadhaarValid = rawAadhaar.length === 12;
 
+  const handleResendOtp = async () => {
+    setErr("");
+    setBusy(true);
+    try {
+      const res = await abhaSendCreationOtp(rawAadhaar);
+      const newTxnId = res?.txnId || res?.transactionId || res?.data?.txnId || res?.data?.transactionId || res?.txn_id || res?.result?.txnId || "";
+      if (newTxnId) {
+        setTxnId(newTxnId);
+        if (setAbhaTransactionId) setAbhaTransactionId(newTxnId);
+      }
+      setOtp("");
+      setCountdown(600);
+      setCanResend(false);
+      if (showToast) showToast("OTP resent to your Aadhaar-linked mobile", "success");
+    } catch (e) {
+      const errMsg = e.message || "Failed to resend OTP";
+      setErr(errMsg);
+      if (showToast) showToast(errMsg, "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const mins = String(Math.floor(countdown / 60)).padStart(2, '0');
+  const secs = String(countdown % 60).padStart(2, '0');
+
   const handleStep1 = async () => {
-    if (!isAadhaarValid) {
+    if (!rawAadhaar || rawAadhaar.length !== 12) {
       const msg = "Please enter a valid 12-digit Aadhaar number.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    if (rawAadhaar.startsWith("0") || rawAadhaar.startsWith("1")) {
+      const msg = "Aadhaar number cannot start with 0 or 1. Please enter a valid Aadhaar number.";
+      setErr(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    if (/^(\d)\1{11}$/.test(rawAadhaar)) {
+      const msg = "Aadhaar number cannot contain all identical digits. Please enter a valid Aadhaar number.";
       setErr(msg);
       if (showToast) showToast(msg, "error");
       return;
@@ -1018,7 +1181,10 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
       setBusy(false);
       onNext("abha_create_2");
     } catch (e) {
-      const errMsg = e.message || "Failed to send OTP to Aadhaar-linked mobile";
+      let errMsg = e.message || "";
+      if (!errMsg || errMsg === "Request failed" || errMsg.includes("Failed to send OTP")) {
+        errMsg = "This Aadhaar number is not recognized. Try again.";
+      }
       setErr(errMsg);
       if (showToast) showToast(errMsg, "error");
       setBusy(false);
@@ -1341,12 +1507,19 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px' }}>
               <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Didn't receive OTP?</span>
-              <button
-                onClick={() => setOtp('')}
-                style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                Resend OTP
-              </button>
+              {canResend ? (
+                <button
+                  disabled={busy}
+                  onClick={handleResendOtp}
+                  style={{ color: busy ? 'var(--text-muted)' : 'var(--primary)', fontWeight: '700', fontSize: '12px', background: 'none', border: 'none', cursor: busy ? 'not-allowed' : 'pointer' }}
+                >
+                  {busy ? "Resending..." : "Resend OTP"}
+                </button>
+              ) : (
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
+                  Resend OTP in <strong style={{ color: 'var(--text-main)', fontVariantNumeric: 'tabular-nums' }}>{mins}:{secs}</strong>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -1369,13 +1542,13 @@ function AbhaCreate({ step, initialMobile = "", abhaTransactionId = "", setAbhaT
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Full Name</label>
-              <input className="input-field" type="text" placeholder="Enter full name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              <input className="input-field" type="text" placeholder="Enter full name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value.replace(/[^a-zA-Z\s]/g, "") }))}
                 style={{ padding: '8px 12px', borderRadius: '10px', background: '#fff', fontSize: '13px', width: '100%', border: '1.5px solid var(--border)', height: '38px' }} />
             </div>
 
             <div>
               <label style={{ display: 'block', fontSize: '11.5px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '3px' }}>Mobile Number</label>
-              <input className="input-field" type="tel" placeholder="10-digit mobile" value={form.mobile} onChange={e => setForm(f => ({ ...f, mobile: e.target.value }))}
+              <input className="input-field" type="tel" placeholder="10-digit mobile" maxLength={10} value={form.mobile} onChange={e => setForm(f => ({ ...f, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) }))}
                 style={{ padding: '8px 12px', borderRadius: '10px', background: '#fff', fontSize: '13px', width: '100%', border: '1.5px solid var(--border)', height: '38px' }} />
             </div>
           </div>

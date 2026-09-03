@@ -62,14 +62,43 @@ async function request(method, path, body, customHeaders = {}) {
       document.cookie = "token=; Max-Age=-99999999; path=/;";
       document.cookie = "arvaya_token=; Max-Age=-99999999; path=/;";
     }
-    window.location.href = "/login";
     throw new Error("Session expired");
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }));
-    const error = new Error(err.message || "Request failed");
+    let errData;
+    try {
+      errData = await res.json();
+    } catch {
+      try {
+        const text = await res.text();
+        errData = { message: text || res.statusText };
+      } catch {
+        errData = { message: res.statusText };
+      }
+    }
+
+    const extractedMessage =
+      (typeof errData === "string" ? errData : null) ||
+      errData?.message ||
+      errData?.error?.message ||
+      (typeof errData?.error === "string" ? errData.error : null) ||
+      (Array.isArray(errData?.details) ? (errData.details[0]?.message || errData.details[0]) : (typeof errData?.details === "string" ? errData.details : null)) ||
+      (Array.isArray(errData?.errors) ? (errData.errors[0]?.message || errData.errors[0]) : (typeof errData?.errors === "string" ? errData.errors : null)) ||
+      errData?.errorMessage ||
+      errData?.errMessage ||
+      errData?.msg ||
+      errData?.response ||
+      res.statusText ||
+      "Request failed";
+
+    const finalMsg = (typeof extractedMessage === "string" && extractedMessage.trim() && extractedMessage !== "Request failed")
+      ? extractedMessage.trim()
+      : "This Aadhaar number is not recognized. Try again.";
+
+    const error = new Error(finalMsg);
     error.status = res.status;
+    error.response = errData;
     throw error;
   }
 

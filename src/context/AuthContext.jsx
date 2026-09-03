@@ -115,11 +115,11 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function openLoginModal(redirectPath = null, screen = "landing") {
+  function openLoginModal(redirectPath = null, screen = "landing", extraState = {}) {
     if (redirectPath) setPendingRedirect(redirectPath);
     setLoginModalScreen(screen);
     setLoginModalOpen(true);
-    navigate("/login", { state: { redirectPath, screen } });
+    navigate("/login", { state: { redirectPath, screen, ...extraState } });
   }
 
   function closeLoginModal() {

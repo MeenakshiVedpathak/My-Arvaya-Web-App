@@ -83,7 +83,7 @@ export default function ABHA() {
   };
 
   const handleOpenAbhaOtpModal = () => {
-    openLoginModal(null, "abha_mobile");
+    openLoginModal("/abha", "abha_mobile", { fromAbhaHub: true });
   };
 
   const tabs = [
