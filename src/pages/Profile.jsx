@@ -772,7 +772,17 @@ export default function Profile() {
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-muted" style={{ fontSize: '13px', fontWeight: '600' }}>Date of Birth</label>
-                        <input type="date" name="dob" value={profile.dob} onChange={handleChange} readOnly={!isEditing} className="input-field" style={inputStyle} />
+                        <input
+                          type="date"
+                          name="dob"
+                          value={profile.dob}
+                          min={new Date(new Date().setFullYear(new Date().getFullYear() - 150)).toISOString().split("T")[0]}
+                          max={new Date().toISOString().split("T")[0]}
+                          onChange={handleChange}
+                          readOnly={!isEditing}
+                          className="input-field"
+                          style={inputStyle}
+                        />
                       </div>
                     </div>
 

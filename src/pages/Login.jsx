@@ -844,6 +844,17 @@ function AbhaSelectAddress({ addresses, selected, onSelect, onBack, onConfirm, b
 
   const handleConfirm = () => {
     if (!dob) { setDobErr("Please enter your Date of Birth"); return; }
+    const selectedDob = new Date(dob);
+    const now = new Date();
+    const minAllowed = new Date(now.getFullYear() - 150, now.getMonth(), now.getDate());
+    if (selectedDob < minAllowed) {
+      setDobErr("Date of birth must be within the last 150 years");
+      return;
+    }
+    if (selectedDob > now) {
+      setDobErr("Date of birth cannot be in the future");
+      return;
+    }
     setDobErr("");
     onConfirm(selected, dob);
   };
@@ -1506,7 +1517,26 @@ function OtpInputGrid({ value, onChange }) {
 
 function DobPicker({ value, onChange, error, compact = false }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  const minDate = new Date();
+  minDate.setFullYear(today.getFullYear() - 150);
+  minDate.setHours(0, 0, 0, 0);
+
+  const minYear = today.getFullYear() - 150;
+  const maxYear = today.getFullYear();
+
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    if (value) {
+      const parsed = new Date(value);
+      if (!isNaN(parsed) && parsed >= minDate && parsed <= today) {
+        return parsed;
+      }
+    }
+    return new Date(new Date().setFullYear(today.getFullYear() - 18));
+  });
 
   const [view, setView] = useState('days'); // 'days', 'months', 'years'
 
@@ -1545,6 +1575,9 @@ function DobPicker({ value, onChange, error, compact = false }) {
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
 
+    const isPrevMonthDisabled = year < minYear || (year === minYear && month <= minDate.getMonth());
+    const isNextMonthDisabled = year > maxYear || (year === maxYear && month >= today.getMonth());
+
     const days = [];
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} style={{ width: '14.28%', padding: '8px 0' }}></div>);
@@ -1554,24 +1587,26 @@ function DobPicker({ value, onChange, error, compact = false }) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       const isSelected = value === dateStr;
 
-      const future = new Date(year, month, i) > new Date();
+      const cellDate = new Date(year, month, i);
+      cellDate.setHours(12, 0, 0, 0);
+      const isDisabled = cellDate > today || cellDate < minDate;
 
       days.push(
         <div key={i} style={{ width: '14.28%', padding: '4px' }}>
           <button
-            disabled={future}
+            disabled={isDisabled}
             onClick={(e) => { e.preventDefault(); handleSelectDate(i); }}
             style={{
               width: '100%', height: '32px', border: 'none', borderRadius: '8px',
               background: isSelected ? 'var(--primary)' : 'transparent',
-              color: isSelected ? '#fff' : future ? '#d1d5db' : 'var(--text-main)',
+              color: isSelected ? '#fff' : isDisabled ? '#d1d5db' : 'var(--text-main)',
               fontWeight: isSelected ? '700' : '500', fontSize: '13px',
-              cursor: future ? 'not-allowed' : 'pointer',
+              cursor: isDisabled ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { if (!isSelected && !future) { e.currentTarget.style.background = 'var(--bg-app)'; } }}
-            onMouseLeave={e => { if (!isSelected && !future) { e.currentTarget.style.background = 'transparent'; } }}
+            onMouseEnter={e => { if (!isSelected && !isDisabled) { e.currentTarget.style.background = 'var(--bg-app)'; } }}
+            onMouseLeave={e => { if (!isSelected && !isDisabled) { e.currentTarget.style.background = 'transparent'; } }}
           >
             {i}
           </button>
@@ -1584,13 +1619,45 @@ function DobPicker({ value, onChange, error, compact = false }) {
     return (
       <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 8px' }}>
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronLeft size={20} /></button>
+          <button
+            disabled={isPrevMonthDisabled}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isPrevMonthDisabled) {
+                setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+              }
+            }}
+            style={{
+              background: 'transparent', border: 'none',
+              cursor: isPrevMonthDisabled ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center',
+              color: isPrevMonthDisabled ? '#d1d5db' : 'var(--text-main)'
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
 
           <button onClick={(e) => { e.preventDefault(); setView('months'); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             {currentMonth.toLocaleString('default', { month: 'long' })} {currentMonth.getFullYear()}
           </button>
 
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}><ChevronRight size={20} /></button>
+          <button
+            disabled={isNextMonthDisabled}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isNextMonthDisabled) {
+                setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+              }
+            }}
+            style={{
+              background: 'transparent', border: 'none',
+              cursor: isNextMonthDisabled ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center',
+              color: isNextMonthDisabled ? '#d1d5db' : 'var(--text-main)'
+            }}
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: '8px', padding: '0 4px' }}>
           {weekDays.map(wd => (
@@ -1614,15 +1681,26 @@ function DobPicker({ value, onChange, error, compact = false }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 8px' }}>
           {months.map((m, idx) => {
             const isSelected = currentMonth.getMonth() === idx;
+            const monthStart = new Date(currentMonth.getFullYear(), idx, 1);
+            const monthEnd = new Date(currentMonth.getFullYear(), idx + 1, 0, 23, 59, 59);
+            const isMonthDisabled = monthEnd < minDate || monthStart > today;
             return (
               <button
                 key={m}
-                onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(currentMonth.getFullYear(), idx, 1)); setView('days'); }}
+                disabled={isMonthDisabled}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!isMonthDisabled) {
+                    setCurrentMonth(new Date(currentMonth.getFullYear(), idx, 1));
+                    setView('days');
+                  }
+                }}
                 style={{
                   width: 'calc(33.33% - 6px)', padding: '12px 0', border: 'none', borderRadius: '8px',
                   background: isSelected ? 'var(--primary)' : 'var(--bg-app)',
-                  color: isSelected ? '#fff' : 'var(--text-main)',
-                  fontWeight: isSelected ? '700' : '600', fontSize: '14px', cursor: 'pointer'
+                  color: isSelected ? '#fff' : isMonthDisabled ? '#d1d5db' : 'var(--text-main)',
+                  fontWeight: isSelected ? '700' : '600', fontSize: '14px',
+                  cursor: isMonthDisabled ? 'not-allowed' : 'pointer'
                 }}
               >
                 {m}
@@ -1639,27 +1717,78 @@ function DobPicker({ value, onChange, error, compact = false }) {
     const startYear = Math.floor(currentYear / 12) * 12;
     const years = Array.from({ length: 12 }, (_, i) => startYear + i);
 
+    const isPrevYearsDisabled = startYear <= minYear;
+    const isNextYearsDisabled = startYear + 11 >= maxYear;
+
     return (
       <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 8px' }}>
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear - 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronLeft size={20} /></button>
+          <button
+            disabled={isPrevYearsDisabled}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isPrevYearsDisabled) {
+                const targetYear = Math.max(minYear, startYear - 12);
+                setCurrentMonth(new Date(targetYear, 0, 1));
+              }
+            }}
+            style={{
+              background: 'transparent', border: 'none',
+              cursor: isPrevYearsDisabled ? 'not-allowed' : 'pointer',
+              color: isPrevYearsDisabled ? '#d1d5db' : 'var(--text-main)'
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
           <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>{startYear} - {startYear + 11}</span>
-          <button onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(startYear + 12, 0, 1)); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-main)' }}><ChevronRight size={20} /></button>
+          <button
+            disabled={isNextYearsDisabled}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isNextYearsDisabled) {
+                const targetYear = Math.min(maxYear, startYear + 12);
+                setCurrentMonth(new Date(targetYear, 0, 1));
+              }
+            }}
+            style={{
+              background: 'transparent', border: 'none',
+              cursor: isNextYearsDisabled ? 'not-allowed' : 'pointer',
+              color: isNextYearsDisabled ? '#d1d5db' : 'var(--text-main)'
+            }}
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 8px' }}>
           {years.map(y => {
             const isSelected = currentYear === y;
-            const isFuture = y > new Date().getFullYear();
+            const isTooOld = y < minYear;
+            const isFuture = y > maxYear;
+            const isYearDisabled = isTooOld || isFuture;
             return (
               <button
                 key={y}
-                disabled={isFuture}
-                onClick={(e) => { e.preventDefault(); setCurrentMonth(new Date(y, currentMonth.getMonth(), 1)); setView('months'); }}
+                disabled={isYearDisabled}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!isYearDisabled) {
+                    let targetMonth = currentMonth.getMonth();
+                    const checkDate = new Date(y, targetMonth, 1);
+                    if (checkDate < minDate) {
+                      targetMonth = minDate.getMonth();
+                    } else if (checkDate > today) {
+                      targetMonth = today.getMonth();
+                    }
+                    setCurrentMonth(new Date(y, targetMonth, 1));
+                    setView('months');
+                  }
+                }}
                 style={{
                   width: 'calc(33.33% - 6px)', padding: '12px 0', border: 'none', borderRadius: '8px',
                   background: isSelected ? 'var(--primary)' : 'var(--bg-app)',
-                  color: isSelected ? '#fff' : isFuture ? '#d1d5db' : 'var(--text-main)',
-                  fontWeight: isSelected ? '700' : '600', fontSize: '14px', cursor: isFuture ? 'not-allowed' : 'pointer'
+                  color: isSelected ? '#fff' : isYearDisabled ? '#d1d5db' : 'var(--text-main)',
+                  fontWeight: isSelected ? '700' : '600', fontSize: '14px',
+                  cursor: isYearDisabled ? 'not-allowed' : 'pointer'
                 }}
               >
                 {y}

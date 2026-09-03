@@ -262,6 +262,7 @@ export default function Signup() {
                 <input
                   type="date"
                   value={dob}
+                  min={new Date(new Date().setFullYear(new Date().getFullYear() - 150)).toISOString().split("T")[0]}
                   max={new Date().toISOString().split("T")[0]}
                   onChange={e => setDob(e.target.value)}
                   style={{ ...inputStyle, fontFamily: "inherit" }}
