@@ -10,7 +10,7 @@ export default function Toast({ isOpen, message, type = "success", onClose, dura
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, duration, onClose]);
+  }, [isOpen, duration, onClose, message]);
 
   if (!isOpen) return null;
 
@@ -38,7 +38,7 @@ export default function Toast({ isOpen, message, type = "success", onClose, dura
         position: "fixed",
         top: "24px",
         right: "24px",
-        zIndex: 9999,
+        zIndex: 99999999,
         background: getBackground(),
         color: getTextColor(),
         padding: "16px 20px",

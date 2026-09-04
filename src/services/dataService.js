@@ -23,6 +23,11 @@ export function getStoredUserId() {
  */
 export function buildFiltersArray(filtersParam = {}, defaultFilters = []) {
   let filtersArray = [];
+  const nonFilterKeys = [
+    "pageIndex", "pageSize", "sortKey", "sortValue", 
+    "page_index", "page_size", "sort_key", "sort_value", 
+    "filters", "filter", "filterQuery", "page", "limit", "sort", "order"
+  ];
 
   if (Array.isArray(filtersParam)) {
     filtersArray = [...filtersParam];
@@ -33,6 +38,7 @@ export function buildFiltersArray(filtersParam = {}, defaultFilters = []) {
       filtersArray = [...filters];
     } else {
       Object.entries(rest).forEach(([key, val]) => {
+        if (nonFilterKeys.includes(key)) return;
         if (val !== undefined && val !== null && val !== "") {
           let operator = "=";
           if (Array.isArray(val)) {
@@ -749,13 +755,15 @@ export async function getRecords(filtersParam = {}) {
       return {
         id: r.id || r.record_id || Math.random(),
         title: r.title || r.name || r.record_name || r.file_name || "Health Record",
-        doctor: r.doctor_name || r.doctor || r.created_by_name || "Consultant",
+        doctor: r.hospital_name || r.lab_name || r.doctor_name || r.doctor || r.hospital || r.created_by_name || "Consultant",
+        hospital_name: r.hospital_name || r.lab_name || r.hospital || r.doctor_name || r.doctor || "Consultant",
         date: r.created_modified_date
           ? new Date(r.created_modified_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
           : r.created_date
             ? new Date(r.created_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
             : (r.date || "Recent"),
-        type: r.type || r.record_type || r.category || "Diagnostic",
+        type: r.document_name || r.document_type_name || r.document_type || r.type_name || r.type || r.record_type || r.category || "Diagnostic",
+        document_name: r.document_name || r.document_type_name || r.document_type || r.type_name || "",
         filePath: filePath,
         fileUrl: resolvedUrl,
         raw: r

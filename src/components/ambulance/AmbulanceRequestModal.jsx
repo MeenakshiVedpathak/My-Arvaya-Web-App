@@ -82,12 +82,12 @@ function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true
 /* ── Main Modal ──────────────────────────────────────────────────────────── */
 
 export default function AmbulanceRequestModal({ onClose, onSuccess }) {
-  const { user } = useAuth();
+  const { user, showToast } = useAuth();
   const { globalLocation } = useBooking();
   const go = useNavigate();
 
   const [step, setStep]               = useState(1); // 1 = form, 2 = success
-  const [patientName, setPatientName] = useState(user?.name || "");
+  const [patientName, setPatientName] = useState((user?.name || "").replace(/[^a-zA-Z\s]/g, ""));
   const [contactNumber, setContact]   = useState(user?.phone || user?.mobile || "");
   const [pickupAddress, setPickup]    = useState("");
   const [pickupLat, setPickupLat]     = useState(null);
@@ -146,23 +146,26 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   }, []);
 
   const handleSubmit = async () => {
-    const nextErrors = {};
-    if (!patientName.trim()) nextErrors.patientName = "Patient name is required.";
-    if (!contactNumber.trim() || contactNumber.length < 10) nextErrors.contactNumber = "Enter a valid 10-digit contact number.";
-    if (!pickupAddress.trim()) nextErrors.pickupAddress = "Pickup address is required.";
-    if (!emergencyType) nextErrors.emergencyType = "Please select an emergency type.";
-
-    if (Object.keys(nextErrors).length > 0) {
-      setFieldErrors(nextErrors);
-      setErr("Please complete the highlighted fields below.");
-      const firstField = document.querySelector("[data-field-error]");
-      if (firstField && typeof firstField.scrollIntoView === "function") {
-        firstField.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    if (!patientName.trim()) { setErr("Patient name is required."); return; }
+    if (!contactNumber.trim() || contactNumber.length < 10) {
+      const msg = "Please enter a valid 10-digit contact number.";
+      if (showToast) showToast(msg, "error");
+      setErr(msg);
       return;
     }
-
-    setFieldErrors({});
+    if (!/^[6-9]/.test(contactNumber.trim())) {
+      const msg = "Please enter a valid mobile number starting with 6, 7, 8, or 9.";
+      if (showToast) showToast(msg, "error");
+      setErr(msg);
+      return;
+    }
+    if (!pickupAddress.trim()) { setErr("Pickup address is required."); return; }
+    if (!emergencyType) {
+      const msg = "Please select an emergency type.";
+      if (showToast) showToast(msg, "error");
+      setErr(msg);
+      return;
+    }
     setErr(""); setBusy(true);
 
     let locationKey = globalLocation?.entitylocation || globalLocation?.location_key || "";
@@ -250,7 +253,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
           onFocusCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--primary)"; }}
           onBlurCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--border)"; }}>
           <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
-          <input value={patientName} onChange={e => { setPatientName(e.target.value); clearFieldError("patientName"); }} placeholder="Full name of patient"
+          <input value={patientName} onChange={e => setPatientName(e.target.value.replace(/[^a-zA-Z\s]/g, ""))} placeholder="Full name of patient"
             style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500" }} />
         </div>
         <FieldError msg={fieldErrors.patientName} />
