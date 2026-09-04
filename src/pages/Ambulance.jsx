@@ -220,7 +220,9 @@ export default function AmbulancePage() {
                               <div style={{ textAlign: "center", zIndex: 1 }}>
                                 <Navigation size={32} color="var(--primary)" style={{ margin: "0 auto 8px" }} />
                                 <b style={{ color: "var(--text-main)", fontSize: "14px", display: "block" }}>Live Tracking</b>
-                                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Ambulance is {req.eta} mins away</span>
+                                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                                  {req.eta && Number(req.eta) > 0 ? `Ambulance is ${req.eta} mins away` : "Awaiting driver"}
+                                </span>
                               </div>
                             </>
                           )}
@@ -239,7 +241,9 @@ export default function AmbulancePage() {
                             <Clock size={16} color="var(--primary)" style={{ marginTop: "2px" }} />
                             <div>
                               <div style={{ fontSize: "10px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "2px" }}>ETA</div>
-                              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--accent)" }}>{req.eta} min</div>
+                              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--accent)" }}>
+                                {req.eta && Number(req.eta) > 0 ? `${req.eta} min` : "--"}
+                              </div>
                             </div>
                           </div>
                           <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
@@ -259,9 +263,19 @@ export default function AmbulancePage() {
                           </div>
                           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                             <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>{req.driverName}</span>
-                            <a href={`tel:${req.driverPhone}`} style={{ background: "var(--success)", color: "#fff", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.15)"} onMouseLeave={e => e.currentTarget.style.filter = "none"}>
-                              <Phone size={16} />
-                            </a>
+                            {(!req.driverPhone || String(req.driverName || "").toLowerCase().includes("unassigned") || String(req.driverName || "").toLowerCase().includes("n/a")) ? (
+                              <button 
+                                disabled 
+                                title="Driver not assigned yet"
+                                style={{ background: "var(--border)", color: "var(--text-muted)", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "not-allowed", opacity: 0.5 }}
+                              >
+                                <Phone size={16} />
+                              </button>
+                            ) : (
+                              <a href={`tel:${req.driverPhone}`} title={`Call ${req.driverName}`} style={{ background: "var(--success)", color: "#fff", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.15)"} onMouseLeave={e => e.currentTarget.style.filter = "none"}>
+                                <Phone size={16} />
+                              </a>
+                            )}
                           </div>
                         </div>
                       </div>

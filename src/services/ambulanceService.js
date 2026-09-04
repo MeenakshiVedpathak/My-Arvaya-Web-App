@@ -139,11 +139,11 @@ async function getAmbulanceRequests(currentUser) {
     }
 
     return filteredList.map(item => {
-      const rawEta = item.eta ?? item.eta_minutes ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
-      let parsedEta = 0;
-      if (rawEta !== null && rawEta !== undefined && rawEta !== "") {
+      const rawEta = item.eta_minutes ?? item.eta ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
+      let parsedEta = null;
+      if (rawEta !== null && rawEta !== undefined && rawEta !== "" && rawEta !== "null") {
         const num = Number(rawEta);
-        parsedEta = isNaN(num) ? 0 : num;
+        parsedEta = isNaN(num) ? null : num;
       }
 
       const rawStatus = item.status || item.request_status || item.state || "Requested";

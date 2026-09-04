@@ -1,11 +1,12 @@
-import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint, X, Upload, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
+import { FileText, ArrowLeft, HeartPulse, Stethoscope, Filter, Plus, CloudUpload, ChevronRight, Lock, ShieldCheck, Search, Calendar, User, Download, FileJson, Fingerprint, X, Upload, CheckCircle2, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
-import { getRecords } from "../services/dataService";
+import { getRecords, getDocumentTypes } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
 import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import Toast from "../components/common/Toast";
 
 const iconMap = {
   "Lab Report": { Icon: HeartPulse, color: "#38a169", bg: "#f0fff4" },
@@ -49,6 +50,12 @@ export default function Records() {
   let [doctorName, setDoctorName] = useState("");
   let [uploading, setUploading] = useState(false);
   let [uploadSuccess, setUploadSuccess] = useState(false);
+
+  // Validation & Focus & Toast States
+  let [errors, setErrors] = useState({});
+  let [focusedField, setFocusedField] = useState(null);
+  const [toast, setToast] = useState({ isOpen: false, message: "", type: "error" });
+  const showToast = (message, type = "error") => setToast({ isOpen: true, message, type });
 
   // ABHA Linked Status
   const [isAbhaLinked, setIsAbhaLinked] = useState(() => {
@@ -176,20 +183,14 @@ export default function Records() {
 
   // Document Types State & Fetching
   const [documentTypes, setDocumentTypes] = useState([]);
+  const docTypesFetchedRef = useRef(false);
 
   const fetchDocumentTypes = async () => {
+    if (docTypesFetchedRef.current || documentTypes.length > 0) return;
+    docTypesFetchedRef.current = true;
+
     try {
-      let res;
-      try {
-        res = await api.post("/api/documentType/get", {
-          filters: [
-            { column: "is_active", operator: "=", value: 1 }
-          ]
-        });
-      } catch (err) {
-        res = await api.get("/api/documentType/get");
-      }
-      const list = res?.data || res?.list || res?.records || res?.result || (Array.isArray(res) ? res : []);
+      const list = await getDocumentTypes();
       if (Array.isArray(list) && list.length > 0) {
         setDocumentTypes(list);
         const firstItem = list[0];
@@ -197,9 +198,12 @@ export default function Records() {
         const firstName = firstItem?.name || firstItem?.document_type || firstItem?.type || firstItem?.title || "Lab Report";
         setSelectedDocTypeId(firstId);
         setRecordType(firstName);
+      } else {
+        docTypesFetchedRef.current = false;
       }
     } catch (err) {
       console.error("fetchDocumentTypes error:", err);
+      docTypesFetchedRef.current = false;
     }
   };
 
@@ -209,6 +213,8 @@ export default function Records() {
       fetchDocumentTypes();
     } else {
       document.body.style.overflow = '';
+      setErrors({});
+      setFocusedField(null);
     }
     return () => {
       document.body.style.overflow = '';
@@ -219,17 +225,29 @@ export default function Records() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || "";
+
+    if (!allowedExtensions.includes(fileExt)) {
+      showToast("Only PDF, JPG, and PNG file formats are allowed.", "error");
+      if (e.target) e.target.value = "";
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    if (file.size > maxSize) {
+      showToast("File size must not exceed 10MB.", "error");
+      if (e.target) e.target.value = "";
+      return;
+    }
+
     setSelectedFile(file);
     setUploadedFileName("");
-    if (!recordTitle) {
-      setRecordTitle(file.name.replace(/\.[^/.]+$/, ""));
-    }
 
     // Instantly trigger upload to HealthRecords folder
     setUploadingFile(true);
     try {
       const folderName = 'HealthRecords';
-      const fileExt = file.name.split('.').pop();
       const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
 
       const uploadRes = await uploadImage(file, folderName, generatedName);
@@ -253,10 +271,28 @@ export default function Records() {
     try {
       const resolvedBlob = await fetchImageBlob(targetFile, 'HealthRecords');
       const finalUrl = resolvedBlob || getImageUrl(targetFile, 'HealthRecords');
-      window.location.href = finalUrl;
+      
+      const link = document.createElement('a');
+      link.href = finalUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        try { document.body.removeChild(link); } catch(err) {}
+      }, 100);
     } catch (err) {
       console.error("Failed to load view blob:", err);
-      window.location.href = getImageUrl(targetFile, 'HealthRecords');
+      const fallbackUrl = getImageUrl(targetFile, 'HealthRecords');
+      const link = document.createElement('a');
+      link.href = fallbackUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        try { document.body.removeChild(link); } catch(err) {}
+      }, 100);
     }
   };
 
@@ -307,7 +343,21 @@ export default function Records() {
 
   const handleUploadSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (!selectedFile && !uploadedFileName) return;
+
+    if (!selectedFile && !uploadedFileName) {
+      showToast("Please select a file to upload.", "error");
+      return;
+    }
+
+    if (selectedFile && selectedFile.size > 10 * 1024 * 1024) {
+      showToast("File size must not exceed 10MB.", "error");
+      return;
+    }
+
+    if (!recordTitle || !recordTitle.trim()) {
+      showToast("Please enter document title", "error");
+      return;
+    }
 
     setUploading(true);
     try {
@@ -343,7 +393,7 @@ export default function Records() {
         id: 0,
         app_user_id: appUserId,
         file_type: fileExt,
-        title: recordTitle || selectedFile?.name || "Health Record",
+        title: recordTitle.trim(),
         status: 1,
         hospital_name: doctorName || "",
         lab_name: doctorName || "",
@@ -361,6 +411,7 @@ export default function Records() {
       });
 
       setUploadSuccess(true);
+      showToast("Medical record saved successfully!", "success");
 
       // 2. Fetch latest records via /api/patientHealthRecord/get API
       await fetchRecords(1);
@@ -373,11 +424,12 @@ export default function Records() {
         setUploadedFileName("");
         setRecordTitle("");
         setDoctorName("");
+        setErrors({});
       }, 1000);
 
     } catch (err) {
       console.error("Upload & Save error:", err);
-      alert("Failed to save health record. Please try again.");
+      showToast("Failed to save health record. Please try again.", "error");
     } finally {
       setUploading(false);
     }
@@ -700,7 +752,9 @@ export default function Records() {
                     <div style={{ position: 'absolute', left: '27px', top: '40px', bottom: '40px', width: '2px', background: 'var(--border)', zIndex: 0 }}></div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {records.map((rec) => {
-                      const { Icon, color, bg } = getRecordIcon(rec.type);
+                      const matchedDocType = documentTypes.find(dt => Number(dt.id || dt.document_type_id || dt.value) === Number(rec.raw?.hi_type || rec.raw?.record_type || rec.type));
+                      const docName = rec.document_name || rec.raw?.document_name || rec.raw?.document_type_name || rec.raw?.document_type || matchedDocType?.name || matchedDocType?.document_type || matchedDocType?.title || (isNaN(Number(rec.type)) ? rec.type : null) || "Diagnostic Report";
+                      const { Icon, color, bg } = getRecordIcon(docName || rec.type);
                       const targetFile = rec?.filePath || rec?.fileUrl || rec?.raw?.file_name || rec?.raw?.file_path || rec?.raw?.file_url || rec?.raw?.url || rec?.raw?.file;
                       const hasFile = Boolean(targetFile && targetFile !== "null" && targetFile !== "undefined");
                       return (
@@ -715,10 +769,10 @@ export default function Records() {
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', flexWrap: 'wrap' }}>
                               <h4 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>{rec.title}</h4>
-                              <span style={{ fontSize: '12px', fontWeight: '600', background: 'var(--bg)', color: 'var(--muted)', padding: '4px 10px', borderRadius: '99px', border: '1px solid var(--border)' }}>{rec.type || "Report"}</span>
+                              <span style={{ fontSize: '12px', fontWeight: '600', background: 'var(--bg)', color: 'var(--muted)', padding: '4px 10px', borderRadius: '99px', border: '1px solid var(--border)' }}>{docName}</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--muted)', fontSize: '14px', flexWrap: 'wrap' }}>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Stethoscope size={14} /> {rec.doctor}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Stethoscope size={14} /> {rec.hospital_name || rec.doctor || rec.raw?.hospital_name || rec.raw?.lab_name || "Consultant"}</span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {rec.date}</span>
                             </div>
                           </div>
@@ -814,14 +868,35 @@ export default function Records() {
               
               {/* File Dropzone / Selector */}
               <div 
-                onClick={() => fileInputRef.current?.click()}
-                style={{ border: '2px dashed var(--border)', borderRadius: '10px', padding: '10px 12px', textAlign: 'center', background: 'var(--bg-app)', cursor: 'pointer', marginBottom: '10px', transition: 'border-color 0.2s' }}
+                onClick={() => {
+                  setFocusedField('file');
+                  fileInputRef.current?.click();
+                }}
+                tabIndex={0}
+                onFocus={() => setFocusedField('file')}
+                onBlur={() => setFocusedField(null)}
+                style={{ 
+                  border: focusedField === 'file' 
+                    ? '2px dashed var(--primary)' 
+                    : '2px dashed var(--border)', 
+                  boxShadow: focusedField === 'file' 
+                    ? '0 0 0 3px rgba(31, 79, 87, 0.15)' 
+                    : 'none',
+                  borderRadius: '10px', 
+                  padding: '10px 12px', 
+                  textAlign: 'center', 
+                  background: 'var(--bg-app)', 
+                  cursor: 'pointer', 
+                  marginBottom: '10px', 
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
               >
                 <input 
                   type="file" 
                   ref={fileInputRef} 
                   onChange={handleFileSelect} 
-                  accept="image/*,.pdf,.doc,.docx" 
+                  accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf" 
                   style={{ display: 'none' }} 
                 />
                 {uploadingFile ? (
@@ -845,7 +920,7 @@ export default function Records() {
                 ) : (
                   <div>
                     <Upload size={20} color="var(--primary)" style={{ margin: '0 auto 2px', opacity: 0.8 }} />
-                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-main)', fontSize: '12px' }}>Click or drag file to upload</p>
+                    <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-main)', fontSize: '12px' }}>Click or drag file to upload *</p>
                     <p style={{ margin: '1px 0 0', fontSize: '10px', color: 'var(--muted)' }}>Supports PDF, JPG, PNG up to 10MB</p>
                   </div>
                 )}
@@ -859,8 +934,24 @@ export default function Records() {
                   placeholder="e.g. Blood Test Report, Chest X-Ray..." 
                   value={recordTitle} 
                   onChange={(e) => setRecordTitle(e.target.value)} 
-                  required 
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
+                  onFocus={() => setFocusedField('title')}
+                  onBlur={() => setFocusedField(null)}
+                  style={{ 
+                    width: '100%', 
+                    padding: '7px 10px', 
+                    borderRadius: '8px', 
+                    border: focusedField === 'title' 
+                      ? '1.5px solid var(--primary)' 
+                      : '1px solid var(--border)', 
+                    boxShadow: focusedField === 'title' 
+                      ? '0 0 0 3px rgba(31, 79, 87, 0.15)' 
+                      : 'none',
+                    background: 'var(--bg-surface)', 
+                    color: 'var(--text-main)', 
+                    outline: 'none', 
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease'
+                  }}
                 />
               </div>
 
@@ -877,7 +968,20 @@ export default function Records() {
                       setRecordType(matched.name || matched.document_type || matched.type || matched.title || "");
                     }
                   }}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
+                  onFocus={() => setFocusedField('type')}
+                  onBlur={() => setFocusedField(null)}
+                  style={{ 
+                    width: '100%', 
+                    padding: '7px 10px', 
+                    borderRadius: '8px', 
+                    border: focusedField === 'type' ? '1.5px solid var(--primary)' : '1px solid var(--border)', 
+                    boxShadow: focusedField === 'type' ? '0 0 0 3px rgba(31, 79, 87, 0.15)' : 'none',
+                    background: 'var(--bg-surface)', 
+                    color: 'var(--text-main)', 
+                    outline: 'none', 
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease'
+                  }}
                 >
                   {documentTypes.length > 0 ? (
                     documentTypes.map((dt, idx) => {
@@ -903,7 +1007,20 @@ export default function Records() {
                   placeholder="e.g. Dr. Priya Sharma, Apollo Clinic" 
                   value={doctorName} 
                   onChange={(e) => setDoctorName(e.target.value)} 
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', color: 'var(--text-main)', outline: 'none', fontSize: '12px' }}
+                  onFocus={() => setFocusedField('doctor')}
+                  onBlur={() => setFocusedField(null)}
+                  style={{ 
+                    width: '100%', 
+                    padding: '7px 10px', 
+                    borderRadius: '8px', 
+                    border: focusedField === 'doctor' ? '1.5px solid var(--primary)' : '1px solid var(--border)', 
+                    boxShadow: focusedField === 'doctor' ? '0 0 0 3px rgba(31, 79, 87, 0.15)' : 'none',
+                    background: 'var(--bg-surface)', 
+                    color: 'var(--text-main)', 
+                    outline: 'none', 
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease'
+                  }}
                 />
               </div>
 
@@ -919,7 +1036,7 @@ export default function Records() {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={uploading || uploadingFile || (!selectedFile && !uploadedFileName) || uploadSuccess}
+                  disabled={uploading || uploadingFile || uploadSuccess}
                   className="btn btn-accent hover-glow"
                   style={{ padding: '6px 18px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', fontSize: '12px' }}
                 >
@@ -943,6 +1060,14 @@ export default function Records() {
         </div>,
         document.body
       )}
+
+      {/* Toast Notification */}
+      <Toast 
+        isOpen={toast.isOpen} 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={() => setToast({ ...toast, isOpen: false })} 
+      />
     </main>
   );
 }
