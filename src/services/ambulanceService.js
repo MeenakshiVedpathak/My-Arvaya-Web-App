@@ -61,6 +61,7 @@ async function requestAmbulance(data) {
 
   const request = {
     id: apiRes?.id || apiRes?.data?.id || ("AMB-" + Date.now().toString(36).toUpperCase()),
+    patientId: payload.patient_id,
     patientName: payload.patient_name,
     contactNumber: payload.requester_phone,
     pickupAddress: payload.pickup_address,
@@ -119,7 +120,7 @@ async function getAmbulanceRequests(currentUser) {
     return "Requested";
   }
 
-    return filteredList.map(item => {
+  function normalizeApiItem(item) {
       const rawEta = item.eta_minutes ?? item.eta ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
       let parsedEta = null;
       if (rawEta !== null && rawEta !== undefined && rawEta !== "" && rawEta !== "null") {
