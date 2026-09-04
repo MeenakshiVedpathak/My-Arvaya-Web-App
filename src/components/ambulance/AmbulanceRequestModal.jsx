@@ -54,6 +54,15 @@ function ErrorBanner({ msg }) {
   );
 }
 
+function FieldError({ msg }) {
+  if (!msg) return null;
+  return (
+    <div data-field-error style={{ marginTop: "6px", color: "var(--danger)", fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+      <AlertTriangle size={12} style={{ flexShrink: 0 }} />{msg}
+    </div>
+  );
+}
+
 function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true, type = "button" }) {
   const base = { width: fullWidth ? "100%" : "auto", padding: "14px 24px", borderRadius: "10px", fontSize: "15px", fontWeight: "600", cursor: disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", border: "none", fontFamily: "var(--font-sans)" };
   const styles = {
@@ -88,6 +97,16 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const [locating, setLocating]       = useState(false);
   const [err, setErr]                 = useState("");
   const [result, setResult]           = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const clearFieldError = (field) => {
+    setFieldErrors(prev => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleMapClick = async (latlng) => {
     setPickupLat(latlng.lat);
@@ -230,25 +249,27 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
       {/* Patient Name */}
       <div style={{ marginBottom: "20px" }}>
         <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Patient Name *</label>
-        <div style={{ display: "flex", alignItems: "center", border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
-          onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
+        <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.patientName ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
+          onFocusCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--primary)"; }}
+          onBlurCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--border)"; }}>
           <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
           <input value={patientName} onChange={e => setPatientName(e.target.value.replace(/[^a-zA-Z\s]/g, ""))} placeholder="Full name of patient"
             style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500" }} />
         </div>
+        <FieldError msg={fieldErrors.patientName} />
       </div>
 
       {/* Contact Number */}
       <div style={{ marginBottom: "20px" }}>
         <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Contact Number *</label>
-        <div style={{ display: "flex", alignItems: "center", border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
-          onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
+        <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.contactNumber ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
+          onFocusCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--primary)"; }}
+          onBlurCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--border)"; }}>
           <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><Phone size={18} /></div>
-          <input value={contactNumber} onChange={e => setContact(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit mobile number" type="tel"
+          <input value={contactNumber} onChange={e => { setContact(e.target.value.replace(/\D/g, "").slice(0, 10)); clearFieldError("contactNumber"); }} placeholder="10-digit mobile number" type="tel"
             style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500", letterSpacing: "0.03em" }} />
         </div>
+        <FieldError msg={fieldErrors.contactNumber} />
       </div>
 
       {/* Pickup Address */}
@@ -263,33 +284,36 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
           </button>
         </label>
 
-        <div style={{ height: "200px", borderRadius: "10px", overflow: "hidden", marginBottom: "12px", border: "1px solid var(--border)", position: "relative", zIndex: 1 }}>
+        <div style={{ height: "200px", borderRadius: "10px", overflow: "hidden", marginBottom: "12px", border: "1px solid var(--border)", position: "relative", zIndex: 0, isolation: "isolate" }}>
           <MapContainer center={pickupLat && pickupLng ? [pickupLat, pickupLng] : [20.5937, 78.9629]} zoom={pickupLat && pickupLng ? 15 : 4} style={{ height: "100%", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <LocationMarker position={pickupLat && pickupLng ? {lat: pickupLat, lng: pickupLng} : null} setPosition={handleMapClick} />
           </MapContainer>
         </div>
 
-        <div style={{ border: "1.5px solid var(--border)", borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => e.currentTarget.style.borderColor = "var(--primary)"}
-          onBlurCapture={e => e.currentTarget.style.borderColor = "var(--border)"}>
-          <textarea value={pickupAddress} onChange={e => setPickup(e.target.value)} placeholder="Enter or select your pickup address on map" rows={3}
+        <div style={{ border: `1.5px solid ${fieldErrors.pickupAddress ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
+          onFocusCapture={e => { if (!fieldErrors.pickupAddress) e.currentTarget.style.borderColor = "var(--primary)"; }}
+          onBlurCapture={e => { if (!fieldErrors.pickupAddress) e.currentTarget.style.borderColor = "var(--border)"; }}>
+          <textarea value={pickupAddress} onChange={e => { setPickup(e.target.value); clearFieldError("pickupAddress"); }} placeholder="Enter or select your pickup address on map" rows={3}
             style={{ width: "100%", padding: "14px", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", resize: "none", lineHeight: 1.5, fontFamily: "var(--font-sans)" }} />
         </div>
+        <FieldError msg={fieldErrors.pickupAddress} />
       </div>
 
       {/* Emergency Type */}
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: "32px", position: "relative", zIndex: 20 }}>
         <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Emergency Type *</label>
-        <div style={{ position: "relative" }}>
-          <select value={emergencyType} onChange={e => setEmergency(e.target.value)}
-            style={{ width: "100%", padding: "14px 40px 14px 14px", border: "1.5px solid var(--border)", borderRadius: "10px", fontSize: "15px", color: emergencyType ? "var(--text-main)" : "var(--text-muted)", fontWeight: "500", background: "#fff", outline: "none", appearance: "none", cursor: "pointer", transition: "border-color 0.2s", fontFamily: "var(--font-sans)" }}
-            onFocus={e => e.target.style.borderColor = "var(--primary)"} onBlur={e => e.target.style.borderColor = "var(--border)"}>
+        <div data-field-error style={{ position: "relative" }}>
+          <select value={emergencyType} onChange={e => { setEmergency(e.target.value); clearFieldError("emergencyType"); }}
+            style={{ width: "100%", padding: "14px 40px 14px 14px", border: `1.5px solid ${fieldErrors.emergencyType ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", fontSize: "15px", color: emergencyType ? "var(--text-main)" : "var(--text-muted)", fontWeight: "500", background: "#fff", outline: "none", appearance: "none", cursor: "pointer", transition: "border-color 0.2s", fontFamily: "var(--font-sans)" }}
+            onFocus={e => { if (!fieldErrors.emergencyType) e.target.style.borderColor = "var(--primary)"; }}
+            onBlur={e => { if (!fieldErrors.emergencyType) e.target.style.borderColor = "var(--border)"; }}>
             <option value="" disabled>Select emergency type</option>
             {EMERGENCY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
           <ChevronDown size={18} color="var(--text-muted)" style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
         </div>
+        <FieldError msg={fieldErrors.emergencyType} />
       </div>
 
       <Btn variant="danger" disabled={busy} onClick={handleSubmit}>
