@@ -106,6 +106,75 @@ async function getAmbulanceRequests(currentUser) {
     pageSize: 100
   };
 
+  function normalizeStatus(raw) {
+    if (!raw || typeof raw !== "string") return "Requested";
+    const s = raw.trim().toLowerCase().replace(/_/g, " ");
+    if (s.includes("cancel")) return "Cancelled";
+    if (s.includes("unavailable")) return "Unavailable";
+    if (s.includes("delay")) return "Delayed";
+    if (s.includes("complete") || s.includes("done")) return "Completed";
+    if (s.includes("arrive") || s.includes("reach") || s.includes("arriving")) return "Arriving";
+    if (s.includes("dispatch")) return "Dispatched";
+    if (s.includes("assign")) return "Assigned";
+    return "Requested";
+  }
+
+  function normalizeApiItem(item) {
+    const rawEta = item.eta ?? item.eta_minutes ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
+    let parsedEta = 0;
+    if (rawEta !== null && rawEta !== undefined && rawEta !== "") {
+      const num = Number(rawEta);
+      parsedEta = isNaN(num) ? 0 : num;
+    }
+
+    const rawStatus = item.status || item.request_status || item.state || "Requested";
+
+    return {
+      id: item.id || item.request_id || item.queue_id || item.ambulance_id || ("AMB-" + String(item.id || Date.now())),
+      patientId: item.patient_id ?? item.patientId ?? item.app_user_id ?? item.user_id ?? "",
+      patientName: item.patient_name || item.patientName || item.name || item.user_name || "Patient",
+      contactNumber: item.requester_phone || item.contact_number || item.contactNumber || item.phone || item.mobile_number || "",
+      pickupAddress: item.pickup_address || item.pickupAddress || item.address || item.location || "",
+      emergencyType: item.emergency_type || item.emergencyType || item.emergency_category || "General Emergency",
+      status: normalizeStatus(rawStatus),
+      eta: parsedEta,
+      createdAt: item.created_at || item.createdAt || item.created_date || item.created_modified_date || new Date().toISOString(),
+      assignedAt: item.assigned_at || null,
+      dispatchedAt: item.dispatched_at || null,
+      completedAt: item.completed_at || null,
+      updatedAt: item.updated_at || null,
+      ambulanceId: item.ambulance_number || item.ambulance_no || item.ambulance_num || item.ambulance_id || item.ambulanceId || item.vehicle_number || item.vehicle_no || item.vehicle_num || item.vehicleId || "N/A",
+      driverName: item.driver_name || item.driverName || item.driver || "Unassigned",
+      driverPhone: item.driver_mobile_no || item.driver_phone || item.driverPhone || item.driver_mobile || "",
+      raw: item
+    };
+  }
+
+  function normalizeLocalRequest(r) {
+    return {
+      id: r.id,
+      patientId: r.patientId || r.patient_id || "",
+      patientName: r.patientName || r.patient_name || "Patient",
+      contactNumber: r.contactNumber || r.requester_phone || "",
+      pickupAddress: r.pickupAddress || r.pickup_address || "",
+      emergencyType: r.emergencyType || r.emergency_type || "General Emergency",
+      status: normalizeStatus(r.status || "Requested"),
+      eta: Number(r.eta) || 0,
+      createdAt: r.createdAt || new Date().toISOString(),
+      assignedAt: r.assignedAt || null,
+      dispatchedAt: r.dispatchedAt || null,
+      completedAt: r.completedAt || null,
+      updatedAt: r.updatedAt || null,
+      ambulanceId: r.ambulanceId || r.ambulance_id || "N/A",
+      driverName: r.driverName || r.driver_name || "Unassigned",
+      driverPhone: r.driverPhone || r.driver_phone || "",
+      lat: r.lat ?? r.pickup_lat ?? null,
+      lng: r.lng ?? r.pickup_lng ?? null,
+      raw: r
+    };
+  }
+
+  let apiResult = [];
   try {
     let res = null;
     try {
@@ -117,60 +186,30 @@ async function getAmbulanceRequests(currentUser) {
 
     const rawList = res?.data || res?.queue || res?.list || res?.requests || res?.result || (Array.isArray(res) ? res : []);
 
-    if (!Array.isArray(rawList)) return [];
-
-    // Filter array to display only items matching patient_id
-    const filteredList = rawList.filter(item => {
-      const pId = item?.patient_id ?? item?.patientId ?? item?.app_user_id ?? item?.user_id;
-      return String(pId) === String(patientId);
-    });
-
-    function normalizeStatus(raw) {
-      if (!raw || typeof raw !== "string") return "Requested";
-      const s = raw.trim().toLowerCase().replace(/_/g, " ");
-      if (s.includes("cancel")) return "Cancelled";
-      if (s.includes("unavailable")) return "Unavailable";
-      if (s.includes("delay")) return "Delayed";
-      if (s.includes("complete") || s.includes("done")) return "Completed";
-      if (s.includes("arrive") || s.includes("reach") || s.includes("arriving")) return "Arriving";
-      if (s.includes("dispatch")) return "Dispatched";
-      if (s.includes("assign")) return "Assigned";
-      return "Requested";
+    if (Array.isArray(rawList)) {
+      const filteredList = rawList.filter(item => {
+        const pId = item?.patient_id ?? item?.patientId ?? item?.app_user_id ?? item?.user_id;
+        return String(pId) === String(patientId);
+      });
+      apiResult = filteredList.map(normalizeApiItem);
     }
-
-    return filteredList.map(item => {
-      const rawEta = item.eta ?? item.eta_minutes ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
-      let parsedEta = 0;
-      if (rawEta !== null && rawEta !== undefined && rawEta !== "") {
-        const num = Number(rawEta);
-        parsedEta = isNaN(num) ? 0 : num;
-      }
-
-      const rawStatus = item.status || item.request_status || item.state || "Requested";
-
-      return {
-        id: item.id || item.request_id || item.queue_id || item.ambulance_id || ("AMB-" + String(item.id || Date.now())),
-        patientId: item.patient_id ?? item.patientId ?? item.app_user_id ?? item.user_id ?? "",
-        patientName: item.patient_name || item.patientName || item.name || item.user_name || "Patient",
-        contactNumber: item.requester_phone || item.contact_number || item.contactNumber || item.phone || item.mobile_number || "",
-        pickupAddress: item.pickup_address || item.pickupAddress || item.address || item.location || "",
-        emergencyType: item.emergency_type || item.emergencyType || item.emergency_category || "General Emergency",
-        status: normalizeStatus(rawStatus),
-        eta: parsedEta,
-        createdAt: item.created_at || item.createdAt || item.created_date || item.created_modified_date || new Date().toISOString(),
-        assignedAt: item.assigned_at || null,
-        dispatchedAt: item.dispatched_at || null,
-        completedAt: item.completed_at || null,
-        updatedAt: item.updated_at || null,
-        ambulanceId: item.ambulance_number || item.ambulance_no || item.ambulance_num || item.ambulance_id || item.ambulanceId || item.vehicle_number || item.vehicle_no || item.vehicle_num || item.vehicleId || "N/A",
-        driverName: item.driver_name || item.driverName || item.driver || "Unassigned",
-        driverPhone: item.driver_mobile_no || item.driver_phone || item.driverPhone || item.driver_mobile || "",
-        raw: item
-      };
-    });
   } catch (err) {
     console.error("Error fetching ambulance queue from API:", err);
-    return [];
+  }
+
+  // Merge in any locally-created sessionStorage requests that aren't
+  // already represented by the API response, so a freshly submitted
+  // request shows up immediately without waiting for backend sync.
+  try {
+    const apiIds = new Set(apiResult.map(r => String(r.id)));
+    const localExtra = loadRequests()
+      .filter(r => String(r.patientId ?? r.patient_id ?? "") === String(patientId))
+      .filter(r => !apiIds.has(String(r.id)))
+      .map(normalizeLocalRequest);
+    if (localExtra.length === 0) return apiResult;
+    return [...localExtra, ...apiResult];
+  } catch (e) {
+    return apiResult;
   }
 }
 
