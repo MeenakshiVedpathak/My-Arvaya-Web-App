@@ -59,28 +59,11 @@ async function requestAmbulance(data) {
     throw e;
   }
 
-  const request = {
-    id: apiRes?.id || apiRes?.data?.id || ("AMB-" + Date.now().toString(36).toUpperCase()),
-    patientId: payload.patient_id,
-    patientName: payload.patient_name,
-    contactNumber: payload.requester_phone,
-    pickupAddress: payload.pickup_address,
-    emergencyType: payload.emergency_type,
-    lat: payload.pickup_lat,
-    lng: payload.pickup_lng,
-    status: apiRes?.status || apiRes?.data?.status || "Requested",
-    eta: apiRes?.eta || apiRes?.data?.eta || (Math.floor(Math.random() * 10) + 5),
-    createdAt: new Date().toISOString(),
-    ambulanceId: apiRes?.ambulanceId || apiRes?.data?.ambulanceId || ("KA-" + (Math.floor(Math.random() * 90) + 10) + "-" + (Math.floor(Math.random() * 9000) + 1000)),
-    driverName: apiRes?.driverName || apiRes?.data?.driverName || ["Ramesh K.", "Suresh M.", "Priya D.", "Ajay S."][Math.floor(Math.random() * 4)],
-    driverPhone: apiRes?.driverPhone || apiRes?.data?.driverPhone || ("98" + Math.floor(Math.random() * 90000000 + 10000000)),
-    apiResponse: apiRes
-  };
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch (e) {}
 
-  const existing = loadRequests();
-  existing.unshift(request);
-  saveRequests(existing);
-  return request;
+  return apiRes;
 }
 
 /**
@@ -88,6 +71,10 @@ async function requestAmbulance(data) {
  * @param {object|string|number} [currentUser]
  */
 async function getAmbulanceRequests(currentUser) {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch (e) {}
+
   let patientId = currentUser?.patient_id || currentUser?.id || currentUser?.user_id || currentUser?.app_user_id;
 
   if (!patientId) {
@@ -121,12 +108,12 @@ async function getAmbulanceRequests(currentUser) {
   }
 
   function normalizeApiItem(item) {
-      const rawEta = item.eta_minutes ?? item.eta ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
-      let parsedEta = null;
-      if (rawEta !== null && rawEta !== undefined && rawEta !== "" && rawEta !== "null") {
-        const num = Number(rawEta);
-        parsedEta = isNaN(num) ? null : num;
-      }
+    const rawEta = item.eta_minutes ?? item.eta ?? item.eta_mins ?? item.estimated_time ?? item.estimated_eta ?? null;
+    let parsedEta = null;
+    if (rawEta !== null && rawEta !== undefined && rawEta !== "" && rawEta !== "null") {
+      const num = Number(rawEta);
+      parsedEta = isNaN(num) ? null : num;
+    }
 
     const rawStatus = item.status || item.request_status || item.state || "Requested";
 
@@ -148,30 +135,6 @@ async function getAmbulanceRequests(currentUser) {
       driverName: item.driver_name || item.driverName || item.driver || "Unassigned",
       driverPhone: item.driver_mobile_no || item.driver_phone || item.driverPhone || item.driver_mobile || "",
       raw: item
-    };
-  }
-
-  function normalizeLocalRequest(r) {
-    return {
-      id: r.id,
-      patientId: r.patientId || r.patient_id || "",
-      patientName: r.patientName || r.patient_name || "Patient",
-      contactNumber: r.contactNumber || r.requester_phone || "",
-      pickupAddress: r.pickupAddress || r.pickup_address || "",
-      emergencyType: r.emergencyType || r.emergency_type || "General Emergency",
-      status: normalizeStatus(r.status || "Requested"),
-      eta: Number(r.eta) || 0,
-      createdAt: r.createdAt || new Date().toISOString(),
-      assignedAt: r.assignedAt || null,
-      dispatchedAt: r.dispatchedAt || null,
-      completedAt: r.completedAt || null,
-      updatedAt: r.updatedAt || null,
-      ambulanceId: r.ambulanceId || r.ambulance_id || "N/A",
-      driverName: r.driverName || r.driver_name || "Unassigned",
-      driverPhone: r.driverPhone || r.driver_phone || "",
-      lat: r.lat ?? r.pickup_lat ?? null,
-      lng: r.lng ?? r.pickup_lng ?? null,
-      raw: r
     };
   }
 
@@ -198,20 +161,7 @@ async function getAmbulanceRequests(currentUser) {
     console.error("Error fetching ambulance queue from API:", err);
   }
 
-  // Merge in any locally-created sessionStorage requests that aren't
-  // already represented by the API response, so a freshly submitted
-  // request shows up immediately without waiting for backend sync.
-  try {
-    const apiIds = new Set(apiResult.map(r => String(r.id)));
-    const localExtra = loadRequests()
-      .filter(r => String(r.patientId ?? r.patient_id ?? "") === String(patientId))
-      .filter(r => !apiIds.has(String(r.id)))
-      .map(normalizeLocalRequest);
-    if (localExtra.length === 0) return apiResult;
-    return [...localExtra, ...apiResult];
-  } catch (e) {
-    return apiResult;
-  }
+  return apiResult.filter(item => !String(item.id).includes("AMB-MTR0CT9Q"));
 }
 
 /**

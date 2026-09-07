@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, Receipt, CreditCard, ChevronLeft, FlaskConical } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, Receipt, CreditCard, ChevronLeft, FlaskConical, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getLabOrderHistory } from "../services/dataService";
 
@@ -17,75 +17,155 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [mobileView, setMobileView] = useState("list");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    async function fetchOrders() {
-      const patientId = getStoredUserId();
-      if (!patientId) {
-        setLoading(false);
-        return;
+  const pageRef = useRef(1);
+  const loadingMoreRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const allFetchedOrdersRef = useRef([]);
+
+  const mapOrder = (order, index) => {
+    const rawId = order.order_id || order.lab_order_id || order.id || `LAB-${Date.now()}-${index}`;
+    const rawDate = order.order_date || order.created_at || order.created_on || order.date || order.orderDate || "Recent";
+    const rawStatus = order.order_status || order.status || "Processing";
+    const rawItems = order.test_names || order.tests || order.items || order.test_category_name || "Lab Test";
+    const rawAmount = order.amount || order.total_amount || order.total || order.amount_paid || 0;
+    const rawLab = order.lab_name || order.center_name || order.lab || order.hospital_name || "Arvaya Lab";
+    const rawPatient = order.patient_name || order.patient || "";
+
+    let statusTracking = 1;
+    const s = String(rawStatus).toLowerCase();
+    if (s.includes("deliver") || s.includes("complete") || s.includes("ready") || s.includes("report")) statusTracking = 3;
+    else if (s.includes("process") || s.includes("collect") || s.includes("confirm")) statusTracking = 2;
+
+    const parsedDate = (() => {
+      if (rawDate && rawDate !== "Recent") {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) return d;
       }
-      try {
-        const labOrders = await getLabOrderHistory(patientId);
-        const mappedLabOrders = (Array.isArray(labOrders) ? labOrders : []).map((order, index) => {
-          const rawId = order.order_id || order.lab_order_id || order.id || `LAB-${Date.now()}-${index}`;
-          const rawDate = order.order_date || order.created_at || order.created_on || order.date || order.orderDate || "Recent";
-          const rawStatus = order.order_status || order.status || "Processing";
-          const rawItems = order.test_names || order.tests || order.items || order.test_category_name || "Lab Test";
-          const rawAmount = order.amount || order.total_amount || order.total || order.amount_paid || 0;
-          const rawLab = order.lab_name || order.center_name || order.lab || order.hospital_name || "Arvaya Lab";
-          const rawPatient = order.patient_name || order.patient || "";
+      return null;
+    })();
 
-          let statusTracking = 1;
-          const s = String(rawStatus).toLowerCase();
-          if (s.includes("deliver") || s.includes("complete") || s.includes("ready") || s.includes("report")) statusTracking = 3;
-          else if (s.includes("process") || s.includes("collect") || s.includes("confirm")) statusTracking = 2;
+    const formattedDate = parsedDate
+      ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      : (typeof rawDate === "string" ? rawDate : "Recent");
+    const formattedTime = parsedDate
+      ? parsedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+      : "";
 
-          const parsedDate = (() => {
-            if (rawDate && rawDate !== "Recent") {
-              const d = new Date(rawDate);
-              if (!isNaN(d.getTime())) return d;
-            }
-            return null;
-          })();
+    return {
+      id: String(rawId),
+      date: formattedDate,
+      time: formattedTime,
+      status: String(rawStatus),
+      items: typeof rawItems === "string" ? rawItems : Array.isArray(rawItems) ? rawItems.join(", ") : String(rawItems),
+      amount: typeof rawAmount === "number" ? rawAmount : parseFloat(rawAmount) || 0,
+      type: "Lab",
+      tracking: statusTracking,
+      address: rawLab,
+      patientName: rawPatient,
+      raw: order
+    };
+  };
 
-          const formattedDate = parsedDate
-            ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-            : (typeof rawDate === "string" ? rawDate : "Recent");
-          const formattedTime = parsedDate
-            ? parsedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-            : "";
-
-          return {
-            id: String(rawId),
-            date: formattedDate,
-            time: formattedTime,
-            status: String(rawStatus),
-            items: typeof rawItems === "string" ? rawItems : Array.isArray(rawItems) ? rawItems.join(", ") : String(rawItems),
-            amount: typeof rawAmount === "number" ? rawAmount : parseFloat(rawAmount) || 0,
-            type: "Lab",
-            tracking: statusTracking,
-            address: rawLab,
-            patientName: rawPatient,
-            raw: order
-          };
-        });
-
-        setAllOrders(mappedLabOrders);
-        if (mappedLabOrders.length > 0) {
-          setSelectedOrder(mappedLabOrders[0]);
-        }
-      } catch (err) {
-        console.error("Failed to fetch lab orders:", err);
-      } finally {
-        setLoading(false);
-      }
+  const fetchOrders = async (pageToFetch = 1) => {
+    const patientId = getStoredUserId();
+    if (!patientId) {
+      setLoading(false);
+      return;
     }
 
-    fetchOrders();
+    if (pageToFetch === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+      loadingMoreRef.current = true;
+    }
+
+    try {
+      // Trigger API: /api/lims/laborder/history with pageSize: 10
+      const labOrders = await getLabOrderHistory(patientId, {
+        pageSize: 10,
+        pageIndex: pageToFetch,
+        page: pageToFetch
+      });
+
+      const mapped = (Array.isArray(labOrders) ? labOrders : []).map(mapOrder);
+
+      if (pageToFetch === 1) {
+        allFetchedOrdersRef.current = mapped;
+        // Display initial 10 orders
+        const initialBatch = mapped.slice(0, 10);
+        setAllOrders(initialBatch);
+        pageRef.current = 1;
+
+        if (mapped.length > 10) {
+          hasMoreRef.current = true;
+          setHasMore(true);
+        } else if (mapped.length < 10) {
+          hasMoreRef.current = false;
+          setHasMore(false);
+        } else {
+          hasMoreRef.current = true;
+          setHasMore(true);
+        }
+
+        if (initialBatch.length > 0) {
+          setSelectedOrder(initialBatch[0]);
+        }
+      } else {
+        pageRef.current = pageToFetch;
+        const currentDisplayedCount = pageToFetch * 10;
+        
+        let newBatch = [];
+        if (allFetchedOrdersRef.current.length >= currentDisplayedCount) {
+          // Client slice fallback if server returned full array on page 1
+          newBatch = allFetchedOrdersRef.current.slice(0, currentDisplayedCount);
+          setAllOrders(newBatch);
+          if (allFetchedOrdersRef.current.length <= currentDisplayedCount) {
+            hasMoreRef.current = false;
+            setHasMore(false);
+          }
+        } else if (mapped.length > 0) {
+          // Server-side paginated response
+          setAllOrders(prev => {
+            const existingIds = new Set(prev.map(o => o.id));
+            const uniqueNew = mapped.filter(o => !existingIds.has(o.id));
+            const updated = [...prev, ...uniqueNew];
+            allFetchedOrdersRef.current = updated;
+            return updated;
+          });
+          if (mapped.length < 10) {
+            hasMoreRef.current = false;
+            setHasMore(false);
+          }
+        } else {
+          hasMoreRef.current = false;
+          setHasMore(false);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch lab orders:", err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      loadingMoreRef.current = false;
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders(1);
   }, []);
 
-  const isLab = selectedOrder?.type === "Lab";
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop - clientHeight < 60) {
+      if (hasMoreRef.current && !loadingMoreRef.current && !loading) {
+        fetchOrders(pageRef.current + 1);
+      }
+    }
+  };
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
@@ -106,10 +186,23 @@ export default function Orders() {
         ) : allOrders.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>No orders found.</div>
         ) : (
-          <div className="orders-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '32px', alignItems: 'start' }}>
+          <div className="orders-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '32px', alignItems: 'stretch', height: 'calc(100vh - 210px)', minHeight: '600px' }}>
             
-            {/* ── LEFT: Order List ── */}
-            <aside className={`order-list-pane ${mobileView === 'detail' ? 'hide-on-mobile' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: '8px' }} id="order-list-sidebar">
+            {/* ── LEFT: Order List Pane ── */}
+            <aside 
+              className={`order-list-pane ${mobileView === 'detail' ? 'hide-on-mobile' : ''}`} 
+              onScroll={handleScroll}
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px', 
+                height: '100%', 
+                maxHeight: '100%', 
+                overflowY: 'auto', 
+                paddingRight: '8px' 
+              }} 
+              id="order-list-sidebar"
+            >
               {allOrders.map(order => {
                 const isSelected = selectedOrder?.id === order.id;
                 return (
@@ -151,12 +244,28 @@ export default function Orders() {
                       <span>{order.type}</span>
                     </div>
                   </div>
-                )
+                );
               })}
+
+              {loadingMore && (
+                <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
+                  <Loader2 size={16} className="animate-spin" /> Loading more orders...
+                </div>
+              )}
             </aside>
 
-            {/* ── RIGHT: Order Detail ── */}
-            <section className={`order-detail-pane card-elevated ${mobileView === 'list' ? 'hide-on-mobile' : ''}`} style={{ padding: '32px', borderRadius: '24px' }}>
+            {/* ── RIGHT: Order Detail Pane ── */}
+            <section 
+              className={`order-detail-pane card-elevated ${mobileView === 'list' ? 'hide-on-mobile' : ''}`} 
+              style={{ 
+                padding: '32px', 
+                borderRadius: '24px', 
+                height: '100%', 
+                maxHeight: '100%', 
+                overflowY: 'auto', 
+                boxSizing: 'border-box' 
+              }}
+            >
               <button 
                 className="btn btn-secondary mobile-only mb-4" 
                 onClick={() => setMobileView('list')}
@@ -252,7 +361,7 @@ export default function Orders() {
       
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 900px) {
-          .orders-layout { grid-template-columns: 1fr !important; }
+          .orders-layout { grid-template-columns: 1fr !important; height: auto !important; }
           .hide-on-mobile { display: none !important; }
           .mobile-only { display: inline-flex !important; }
         }

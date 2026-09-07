@@ -29,6 +29,7 @@ export default function Records() {
   const { user, loginMethod, openLoginModal } = useAuth();
   let go = useNavigate();
   let fileInputRef = useRef(null);
+  let uploadCancelledRef = useRef(false);
 
   let [records, setRecords] = useState([]);
   let [count, setCount] = useState(0);
@@ -221,6 +222,19 @@ export default function Records() {
     };
   }, [showUploadModal]);
 
+  const handleCancelUpload = () => {
+    uploadCancelledRef.current = true;
+    setUploadingFile(false);
+    setUploading(false);
+    setUploadSuccess(false);
+    setSelectedFile(null);
+    setUploadedFileName("");
+    setRecordTitle("");
+    setDoctorName("");
+    setErrors({});
+    setShowUploadModal(false);
+  };
+
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -241,6 +255,7 @@ export default function Records() {
       return;
     }
 
+    uploadCancelledRef.current = false;
     setSelectedFile(file);
     setUploadedFileName("");
 
@@ -251,12 +266,16 @@ export default function Records() {
       const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
 
       const uploadRes = await uploadImage(file, folderName, generatedName);
+      if (uploadCancelledRef.current) return;
       const uploadedName = uploadRes?.filename || uploadRes?.fileName || uploadRes?.result || uploadRes?.data || generatedName;
       setUploadedFileName(uploadedName);
     } catch (err) {
+      if (uploadCancelledRef.current) return;
       console.error("Instant file upload error:", err);
     } finally {
-      setUploadingFile(false);
+      if (!uploadCancelledRef.current) {
+        setUploadingFile(false);
+      }
     }
   };
 
@@ -359,6 +378,7 @@ export default function Records() {
       return;
     }
 
+    uploadCancelledRef.current = false;
     setUploading(true);
     try {
       let finalFileName = uploadedFileName;
@@ -367,9 +387,12 @@ export default function Records() {
         const fileExt = selectedFile.name.split('.').pop();
         const generatedName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
         const uploadRes = await uploadImage(selectedFile, folderName, generatedName);
+        if (uploadCancelledRef.current) return;
         finalFileName = uploadRes?.filename || uploadRes?.fileName || uploadRes?.result || uploadRes?.data || generatedName;
         setUploadedFileName(finalFileName);
       }
+
+      if (uploadCancelledRef.current) return;
 
       const storedUser = localStorage.getItem("arvaya_user");
       let parsedUser = {};
@@ -410,6 +433,8 @@ export default function Records() {
         client_id: clientId
       });
 
+      if (uploadCancelledRef.current) return;
+
       setUploadSuccess(true);
       showToast("Medical record saved successfully!", "success");
 
@@ -418,20 +443,25 @@ export default function Records() {
       setActiveTab("personal");
 
       setTimeout(() => {
-        setShowUploadModal(false);
-        setUploadSuccess(false);
-        setSelectedFile(null);
-        setUploadedFileName("");
-        setRecordTitle("");
-        setDoctorName("");
-        setErrors({});
+        if (!uploadCancelledRef.current) {
+          setShowUploadModal(false);
+          setUploadSuccess(false);
+          setSelectedFile(null);
+          setUploadedFileName("");
+          setRecordTitle("");
+          setDoctorName("");
+          setErrors({});
+        }
       }, 1000);
 
     } catch (err) {
+      if (uploadCancelledRef.current) return;
       console.error("Upload & Save error:", err);
       showToast("Failed to save health record. Please try again.", "error");
     } finally {
-      setUploading(false);
+      if (!uploadCancelledRef.current) {
+        setUploading(false);
+      }
     }
   };
 
@@ -850,15 +880,26 @@ export default function Records() {
 
 
       {showUploadModal && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999999, margin: 0, padding: '12px', overflow: 'hidden' }}>
-          <div className="animate-fade-in-up" style={{ background: 'var(--bg-surface)', width: '100%', maxWidth: '370px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+        <div 
+          onClick={handleCancelUpload}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999999, margin: 0, padding: '12px', overflow: 'hidden' }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="animate-fade-in-up" 
+            style={{ background: 'var(--bg-surface)', width: '100%', maxWidth: '370px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)', border: '1px solid var(--border)', overflow: 'hidden' }}
+          >
             
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
               <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                 <CloudUpload size={18} color="var(--primary)" /> Upload Medical Record
               </h3>
-              <button onClick={() => setShowUploadModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '2px', borderRadius: '50%' }}>
+              <button 
+                type="button"
+                onClick={handleCancelUpload} 
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--muted)', padding: '2px', borderRadius: '50%' }}
+              >
                 <X size={18} />
               </button>
             </div>
@@ -1028,8 +1069,7 @@ export default function Records() {
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button 
                   type="button" 
-                  onClick={() => setShowUploadModal(false)}
-                  disabled={uploading || uploadingFile}
+                  onClick={handleCancelUpload}
                   style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}
                 >
                   Cancel

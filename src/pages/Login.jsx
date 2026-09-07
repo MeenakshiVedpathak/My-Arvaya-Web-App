@@ -712,6 +712,25 @@ function Mobile({ onBack, onSend, busy, err }) {
    ═══════════════════════════════════════ */
 function Otp({ phone, onBack, onVerify, onResend, busy, err }) {
   const [o, setO] = useState("");
+  const [countdown, setCountdown] = useState(600);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    if (countdown <= 0) { setCanResend(true); return; }
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  const handleResend = () => {
+    setO("");
+    setCountdown(600);
+    setCanResend(false);
+    onResend();
+  };
+
+  const mins = String(Math.floor(countdown / 60)).padStart(2, '0');
+  const secs = String(countdown % 60).padStart(2, '0');
+
   return (
     <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -725,7 +744,22 @@ function Otp({ phone, onBack, onVerify, onResend, busy, err }) {
       </p>
 
       {err && <ErrorBox msg={err} />}
-      <OtpInputGrid value={o} onChange={setO} />
+      <div style={{ marginBottom: '24px' }}>
+        <OtpInputGrid value={o} onChange={setO} />
+      </div>
+
+      {/* Resend timer */}
+      <div style={{ textAlign: 'right', marginBottom: '24px' }}>
+        {canResend ? (
+          <button onClick={handleResend} style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '13px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+            Resend OTP
+          </button>
+        ) : (
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            Resend OTP in <strong style={{ color: 'var(--text-main)', fontVariantNumeric: 'tabular-nums' }}>{mins}:{secs}</strong>
+          </span>
+        )}
+      </div>
 
       <button disabled={busy || o.length < 6} onClick={() => onVerify(o)} style={{
         width: '100%', background: busy || o.length < 6 ? 'var(--border)' : 'var(--primary)',
@@ -737,12 +771,7 @@ function Otp({ phone, onBack, onVerify, onResend, busy, err }) {
         {busy ? "Verifying..." : "Verify & Login"}
       </button>
 
-      <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', marginTop: '24px' }}>
-        Didn't receive the code?{' '}
-        <button onClick={onResend} style={{ color: 'var(--primary)', fontWeight: '600', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-          Resend OTP
-        </button>
-      </p>
+
     </div>
   );
 }

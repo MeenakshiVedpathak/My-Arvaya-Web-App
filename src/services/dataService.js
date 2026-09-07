@@ -440,9 +440,16 @@ export async function getDiagnosticPackages(filters = {}) {
   }
 }
 
-export async function getLabOrderHistory(patient_id) {
+export async function getLabOrderHistory(patient_id, options = {}) {
   try {
-    const payload = { patient_id };
+    const extraParams = typeof options === 'object' && options !== null ? options : { pageSize: options };
+    const payload = {
+      patient_id,
+      pageSize: 10,
+      pageIndex: 1,
+      page: 1,
+      ...extraParams
+    };
     const res = await api.post("/api/lims/laborder/history", payload);
     const list = res?.data || res?.list || res?.orders || res?.result || res || [];
     return Array.isArray(list) ? list : [];
