@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   Award,
   IndianRupee,
-  Loader2
+  Loader2,
+  Lock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -60,7 +61,10 @@ const defaultEarnTasks = [
 ];
 
 export default function Rewards() {
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
+  const storedUser = typeof window !== 'undefined' ? localStorage.getItem("arvaya_user") : null;
+  const isLoggedIn = !!user || !!storedUser;
+
   const [points, setPoints] = useState(0);
   const [maxRedeemPoints, setMaxRedeemPoints] = useState(null);
   const [loadingPoints, setLoadingPoints] = useState(true);
@@ -69,17 +73,7 @@ export default function Rewards() {
   const [toastMessage, setToastMessage] = useState("");
   const [earnTasks, setEarnTasks] = useState(defaultEarnTasks);
   const [loadingTasks, setLoadingTasks] = useState(true);
-
-  const [history, setHistory] = useState([
-    { id: 1, title: "Appointment Booking Bonus", date: "Today, 5:30 PM", points: "+50", type: "earned" },
-    { id: 2, title: "Uploaded Lab Report", date: "10 Jul 2026", points: "+15", type: "earned" },
-    { id: 3, title: "Referred Friend – Rahul", date: "05 Jul 2026", points: "+100", type: "earned" },
-    { id: 4, title: "Redeemed Flat ₹100 Off", date: "01 Jul 2026", points: "-120", type: "redeemed" },
-    { id: 5, title: "Health Survey Completed", date: "28 Jun 2026", points: "+20", type: "earned" },
-    { id: 6, title: "Hospital Bill Payment Bonus", date: "22 Jun 2026", points: "+30", type: "earned" },
-    { id: 7, title: "ABHA ID Verification Bonus", date: "15 Jun 2026", points: "+50", type: "earned" },
-    { id: 8, title: "Annual Wellness Checkup", date: "01 Jun 2026", points: "+150", type: "earned" }
-  ]);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -97,7 +91,47 @@ export default function Rewards() {
           }
         }
 
-        const patient_id = parsedUser?.id || parsedUser?.user_id || parsedUser?.patient_id || parsedUser?.app_user_id || 20546;
+        if (!parsedUser) {
+          setPoints(0);
+          setHistory([]);
+          // Fetch loyalty config for earn tasks display
+          const configRes = await getLoyaltyConfig({ filterQuery: "is_active:1" }).catch(() => null);
+          if (configRes && isMounted) {
+            let rawList = Array.isArray(configRes) ? configRes : (configRes?.data || configRes?.list || configRes?.config || configRes?.result || []);
+            const activeItems = rawList.filter(item => item.is_active === undefined || item.is_active === null || String(item.is_active) === '1' || item.is_active === true);
+            if (activeItems.length > 0) {
+              const mappedTasks = activeItems.map((item, idx) => {
+                const rawModule = item.source_module || item.module || item.title || item.name || `Module #${idx + 1}`;
+                const moduleName = formatModuleName(rawModule);
+                const ppa = item.points_per_amount ?? item.amount_per_point ?? item.pts ?? item.points ?? 10;
+                const numAmt = parseFloat(ppa);
+                const amtStr = !isNaN(numAmt) ? (numAmt % 1 === 0 ? numAmt.toString() : numAmt.toFixed(2)) : String(ppa);
+                return {
+                  id: item.id || idx + 1,
+                  source_module: item.source_module || rawModule,
+                  moduleName,
+                  points_per_amount: amtStr,
+                  expiry_days: item.expiry_days ?? item.expiry ?? null,
+                  rateText: `+1 Pt / ₹${amtStr}`,
+                  icon: getTaskIcon(moduleName, item.source_module || "")
+                };
+              });
+              setEarnTasks(mappedTasks);
+            }
+          }
+          setLoadingTasks(false);
+          setLoadingPoints(false);
+          return;
+        }
+
+        const patient_id = parsedUser?.id || parsedUser?.user_id || parsedUser?.patient_id || parsedUser?.app_user_id;
+        if (!patient_id) {
+          setPoints(0);
+          setHistory([]);
+          setLoadingTasks(false);
+          setLoadingPoints(false);
+          return;
+        }
 
         const [loyaltyRes, configRes, historyRes] = await Promise.all([
           getPatientLoyalty(patient_id).catch(err => {
@@ -660,12 +694,67 @@ export default function Rewards() {
                 <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
                   Recent History
                 </h2>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
-                  {history.length} activities
-                </span>
+                {isLoggedIn && (
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
+                    {history.length} activities
+                  </span>
+                )}
               </div>
 
-              {history.length === 0 ? (
+              {!isLoggedIn ? (
+                <div style={{
+                  padding: '40px 20px',
+                  textAlign: 'center',
+                  background: 'var(--bg-app)',
+                  borderRadius: '16px',
+                  border: '1.5px dashed var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  flex: 1
+                }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'var(--primary-light)',
+                    color: 'var(--primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto'
+                  }}>
+                    <Lock size={22} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
+                      Log in to View Recent History
+                    </h4>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                      Please log in to see your points activity and redemption history.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openLoginModal && openLoginModal()}
+                    style={{
+                      marginTop: '8px',
+                      background: 'var(--primary)',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
+                    }}
+                  >
+                    Log In / Sign Up
+                  </button>
+                </div>
+              ) : history.length === 0 ? (
                 /* Empty state */
                 <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{

@@ -102,14 +102,19 @@ export default function Records() {
       } catch(e) {}
     }
 
-    const filterString = ` AND app_user_id = ${userId} AND record_type = 'P' AND status = 1 `;
+    const abhaFilters = [
+      { column: "app_user_id", operator: "=", value: Number(userId) || userId },
+      { column: "record_type", operator: "=", value: "P" },
+      { column: "status", operator: "=", value: 1 },
+      { column: "is_active", operator: "=", value: 1 }
+    ];
 
     getRecords({
       pageIndex: 1,
       pageSize: 20,
       sortKey: "id",
       sortValue: "desc",
-      filter: filterString
+      filters: abhaFilters
     }).then(res => {
       setAbhaRecords(res.list || []);
       setLoadingAbha(false);

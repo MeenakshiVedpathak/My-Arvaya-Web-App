@@ -12,7 +12,7 @@ import { QrModal } from "./modals/QrModal";
 import { getGetToken, getProfileInfo, getPhrCard } from "../../services/abhaService";
 
 export default function ABHA() {
-  const { user, logout, loginMethod, openLoginModal } = useAuth();
+  const { user, logout, loginMethod, setLoginMethod, openLoginModal, showToast } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab]           = useState("abha");
   const [showQrModal, setShowQrModal]       = useState(false);
@@ -22,13 +22,16 @@ export default function ABHA() {
   const [phrCardUrl, setPhrCardUrl]         = useState(null);
   const [pageLoading, setPageLoading]       = useState(true);
 
-  // Check if login triggered user/verifyOtp and user is not yet ABHA-linked
-  const isUserOtpLogin = loginMethod === "user_verify_otp" && !user?.abhaAddress && !user?.abha_number;
+  // Check if active session is logged in via ABHA
+  const abhaToken = localStorage.getItem("abha_user_token") || localStorage.getItem("abha_token") || user?.abha_token || user?.abhaToken;
+  const currentLoginMethod = localStorage.getItem("arvaya_login_method") || loginMethod;
+  const isAbhaLoggedIn = currentLoginMethod === "abha" && Boolean(abhaToken);
+  const isUserOtpLogin = !isAbhaLoggedIn;
 
-  // Trigger /api/profile/getGetToken API, then /api/profile/getInfo, then /api/profile/getPhrCard on ABHA Hub page click/load
+  // Trigger /api/profile/getGetToken API, then /api/profile/getInfo, then /api/profile/getPhrCard on ABHA Hub page click/load if logged in via ABHA
   useEffect(() => {
-    const inputToken = localStorage.getItem("abha_user_token") || user?.abha_token || user?.abhaToken || localStorage.getItem("abha_token") || localStorage.getItem("token");
-    if (inputToken) {
+    const inputToken = localStorage.getItem("abha_user_token") || localStorage.getItem("abha_token") || user?.abha_token || user?.abhaToken;
+    if (isAbhaLoggedIn && inputToken) {
       setPageLoading(true);
       getGetToken(inputToken)
         .then((getTokenRes) => {
@@ -58,7 +61,13 @@ export default function ABHA() {
     } else {
       setPageLoading(false);
     }
-  }, [user]);
+  }, [user, loginMethod, isAbhaLoggedIn]);
+
+  const handleAbhaLogout = async () => {
+    setProfileInfo(null);
+    setPhrCardUrl(null);
+    await logout();
+  };
 
   let genderDisplay = profileInfo?.gender || user?.gender || "";
   if (genderDisplay === "F" || genderDisplay === "FEMALE") genderDisplay = "Female";
@@ -235,7 +244,7 @@ export default function ABHA() {
               </div>
             </div>
           ) : (
-            <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={() => { logout(); navigate("/"); }} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />
+            <AbhaTab abhaData={abhaData} onShowQr={() => setShowQrModal(true)} onLogout={handleAbhaLogout} onSwitch={() => setShowSwitch(true)} onCreate={() => setShowCreate(true)} />
           )}
         </div>
         <div id="static-abha-tab-consent" style={{ display: activeTab === "consent" ? "block" : "none" }}>

@@ -100,7 +100,8 @@ export async function abhaVerifyUser(data) {
     abha_type: "sbx",
     abha_status: "active",
     gender: data.gender || "",
-    date_of_birth: data.date_of_birth || ""
+    date_of_birth: data.date_of_birth || "",
+    external_id: data.external_id !== undefined ? data.external_id : (data.externalId || "")
   };
   const res = await api.post("/login/verifyUser", payload);
   checkOtpResponse(res);

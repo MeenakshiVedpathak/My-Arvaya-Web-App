@@ -298,8 +298,16 @@ export default function Login({ forceOpen = false }) {
   const doAbhaConfirm = async (address, dob) => {
     setErr(""); setBusy(true);
     try {
+      let storedUser = null;
+      try {
+        const local = localStorage.getItem("arvaya_user");
+        if (local) storedUser = JSON.parse(local);
+      } catch (e) {}
+
       const userObj = abhaVerifyData?.users?.[0] || abhaVerifyData?.data?.users?.[0] || abhaVerifyData?.user || {};
       const tokenVal = abhaVerifyData?.tokens?.token || abhaVerifyData?.token || abhaVerifyData?.accessToken || abhaVerifyData?.data?.token || "";
+      const externalIdVal = userObj?.external_id || userObj?.externalId || abhaVerifyData?.external_id || abhaVerifyData?.UserData?.external_id || abhaVerifyData?.data?.external_id || storedUser?.external_id || storedUser?.externalId || "";
+
       const payload = {
         txnId: abhaVerifyData?.txnId || abhaVerifyData?.transactionId || abhaVerifyData?.data?.txnId || abhaTransactionId,
         abhaAddress: address,
@@ -313,7 +321,8 @@ export default function Login({ forceOpen = false }) {
         abha_type: "sbx",
         abha_status: "active",
         gender: userObj?.gender || abhaVerifyData?.gender || "",
-        date_of_birth: dob
+        date_of_birth: dob,
+        external_id: externalIdVal
       };
 
       const res = await abhaVerifyUser(payload);
@@ -333,6 +342,7 @@ export default function Login({ forceOpen = false }) {
         token: newtoken,
         user: {
           ...user,
+          external_id: user?.external_id || externalIdVal || user?.externalId || null,
           abha_token: abhaResponseToken,
           abhaAddress: address,
           abhaNumber: payload.abha_number || user?.abhaNumber || user?.abha_number || "91-6780-5608-2723",

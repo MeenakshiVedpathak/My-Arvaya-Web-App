@@ -101,7 +101,14 @@ export function SwitchProfileModal({ onClose }) {
     setErr(""); setBusy(true);
     try {
       const res = await abhaConfirmAddress(selected, "", txnId);
-      saveSession({ token: res?.token || "mock_abha_token_" + Date.now(), user: res?.user || { name: "ABHA User" } });
+      const abhaResponseToken = res?.token || res?.tokens?.token || res?.data?.tokens?.token || "mock_abha_token_" + Date.now();
+      localStorage.setItem("abha_user_token", abhaResponseToken);
+      localStorage.setItem("abha_token", abhaResponseToken);
+      saveSession({
+        token: res?.token || "mock_abha_token_" + Date.now(),
+        user: res?.user || { name: "ABHA User" },
+        loginMethod: "abha"
+      });
       setSwitchedProfile(selected);
       setStep(4);
     } catch (e) {

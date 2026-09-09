@@ -19,7 +19,8 @@ import {
   Ticket, 
   Plus,
   Award,
-  Loader2
+  Loader2,
+  Lock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -117,7 +118,10 @@ const defaultOffers = [
 ];
 
 export default function Wallet() {
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
+  const storedUser = typeof window !== 'undefined' ? localStorage.getItem("arvaya_user") : null;
+  const isLoggedIn = !!user || !!storedUser;
+
   const [rewardPoints, setRewardPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -126,16 +130,7 @@ export default function Wallet() {
   const [redeemedOffers, setRedeemedOffers] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
   const [offers, setOffers] = useState(defaultOffers);
-
-  const [transactions, setTransactions] = useState([
-    { id: 1, title: "Registration Bonus", date: "Today, 4:30 PM", amount: "+100 pts", type: "credit" },
-    { id: 2, title: "Doctor Appointment Cashback", date: "10 Jul 2026", amount: "+120 pts", type: "credit" },
-    { id: 3, title: "Consultation Fee Discount", date: "08 Jul 2026", amount: "-100 pts", type: "debit" },
-    { id: 4, title: "Referral Bonus – Amit", date: "05 Jul 2026", amount: "+200 pts", type: "credit" },
-    { id: 5, title: "Lab Test Cashback", date: "02 Jul 2026", amount: "+80 pts", type: "credit" },
-    { id: 6, title: "Profile Completion Bonus", date: "28 Jun 2026", amount: "+50 pts", type: "credit" },
-    { id: 7, title: "Pharmacy Coupon Redeemed", date: "20 Jun 2026", amount: "-180 pts", type: "debit" }
-  ]);
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -152,7 +147,22 @@ export default function Wallet() {
           }
         }
 
-        const patient_id = parsedUser?.id || parsedUser?.user_id || parsedUser?.patient_id || parsedUser?.app_user_id || 20546;
+        if (!parsedUser) {
+          setRewardPoints(0);
+          setTransactions([]);
+          setOffers([]);
+          setLoading(false);
+          return;
+        }
+
+        const patient_id = parsedUser?.id || parsedUser?.user_id || parsedUser?.patient_id || parsedUser?.app_user_id;
+        if (!patient_id) {
+          setRewardPoints(0);
+          setTransactions([]);
+          setOffers([]);
+          setLoading(false);
+          return;
+        }
 
         // Fetch wallet amount, appointment history & rewards plans in parallel
         const [walletRes, historyRes, plansRes] = await Promise.all([
@@ -566,42 +576,100 @@ export default function Wallet() {
                 </h3>
               </div>
               
-              {/* Scrollable Container for Transaction History */}
-              <div style={{
-                maxHeight: '360px',
-                overflowY: 'auto',
-                paddingRight: '6px',
-                display: 'flex',
-                flexDirection: 'column'
-              }} className="custom-scroller">
-                {transactions.map((tx, idx) => (
-                  <div key={tx.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: idx !== transactions.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                    
-                    <div style={{ 
-                      background: tx.type === 'credit' ? '#dcfce7' : '#f1f5f9', 
-                      color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', 
-                      width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px', flexShrink: 0 
-                    }}>
-                      {tx.type === 'credit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
-                    </div>
-                    
-                    <div style={{ flex: 1 }}>
-                      <b style={{ fontSize: '15px', color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>{tx.title}</b>
-                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{tx.date}</span>
-                    </div>
-                    
-                    <div style={{ textAlign: 'right' }}>
-                      <strong style={{ fontSize: '16px', color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', display: 'block' }}>
-                        {tx.amount}
-                      </strong>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                        {tx.type === 'credit' ? 'Earned' : 'Redeemed'}
-                      </span>
-                    </div>
-
+              {!isLoggedIn ? (
+                <div style={{
+                  padding: '36px 24px',
+                  textAlign: 'center',
+                  background: 'var(--bg-surface)',
+                  borderRadius: '16px',
+                  border: '1.5px dashed var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px'
+                }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'var(--primary-light)',
+                    color: 'var(--primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Lock size={22} />
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
+                      Log in to View Transaction History
+                    </h4>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                      Please log in to track your earned and redeemed reward points.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openLoginModal && openLoginModal()}
+                    style={{
+                      marginTop: '8px',
+                      background: 'var(--primary)',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
+                    }}
+                  >
+                    Log In / Sign Up
+                  </button>
+                </div>
+              ) : transactions.length === 0 ? (
+                <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', background: 'var(--bg-surface)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                  <History size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                  <p style={{ margin: 0 }}>No transaction history found.</p>
+                </div>
+              ) : (
+                /* Scrollable Container for Transaction History */
+                <div style={{
+                  maxHeight: '360px',
+                  overflowY: 'auto',
+                  paddingRight: '6px',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }} className="custom-scroller">
+                  {transactions.map((tx, idx) => (
+                    <div key={tx.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: idx !== transactions.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                      
+                      <div style={{ 
+                        background: tx.type === 'credit' ? '#dcfce7' : '#f1f5f9', 
+                        color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', 
+                        width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px', flexShrink: 0 
+                      }}>
+                        {tx.type === 'credit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+                      </div>
+                      
+                      <div style={{ flex: 1 }}>
+                        <b style={{ fontSize: '15px', color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>{tx.title}</b>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{tx.date}</span>
+                      </div>
+                      
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ fontSize: '16px', color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', display: 'block' }}>
+                          {tx.amount}
+                        </strong>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                          {tx.type === 'credit' ? 'Earned' : 'Redeemed'}
+                        </span>
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
 
@@ -616,29 +684,86 @@ export default function Wallet() {
               <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
                 Your Rewards
               </h2>
-              <span style={{
-                background: '#1D3B40',
-                color: '#6EE7B7',
-                fontSize: '12px',
-                fontWeight: '700',
-                padding: '4px 12px',
-                borderRadius: '99px'
-              }}>
-                {offers.length} offers
-              </span>
+              {isLoggedIn && (
+                <span style={{
+                  background: '#1D3B40',
+                  color: '#6EE7B7',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  padding: '4px 12px',
+                  borderRadius: '99px'
+                }}>
+                  {filteredOffers.length} offers
+                </span>
+              )}
             </div>
 
-           
-
-            {/* Scrollable Container for Reward Cards */}
-            <div style={{
-              maxHeight: '560px',
-              overflowY: 'auto',
-              paddingRight: '6px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))',
-              gap: '16px'
-            }} className="custom-scroller offers-grid">
+            {!isLoggedIn ? (
+              <div style={{
+                padding: '36px 20px',
+                textAlign: 'center',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1.5px dashed var(--border)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Gift size={22} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
+                    Log in to View Rewards
+                  </h4>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                    Access your exclusive healthcare rewards and vouchers.
+                  </p>
+                </div>
+                <button
+                  onClick={() => openLoginModal && openLoginModal()}
+                  style={{
+                    marginTop: '8px',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
+                  }}
+                >
+                  Log In / Sign Up
+                </button>
+              </div>
+            ) : filteredOffers.length === 0 ? (
+              <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', background: '#FFFFFF', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                <Gift size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                <p style={{ margin: 0 }}>No reward offers available at the moment.</p>
+              </div>
+            ) : (
+              /* Scrollable Container for Reward Cards */
+              <div style={{
+                maxHeight: '560px',
+                overflowY: 'auto',
+                paddingRight: '6px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))',
+                gap: '16px'
+              }} className="custom-scroller offers-grid">
               {filteredOffers.map(offer => {
                 const isRedeemed = redeemedOffers.includes(offer.id);
                 return (
@@ -763,6 +888,7 @@ export default function Wallet() {
                 );
               })}
             </div>
+          )}
 
           </aside>
 

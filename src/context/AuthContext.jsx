@@ -136,6 +136,9 @@ export function AuthProvider({ children }) {
       setLoginMethod(data.loginMethod);
       if (data.loginMethod === "user_verify_otp") {
         localStorage.setItem("arvaya_abha_linked", "false");
+        localStorage.removeItem("abha_user_token");
+        localStorage.removeItem("abha_token");
+        localStorage.removeItem("abha_profile_token");
       }
     }
 
@@ -231,6 +234,9 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("arvaya_token");
       localStorage.removeItem("arvaya_user");
       localStorage.removeItem("arvaya_login_method");
+      localStorage.removeItem("abha_user_token");
+      localStorage.removeItem("abha_token");
+      localStorage.removeItem("abha_profile_token");
       deleteCookie("token");
       deleteCookie("arvaya_token");
       setToken(null);

@@ -487,7 +487,7 @@ export default function Header() {
 
               {/* Location Dropdown Menu */}
               {isLocationOpen && (
-                <div className="styled-scrollbar" style={{ position: 'absolute', top: '46px', left: 0, width: '240px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '10px', animation: 'fadeIn 0.2s ease', maxHeight: '350px', overflowY: 'auto' }}>
+                <div className="styled-scrollbar header-location-dropdown" style={{ position: 'absolute', top: '46px', left: 0, width: '240px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '10px', animation: 'fadeIn 0.2s ease', maxHeight: '350px', overflowY: 'auto' }}>
 
                   {/* Location Search Box */}
                   <div style={{ marginBottom: '8px', padding: '0 4px' }}>
@@ -1360,9 +1360,34 @@ export default function Header() {
           }
         }
         @media (max-width: 520px) {
-          .header-location-wrapper,
+          .header-location-wrapper {
+            display: flex !important;
+            position: absolute !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            height: 34px !important;
+            z-index: 10 !important;
+          }
           .header-location-picker {
-            display: none !important;
+            display: flex !important;
+            align-items: center !important;
+            padding: 0 8px !important;
+            font-size: 12px !important;
+            height: 100% !important;
+            gap: 4px !important;
+            max-width: 120px !important;
+          }
+          .header-location-picker span {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 70px !important;
+          }
+          .header-location-dropdown {
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: min(250px, 88vw) !important;
+            top: 40px !important;
           }
           .header-desktop-auth {
             margin-left: auto !important;
@@ -1374,11 +1399,35 @@ export default function Header() {
           }
           .header-main-row {
             height: 60px !important;
-            padding: 0 10px !important;
+            padding: 0 8px !important;
             gap: 4px !important;
           }
           .header-main-row img {
-            height: 28px !important;
+            height: 26px !important;
+          }
+          .header-location-wrapper {
+            display: flex !important;
+            position: absolute !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            height: 32px !important;
+            z-index: 10 !important;
+          }
+          .header-location-picker {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0 8px !important;
+            font-size: 11.5px !important;
+            height: 100% !important;
+            gap: 3px !important;
+            border-radius: 20px !important;
+            max-width: 110px !important;
+          }
+          .header-location-picker span {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 60px !important;
           }
           .header-desktop-auth {
             gap: 4px !important;
