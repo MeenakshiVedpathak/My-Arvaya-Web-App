@@ -7,8 +7,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
-import { getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";
-import { getImageUrl } from "../services/uploadService";
+import { downloadBannerAsset, getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
@@ -163,16 +162,19 @@ export default function Home() {
       try {
         const res = await getBanners();
         const banners = res?.data || res || [];
-        if (banners.length > 0) {
-          const newSlides = banners.map((b, i) => {
+        if (Array.isArray(banners) && banners.length > 0) {
+          const newSlides = await Promise.all(banners.map(async (b, i) => {
             const baseSlide = heroSlides[i % heroSlides.length];
-            const fullImgUrl = b.img_url ? getImageUrl(b.img_url, 'bannerImages') : "";
+            const filename = b.filename || b.file_name || b.image || b.image_name || b.img_url;
+            const asset = await downloadBannerAsset(filename);
             return {
               ...baseSlide,
-              bg: fullImgUrl || baseSlide.bg
+              bg: asset?.url || baseSlide.bg,
+              mimeType: asset?.mimeType || "image/*"
             };
-          });
+          }));
           setDynamicSlides(newSlides);
+          setCurrentSlide(0);
         }
       } catch (e) {
         console.error("Error fetching banners:", e);
@@ -268,11 +270,23 @@ export default function Home() {
                 transition: 'opacity 1s ease-in-out',
                 zIndex: idx === currentSlide ? 1 : 0
             }}>
-              <img 
-                src={slide.bg} 
-                alt={`Banner ${idx + 1}`} 
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }} 
-              />
+              {slide.mimeType?.startsWith('video/') ? (
+                <video
+                  src={slide.bg}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  aria-label={`Banner ${idx + 1}`}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }}
+                />
+              ) : (
+                <img
+                  src={slide.bg}
+                  alt={`Banner ${idx + 1}`}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }}
+                />
+              )}
               <div style={{ 
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
                 background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 45%, rgba(15, 23, 42, 0.15) 100%)' 
