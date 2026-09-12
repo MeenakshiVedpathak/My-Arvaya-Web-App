@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHeader from "../components/common/PageHeader";
 import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2, ChevronRight } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { getAmbulanceRequests, STATUS_FLOW, EMERGENCY_TYPES } from "../services/ambulanceService";
@@ -97,23 +98,38 @@ export default function AmbulancePage() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)", padding: '24px 0' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={e => e.currentTarget.style.color = ''}>Home</Link> <ChevronRight size={12} /> <span>Track Ambulance</span>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <h1 className="text-h2" style={{ fontSize: '24px', margin: 0 }}>Track Ambulance</h1>
-              <p className="text-muted mt-2" style={{ fontSize: '14px', margin: 0 }}>Monitor your emergency ambulance requests.</p>
-            </div>
-            <button onClick={() => setShowModal(true)} style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontSize: "15px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 14px rgba(220,38,38,0.3)" }} onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"} onMouseLeave={e => e.currentTarget.style.filter = "none"}>
-              <Ambulance size={18} /> Call Ambulance
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Track Ambulance' }
+        ]}
+        title="Track Ambulance"
+        subtitle="Monitor your emergency ambulance requests in real-time."
+        actions={
+          <button 
+            onClick={() => setShowModal(true)} 
+            style={{ 
+              background: "#dc2626", 
+              color: "#fff", 
+              border: "none", 
+              borderRadius: "12px", 
+              padding: "12px 24px", 
+              fontSize: "15px", 
+              fontWeight: "700", 
+              cursor: "pointer", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "8px", 
+              transition: "all 0.2s", 
+              boxShadow: "0 4px 14px rgba(220,38,38,0.3)" 
+            }} 
+            onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"} 
+            onMouseLeave={e => e.currentTarget.style.filter = "none"}
+          >
+            <Ambulance size={18} /> Call Ambulance
+          </button>
+        }
+      />
 
       <div className="container" style={{ padding: "32px 24px" }}>
 

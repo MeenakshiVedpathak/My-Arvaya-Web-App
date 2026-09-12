@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CreditCard, Shield, Building2, ArrowLeft, Link2, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import PageHeader from "../../components/common/PageHeader";
 
 import { AbhaTab } from "./components/AbhaTab";
 import { ConsentTab } from "./components/ConsentTab";
@@ -152,29 +153,24 @@ export default function ABHA() {
       <main className="page animate-fade-in-up" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0 }}>
         
         {/* ── Enterprise Top Header ── */}
-      <div style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border)", padding: "24px 0" }}>
-        <div className="container" style={{ maxWidth: "1280px", margin: "0 auto" }}>
-          
-          <div style={{ padding: "0 0 16px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-              <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--text-muted)", fontSize: "14px", fontWeight: "600", textDecoration: "none" }} className="hover:text-primary">
-                <ArrowLeft size={16} /> Home
-              </Link>
-              <div style={{ width: "1px", height: "24px", background: "var(--border)" }} />
-              <h1 className="text-h2" style={{ fontSize: "24px", margin: 0 }}>ABHA Management</h1>
-            </div>
-
-            {/* User Profile Summary */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-app)", padding: "6px 12px", borderRadius: "99px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: abhaData.photoColor || "#2E666E", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700" }}>
+        <PageHeader
+          breadcrumbs={[
+            { label: 'Home', link: '/' },
+            { label: 'ABHA Hub' }
+          ]}
+          title="ABHA Management"
+          subtitle="Manage your Ayushman Bharat Health Account, consents & providers."
+          actions={
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "rgba(15, 118, 110, 0.06)", padding: "6px 14px", borderRadius: "99px", border: "1px solid rgba(15, 118, 110, 0.15)" }}>
+              <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: abhaData.photoColor || "#2E666E", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700" }}>
                 {abhaData.photoInitials}
               </div>
-              <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>{abhaData.name}</div>
+              <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-main)" }}>{abhaData.name}</div>
             </div>
-          </div>
-
+          }
+        >
           {/* ── Horizontal Navigation ── */}
-          <nav style={{ display: "flex", gap: "32px", marginTop: "8px" }}>
+          <nav style={{ display: "flex", gap: "32px", marginTop: "16px" }}>
             {tabs.map(({ id, label, icon: Icon }) => {
               const isActive = activeTab === id;
               return (
@@ -196,8 +192,7 @@ export default function ABHA() {
             })}
           </nav>
 
-        </div>
-      </div>
+        </PageHeader>
 
       {/* ── Main Content Area ── */}
       <div className="container" style={{ maxWidth: "1280px", margin: "32px auto", padding: "0 24px" }}>

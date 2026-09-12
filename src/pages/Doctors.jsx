@@ -132,14 +132,14 @@ export default function Doctors() {
   return (
     <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Breadcrumb & Title ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Doctors in {displayLoc}</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px' }}>Top Doctors to Consult in {displayLoc}</h1>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: `Doctors in ${displayLoc}` }
+        ]}
+        title={`Top Doctors to Consult in ${displayLoc}`}
+        subtitle="Book online or in-clinic appointment with verified medical specialists."
+      />
 
       <style>{`
         .doctors-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }

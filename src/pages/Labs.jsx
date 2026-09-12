@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 import { getLabPackages, getDiagnosticTests, getDiagnosticPackages, getAppointments, getLabOrderHistory, createLabOrder, verifyLabPayment, loadRazorpayScript, getWalletAmount } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
@@ -589,18 +590,17 @@ function toTitleCase(str) {
         }
 
         .lab-hero-banner {
-          background: linear-gradient(135deg, #eef8f6 0%, #e0f2f0 55%, #d8eae7 100%);
-          border-radius: 24px;
-          margin-top: 12px;
-          padding: 28px 32px;
+          background: transparent;
+          border-radius: 0;
+          margin-top: 4px;
+          padding: 4px 0 0 0;
           position: relative;
-          overflow: hidden;
-          box-shadow: 0 8px 24px rgba(46, 102, 110, 0.08);
-          border: 1px solid rgba(46, 102, 110, 0.15);
+          box-shadow: none;
+          border: none;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 24px;
+          margin-bottom: 0;
           gap: 24px;
         }
 
@@ -1128,10 +1128,10 @@ function toTitleCase(str) {
           }
           .lab-hero-banner {
             flex-direction: column;
-            padding: 20px 16px;
-            border-radius: 20px;
-            margin-top: 6px;
-            margin-bottom: 20px;
+            padding: 8px 0 0 0;
+            border-radius: 0;
+            margin-top: 0;
+            margin-bottom: 0;
             gap: 14px;
             text-align: left;
             align-items: flex-start;
@@ -1281,62 +1281,60 @@ function toTitleCase(str) {
       `}</style>
 
       {/* ── Top Header Bar / Breadcrumb ── */}
-      <div style={{ background: '#ffffff', borderBottom: '1px solid var(--border)', padding: '16px 0' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-3" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> 
-            <ChevronRight size={12} /> 
-            <span style={{ color: 'var(--text-main)', fontWeight: '600' }}>Lab Tests & Packages</span>
-          </div>
-          
-          {/* Top Hero Banner */}
-          <div className="lab-hero-banner">
-            <div className="lab-hero-content">
-              
-              {/* Pre-title Pill Tag */}
-              <div className="lab-hero-pill-tag">
-                <Sparkles size={13} color="#0d5c63" /> NABL & ISO Certified Partner Labs
-              </div>
-
-              {/* Title & Subtitle */}
-              <h1 className="lab-hero-title">
-                Book trusted lab tests & health packages with ease.
-              </h1>
-              <p className="lab-hero-subtitle">
-                Free doorstep sample collection by certified phlebotomists.
-              </p>
-
-              {/* Trust Micro Badges */}
-              <div className="lab-hero-badges">
-                <span className="lab-hero-badge">
-                  <CheckCircle2 size={14} color="#16a34a" /> Certified Labs
-                </span>
-                <span className="lab-hero-badge">
-                  <Clock size={14} color="#0d5c63" /> 12-24h Reports
-                </span>
-                <span className="lab-hero-badge">
-                  <ShieldCheck size={14} color="#f97316" /> Free Home Sample
-                </span>
-              </div>
-
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Lab Tests & Packages' }
+        ]}
+        padding="20px 0"
+      >
+        {/* Top Hero Banner */}
+        <div className="lab-hero-banner">
+          <div className="lab-hero-content">
+            
+            {/* Pre-title Pill Tag */}
+            <div className="lab-hero-pill-tag">
+              <Sparkles size={13} color="#0d5c63" /> NABL & ISO Certified Partner Labs
             </div>
 
-            {/* Right Graphic/Illustration (Desktop & Tablet) */}
-            <div className="lab-hero-img-col">
-              <div className="lab-hero-img-card">
-                <img 
-                  src="/reward_lab.png" 
-                  alt="Lab Diagnostics Illustration" 
-                  className="lab-hero-img"
-                />
-                <div className="lab-hero-stat-badge">
-                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#12333a' }}>⭐ 4.9 Pathologist Rating</span>
-                </div>
+            {/* Title & Subtitle */}
+            <h1 className="lab-hero-title">
+              Book trusted lab tests & health packages with ease.
+            </h1>
+            <p className="lab-hero-subtitle">
+              Free doorstep sample collection by certified phlebotomists.
+            </p>
+
+            {/* Trust Micro Badges */}
+            <div className="lab-hero-badges">
+              <span className="lab-hero-badge">
+                <CheckCircle2 size={14} color="#16a34a" /> Certified Labs
+              </span>
+              <span className="lab-hero-badge">
+                <Clock size={14} color="#0d5c63" /> 12-24h Reports
+              </span>
+              <span className="lab-hero-badge">
+                <ShieldCheck size={14} color="#f97316" /> Free Home Sample
+              </span>
+            </div>
+
+          </div>
+
+          {/* Right Graphic/Illustration (Desktop & Tablet) */}
+          <div className="lab-hero-img-col">
+            <div className="lab-hero-img-card">
+              <img 
+                src="/reward_lab.png" 
+                alt="Lab Diagnostics Illustration" 
+                className="lab-hero-img"
+              />
+              <div className="lab-hero-stat-badge">
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#12333a' }}>⭐ 4.9 Pathologist Rating</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Main Content Area */}
       <div className="container lab-container-custom">

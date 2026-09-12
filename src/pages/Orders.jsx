@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, Receipt, CreditCard, ChevronLeft, FlaskConical, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 import { getLabOrderHistory } from "../services/dataService";
 
 function getStoredUserId() {
@@ -170,15 +171,14 @@ export default function Orders() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>My Orders</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px', color: 'var(--text-main)' }}>My Orders</h1>
-          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Track your lab test orders.</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'My Orders' }
+        ]}
+        title="My Orders"
+        subtitle="Track your lab test orders and medicine purchases."
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         {loading ? (

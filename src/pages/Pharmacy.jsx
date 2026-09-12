@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search, ShoppingCart, Plus, Minus, Tag, Heart, ShieldCheck, Truck, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "../components/common/Modal";
+import PageHeader from "../components/common/PageHeader";
 
 const categories = ["All", "Prescription", "Supplements", "Personal Care", "Ayurvedic"];
 
@@ -50,23 +51,40 @@ export default function Pharmacy() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Pharmacy</span>
-          </div>
-          <div className="flex justify-between items-end flex-wrap gap-4">
-            <div>
-              <h1 className="text-h2" style={{ fontSize: '24px' }}>Online E-Pharmacy</h1>
-              <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Order medicines online with 100% genuine guarantee.</p>
-            </div>
-            <button onClick={() => setIsCartOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'white', padding: '0 16px', height: '36px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '600', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background='var(--primary-dark)'} onMouseOut={e => e.currentTarget.style.background='var(--primary)'}>
-              <ShoppingCart size={16} />
-              <span>Cart ({cart.reduce((acc, c) => acc + c.qty, 0)})</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Pharmacy' }
+        ]}
+        title="Online E-Pharmacy"
+        subtitle="Order medicines online with 100% genuine guarantee."
+        actions={
+          <button 
+            onClick={() => setIsCartOpen(true)} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              background: 'var(--primary)', 
+              color: 'white', 
+              padding: '0 18px', 
+              height: '40px', 
+              borderRadius: '10px', 
+              border: 'none', 
+              cursor: 'pointer', 
+              fontSize: '13.5px', 
+              fontWeight: '600', 
+              boxShadow: '0 4px 14px rgba(15, 118, 110, 0.25)',
+              transition: 'all 0.2s' 
+            }} 
+            onMouseOver={e => e.currentTarget.style.background='var(--primary-dark)'} 
+            onMouseOut={e => e.currentTarget.style.background='var(--primary)'}
+          >
+            <ShoppingCart size={17} />
+            <span>Cart ({cart.reduce((acc, c) => acc + c.qty, 0)})</span>
+          </button>
+        }
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         <div className="pharmacy-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 280px) 1fr', gap: '32px' }}>

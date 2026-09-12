@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CreditCard, CheckCircle2, FileText, ChevronRight, Download, Clock } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 
 export default function Payments() {
   const location = useLocation();
@@ -11,7 +12,7 @@ export default function Payments() {
   const [activeTab, setActiveTab] = useState(checkoutAmount ? "checkout" : "history");
   const [paymentMethod, setPaymentMethod] = useState("upi");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [paidSuccess, setPaidSuccess] = useState(false);
 
   const mockTransactions = [
     { id: "TXN90812", date: "2023-10-24", amount: 1450, type: "Pharmacy Order", status: "Completed" },
@@ -23,7 +24,7 @@ export default function Payments() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      setIsSuccess(true);
+      setPaidSuccess(true);
       setTimeout(() => {
         go("/orders"); // Or anywhere else
       }, 2000);
@@ -33,15 +34,14 @@ export default function Payments() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Payments & Invoices</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px' }}>Payments & Invoices</h1>
-          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Secure checkout and transaction history.</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Payments & Invoices' }
+        ]}
+        title="Payments & Invoices"
+        subtitle="Secure checkout and transaction history."
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         

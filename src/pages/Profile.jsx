@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Edit2, Check, Shield, Camera, Plus, Trash2, ChevronRight, User, HeartPulse, FileText, Users, Loader2, X, Upload, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 import { getPatients, getFamilyDetails, upsertFamilyDetails, updateAppUser, getLocations } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
 
@@ -590,34 +591,31 @@ export default function Profile() {
     <main id="profile-page-main" className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Patient Profile</span>
-          </div>
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <div>
-              <h1 id="profile-heading" style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)' }}>Patient Profile</h1>
-              <p className="text-muted mt-1" style={{ fontSize: '14px' }}>Manage your personal, medical, and insurance records.</p>
-            </div>
-            <button 
-              id="profile-edit-btn"
-              className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'} hover-glow`}
-              onClick={isEditing ? handleSaveProfile : handleStartEdit}
-              disabled={savingProfile}
-              style={{ padding: '10px 20px', fontSize: '14px', borderRadius: 'var(--radius-full)' }}
-            >
-              {savingProfile ? (
-                <><Loader2 size={16} className="animate-spin" /> Saving...</>
-              ) : isEditing ? (
-                <><Check size={16} /> Save Changes</>
-              ) : (
-                <><Edit2 size={16} /> Edit Profile</>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Patient Profile' }
+        ]}
+        title="Patient Profile"
+        subtitle="Manage your personal, medical, and insurance records."
+        actions={
+          <button 
+            id="profile-edit-btn"
+            className={`btn ${isEditing ? 'btn-primary' : 'btn-secondary'} hover-glow`}
+            onClick={isEditing ? handleSaveProfile : handleStartEdit}
+            disabled={savingProfile}
+            style={{ padding: '10px 20px', fontSize: '14px', borderRadius: 'var(--radius-full)' }}
+          >
+            {savingProfile ? (
+              <><Loader2 size={16} className="animate-spin" /> Saving...</>
+            ) : isEditing ? (
+              <><Check size={16} /> Save Changes</>
+            ) : (
+              <><Edit2 size={16} /> Edit Profile</>
+            )}
+          </button>
+        }
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 320px) 1fr', gap: '32px', alignItems: 'start' }}>

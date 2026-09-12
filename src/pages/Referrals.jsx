@@ -1,5 +1,6 @@
 import { Gift, Copy, Share2, Users, Coins, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 
 export default function Referrals() {
   const referralCode = "ARV-99A82X";
@@ -18,15 +19,14 @@ export default function Referrals() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Refer & Earn</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px' }}>Refer & Earn</h1>
-          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Invite friends and earn rewards on their first booking.</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Refer & Earn' }
+        ]}
+        title="Refer & Earn"
+        subtitle="Invite friends and earn rewards on their first booking."
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         

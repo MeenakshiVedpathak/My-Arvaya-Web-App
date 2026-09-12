@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FileText, Download, Share2, Calendar, Pill, AlertCircle, Search, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 
 // Mock Data
 const mockPrescriptions = [
@@ -21,15 +22,14 @@ export default function Prescriptions() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>My Prescriptions</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px', color: 'var(--text-main)' }}>My Prescriptions</h1>
-          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>View, download, and manage your medical prescriptions.</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'My Prescriptions' }
+        ]}
+        title="My Prescriptions"
+        subtitle="View, download, and manage your medical prescriptions."
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
 

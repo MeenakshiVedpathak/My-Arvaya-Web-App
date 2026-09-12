@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Calendar as CalendarIcon, Clock, MapPin, Video, User, CheckCircle, XCircle, AlertCircle, ChevronRight, Sunrise, Sun, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/common/PageHeader";
 import { getAppointments, cancelAppointment, rescheduleAppointment, getStoredUserId, getDoctorSlots } from "../services/dataService";
 import Modal from "../components/common/Modal";
 import Toast from "../components/common/Toast";
@@ -224,15 +225,14 @@ export default function MyAppointments() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>My Appointments</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px', color: 'var(--text-main)' }}>My Appointments</h1>
-          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Manage your upcoming and past medical consultations.</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'My Appointments' }
+        ]}
+        title="My Appointments"
+        subtitle="Manage your upcoming and past medical consultations."
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
 

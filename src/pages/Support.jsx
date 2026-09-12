@@ -1,6 +1,7 @@
 import { MessageSquare, Phone, Mail, HelpCircle, FileText, ChevronRight, Send, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import PageHeader from "../components/common/PageHeader";
 
 export default function Support() {
   const [activeTab, setActiveTab] = useState('faq');
@@ -15,15 +16,15 @@ export default function Support() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Help & Support</span>
-          </div>
-          <h1 className="text-h2" style={{ fontSize: '24px' }}>Help & Support</h1>
-          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>We are here to help you 24/7 with any queries or issues.</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Help & Support' }
+        ]}
+        title="Help & Support Center"
+        subtitle="We are here to help you 24/7 with any queries, appointments, or medical support."
+        badge="24/7 Priority Assistance"
+      />
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         

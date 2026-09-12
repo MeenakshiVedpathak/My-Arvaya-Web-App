@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageHeader from "../components/common/PageHeader";
 import { 
   Gift, 
   Clock, 
@@ -458,19 +459,14 @@ export default function Wallet() {
       )}
 
       {/* Header Banner */}
-      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container">
-          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
-            <Link to="/" className="hover:text-primary">Home</Link> <ChevronRight size={12} /> <span>My Rewards</span>
-          </div>
-          <div>
-            <h1 className="text-h2" style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>My Rewards</h1>
-            <p className="text-muted mt-1" style={{ fontSize: '14px', margin: '4px 0 0 0' }}>
-              Earn reward points on bookings & redeem exclusive healthcare benefits.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Home', link: '/' },
+          { label: 'Arvaya Wallet' }
+        ]}
+        title="Arvaya Wallet & Rewards"
+        subtitle="Earn reward points on bookings & redeem exclusive healthcare benefits."
+      />
 
       <div className="container" style={{ paddingTop: '28px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px' }} className="wallet-layout">

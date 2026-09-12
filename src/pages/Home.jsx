@@ -1,7 +1,11 @@
-import { ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation, TestTube, Clock, Flame } from "lucide-react";
+import { 
+  ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, 
+  ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, 
+  Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation, 
+  TestTube, Clock, Flame, Check, ExternalLink, Download, Phone, MessageSquare
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { packages } from "../mocks/data";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 import { getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";
 import { getImageUrl } from "../services/uploadService";
@@ -11,21 +15,61 @@ export default function Home() {
   const go = useNavigate();
   const { user } = useAuth();
   const reviewsScrollRef = useRef(null);
-  
+
   const scrollReviews = (dir) => {
     if (reviewsScrollRef.current) {
       const scrollAmount = reviewsScrollRef.current.clientWidth / 2;
       reviewsScrollRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showAmbulanceModal, setShowAmbulanceModal] = useState(false);
-  const [apiPackages, setApiPackages] = useState(packages.slice(0, 4));
-  const [reviews, setReviews] = useState([
-    { name: "Ananya Reddy", role: "Bangalore", text: "Booking an appointment was incredibly seamless. The doctor was available the same day and the consultation was thorough. Arvaya has become my go-to healthcare platform.", rating: 5 },
-    { name: "Vikram Singh", role: "Mumbai", text: "The home sample collection for lab tests is a game-changer. The phlebotomist was on time, professional, and I got my reports within 24 hours. Highly recommended!", rating: 5 },
-    { name: "Priya Nair", role: "Delhi", text: "Managing my family's health records in one place is so convenient. The ABHA integration makes sharing records with new doctors effortless. Love this platform!", rating: 5 },
-  ]);
+
+  const defaultHomePackages = [
+    {
+      id: "ortho-robotics",
+      title: "Ortho Robotics Package",
+      tests: "97% Tests Included",
+      price: "₹197380",
+      img: "/checkup_fullbody.png",
+      trend: "Doctor Verified"
+    },
+    {
+      id: "paediatric-surgery",
+      title: "Paediatric Surgery - 3A,51&71A3",
+      tests: "91% Tests Included",
+      price: "₹40000",
+      img: "/checkup_heart.png",
+      trend: "Popular"
+    },
+    {
+      id: "orthopedics-29a",
+      title: "Orthopedics - 28.58.00029A",
+      tests: "91% Tests Included",
+      price: "₹40000",
+      img: "/checkup_fullbody.png",
+      trend: "Doctor Verified"
+    },
+    {
+      id: "orthopedics-90",
+      title: "Orthopedics - 28.55.00090",
+      tests: "85% Tests Included",
+      price: "₹50000",
+      img: "/checkup_heart.png",
+      trend: "Recommended for Women"
+    }
+  ];
+
+  const [apiPackages, setApiPackages] = useState(defaultHomePackages);
+
+  const defaultReviews = [
+    { name: "Mr. Rohit Ch", role: "Verified Patient", text: "Testing", rating: 5 },
+    { name: "Mrs. Geethanjali D", role: "Verified Patient", text: "Gnh", rating: 5 },
+    { name: "Mrs. Geethanjali D", role: "Verified Patient", text: "Gca1", rating: 5 },
+  ];
+
+  const [reviews, setReviews] = useState(defaultReviews);
 
   useEffect(() => {
     let isMounted = true;
@@ -34,67 +78,64 @@ export default function Home() {
         if (!isMounted) return;
         if (Array.isArray(apiReviews) && apiReviews.length > 0) {
           const normalized = apiReviews.map(r => ({
-            name: r.patient_name || "Patient",
-            role: "Verified Patient",
-            text: r.review || "",
-            rating: r.ratings || 5
+            name: r.patient_name || r.name || "Verified Patient",
+            role: r.city || r.location || "Verified Patient",
+            text: r.review || r.text || "",
+            rating: r.ratings || r.rating || 5
           }));
           setReviews(normalized);
         }
       })
       .catch((err) => {
-        console.error("Failed to fetch /api/patientReview/get for Home:", err);
+        console.error("Failed to fetch patient reviews:", err);
       });
 
-    getDiagnosticPackages({ pageSize: 10 })
+    getDiagnosticPackages({ pageSize: 4 })
       .then((apiPkgs) => {
         if (!isMounted) return;
         if (Array.isArray(apiPkgs) && apiPkgs.length > 0) {
-          const normalized = apiPkgs.map((p, idx) => {
+          const normalized = apiPkgs.slice(0, 4).map((p, idx) => {
             const rawTitle = p.package_name || p.name || p.title || `Health Package ${idx+1}`;
             const priceVal = parseFloat(p.package_price || p.price || p.cost || p.amount || 999);
-            const oldPriceVal = Math.round(priceVal * 1.25);
-            const itemCount = Array.isArray(p.subitems) && p.subitems.length > 0 
-              ? `${p.subitems.length}+ Tests Included` 
-              : "30+ Tests";
+
+            const defaultBadges = [
+              "Doctor Verified",
+              "Popular",
+              "Doctor Verified",
+              "Recommended for Women"
+            ];
 
             return {
               id: p.rateplan_package_id || p.id || p.package_key || `api-pkg-${idx}`,
               title: rawTitle,
-              tests: itemCount,
+              tests: p.subitems ? `${p.subitems.length}% Tests Included` : "91% Tests Included",
               price: `₹${priceVal}`,
-              oldPrice: `₹${oldPriceVal}`,
-              discount: `${Math.round(((oldPriceVal - priceVal) / oldPriceVal) * 100)}% OFF`,
               img: p.img || p.image || (idx % 2 === 0 ? "/checkup_fullbody.png" : "/checkup_heart.png"),
-              trend: p.badge || (idx === 0 ? "Most Booked" : idx === 1 ? "Popular" : "Doctor Verified")
+              trend: p.badge || defaultBadges[idx % defaultBadges.length]
             };
           });
           setApiPackages(normalized.slice(0, 4));
         }
       })
       .catch((err) => {
-        console.error("Failed to fetch /api/diagnostic/getPackages for Home:", err);
+        console.error("Failed to fetch packages:", err);
       });
       return () => { isMounted = false; };
   }, [user]);
 
   const heroSlides = [
     {
-      badge: "✨ 15 MIN EMERGENCY RESPONSE",
-      badgeColor: "#2dd4bf",
-      badgeBorder: "rgba(45, 212, 191, 0.4)",
-      badgeBg: "rgba(18, 51, 58, 0.7)",
-      title: <>24/7 Smart ICU Emergency &<br/>Mobile Dispatch</>,
+      badge: "⚡ 5 MIN EMERGENCY RESPONSE",
+      title: <>24/7 Smart ICU Emergency &<br/><span style={{ color: '#00A896' }}>Mobile Dispatch</span></>,
       subtitle: "Rapid emergency ambulance dispatch equipped with mobile life support and live tracking.",
       primaryBtn: "Request Ambulance",
       primaryAction: () => go('/ambulance'),
+      secondaryBtn: "Book Consultation",
+      secondaryAction: () => go('/doctors'),
       bg: "/banner_healthcare_1.png"
     },
     {
       badge: "⭐ INDIA'S #1 HEALTHCARE PLATFORM",
-      badgeColor: "#FDBF8B",
-      badgeBorder: "rgba(253, 191, 139, 0.4)",
-      badgeBg: "rgba(255, 255, 255, 0.1)",
       title: <>Consult Top Doctors &<br/><span style={{ color: '#FDBF8B' }}>Specialists Online</span></>,
       subtitle: "Instant video consultations with verified top doctors across 35+ medical specialties.",
       primaryBtn: "Find a Doctor",
@@ -105,14 +146,11 @@ export default function Home() {
     },
     {
       badge: "🔬 100% NABL ACCREDITED LABS",
-      badgeColor: "#38bdf8",
-      badgeBorder: "rgba(56, 189, 248, 0.4)",
-      badgeBg: "rgba(15, 23, 42, 0.6)",
       title: <>Accurate Diagnostic Tests &<br/><span style={{ color: '#38bdf8' }}>Home Sample Collection</span></>,
       subtitle: "Sample collection at your doorstep with guaranteed digital reports within 24 hours.",
       primaryBtn: "Book Lab Package",
       primaryAction: () => go('/labs'),
-      secondaryBtn: "View Health Vault",
+      secondaryBtn: "View Health Records",
       secondaryAction: () => go('/records'),
       bg: "/banner_healthcare_3.png"
     }
@@ -150,7 +188,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [dynamicSlides.length]);
 
-  // Auto-scroll testimonials
   useEffect(() => {
     if (!reviews || reviews.length === 0) return;
     
@@ -166,129 +203,149 @@ export default function Home() {
           reviewsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
       }
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [reviews]);
 
-  const tickerText = "🎉 Avail flat 20% off on all Full Body Checkups this week!  •  🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi  •  ⭐ Free consultation with our top specialists for ABHA card holders  •  ";
+  const tickerText = "24/7 Full Body Checkup this week!  •  Emergency Services now active in Bangalore, Mumbai, and Delhi...  •  Free consultation on  •  ";
 
   return (
-    <main className="page page-enter" style={{ padding: 0 }}>
-      {/* ── Emergency & Ticker ── */}
-      <div style={{ background: 'linear-gradient(90deg, #0d5c63, #2E666E)', color: 'white' }}>
-        <div className="container" style={{ display: 'flex', flexDirection: 'column' }}>
-          {/* Emergency Call Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px' }}>
-              🚨 Medical Emergency?
-            </div>
-            <button onClick={() => setShowAmbulanceModal(true)} className="btn" style={{ background: 'white', color: '#2E666E', padding: '6px 16px', fontSize: '13px', fontWeight: 'bold', borderRadius: 'var(--radius-full)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              🚑 Call Ambulance
-            </button>
-            </div>
+    <main className="page page-enter" style={{ padding: 0, background: '#FAFAFB', fontFamily: "Inter, system-ui, sans-serif", color: '#1e293b' }}>
+      
+      {/* ── Top Emergency & Ticker Bar ── */}
+      <div style={{ background: '#0D383F', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'nowrap' }}>
+          
+          {/* Emergency Call Pill */}
+          <button 
+            onClick={() => setShowAmbulanceModal(true)} 
+            style={{ 
+              background: '#EF4444', color: 'white', padding: '6px 14px', fontSize: '12px', 
+              fontWeight: '700', borderRadius: '99px', border: 'none', cursor: 'pointer', 
+              display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)', transition: 'transform 0.2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <span style={{ fontSize: '13px' }}>🚨</span> Medical Emergency? Call Ambulance
+          </button>
+
           {/* Ticker Row */}
-          <div style={{ padding: '6px 0', fontSize: '13px', display: 'flex', alignItems: 'center' }}>
-            <span style={{ fontWeight: 'bold', paddingRight: '12px', borderRight: '1px solid rgba(255,255,255,0.3)', marginRight: '12px', whiteSpace: 'nowrap', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Updates</span>
-            <div className="ticker-wrap">
-              <span className="ticker-content">
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1, overflow: 'hidden', fontSize: '12.5px' }}>
+            <span style={{ 
+              fontWeight: '800', background: '#134E58', color: '#6EE7B7', padding: '3px 9px', 
+              borderRadius: '4px', marginRight: '12px', fontSize: '10.5px', textTransform: 'uppercase', 
+              letterSpacing: '0.05em', whiteSpace: 'nowrap' 
+            }}>
+              UPDATES
+            </span>
+            <div className="ticker-wrap" style={{ overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' }}>
+              <span className="ticker-content" style={{ display: 'inline-block', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>
                 {tickerText}{tickerText}
               </span>
             </div>
           </div>
+
+          {/* Phone Number */}
+          <a href="tel:18001234567" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', textDecoration: 'none', fontSize: '12.5px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+            <Phone size={14} style={{ color: '#34D399' }} /> 1800 123 4567
+          </a>
         </div>
       </div>
 
-      {/* ── Carousel Banner ── */}
-      <section className="home-hero-section" style={{ position: 'relative', width: '100%', minHeight: '480px', overflow: 'hidden' }}>
-        {dynamicSlides.map((slide, idx) => (
-          <div key={`${slide.bg}-${idx}`} style={{
-              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-              opacity: idx === currentSlide ? 1 : 0, 
-              transition: 'opacity 1.2s ease-in-out',
-              zIndex: idx === currentSlide ? 1 : 0
-          }}>
-            <img 
-              src={slide.bg} 
-              alt={`Banner ${idx + 1}`} 
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'fill', display: 'block' }} 
-            />
-            {slide.title && <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)' }}></div>}
-          </div>
-        ))}
+      {/* ── Main Container Outer Wrapper ── */}
+      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '20px 16px 40px 16px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+        
+        {/* ── Hero Carousel Banner Card ── */}
+        <section style={{ position: 'relative', width: '100%', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 12px 32px rgba(13, 56, 63, 0.08)', minHeight: '440px', background: '#0F172A' }}>
+          
+          {dynamicSlides.map((slide, idx) => (
+            <div key={`${slide.bg}-${idx}`} style={{
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                opacity: idx === currentSlide ? 1 : 0, 
+                transition: 'opacity 1s ease-in-out',
+                zIndex: idx === currentSlide ? 1 : 0
+            }}>
+              <img 
+                src={slide.bg} 
+                alt={`Banner ${idx + 1}`} 
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }} 
+              />
+              <div style={{ 
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+                background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 45%, rgba(15, 23, 42, 0.15) 100%)' 
+              }}></div>
+            </div>
+          ))}
 
-        {/* Carousel Navigation Arrows */}
-        <button 
-          onClick={() => setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1))}
-          style={{
-            position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
-            width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
-            color: '#1e293b', border: '1px solid var(--border)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.2)', transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
-          aria-label="Previous Slide"
-        >
-          <ChevronLeft size={20} />
-        </button>
+          {/* Nav Arrows */}
+          <button 
+            onClick={() => setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1))}
+            style={{
+              position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+              width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
+              color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+              backdropFilter: 'blur(8px)', transition: 'all 0.2s'
+            }}
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft size={20} />
+          </button>
 
-        <button 
-          onClick={() => setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)}
-          style={{
-            position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
-            width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
-            color: '#1e293b', border: '1px solid var(--border)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.2)', transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
-          aria-label="Next Slide"
-        >
-          <ChevronRight size={20} />
-        </button>
+          <button 
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)}
+            style={{
+              position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+              width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
+              color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+              backdropFilter: 'blur(8px)', transition: 'all 0.2s'
+            }}
+            aria-label="Next Slide"
+          >
+            <ChevronRight size={20} />
+          </button>
 
-        {/* Overlay Content */}
-        <div className="container" style={{ position: 'relative', height: '100%', minHeight: '480px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px', pointerEvents: 'none' }}>
-          {dynamicSlides.map((slide, idx) => idx === currentSlide && (
-            <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '640px', pointerEvents: 'auto' }}>
-              {slide.badge && (
-                <span style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '8px', 
-                  background: slide.badgeBg, backdropFilter: 'blur(10px)', 
-                  color: slide.badgeColor, padding: '8px 18px', borderRadius: '99px', 
-                  fontSize: '12px', fontWeight: '700', marginBottom: '20px', 
-                  border: `1px solid ${slide.badgeBorder}`, textTransform: 'uppercase', 
-                  letterSpacing: '0.06em' 
-                }}>
-                  {slide.badge}
-                </span>
-              )}
-              {slide.title && (
-                <h1 className="hero-title" style={{ fontSize: '42px', fontWeight: '800', color: 'white', lineHeight: 1.15, marginBottom: '20px', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
-                  {slide.title}
-                </h1>
-              )}
-              {slide.subtitle && (
-                <p className="hero-subtext" style={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', marginBottom: '32px', lineHeight: 1.6 }}>
-                  {slide.subtitle}
-                </p>
-              )}
-              
-              {(slide.primaryBtn || slide.secondaryBtn) && (
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {/* Primary Orange CTA Button */}
+          {/* Hero Slide Overlay Content */}
+          <div style={{ position: 'relative', height: '100%', minHeight: '440px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 56px' }}>
+            {dynamicSlides.map((slide, idx) => idx === currentSlide && (
+              <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '560px' }}>
+                {slide.badge && (
+                  <span style={{ 
+                    display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                    background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(10px)', 
+                    color: '#FDBF8B', padding: '6px 14px', borderRadius: '99px', 
+                    fontSize: '11px', fontWeight: '700', marginBottom: '20px', 
+                    border: '1px solid rgba(253, 191, 139, 0.3)', textTransform: 'uppercase', 
+                    letterSpacing: '0.06em' 
+                  }}>
+                    {slide.badge}
+                  </span>
+                )}
+                {slide.title && (
+                  <h1 style={{ fontSize: '38px', fontWeight: '800', color: '#ffffff', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.02em' }}>
+                    {slide.title}
+                  </h1>
+                )}
+                {slide.subtitle && (
+                  <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginBottom: '28px', lineHeight: 1.6 }}>
+                    {slide.subtitle}
+                  </p>
+                )}
+                
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {slide.primaryBtn && (
                     <button 
                       onClick={slide.primaryAction} 
                       style={{ 
-                        padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
+                        padding: '12px 26px', fontSize: '14px', fontWeight: '700', 
                         color: '#ffffff', background: 'linear-gradient(135deg, #FF6B00 0%, #F97316 100%)', 
-                        border: 'none', borderRadius: '14px', cursor: 'pointer', 
+                        border: 'none', borderRadius: '12px', cursor: 'pointer', 
                         display: 'flex', alignItems: 'center', gap: '8px', 
-                        boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)', transition: 'all 0.3s' 
+                        boxShadow: '0 4px 16px rgba(249, 115, 22, 0.4)', transition: 'transform 0.2s' 
                       }}
                       onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                       onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -297,486 +354,940 @@ export default function Home() {
                     </button>
                   )}
 
-                {/* Secondary Outlined CTA Button */}
-                {slide.secondaryBtn && (
-                  <button 
-                    onClick={slide.secondaryAction} 
-                    style={{ 
-                      padding: '14px 28px', fontSize: '15px', fontWeight: '700', 
-                      color: '#ffffff', background: 'rgba(255, 255, 255, 0.08)', 
-                      border: '1.5px solid rgba(255, 255, 255, 0.5)', borderRadius: '14px', 
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
-                      backdropFilter: 'blur(8px)', transition: 'all 0.3s' 
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'; e.currentTarget.style.borderColor = '#ffffff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)'; }}
-                  >
-                    {slide.secondaryBtn}
-                  </button>
-                )}
+                  {slide.secondaryBtn && (
+                    <button 
+                      onClick={slide.secondaryAction} 
+                      style={{ 
+                        padding: '12px 24px', fontSize: '14px', fontWeight: '700', 
+                        color: '#ffffff', background: 'rgba(255, 255, 255, 0.12)', 
+                        border: '1.5px solid rgba(255, 255, 255, 0.35)', borderRadius: '12px', 
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
+                        backdropFilter: 'blur(8px)', transition: 'all 0.2s' 
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.22)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'; }}
+                    >
+                      {slide.secondaryBtn}
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
-            </div>
-          ))}
-        </div>
-
-        {/* Navigation Dots */}
-        <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
-          {dynamicSlides.map((_, idx) => (
-            <button 
-              key={idx}
-              onClick={() => setCurrentSlide(idx)}
-              style={{
-                width: idx === currentSlide ? '28px' : '10px',
-                height: '10px',
-                borderRadius: '5px',
-                background: idx === currentSlide ? 'white' : 'rgba(255, 255, 255, 0.4)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* ── Value Props ── */}
-      <section style={{ background: 'var(--bg-surface)', padding: '20px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container value-props-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-          {[
-            { icon: <Star size={22} />, title: "4.9/5 Rating", sub: "From 1M+ Users", color: "var(--accent)" },
-            { icon: <ShieldCheck size={22} />, title: "NABH Accredited", sub: "Quality Assured", color: "var(--success)" },
-            { icon: <PhoneCall size={22} />, title: "24/7 Support", sub: "Always here for you", color: "var(--primary)" },
-            { icon: <Pill size={22} />, title: "100% Genuine", sub: "Medicines & Tests", color: "var(--accent)" }
-          ].map((v, i) => (
-            <div key={i} className="flex items-center gap-3" style={{ padding: '8px 0' }}>
-              <div style={{ color: v.color }}>{v.icon}</div>
-              <div className="flex flex-col">
-                <b style={{ fontSize: '14px', color: 'var(--text-main)' }}>{v.title}</b>
-                <span className="text-muted" style={{ fontSize: '12px' }}>{v.sub}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Arvaya Ecosystem ── */}
-      <div className="bg-mesh-primary" style={{ padding: '56px 0', borderBottom: '1px solid var(--border)' }}>
-        <section className="container" style={{ padding: '0 24px' }}>
-        <style>{`
-          .ecosystem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-          @media (max-width: 900px) { .ecosystem-grid { grid-template-columns: repeat(2, 1fr); } }
-          @media (max-width: 600px) { .ecosystem-grid { grid-template-columns: 1fr; } }
-        `}</style>
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-h2">Your Health Ecosystem</h2>
-            <p className="text-muted mt-2">Manage everything from one place</p>
+            ))}
           </div>
-        </div>
-        
-        <div className="ecosystem-grid">
-          {[
-            { title: "ABHA Hub", sub: "Create & link your ABHA ID for seamless health data access", icon: <CreditCard size={28} strokeWidth={1.5} />, link: "/abha", color: "#2E666E", bg: "#E4EEEF" },
-            { title: "Arvaya Rewards", sub: "Earn points on every booking and redeem exclusive offers", icon: <Gift size={28} strokeWidth={1.5} />, link: "/rewards", color: "#FB913F", bg: "#FEF0E2" },
-            { title: "Digital Wallet", sub: "Fast, secure payments with instant refunds guaranteed", icon: <Wallet size={28} strokeWidth={1.5} />, link: "/wallet", color: "#3D7A83", bg: "#E4EEEF" },
-            { title: "Health Records", sub: "Your complete medical history, encrypted and always accessible", icon: <FileText size={28} strokeWidth={1.5} />, link: "/records", color: "#1F4F57", bg: "#DCE9EB" },
-          ].map((item, idx) => (
-             <div key={item.title} className={`card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up`} style={{ padding: '28px', borderTop: `4px solid ${item.color}`, animationDelay: `${idx * 80}ms` }} onClick={() => go(item.link)}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {item.icon}
+
+          {/* Centered Dots Indicator */}
+          <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
+            {dynamicSlides.map((_, idx) => (
+              <button 
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                style={{
+                  width: idx === currentSlide ? '24px' : '8px',
+                  height: '8px',
+                  borderRadius: '4px',
+                  background: idx === currentSlide ? '#FF6B00' : 'rgba(255, 255, 255, 0.4)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s'
+                }}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Value Props Row ── */}
+        <section style={{ 
+          background: '#ffffff', padding: '16px 28px', borderRadius: '18px', 
+          border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' 
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'center' }}>
+            {[
+              { icon: <Star size={20} style={{ color: '#F59E0B' }} />, title: "4.9/5 Rating", sub: "From 1M+ Users", bg: "#FEF3C7" },
+              { icon: <ShieldCheck size={20} style={{ color: '#10B981' }} />, title: "NABH Accredited", sub: "Quality Assured", bg: "#D1FAE5" },
+              { icon: <PhoneCall size={20} style={{ color: '#6366F1' }} />, title: "24/7 Support", sub: "Always here for you", bg: "#E0E7FF" },
+              { icon: <Pill size={20} style={{ color: '#0D9488' }} />, title: "100% Genuine", sub: "Medicines & Tests", bg: "#CCFBF1" }
+            ].map((v, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ 
+                  width: '42px', height: '42px', borderRadius: '50%', background: v.bg, 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
+                }}>
+                  {v.icon}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <b style={{ fontSize: '13.5px', color: '#0F172A', fontWeight: '700' }}>{v.title}</b>
+                  <span style={{ fontSize: '11.5px', color: '#64748B' }}>{v.sub}</span>
+                </div>
               </div>
+            ))}
+          </div>
+        </section>
+
+      </div>
+
+      {/* ── Your Health Ecosystem ── */}
+      <div style={{ 
+        width: '100%', 
+        background: 'linear-gradient(135deg, #CFE8E3 0%, #BFE0D9 50%, #B2D8D0 100%)', 
+        padding: '64px 0', 
+        borderTop: '1px solid rgba(13, 92, 99, 0.1)', 
+        borderBottom: '1px solid rgba(13, 92, 99, 0.1)',
+        margin: '16px 0',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Background Decorative Ambient Elements */}
+        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(45,212,191,0.25) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+        <section style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 2 }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 40px' }}>
+            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#0F2930', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+              Your Health Ecosystem
+            </h2>
+            <p style={{ fontSize: '15px', color: '#2E555C', lineHeight: 1.6 }}>
+              Everything you need to manage your health, payments, and rewards—all in one place.
+            </p>
+          </div>
+
+          {/* Grid Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+            
+            {/* Card 1: ABHA Hub */}
+            <div 
+              onClick={() => go("/abha")}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.75)', 
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: '24px', 
+                padding: '28px', 
+                border: '1.5px solid rgba(255, 255, 255, 0.9)', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'space-between',
+                gap: '20px', 
+                boxShadow: '0 10px 30px rgba(13, 92, 99, 0.08)', 
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 18px 36px rgba(13, 92, 99, 0.16)';
+                e.currentTarget.style.borderColor = '#0D9488';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(13, 92, 99, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)';
+              }}
+            >
               <div>
-                <b style={{ fontSize: '17px', display: 'block', marginBottom: '6px', color: 'var(--text-main)' }}>{item.title}</b>
-                <span className="text-muted" style={{ fontSize: '13px', lineHeight: 1.5, display: 'block' }}>{item.sub}</span>
+                <div style={{ 
+                  width: '52px', height: '52px', borderRadius: '16px', 
+                  background: 'rgba(13, 148, 136, 0.14)', color: '#0D9488', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' 
+                }}>
+                  <CreditCard size={26} strokeWidth={1.8} />
+                </div>
+                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
+                  ABHA Hub
+                </h3>
+                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                  Create & link your ABHA ID for seamless, instant health data access across providers.
+                </p>
               </div>
-              <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '4px', color: item.color, fontSize: '14px', fontWeight: '700' }}>
-                Explore <ArrowRight size={16} />
+              <div style={{ marginTop: '16px' }}>
+                <span style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                  background: 'rgba(13, 148, 136, 0.15)', color: '#0F766E', 
+                  padding: '8px 18px', borderRadius: '99px', fontSize: '13px', fontWeight: '700' 
+                }}>
+                  Explore <ArrowRight size={14} />
+                </span>
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Card 2: Arvaya Rewards (FEATURED CARD) */}
+            <div 
+              onClick={() => go("/rewards")}
+              style={{ 
+                background: 'linear-gradient(145deg, rgba(255, 253, 245, 0.95) 0%, rgba(254, 243, 199, 0.9) 100%)', 
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: '24px', 
+                padding: '28px', 
+                border: '2px solid #FBBF24', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'space-between',
+                gap: '20px', 
+                boxShadow: '0 12px 32px rgba(245, 158, 11, 0.22)', 
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 20px 40px rgba(245, 158, 11, 0.32)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(245, 158, 11, 0.22)';
+              }}
+            >
+              {/* Featured Badge */}
+              <span style={{ 
+                position: 'absolute', top: 0, right: 0, 
+                background: 'linear-gradient(135deg, #D97706, #B45309)', 
+                color: '#ffffff', fontSize: '10px', fontWeight: '800', 
+                letterSpacing: '0.08em', padding: '5px 14px', 
+                borderRadius: '0 22px 0 12px', textTransform: 'uppercase',
+                boxShadow: '0 2px 8px rgba(180, 83, 9, 0.3)' 
+              }}>
+                FEATURED
+              </span>
+
+              <div>
+                <div style={{ 
+                  width: '52px', height: '52px', borderRadius: '16px', 
+                  background: 'linear-gradient(135deg, #FBBF24, #F59E0B)', color: '#ffffff', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px',
+                  boxShadow: '0 6px 16px rgba(245, 158, 11, 0.35)' 
+                }}>
+                  <Gift size={26} strokeWidth={1.8} />
+                </div>
+                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#78350F', marginBottom: '8px' }}>
+                  Arvaya Rewards
+                </h3>
+                <p style={{ fontSize: '13.5px', color: '#92400E', lineHeight: 1.6 }}>
+                  Earn points on every booking and redeem exclusive health & wellness offers.
+                </p>
+              </div>
+              <div style={{ marginTop: '16px' }}>
+                <span style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                  background: 'linear-gradient(135deg, #FF6B00, #F97316)', color: '#ffffff', 
+                  padding: '8px 20px', borderRadius: '99px', fontSize: '13px', fontWeight: '800',
+                  boxShadow: '0 4px 12px rgba(249, 115, 22, 0.35)' 
+                }}>
+                  Explore <ArrowRight size={14} />
+                </span>
+              </div>
+            </div>
+
+            {/* Card 3: Digital Wallet */}
+            <div 
+              onClick={() => go("/wallet")}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.75)', 
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: '24px', 
+                padding: '28px', 
+                border: '1.5px solid rgba(255, 255, 255, 0.9)', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'space-between',
+                gap: '20px', 
+                boxShadow: '0 10px 30px rgba(13, 92, 99, 0.08)', 
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 18px 36px rgba(13, 92, 99, 0.16)';
+                e.currentTarget.style.borderColor = '#0D9488';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(13, 92, 99, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)';
+              }}
+            >
+              <div>
+                <div style={{ 
+                  width: '52px', height: '52px', borderRadius: '16px', 
+                  background: 'rgba(13, 148, 136, 0.14)', color: '#0D9488', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' 
+                }}>
+                  <Wallet size={26} strokeWidth={1.8} />
+                </div>
+                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
+                  Digital Wallet
+                </h3>
+                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                  Fast, secure payments with instant refunds guaranteed on cancellations.
+                </p>
+              </div>
+              <div style={{ marginTop: '16px' }}>
+                <span style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                  background: 'rgba(13, 148, 136, 0.15)', color: '#0F766E', 
+                  padding: '8px 18px', borderRadius: '99px', fontSize: '13px', fontWeight: '700' 
+                }}>
+                  Explore <ArrowRight size={14} />
+                </span>
+              </div>
+            </div>
+
+            {/* Card 4: Health Records */}
+            <div 
+              onClick={() => go("/records")}
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.75)', 
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                borderRadius: '24px', 
+                padding: '28px', 
+                border: '1.5px solid rgba(255, 255, 255, 0.9)', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'space-between',
+                gap: '20px', 
+                boxShadow: '0 10px 30px rgba(13, 92, 99, 0.08)', 
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 18px 36px rgba(13, 92, 99, 0.16)';
+                e.currentTarget.style.borderColor = '#0D9488';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(13, 92, 99, 0.08)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)';
+              }}
+            >
+              {/* Encrypted Top Right Badge */}
+              <span style={{ 
+                position: 'absolute', top: 0, right: 0, 
+                background: 'linear-gradient(135deg, #10B981, #059669)', 
+                color: '#ffffff', fontSize: '10px', fontWeight: '800', 
+                letterSpacing: '0.08em', padding: '5px 14px', 
+                borderRadius: '0 22px 0 12px', textTransform: 'uppercase',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)' 
+              }}>
+                ENCRYPTED
+              </span>
+
+              <div>
+                <div style={{ 
+                  width: '52px', height: '52px', borderRadius: '16px', 
+                  background: 'rgba(13, 148, 136, 0.14)', color: '#0D9488', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' 
+                }}>
+                  <FileText size={26} strokeWidth={1.8} />
+                </div>
+                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
+                  Health Records
+                </h3>
+                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                  Your complete medical history, fully encrypted and accessible anytime.
+                </p>
+              </div>
+              <div style={{ marginTop: '16px' }}>
+                <span style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                  background: 'rgba(13, 148, 136, 0.15)', color: '#0F766E', 
+                  padding: '8px 18px', borderRadius: '99px', fontSize: '13px', fontWeight: '700' 
+                }}>
+                  Explore <ArrowRight size={14} />
+                </span>
+              </div>
+            </div>
+
+          </div>
         </section>
       </div>
 
-      {/* ── How It Works ── */}
-      <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
-        <div className="container" style={{ textAlign: 'center' }}>
-          <h2 className="text-h2" style={{ marginBottom: '8px' }}>How It Works</h2>
-          <p className="text-muted mb-8" style={{ fontSize: '15px' }}>Book a doctor appointment in 3 simple steps</p>
-          
-          <div className="how-it-works-grid" style={{ position: 'relative' }}>
-            {/* Connecting line */}
-            <div className="how-it-works-line" style={{ position: 'absolute', top: '40px', left: '20%', right: '20%', height: '2px', background: 'var(--border)', zIndex: 0 }} />
-            
-            {[
-              { step: "1", icon: <Search size={28} />, title: "Search", desc: "Find specialists by name, specialty, or location" },
-              { step: "2", icon: <CalendarCheck size={28} />, title: "Book", desc: "Pick a convenient slot and confirm instantly" },
-              { step: "3", icon: <Stethoscope size={28} />, title: "Consult", desc: "Visit the clinic or join a video consultation" },
-            ].map((s, i) => (
-              <div key={s.step} className="animate-fade-in-up" style={{ position: 'relative', zIndex: 1, animationDelay: `${i * 150}ms` }}>
-                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(46, 102, 110, 0.3)', border: '4px solid var(--bg-surface)' }}>
-                  {s.icon}
+      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '20px 16px 40px 16px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+
+        {/* ── How It Works Section (Exact White Card UI with Bottom Corner Mint Wave Overlays as Provided Image) ── */}
+        <section style={{ 
+          position: 'relative',
+          width: '100%',
+          borderRadius: '24px',
+          background: '#ffffff',
+          border: '1px solid #E2E8F0',
+          padding: '44px 32px',
+          textAlign: 'center',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+          overflow: 'hidden'
+        }}>
+          {/* Bottom-Left Soft Mint/Cyan Wave Overlay */}
+          <svg 
+            style={{ position: 'absolute', left: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
+            viewBox="0 0 220 180" 
+            fill="none"
+          >
+            <path d="M0,180 L0,70 Q60,60 120,120 Q160,160 220,180 Z" fill="rgba(207, 240, 233, 0.6)" />
+            <path d="M0,180 L0,100 Q80,100 140,155 Q170,170 220,180 Z" fill="rgba(167, 243, 208, 0.45)" />
+            <path d="M0,180 L0,130 Q70,130 130,170 Q160,175 220,180 Z" fill="rgba(45, 212, 191, 0.3)" />
+          </svg>
+
+          {/* Bottom-Right Soft Mint/Cyan Wave Overlay */}
+          <svg 
+            style={{ position: 'absolute', right: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
+            viewBox="0 0 220 180" 
+            fill="none"
+          >
+            <path d="M220,180 L220,70 Q160,60 100,120 Q60,160 0,180 Z" fill="rgba(207, 240, 233, 0.6)" />
+            <path d="M220,180 L220,100 Q140,100 80,155 Q50,170 0,180 Z" fill="rgba(167, 243, 208, 0.45)" />
+            <path d="M220,180 L220,130 Q150,130 90,170 Q60,175 0,180 Z" fill="rgba(45, 212, 191, 0.3)" />
+          </svg>
+
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0F2930', marginBottom: '6px', letterSpacing: '-0.01em' }}>
+              How It Works
+            </h2>
+            <p style={{ fontSize: '14.5px', color: '#64748B', marginBottom: '44px' }}>
+              Book a doctor appointment in 3 simple steps.
+            </p>
+
+            <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', maxWidth: '860px', margin: '0 auto' }}>
+              
+              {/* Connecting Arrow Line 1 (between step 1 and step 2) */}
+              <div style={{ 
+                position: 'absolute', top: '36px', left: '25%', width: '18%', height: '1px', 
+                background: '#CBD5E1', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' 
+              }}>
+                <span style={{ color: '#38BDF8', fontSize: '10px', transform: 'translateX(3px)' }}>➤</span>
+              </div>
+
+              {/* Connecting Arrow Line 2 (between step 2 and step 3) */}
+              <div style={{ 
+                position: 'absolute', top: '36px', left: '58%', width: '18%', height: '1px', 
+                background: '#CBD5E1', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' 
+              }}>
+                <span style={{ color: '#38BDF8', fontSize: '10px', transform: 'translateX(3px)' }}>➤</span>
+              </div>
+              
+              {[
+                { icon: <Search size={26} />, title: "Search", desc: "Find specialists by name, specialty, or location", bg: "linear-gradient(135deg, #00A896 0%, #0F766E 100%)" },
+                { icon: <CalendarCheck size={26} />, title: "Book", desc: "Pick a convenient slot and confirm instantly", bg: "linear-gradient(135deg, #0D5C63 0%, #064E54 100%)" },
+                { icon: <Stethoscope size={26} />, title: "Consult", desc: "Visit the clinic or join a video consultation", bg: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)" },
+              ].map((s) => (
+                <div key={s.title} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ 
+                    width: '72px', height: '72px', borderRadius: '50%', background: s.bg, 
+                    color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    marginBottom: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '4px solid #ffffff' 
+                  }}>
+                    {s.icon}
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>{s.title}</h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, maxWidth: '220px' }}>{s.desc}</p>
                 </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '8px' }}>{s.title}</h3>
-                <p className="text-muted" style={{ fontSize: '14px', lineHeight: 1.5, maxWidth: '220px', margin: '0 auto' }}>{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Consult Top Specialties ── */}
-      <section className="container" style={{ padding: '56px 24px' }}>
-        <style>{`
-          .specialties-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
-          @media (max-width: 900px) { .specialties-grid { grid-template-columns: repeat(3, 1fr); } }
-          @media (max-width: 600px) { .specialties-grid { grid-template-columns: repeat(2, 1fr); } }
-        `}</style>
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-h2">Consult Top Specialties</h2>
-            <p className="text-muted mt-2">Consult with India's best specialists</p>
-          </div>
-          <button className="btn btn-secondary flex items-center gap-2" onClick={() => go("/doctors")}>View All <ArrowRight size={16} /></button>
-        </div>
-        
-        <div className="specialties-grid">
-          {[
-            { name: "Cardiology", icon: <Heart size={28} strokeWidth={1.5} />, consults: "2.5k+" },
-            { name: "Neurology", icon: <Brain size={28} strokeWidth={1.5} />, consults: "1.8k+" },
-            { name: "Pediatrics", icon: <Baby size={28} strokeWidth={1.5} />, consults: "3.2k+" },
-            { name: "Orthopedics", icon: <Bone size={28} strokeWidth={1.5} />, consults: "1.4k+" },
-            { name: "General Medicine", icon: <Activity size={28} strokeWidth={1.5} />, consults: "5.1k+" },
-            { name: "Dermatology", icon: <Eye size={28} strokeWidth={1.5} />, consults: "2.1k+" },
-          ].map((spec, i) => (
-            <div key={spec.name} className="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style={{ padding: '24px 16px', textAlign: 'center', animationDelay: `${i * 60}ms` }} onClick={() => go("/doctors")}>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}>
-                {spec.icon}
-              </div>
-              <b style={{ fontSize: '14px', color: 'var(--text-main)' }}>{spec.name}</b>
-              <span className="text-muted" style={{ fontSize: '12px' }}>{spec.consults} Consults</span>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* ── Featured Lab Packages ── */}
-      <section style={{ padding: '0 0 56px 0' }}>
-        <div className="container">
-          <style>{`
-            .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-            @media (max-width: 1024px) { .packages-grid { grid-template-columns: repeat(2, 1fr); } }
-            @media (max-width: 600px) { .packages-grid { grid-template-columns: 1fr; } }
-            
-            .pkg-card {
-              width: 100%;
-              background: #ffffff;
-              border-radius: 18px;
-              border: 1px solid var(--border);
-              overflow: hidden;
-              display: flex;
-              flex-direction: column;
-              transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-              box-shadow: 0 2px 8px rgba(18, 51, 58, 0.04);
-              position: relative;
-            }
-            .pkg-card:hover {
-              transform: translateY(-4px);
-              box-shadow: 0 12px 28px rgba(18, 51, 58, 0.1);
-              border-color: var(--primary-soft);
-            }
-            .pkg-card-img-container {
-              height: 135px;
-              width: 100%;
-              background: #f0f7f7;
-              overflow: hidden;
-              position: relative;
-            }
-            .pkg-card-badge {
-              position: absolute;
-              top: 10px;
-              left: 10px;
-              background: var(--primary);
-              color: #ffffff;
-              font-size: 10px;
-              font-weight: 700;
-              padding: 4px 10px;
-              border-radius: 12px;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            }
-            .pkg-card-body {
-              padding: 16px;
-              display: flex;
-              flex-direction: column;
-              flex: 1;
-            }
-            .pkg-card-title {
-              font-weight: 800;
-              font-size: 15px;
-              line-height: 1.3;
-              color: var(--text-main);
-              margin-bottom: 6px;
-              display: -webkit-box;
-              -webkit-line-clamp: 2;
-              -webkit-box-orient: vertical;
-              overflow: hidden;
-              min-height: 40px;
-            }
-            .pkg-card-tests-badge {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-              font-size: 11px;
-              font-weight: 600;
-              color: #16a34a;
-              background: #dcfce7;
-              padding: 3px 8px;
-              border-radius: 6px;
-              width: fit-content;
-              margin-bottom: 12px;
-            }
-            .pkg-card-btn {
-              width: 100%;
-              background: #1b4d54;
-              color: #ffffff;
-              border: none;
-              padding: 10px 14px;
-              border-radius: 20px;
-              font-size: 12.5px;
-              font-weight: 700;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 6px;
-              cursor: pointer;
-              transition: background 0.2s, transform 0.15s;
-            }
-            .pkg-card-btn:hover {
-              background: var(--primary);
-            }
-            .lab-card-price-row {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-top: auto;
-              padding-top: 12px;
-              border-top: 1px dashed var(--border);
-              gap: 6px;
-              margin-bottom: 16px;
-            }
-            .lab-card-price {
-              font-weight: 800;
-              font-size: 18px;
-              color: #12333A;
-              line-height: 1.1;
-            }
-            .lab-card-img {
-              width: 100%;
-              height: 100%;
-              object-fit: cover;
-              transition: transform 0.3s;
-            }
-            .pkg-card:hover .lab-card-img {
-              transform: scale(1.05);
-            }
-          `}</style>
-          <div className="flex justify-between items-center mb-8">
+        {/* ── Consult Top Specialties ── */}
+        <section>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
             <div>
-              <h2 className="text-h2">Featured Health Packages</h2>
-              <p className="text-muted mt-2">Comprehensive checkups with home sample collection</p>
+              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginBottom: '4px' }}>
+                Consult Top Specialties
+              </h2>
+              <p style={{ fontSize: '14px', color: '#64748B' }}>Consult with India's best specialists</p>
             </div>
-            <button className="btn btn-secondary flex items-center gap-2" onClick={() => go("/labs")}>View All <ArrowRight size={16} /></button>
+            <button 
+              onClick={() => go("/doctors")}
+              style={{ 
+                background: '#ffffff', border: '1px solid #CBD5E1', borderRadius: '99px', 
+                padding: '8px 18px', fontSize: '13px', fontWeight: '700', color: '#0F172A', 
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)' 
+              }}
+            >
+              View All <ArrowRight size={14} />
+            </button>
           </div>
           
-          <div className="packages-grid">
-            {apiPackages.map((pkg, idx) => (
-              <div className="pkg-card animate-fade-in-up" key={pkg.id || pkg.title} style={{ animationDelay: `${idx * 80}ms` }}>
-                <div className="pkg-card-img-container">
-                  <img src={pkg.img} alt={pkg.title} className="lab-card-img" />
-                  {pkg.trend && <div className="pkg-card-badge">{pkg.trend}</div>}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
+            {[
+              { name: "Cardiology", icon: <Heart size={24} />, consults: "2.5k+ Consults", bg: "#E6F4F1", color: "#0F766E" },
+              { name: "Neurology", icon: <Brain size={24} />, consults: "1.8k+ Consults", bg: "#EEF2FF", color: "#4F46E5" },
+              { name: "Pediatrics", icon: <Baby size={24} />, consults: "3.2k+ Consults", bg: "#FFF7ED", color: "#EA580C" },
+              { name: "Orthopedics", icon: <Bone size={24} />, consults: "1.4k+ Consults", bg: "#F0F9FF", color: "#0284C7" },
+              { name: "General Medicine", icon: <Activity size={24} />, consults: "5.1k+ Consults", bg: "#CCFBF1", color: "#0D9488" },
+              { name: "Dermatology", icon: <Eye size={24} />, consults: "2.1k+ Consults", bg: "#FDF2F8", color: "#DB2777" },
+            ].map((spec) => (
+              <div 
+                key={spec.name} 
+                onClick={() => go("/doctors")}
+                style={{ 
+                  background: '#ffffff', borderRadius: '16px', padding: '20px 14px', 
+                  border: '1px solid #E2E8F0', cursor: 'pointer', textAlign: 'center', 
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', 
+                  transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' 
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.06)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+                }}
+              >
+                <div style={{ 
+                  width: '52px', height: '52px', borderRadius: '50%', background: spec.bg, 
+                  color: spec.color, display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                }}>
+                  {spec.icon}
                 </div>
-                <div className="pkg-card-body">
-                  <div className="pkg-card-title">{pkg.title}</div>
-                  <div className="pkg-card-tests-badge">
-                    <ShieldCheck size={12} /> {pkg.tests}
-                  </div>
-                  <div className="lab-card-price-row">
-                    <span className="lab-card-price">{pkg.price}</span>
-                  </div>
-                  <button className="pkg-card-btn" onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id || pkg.title)}`, { state: { package: pkg } })}>
-                    View Details <ArrowRight size={14} />
-                  </button>
+                <div>
+                  <b style={{ fontSize: '14px', color: '#0F172A', display: 'block', fontWeight: '700' }}>{spec.name}</b>
+                  <span style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px', display: 'block' }}>{spec.consults}</span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Testimonials ── */}
-      <section style={{ padding: '56px 0', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 className="text-h2">What Our Patients Say</h2>
-            <p className="text-muted mt-2" style={{ fontSize: '15px' }}>Join 1 million+ happy patients across India</p>
+        {/* ── Featured Health Packages (Display Exactly 4 Records) ── */}
+        <section style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginBottom: '4px' }}>
+                Featured Health Packages
+              </h2>
+              <p style={{ fontSize: '14px', color: '#64748B' }}>Comprehensive checkups with home sample collection</p>
+            </div>
+            <button 
+              onClick={() => go("/labs")}
+              style={{ 
+                background: '#ffffff', border: '1px solid #CBD5E1', borderRadius: '99px', 
+                padding: '8px 18px', fontSize: '13px', fontWeight: '700', color: '#0F172A', 
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.03)' 
+              }}
+            >
+              View All <ArrowRight size={14} />
+            </button>
           </div>
 
-          <style>{`
-            .testimonials-slider { 
-              display: flex; 
-              overflow-x: auto; 
-              scroll-snap-type: x mandatory; 
-              gap: 24px; 
-              padding-bottom: 20px;
-              scrollbar-width: none;
-            }
-            .testimonials-slider::-webkit-scrollbar { display: none; }
-            .testimonial-card-wrap {
-              flex: 0 0 calc(33.333% - 16px);
-              scroll-snap-align: start;
-            }
-            @media (max-width: 1024px) { .testimonial-card-wrap { flex: 0 0 calc(50% - 12px); } }
-            @media (max-width: 768px) { .testimonial-card-wrap { flex: 0 0 100%; } }
-            .review-nav-btn {
-              position: absolute;
-              top: 50%;
-              transform: translateY(-50%);
-              width: 44px; height: 44px; border-radius: 50%; background: #ffffff;
-              color: #1e293b; border: 1px solid var(--border); display: flex;
-              align-items: center; justify-content: center; cursor: pointer; z-index: 20;
-              box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.2s;
-            }
-            .review-nav-btn:hover {
-              background: var(--primary); color: white; border-color: var(--primary);
-            }
-            .review-nav-btn.left { left: -20px; }
-            .review-nav-btn.right { right: -20px; }
-            @media (max-width: 1024px) {
-              .review-nav-btn { display: none; }
-            }
-          `}</style>
-          
-          <div style={{ position: 'relative' }}>
-            <button className="review-nav-btn left" onClick={() => scrollReviews('left')}>
-              <ChevronLeft size={20} />
+          <div style={{ position: 'relative', width: '100%' }}>
+            {/* Left Navigation Arrow */}
+            <button 
+              aria-label="Previous Packages"
+              style={{ 
+                position: 'absolute', top: '50%', left: '-18px', transform: 'translateY(-50%)',
+                width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+                color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#0F766E';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.borderColor = '#0F766E';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#0F172A';
+                e.currentTarget.style.borderColor = '#CBD5E1';
+              }}
+            >
+              <ChevronLeft size={22} />
             </button>
-            <button className="review-nav-btn right" onClick={() => scrollReviews('right')}>
-              <ChevronRight size={20} />
+
+            {/* Right Navigation Arrow */}
+            <button 
+              aria-label="Next Packages"
+              style={{ 
+                position: 'absolute', top: '50%', right: '-18px', transform: 'translateY(-50%)',
+                width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+                color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#0F766E';
+                e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.borderColor = '#0F766E';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#0F172A';
+                e.currentTarget.style.borderColor = '#CBD5E1';
+              }}
+            >
+              <ChevronRight size={22} />
             </button>
-            
-            <div className="testimonials-slider" ref={reviewsScrollRef}>
-              {reviews.map((t, i) => (
-                <div key={i} className="testimonial-card-wrap">
-                  <div className="card-elevated animate-fade-in-up" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', animationDelay: `${(i % 3) * 100}ms` }}>
-                    <Quote size={24} style={{ color: 'var(--primary-soft)', transform: 'scaleX(-1)' }} />
-                    <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: 1.7, flex: 1 }}>"{t.text}"</p>
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-light), var(--primary-soft))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: 'var(--primary-dark)', fontSize: '14px' }}>
-                        {t.name.charAt(0)}
+
+            {/* Cards Grid Container - FIXED EXACTLY 4 CARDS */}
+            <div 
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(4, 1fr)', 
+                gap: '20px'
+              }}
+            >
+              {apiPackages.slice(0, 4).map((pkg) => (
+                <div 
+                  key={pkg.id || pkg.title}
+                  style={{ 
+                    background: '#ffffff', borderRadius: '18px', border: '1px solid #E2E8F0', 
+                    overflow: 'hidden', display: 'flex', flexDirection: 'column', 
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)', transition: 'all 0.25s' 
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.03)';
+                  }}
+                >
+                  {/* Image Container */}
+                  <div style={{ position: 'relative', height: '140px', background: '#F1F5F9', overflow: 'hidden' }}>
+                    <img src={pkg.img} alt={pkg.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {pkg.trend && (
+                      <span style={{ 
+                        position: 'absolute', top: '10px', left: '10px', 
+                        background: 'rgba(15, 23, 42, 0.85)', color: '#ffffff', 
+                        fontSize: '10.5px', fontWeight: '700', padding: '4px 10px', 
+                        borderRadius: '8px', backdropFilter: 'blur(4px)' 
+                      }}>
+                        {pkg.trend}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Card Body */}
+                  <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <b style={{ fontSize: '16px', color: '#0F172A', fontWeight: '800', lineHeight: 1.3, marginBottom: '8px' }}>
+                      {pkg.title}
+                    </b>
+
+                    <div style={{ 
+                      display: 'inline-flex', alignItems: 'center', gap: '4px', 
+                      background: '#DCFCE7', color: '#15803D', fontSize: '11px', 
+                      fontWeight: '700', padding: '3px 8px', borderRadius: '6px', 
+                      width: 'fit-content', marginBottom: '16px' 
+                    }}>
+                      <ShieldCheck size={13} /> {pkg.tests}
+                    </div>
+
+                    <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px dashed #E2E8F0', marginBottom: '16px' }}>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '700', display: 'block' }}>
+                        STARTING AT
+                      </span>
+                      <span style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A' }}>
+                        {pkg.price}
+                      </span>
+                    </div>
+
+                    <button 
+                      onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id || pkg.title)}`, { state: { package: pkg } })}
+                      style={{ 
+                        width: '100%', background: '#0D5C63', color: '#ffffff', 
+                        border: 'none', padding: '10px 16px', borderRadius: '10px', 
+                        fontSize: '13px', fontWeight: '700', display: 'flex', 
+                        alignItems: 'center', justifyContent: 'center', gap: '6px', 
+                        cursor: 'pointer', transition: 'background 0.2s' 
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#0F766E'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#0D5C63'}
+                    >
+                      View Details <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── What Our Patients Say (Exact Same White Card UI & Bottom Corner Mint Wave Overlays as How It Works) ── */}
+        <section style={{ 
+          position: 'relative',
+          width: '100%',
+          borderRadius: '24px',
+          background: '#ffffff', 
+          padding: '44px 32px', 
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+          overflow: 'hidden'
+        }}>
+          {/* Bottom-Left Soft Mint/Cyan Wave Overlay */}
+          <svg 
+            style={{ position: 'absolute', left: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
+            viewBox="0 0 220 180" 
+            fill="none"
+          >
+            <path d="M0,180 L0,70 Q60,60 120,120 Q160,160 220,180 Z" fill="rgba(207, 240, 233, 0.6)" />
+            <path d="M0,180 L0,100 Q80,100 140,155 Q170,170 220,180 Z" fill="rgba(167, 243, 208, 0.45)" />
+            <path d="M0,180 L0,130 Q70,130 130,170 Q160,175 220,180 Z" fill="rgba(45, 212, 191, 0.3)" />
+          </svg>
+
+          {/* Bottom-Right Soft Mint/Cyan Wave Overlay */}
+          <svg 
+            style={{ position: 'absolute', right: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
+            viewBox="0 0 220 180" 
+            fill="none"
+          >
+            <path d="M220,180 L220,70 Q160,60 100,120 Q60,160 0,180 Z" fill="rgba(207, 240, 233, 0.6)" />
+            <path d="M220,180 L220,100 Q140,100 80,155 Q50,170 0,180 Z" fill="rgba(167, 243, 208, 0.45)" />
+            <path d="M220,180 L220,130 Q150,130 90,170 Q60,175 0,180 Z" fill="rgba(45, 212, 191, 0.3)" />
+          </svg>
+
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+              <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0F2930', marginBottom: '4px' }}>
+                What Our Patients Say
+              </h2>
+              <p style={{ fontSize: '14.5px', color: '#64748B' }}>Join 1 million+ happy patients across India</p>
+              
+            </div>
+
+            {/* Slider Container with Left & Right Arrow Buttons */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              
+              {/* Left Navigation Arrow */}
+              <button 
+                onClick={() => scrollReviews('left')}
+                aria-label="Previous Review"
+                style={{ 
+                  position: 'absolute', top: '50%', left: '-18px', transform: 'translateY(-50%)',
+                  width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+                  color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#0F766E';
+                  e.currentTarget.style.color = '#ffffff';
+                  e.currentTarget.style.borderColor = '#0F766E';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#ffffff';
+                  e.currentTarget.style.color = '#0F172A';
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                }}
+              >
+                <ChevronLeft size={22} />
+              </button>
+
+              {/* Right Navigation Arrow */}
+              <button 
+                onClick={() => scrollReviews('right')}
+                aria-label="Next Review"
+                style={{ 
+                  position: 'absolute', top: '50%', right: '-18px', transform: 'translateY(-50%)',
+                  width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+                  color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#0F766E';
+                  e.currentTarget.style.color = '#ffffff';
+                  e.currentTarget.style.borderColor = '#0F766E';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#ffffff';
+                  e.currentTarget.style.color = '#0F172A';
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                }}
+              >
+                <ChevronRight size={22} />
+              </button>
+
+              {/* Scrollable Track - Displays ALL records from reviews */}
+              <div 
+                ref={reviewsScrollRef}
+                style={{ 
+                  display: 'flex', 
+                  gap: '20px', 
+                  overflowX: 'auto', 
+                  scrollSnapType: 'x mandatory', 
+                  padding: '4px 4px 16px 4px',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}
+                className="no-scrollbar"
+              >
+                {reviews.map((t, i) => (
+                  <div 
+                    key={i} 
+                    style={{ 
+                      flex: '0 0 calc(33.333% - 14px)', 
+                      minWidth: '280px', 
+                      scrollSnapAlign: 'start',
+                      background: '#F8FAFC', 
+                      padding: '24px', 
+                      borderRadius: '18px', 
+                      border: '1px solid #E2E8F0', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      justify: 'space-between', 
+                      gap: '16px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                      transition: 'all 0.25s'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = 'translateY(-3px)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.08)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ 
+                        fontSize: '34px', color: '#94A3B8', fontFamily: 'serif', lineHeight: 0.8 
+                      }}>
+                        “
+                      </span>
+                    </div>
+
+                    <p style={{ fontSize: '15px', fontWeight: '600', color: '#0F172A', fontStyle: 'normal', flex: 1, margin: 0 }}>
+                      "{t.text}"
+                    </p>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '14px', borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
+                      <div style={{ 
+                        width: '38px', height: '38px', borderRadius: '50%', background: '#93C5FD', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        fontWeight: '700', color: '#1E3A8A', fontSize: '14px' 
+                      }}>
+                        {t.name ? t.name.charAt(0) : "M"}
                       </div>
                       <div>
-                        <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{t.name}</b>
-                        <span className="text-muted" style={{ fontSize: '12px' }}>{t.role}</span>
+                        <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>{t.name}</b>
+                        <span style={{ fontSize: '11.5px', color: '#64748B' }}>{t.role}</span>
                       </div>
-                      <div style={{ marginLeft: 'auto', display: 'flex', gap: '2px' }}>
-                        {Array(t.rating).fill(null).map((_, si) => (
-                          <Star key={si} size={14} fill="#FBBF24" color="#FBBF24" />
-                        ))}
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#F59E0B' }}>5.0 ★</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── App Download CTA ── */}
-      <section style={{ padding: '56px 0' }}>
-        <div className="container">
-          <div className="animate-fade-in-up home-cta-card" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', borderRadius: 'var(--radius-xl)', padding: '44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(46, 102, 110, 0.25)', position: 'relative', overflow: 'hidden', flexWrap: 'wrap', gap: '32px' }}>
-            {/* Decorative circles */}
-            <div style={{ position: 'absolute', top: '-60%', right: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', bottom: '-40%', left: '-5%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(251,145,63,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
-            
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: '480px' }}>
-              <span style={{ display: 'inline-block', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.9)', padding: '4px 14px', borderRadius: 'var(--radius-full)', fontSize: '12px', fontWeight: '600', marginBottom: '16px', border: '1px solid rgba(255,255,255,0.15)' }}>📱 Available on iOS & Android</span>
-              <h2 style={{ color: 'white', fontSize: '28px', fontWeight: '800', marginBottom: '12px', lineHeight: 1.2, letterSpacing: '-0.02em' }}>Get the Arvaya App</h2>
-              <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>Book appointments, manage health records, order medicines, and earn rewards — all from your pocket.</p>
-              <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
-                <button className="btn" style={{ padding: '14px 28px', background: 'white', color: 'var(--primary-dark)', fontWeight: '700', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                  🍎 App Store
-                </button>
-                <button className="btn" style={{ padding: '14px 28px', background: 'rgba(255,255,255,0.12)', color: 'white', border: '1px solid rgba(255,255,255,0.25)' }}>
-                  ▶️ Google Play
-                </button>
+                ))}
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Stats */}
-            <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
-              {[
-                { num: "1M+", label: "Downloads" },
-                { num: "4.9★", label: "App Rating" },
-                { num: "50K+", label: "Daily Users" }
-              ].map((s, i) => (
-                <div key={i} style={{ textAlign: 'center' }}>
-                  <b style={{ display: 'block', fontSize: '28px', color: 'white', lineHeight: 1 }}>{s.num}</b>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '500' }}>{s.label}</span>
-                </div>
-              ))}
+      </div>
+
+      {/* ── Get the Arvaya App CTA (Fixed Background Attached Behind Section) ── */}
+      <section style={{ 
+        position: 'relative', 
+        width: '100%', 
+        margin: '16px 0 0 0',
+        padding: 0, 
+        color: 'white', 
+        backgroundImage: 'url(/banner_healthcare_2.png)',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center center',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '380px'
+      }}>
+        {/* Professional Dark Gradient Overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(90deg, rgba(13, 56, 63, 0.92) 0%, rgba(13, 56, 63, 0.8) 50%, rgba(13, 56, 63, 0.4) 100%)',
+          zIndex: 1
+        }} />
+
+        {/* Content Container Centered Inside Full-Width Section */}
+        <div style={{ 
+          maxWidth: '1240px', 
+          margin: '0 auto', 
+          position: 'relative', 
+          zIndex: 2, 
+          padding: '64px 24px', 
+          display: 'flex', 
+          justify: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: '32px' 
+        }}>
+          <div style={{ maxWidth: '520px' }}>
+            <span style={{ 
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(255,255,255,0.15)', 
+              color: '#ffffff', padding: '6px 16px', borderRadius: '99px', 
+              fontSize: '12px', fontWeight: '700', marginBottom: '16px', 
+              border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)'
+            }}>
+              📱 Available on iOS & Android
+            </span>
+            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#ffffff', marginBottom: '14px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Get the Arvaya App
+            </h2>
+            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, marginBottom: '28px' }}>
+              Book appointments, manage health records, order medicines, and earn rewards — all from your pocket.
+            </p>
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <button style={{ 
+                padding: '12px 24px', background: '#ffffff', color: '#0F172A', 
+                border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.2)', transition: 'all 0.2s' 
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <Download size={16} /> App Store
+              </button>
+              <button style={{ 
+                padding: '12px 24px', background: 'rgba(255,255,255,0.15)', color: '#ffffff', 
+                border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', fontSize: '14px', 
+                fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                backdropFilter: 'blur(8px)', transition: 'all 0.2s' 
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+              }}
+              >
+                <Download size={16} /> Google Play
+              </button>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
+            {[
+              { num: "1M+", label: "Downloads" },
+              { num: "4.9★", label: "App Rating" },
+              { num: "50K+", label: "Daily Users" }
+            ].map((s, i) => (
+              <div key={i} style={{ textAlign: 'center' }}>
+                <b style={{ display: 'block', fontSize: '32px', color: '#ffffff', lineHeight: 1, fontWeight: '800' }}>{s.num}</b>
+                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', fontWeight: '600', marginTop: '6px', display: 'block' }}>{s.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* Embedded CSS for Home Responsiveness */}
-      <style>{`
-        .how-it-works-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 48px;
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-          .home-hero-section {
-            min-height: 420px !important;
-          }
-          .hero-title {
-            font-size: 32px !important;
-          }
-          .hero-subtext {
-            font-size: 15px !important;
-          }
-          .how-it-works-grid {
-            grid-template-columns: 1fr !important;
-            gap: 32px !important;
-          }
-          .how-it-works-line {
-            display: none !important;
-          }
-          .home-cta-card {
-            padding: 28px !important;
-            flex-direction: column !important;
-            align-items: flex-start !important;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .hero-title {
-            font-size: 26px !important;
-          }
-        }
-      `}</style>
 
       {showAmbulanceModal && (
         <AmbulanceRequestModal onClose={() => setShowAmbulanceModal(false)} />
       )}
     </main>
-
   );
 }
