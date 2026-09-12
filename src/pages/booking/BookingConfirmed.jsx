@@ -2,6 +2,7 @@ import { useEffect, useCallback } from "react";
 import { CheckCircle2, CalendarDays, Clock, MapPin, Share2, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
+import Avatar from "../../components/common/Avatar";
 
 export default function BookingConfirmed() {
   const { doctor, date, slot, bookingId, bookingVisitType, bookingHospital, clearBooking } = useBooking();
@@ -108,13 +109,7 @@ export default function BookingConfirmed() {
 
           <div style={{ border: "1px solid var(--border)", padding: "20px", borderRadius: "20px", textAlign: 'left', marginBottom: '32px', background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
             <div style={{ display: "flex", gap: "16px", marginBottom: "16px", paddingBottom: "16px", borderBottom: "1px dashed var(--border)", alignItems: 'center', flexWrap: 'wrap' }}>
-              {doctor?.image && !doctor.image.includes('ui-avatars') ? (
-                <img src={doctor.image} alt={doctor.name} style={{ width: '64px', height: '64px', borderRadius: '16px', objectFit: 'cover' }} />
-              ) : (
-                <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'var(--bg-app)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: '700', color: 'var(--text-muted)', flexShrink: 0 }}>
-                  {doctor?.name?.substring(0, 2).toUpperCase() || "DR"}
-                </div>
-              )}
+              <Avatar doctor={doctor} size="64px" />
               <div style={{ display: "flex", flexDirection: "column", gap: "4px", justifyContent: "center" }}>
                 <b style={{ fontSize: "18px", color: "var(--text-main)", display: 'flex', alignItems: 'center', gap: '6px' }}>{doctor?.name} <CheckCircle2 size={18} className="text-success" /></b>
                 <small style={{ fontSize: "13px", color: "var(--text-muted)", fontWeight: '500' }}>{doctor?.specialty} • {bookingVisitType}</small>

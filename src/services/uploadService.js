@@ -25,6 +25,44 @@ export async function uploadImage(file, folderName, filename) {
   return response?.data || response?.result || response;
 }
 
+export async function downloadFileAsset(filename, folderName = 'familyProfileImage') {
+  if (!filename) return null;
+  const pathStr = String(filename).trim();
+  if (!pathStr || pathStr === "undefined" || pathStr === "null") return null;
+
+  if (pathStr.startsWith("data:") || pathStr.startsWith("blob:")) {
+    return { url: pathStr, mimeType: "image/jpeg" };
+  }
+
+  const fileName = pathStr.includes('/') ? pathStr.split('/').pop() : pathStr;
+
+  try {
+    const res = await api.post("/api/downloadFile", {
+      filename: fileName,
+      folderName: folderName
+    });
+    const response = res?.data && typeof res.data === "object" ? res.data : res;
+    const base64Data = response?.data;
+    const mimeType = response?.MIMETYPE || response?.mimeType || response?.mimetype || "image/jpeg";
+
+    if (base64Data && typeof base64Data === "string") {
+      const url = base64Data.startsWith("data:")
+        ? base64Data
+        : `data:${mimeType};base64,${base64Data}`;
+      return { url, mimeType: mimeType.toLowerCase() };
+    }
+  } catch (error) {
+    console.error(`downloadFile API call failed for ${filename} in folder ${folderName}:`, error);
+  }
+
+  return null;
+}
+
+export async function downloadFileImage(filename, folderName = 'familyProfileImage') {
+  const asset = await downloadFileAsset(filename, folderName);
+  return asset?.url || "";
+}
+
 export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage') {
   if (!imagePath) return null;
   const pathStr = String(imagePath).trim();
@@ -34,6 +72,17 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
     return pathStr;
   }
 
+  // 1. Try downloadFile API first
+  try {
+    const asset = await downloadFileAsset(pathStr, folderName);
+    if (asset?.url) {
+      return asset.url;
+    }
+  } catch (err) {
+    // Fallback to static URL fetch if needed
+  }
+
+  // 2. Fallback static fetch
   const cleanBase = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   let fileName = pathStr;
   if (fileName.includes('/')) {

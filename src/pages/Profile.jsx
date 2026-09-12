@@ -167,7 +167,7 @@ export default function Profile() {
       
       let list = Array.isArray(res) ? res : res?.data || res?.list || res?.familyDetails || res?.result || [];
       if (Array.isArray(list)) {
-        const mapped = list.map((item, idx) => {
+        const mapped = await Promise.all(list.map(async (item, idx) => {
           let age = item.age;
           if (!age && item.dob) {
             const birthYear = new Date(item.dob).getFullYear();
@@ -177,9 +177,11 @@ export default function Profile() {
           const rawImg = item.profile_image || item.profileImage || item.image || item.family_profile_image || item.photo || "";
           let resolvedDisplayImg = "";
           if (rawImg) {
-            resolvedDisplayImg = (rawImg.startsWith("data:") || rawImg.startsWith("blob:") || rawImg.startsWith("http"))
-              ? rawImg
-              : getImageUrl(rawImg, 'familyProfileImage');
+            if (rawImg.startsWith("data:") || rawImg.startsWith("blob:") || rawImg.startsWith("http")) {
+              resolvedDisplayImg = rawImg;
+            } else {
+              resolvedDisplayImg = (await fetchImageBlob(rawImg, 'familyProfileImage')) || getImageUrl(rawImg, 'familyProfileImage');
+            }
           }
           return {
             id: item.id || item.family_detail_id || idx + 1,
@@ -201,7 +203,7 @@ export default function Profile() {
             entitylocation: item.entitylocation || item.entity_location || item.location_key || "",
             title: item.title || ""
           };
-        });
+        }));
         setFamilyMembers(mapped);
       }
     } catch (err) {
