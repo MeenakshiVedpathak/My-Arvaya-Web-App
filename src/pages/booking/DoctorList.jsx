@@ -5,6 +5,8 @@ import { getDoctors } from "../../services/dataService";
 import { useBooking } from "../../context/BookingContext";
 import BookingLayout from "../../components/layout/BookingLayout";
 
+import Avatar from "../../components/common/Avatar";
+
 export default function DoctorList() {
   const navigate = useNavigate();
   const { bookingHospital, bookingSpecialty, setDoctor } = useBooking();
@@ -120,13 +122,7 @@ export default function DoctorList() {
                 >
                   
                   {/* Avatar */}
-                  {doc.image && !doc.image.includes('ui-avatars') ? (
-                    <img src={doc.image} alt={doc.name} style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'rgba(46, 102, 110, 0.08)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '700', color: 'var(--primary)', flexShrink: 0 }}>
-                      {getInitials(doc.name)}
-                    </div>
-                  )}
+                  <Avatar doctor={doc} size="56px" />
                   
                   {/* Info */}
                   <div style={{ flex: 1 }}>

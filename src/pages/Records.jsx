@@ -657,24 +657,22 @@ export default function Records() {
                     return (
                       <div
                         key={rec.id}
-                        className="hover-glow"
                         style={{
                           background: '#FFFFFF',
                           borderRadius: '16px',
                           border: '1px solid #E2E8F0',
                           padding: '20px',
-                          boxShadow: '0 4px 18px rgba(15, 23, 42, 0.04)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                           display: 'flex',
                           flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          transition: 'all 0.25s ease'
+                          justifyContent: 'space-between'
                         }}
                       >
                         <div>
                           {/* Top Badges */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                             <span style={{
-                              background: 'linear-gradient(135deg, #E6F4F1 0%, #D8EFEA 100%)',
+                              background: '#E6F4F1',
                               color: '#005F56',
                               borderRadius: '20px',
                               padding: '4px 12px',
@@ -709,7 +707,7 @@ export default function Records() {
                               width: '48px',
                               height: '48px',
                               borderRadius: '14px',
-                              background: 'linear-gradient(135deg, #E6F4F1 0%, #CEEBE5 100%)',
+                              background: '#E6F4F1',
                               color: '#005F56',
                               display: 'flex',
                               alignItems: 'center',
@@ -719,45 +717,40 @@ export default function Records() {
                               <FileText size={22} color="#005F56" />
                             </div>
                             <div>
-                              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.6px', color: '#005F56', textTransform: 'uppercase' }}>
+                              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', color: '#005F56', textTransform: 'uppercase' }}>
                                 {categoryText}
                               </div>
-                              <div style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginTop: '2px' }}>
+                              <div style={{ fontSize: '20px', fontWeight: '700', color: '#0F172A', marginTop: '2px' }}>
                                 {rec.title || "Health Record"}
                               </div>
                             </div>
                           </div>
 
-                          {/* Gray Details Container - Title Above & Value Below */}
+                          {/* Gray Details Container */}
                           <div style={{
                             background: '#F8FAFC',
-                            border: '1px solid #F1F5F9',
                             borderRadius: '12px',
                             padding: '12px 16px',
-                            marginBottom: '18px',
+                            marginBottom: '20px',
                             display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            gap: '12px'
+                            flexDirection: 'column',
+                            gap: '10px'
                           }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Stethoscope size={14} color="#8B5CF6" style={{ flexShrink: 0 }} />
-                                <span style={{ color: '#64748B', fontSize: '12px', fontWeight: '500' }}>{isWellness ? "Consultant" : "Doctor"}</span>
-                              </div>
-                              <div style={{ color: '#0F172A', fontSize: '13.5px', fontWeight: '700', marginTop: '2px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '13px', fontWeight: '500' }}>
+                                <Stethoscope size={15} color="#8B5CF6" /> {isWellness ? "Consultant" : "Doctor"}
+                              </span>
+                              <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: '700' }}>
                                 {rec.doctor || "Consultant"}
-                              </div>
+                              </span>
                             </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0, textAlign: 'left' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Calendar size={14} color="#8B5CF6" style={{ flexShrink: 0 }} />
-                                <span style={{ color: '#64748B', fontSize: '12px', fontWeight: '500' }}>Date</span>
-                              </div>
-                              <div style={{ color: '#0F172A', fontSize: '13.5px', fontWeight: '700', marginTop: '2px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '13px', fontWeight: '500' }}>
+                                <Calendar size={15} color="#8B5CF6" /> Date
+                              </span>
+                              <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: '700' }}>
                                 {rec.date || "04 Sept 2026"}
-                              </div>
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -769,10 +762,10 @@ export default function Records() {
                             style={{
                               flex: 1,
                               height: '44px',
-                              background: 'linear-gradient(135deg, #005F56 0%, #004D46 100%)',
+                              background: '#005F56',
                               color: '#FFFFFF',
                               border: 'none',
-                              borderRadius: '14px',
+                              borderRadius: '20px',
                               fontSize: '14px',
                               fontWeight: '700',
                               cursor: 'pointer',
@@ -780,7 +773,6 @@ export default function Records() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '8px',
-                              boxShadow: '0 4px 12px rgba(0, 95, 86, 0.25)',
                               transition: 'all 0.2s ease'
                             }}
                           >
@@ -793,14 +785,13 @@ export default function Records() {
                               height: '44px',
                               background: '#F8FAFC',
                               border: '1px solid #E2E8F0',
-                              borderRadius: '14px',
+                              borderRadius: '50%',
                               color: '#005F56',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              flexShrink: 0,
-                              transition: 'all 0.2s ease'
+                              flexShrink: 0
                             }}
                             title="Download Record"
                           >
@@ -849,24 +840,24 @@ export default function Records() {
                     return (
                       <div
                         key={rec.id}
-                        className="hover-glow"
                         style={{
                           background: '#FFFFFF',
                           borderRadius: '16px',
                           border: '1px solid #E2E8F0',
                           padding: '20px',
-                          boxShadow: '0 4px 18px rgba(15, 23, 42, 0.04)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'space-between',
-                          transition: 'all 0.25s ease'
+                          transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                         }}
+                        className="hover-glow"
                       >
                         <div>
                           {/* Top Badges Row */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                             <span style={{
-                              background: 'linear-gradient(135deg, #E6F4F1 0%, #D8EFEA 100%)',
+                              background: '#E6F4F1',
                               color: '#005F56',
                               borderRadius: '20px',
                               padding: '4px 12px',
@@ -901,7 +892,7 @@ export default function Records() {
                               width: '48px',
                               height: '48px',
                               borderRadius: '14px',
-                              background: 'linear-gradient(135deg, #E6F4F1 0%, #CEEBE5 100%)',
+                              background: '#E6F4F1',
                               color: '#005F56',
                               display: 'flex',
                               alignItems: 'center',
@@ -911,45 +902,40 @@ export default function Records() {
                               <FileText size={22} color="#005F56" />
                             </div>
                             <div>
-                              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.6px', color: '#005F56', textTransform: 'uppercase' }}>
+                              <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', color: '#005F56', textTransform: 'uppercase' }}>
                                 {categoryText}
                               </div>
-                              <div style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginTop: '2px' }}>
+                              <div style={{ fontSize: '20px', fontWeight: '700', color: '#0F172A', marginTop: '2px' }}>
                                 {titleText}
                               </div>
                             </div>
                           </div>
 
-                          {/* Gray Info Container Box - Title Above & Value Below */}
+                          {/* Gray Info Container Box */}
                           <div style={{
                             background: '#F8FAFC',
-                            border: '1px solid #F1F5F9',
                             borderRadius: '12px',
                             padding: '12px 16px',
-                            marginBottom: '18px',
+                            marginBottom: '20px',
                             display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            gap: '12px'
+                            flexDirection: 'column',
+                            gap: '10px'
                           }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Stethoscope size={14} color="#8B5CF6" style={{ flexShrink: 0 }} />
-                                <span style={{ color: '#64748B', fontSize: '12px', fontWeight: '500' }}>{doctorLabel}</span>
-                              </div>
-                              <div style={{ color: '#0F172A', fontSize: '13.5px', fontWeight: '700', marginTop: '2px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '13px', fontWeight: '500' }}>
+                                <Stethoscope size={15} color="#8B5CF6" /> {doctorLabel}
+                              </span>
+                              <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: '700' }}>
                                 {doctorValue}
-                              </div>
+                              </span>
                             </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0, textAlign: 'left' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Calendar size={14} color="#8B5CF6" style={{ flexShrink: 0 }} />
-                                <span style={{ color: '#64748B', fontSize: '12px', fontWeight: '500' }}>Date</span>
-                              </div>
-                              <div style={{ color: '#0F172A', fontSize: '13.5px', fontWeight: '700', marginTop: '2px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '13px', fontWeight: '500' }}>
+                                <Calendar size={15} color="#8B5CF6" /> Date
+                              </span>
+                              <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: '700' }}>
                                 {dateValue}
-                              </div>
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -961,10 +947,10 @@ export default function Records() {
                             style={{
                               flex: 1,
                               height: '44px',
-                              background: 'linear-gradient(135deg, #005F56 0%, #004D46 100%)',
+                              background: '#005F56',
                               color: '#FFFFFF',
                               border: 'none',
-                              borderRadius: '14px',
+                              borderRadius: '20px',
                               fontSize: '14px',
                               fontWeight: '700',
                               cursor: 'pointer',
@@ -972,7 +958,6 @@ export default function Records() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '8px',
-                              boxShadow: '0 4px 12px rgba(0, 95, 86, 0.25)',
                               transition: 'all 0.2s ease'
                             }}
                           >
@@ -986,14 +971,13 @@ export default function Records() {
                               height: '44px',
                               background: '#F8FAFC',
                               border: '1px solid #E2E8F0',
-                              borderRadius: '14px',
+                              borderRadius: '50%',
                               color: '#005F56',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              flexShrink: 0,
-                              transition: 'all 0.2s ease'
+                              flexShrink: 0
                             }}
                             title="Download Record"
                           >

@@ -2,13 +2,12 @@ import {
   ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, 
   ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, 
   Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation, 
-  TestTube, Clock, Flame, Check, ExternalLink, Download, Phone, MessageSquare
+  TestTube, Clock, Flame, Check, ExternalLink, Download, Phone, MessageSquare, Award, Zap
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
-import { getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";
-import { getImageUrl } from "../services/uploadService";
+import { downloadBannerAsset, getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";import { getImageUrl } from "../services/uploadService";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
@@ -18,8 +17,28 @@ export default function Home() {
 
   const scrollReviews = (dir) => {
     if (reviewsScrollRef.current) {
-      const scrollAmount = reviewsScrollRef.current.clientWidth / 2;
-      reviewsScrollRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+      const container = reviewsScrollRef.current;
+      const firstCard = container.firstElementChild;
+      const cardWidth = firstCard ? firstCard.offsetWidth + 20 : 310;
+      
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      const maxScroll = scrollWidth - clientWidth;
+
+      if (maxScroll <= 0) return;
+
+      if (dir === 'right') {
+        if (scrollLeft >= maxScroll - 15) {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+        }
+      } else {
+        if (scrollLeft <= 15) {
+          container.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        } else {
+          container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+        }
+      }
     }
   };
 
@@ -64,9 +83,12 @@ export default function Home() {
   const [apiPackages, setApiPackages] = useState(defaultHomePackages);
 
   const defaultReviews = [
-    { name: "Mr. Rohit Ch", role: "Verified Patient", text: "Testing", rating: 5 },
-    { name: "Mrs. Geethanjali D", role: "Verified Patient", text: "Gnh", rating: 5 },
-    { name: "Mrs. Geethanjali D", role: "Verified Patient", text: "Gca1", rating: 5 },
+    { name: "Rohit Chaudhari", role: "Bangalore", text: "Booked a cardiac consultation and got connected with a top cardiologist in 10 minutes. Super smooth experience!", rating: 5 },
+    { name: "Mrs. Geethanjali D", role: "Mumbai", text: "The lab technician arrived right on time for home sample collection. Digital reports were ready in 18 hours.", rating: 5 },
+    { name: "Dr. Ananya Sharma", role: "Delhi NCR", text: "Arvaya platform makes managing health records and ABHA health ID incredibly easy for my entire family.", rating: 5 },
+    { name: "Vikram Patil", role: "Pune", text: "Emergency ambulance request was dispatched instantly with live GPS tracking. Saved critical time for hospital admission.", rating: 5 },
+    { name: "Meenakshi K", role: "Hyderabad", text: "Very user-friendly patient portal! I can view all past prescriptions and diagnostic test history in one place.", rating: 5 },
+    { name: "Siddharth Rao", role: "Chennai", text: "Excellent diagnostic services with transparent pricing. Earned reward points on my lab test package booking too!", rating: 5 },
   ];
 
   const [reviews, setReviews] = useState(defaultReviews);
@@ -83,7 +105,11 @@ export default function Home() {
             text: r.review || r.text || "",
             rating: r.ratings || r.rating || 5
           }));
-          setReviews(normalized);
+          if (normalized.length < 6) {
+            setReviews([...normalized, ...defaultReviews.slice(normalized.length)]);
+          } else {
+            setReviews(normalized);
+          }
         }
       })
       .catch((err) => {
@@ -163,16 +189,19 @@ export default function Home() {
       try {
         const res = await getBanners();
         const banners = res?.data || res || [];
-        if (banners.length > 0) {
-          const newSlides = banners.map((b, i) => {
+        if (Array.isArray(banners) && banners.length > 0) {
+          const newSlides = await Promise.all(banners.map(async (b, i) => {
             const baseSlide = heroSlides[i % heroSlides.length];
-            const fullImgUrl = b.img_url ? getImageUrl(b.img_url, 'bannerImages') : "";
+            const filename = b.filename || b.file_name || b.image || b.image_name || b.img_url;
+            const asset = await downloadBannerAsset(filename);
             return {
               ...baseSlide,
-              bg: fullImgUrl || baseSlide.bg
+              bg: asset?.url || baseSlide.bg,
+              mimeType: asset?.mimeType || "image/*"
             };
-          });
+          }));
           setDynamicSlides(newSlides);
+          setCurrentSlide(0);
         }
       } catch (e) {
         console.error("Error fetching banners:", e);
@@ -180,6 +209,7 @@ export default function Home() {
     };
     fetchDynamicBanners();
   }, []);
+ 
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -193,17 +223,21 @@ export default function Home() {
     
     const interval = setInterval(() => {
       if (reviewsScrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = reviewsScrollRef.current;
+        const container = reviewsScrollRef.current;
+        const firstCard = container.firstElementChild;
+        const cardWidth = firstCard ? firstCard.offsetWidth + 20 : 310;
+        const { scrollLeft, scrollWidth, clientWidth } = container;
         const maxScroll = scrollWidth - clientWidth;
-        const scrollAmount = clientWidth / 2;
         
-        if (scrollLeft >= maxScroll - 10) {
-          reviewsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        if (maxScroll <= 0) return;
+
+        if (scrollLeft >= maxScroll - 15) {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          reviewsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+          container.scrollBy({ left: cardWidth, behavior: 'smooth' });
         }
       }
-    }, 5000);
+    }, 4500);
 
     return () => clearInterval(interval);
   }, [reviews]);
@@ -211,11 +245,11 @@ export default function Home() {
   const tickerText = "24/7 Full Body Checkup this week!  •  Emergency Services now active in Bangalore, Mumbai, and Delhi...  •  Free consultation on  •  ";
 
   return (
-    <main className="page page-enter" style={{ padding: 0, background: '#FAFAFB', fontFamily: "Inter, system-ui, sans-serif", color: '#1e293b' }}>
+    <main className="page page-enter" style={{ padding: 0, background: '#F8FAFC', fontFamily: "Inter, system-ui, sans-serif", color: '#0F172A' }}>
       
-      {/* ── Top Emergency & Ticker Bar ── */}
-      <div style={{ background: '#0D383F', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'nowrap' }}>
+      {/* ── Top Emergency & Ticker Header Bar (Dark Teal Gradient Theme) ── */}
+      <div style={{ background: 'linear-gradient(90deg, rgb(13, 92, 99), rgb(46, 102, 110))', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '9px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'nowrap' }}>
           
           {/* Emergency Call Pill */}
           <button 
@@ -224,7 +258,7 @@ export default function Home() {
               background: '#EF4444', color: 'white', padding: '6px 14px', fontSize: '12px', 
               fontWeight: '700', borderRadius: '99px', border: 'none', cursor: 'pointer', 
               display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)', transition: 'transform 0.2s'
+              boxShadow: '0 2px 10px rgba(239, 68, 68, 0.4)', transition: 'transform 0.2s'
             }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -235,581 +269,500 @@ export default function Home() {
           {/* Ticker Row */}
           <div style={{ display: 'flex', alignItems: 'center', flex: 1, overflow: 'hidden', fontSize: '12.5px' }}>
             <span style={{ 
-              fontWeight: '800', background: '#134E58', color: '#6EE7B7', padding: '3px 9px', 
+              fontWeight: '800', background: 'hsla(0, 0%, 100%, 1.00)', color: '#043633ff', padding: '3px 9px', 
               borderRadius: '4px', marginRight: '12px', fontSize: '10.5px', textTransform: 'uppercase', 
-              letterSpacing: '0.05em', whiteSpace: 'nowrap' 
+              letterSpacing: '0.05em', whiteSpace: 'nowrap', border: '1px solid rgba(255, 255, 255, 0.25)'
             }}>
               UPDATES
             </span>
             <div className="ticker-wrap" style={{ overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' }}>
-              <span className="ticker-content" style={{ display: 'inline-block', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>
+              <span className="ticker-content" style={{ display: 'inline-block', color: 'rgba(255, 255, 255, 0.95)', fontWeight: '600' }}>
                 {tickerText}{tickerText}
               </span>
             </div>
           </div>
 
           {/* Phone Number */}
-          <a href="tel:18001234567" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'white', textDecoration: 'none', fontSize: '12.5px', fontWeight: '700', whiteSpace: 'nowrap' }}>
-            <Phone size={14} style={{ color: '#34D399' }} /> 1800 123 4567
+          <a href="tel:18001234567" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', textDecoration: 'none', fontSize: '12.5px', fontWeight: '800', whiteSpace: 'nowrap' }}>
+            <Phone size={14} style={{ color: '#2DD4BF' }} /> 1800 123 4567
           </a>
         </div>
       </div>
 
-      {/* ── Main Container Outer Wrapper ── */}
-      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '20px 16px 40px 16px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
-        
-        {/* ── Hero Carousel Banner Card ── */}
-        <section style={{ position: 'relative', width: '100%', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 12px 32px rgba(13, 56, 63, 0.08)', minHeight: '440px', background: '#0F172A' }}>
+      {/* ── Section 1: Full-Width Hero Banner (0 Upper/Left/Right Margins) ── */}
+      <section style={{ position: 'relative', width: '100%', margin: 0, padding: 0, overflow: 'hidden', minHeight: '440px', background: '#0F172A' }}>
+        {dynamicSlides.map((slide, idx) => (
+          <div key={`${slide.bg}-${idx}`} style={{
+              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+              opacity: idx === currentSlide ? 1 : 0, 
+              transition: 'opacity 1s ease-in-out',
+              zIndex: idx === currentSlide ? 1 : 0
+          }}>
+            {slide.mimeType?.startsWith('video/') ? (
+                <video
+                  src={slide.bg}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  aria-label={`Banner ${idx + 1}`}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }}
+                />
+              ) : (
+                <img
+                  src={slide.bg}
+                  alt={`Banner ${idx + 1}`}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }}
+                />
+              )}
+            <div style={{ 
+              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+              background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.72) 48%, rgba(15, 23, 42, 0.2) 100%)' 
+            }}></div>
+          </div>
+        ))}
+
+        {/* Nav Arrows */}
+        <button 
+          onClick={() => setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1))}
+          style={{
+            position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+            width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
+            color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+            backdropFilter: 'blur(8px)', transition: 'all 0.2s'
+          }}
+          aria-label="Previous Slide"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <button 
+          onClick={() => setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)}
+          style={{
+            position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+            width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
+            color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+            backdropFilter: 'blur(8px)', transition: 'all 0.2s'
+          }}
+          aria-label="Next Slide"
+        >
+          <ChevronRight size={20} />
+        </button>
+
+        {/* Hero Inner Centered Content */}
+        <div style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', height: '100%', minHeight: '440px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px' }}>
           
-          {dynamicSlides.map((slide, idx) => (
-            <div key={`${slide.bg}-${idx}`} style={{
-                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                opacity: idx === currentSlide ? 1 : 0, 
-                transition: 'opacity 1s ease-in-out',
-                zIndex: idx === currentSlide ? 1 : 0
-            }}>
-              <img 
-                src={slide.bg} 
-                alt={`Banner ${idx + 1}`} 
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }} 
-              />
-              <div style={{ 
-                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
-                background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 45%, rgba(15, 23, 42, 0.15) 100%)' 
-              }}></div>
+          {/* Reference Header Tagline */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <span style={{ height: '2px', width: '28px', background: '#00A896', display: 'inline-block', borderRadius: '2px' }}></span>
+            <span style={{ fontSize: '12px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              We Care About Your Health
+            </span>
+          </div>
+
+          {dynamicSlides.map((slide, idx) => idx === currentSlide && (
+            <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '600px' }}>
+              {slide.badge && (
+                <span style={{ 
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                  background: 'rgba(255, 255, 255, 0.14)', backdropFilter: 'blur(10px)', 
+                  color: '#FDBF8B', padding: '6px 14px', borderRadius: '99px', 
+                  fontSize: '11px', fontWeight: '700', marginBottom: '16px', 
+                  border: '1px solid rgba(253, 191, 139, 0.3)', textTransform: 'uppercase', 
+                  letterSpacing: '0.06em' 
+                }}>
+                  {slide.badge}
+                </span>
+              )}
+              {slide.title && (
+                <h1 style={{ fontSize: '38px', fontWeight: '800', color: '#ffffff', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.02em' }}>
+                  {slide.title}
+                </h1>
+              )}
+              {slide.subtitle && (
+                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.88)', marginBottom: '28px', lineHeight: 1.6 }}>
+                  {slide.subtitle}
+                </p>
+              )}
+              
+              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {slide.primaryBtn && (
+                  <button 
+                    onClick={slide.primaryAction} 
+                    style={{ 
+                      padding: '12px 26px', fontSize: '14px', fontWeight: '700', 
+                      color: '#ffffff', background: 'linear-gradient(135deg, #00A896 0%, #0D766E 100%)', 
+                      border: 'none', borderRadius: '12px', cursor: 'pointer', 
+                      display: 'flex', alignItems: 'center', gap: '8px', 
+                      boxShadow: '0 4px 16px rgba(0, 168, 150, 0.4)', transition: 'transform 0.2s' 
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    <span>{slide.primaryBtn}</span> <ArrowRight size={16} />
+                  </button>
+                )}
+
+                {slide.secondaryBtn && (
+                  <button 
+                    onClick={slide.secondaryAction} 
+                    style={{ 
+                      padding: '12px 24px', fontSize: '14px', fontWeight: '700', 
+                      color: '#ffffff', background: 'rgba(255, 255, 255, 0.12)', 
+                      border: '1.5px solid rgba(255, 255, 255, 0.35)', borderRadius: '12px', 
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
+                      backdropFilter: 'blur(8px)', transition: 'all 0.2s' 
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.22)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'; }}
+                  >
+                    {slide.secondaryBtn}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
 
-          {/* Nav Arrows */}
-          <button 
-            onClick={() => setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1))}
-            style={{
-              position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
-              width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
-              color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-              backdropFilter: 'blur(8px)', transition: 'all 0.2s'
-            }}
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft size={20} />
-          </button>
-
-          <button 
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)}
-            style={{
-              position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
-              width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
-              color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-              backdropFilter: 'blur(8px)', transition: 'all 0.2s'
-            }}
-            aria-label="Next Slide"
-          >
-            <ChevronRight size={20} />
-          </button>
-
-          {/* Hero Slide Overlay Content */}
-          <div style={{ position: 'relative', height: '100%', minHeight: '440px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 56px' }}>
-            {dynamicSlides.map((slide, idx) => idx === currentSlide && (
-              <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '560px' }}>
-                {slide.badge && (
-                  <span style={{ 
-                    display: 'inline-flex', alignItems: 'center', gap: '6px', 
-                    background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(10px)', 
-                    color: '#FDBF8B', padding: '6px 14px', borderRadius: '99px', 
-                    fontSize: '11px', fontWeight: '700', marginBottom: '20px', 
-                    border: '1px solid rgba(253, 191, 139, 0.3)', textTransform: 'uppercase', 
-                    letterSpacing: '0.06em' 
-                  }}>
-                    {slide.badge}
-                  </span>
-                )}
-                {slide.title && (
-                  <h1 style={{ fontSize: '38px', fontWeight: '800', color: '#ffffff', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.02em' }}>
-                    {slide.title}
-                  </h1>
-                )}
-                {slide.subtitle && (
-                  <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', marginBottom: '28px', lineHeight: 1.6 }}>
-                    {slide.subtitle}
-                  </p>
-                )}
-                
-                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {slide.primaryBtn && (
-                    <button 
-                      onClick={slide.primaryAction} 
-                      style={{ 
-                        padding: '12px 26px', fontSize: '14px', fontWeight: '700', 
-                        color: '#ffffff', background: 'linear-gradient(135deg, #FF6B00 0%, #F97316 100%)', 
-                        border: 'none', borderRadius: '12px', cursor: 'pointer', 
-                        display: 'flex', alignItems: 'center', gap: '8px', 
-                        boxShadow: '0 4px 16px rgba(249, 115, 22, 0.4)', transition: 'transform 0.2s' 
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                      <span>{slide.primaryBtn}</span> <ArrowRight size={16} />
-                    </button>
-                  )}
-
-                  {slide.secondaryBtn && (
-                    <button 
-                      onClick={slide.secondaryAction} 
-                      style={{ 
-                        padding: '12px 24px', fontSize: '14px', fontWeight: '700', 
-                        color: '#ffffff', background: 'rgba(255, 255, 255, 0.12)', 
-                        border: '1.5px solid rgba(255, 255, 255, 0.35)', borderRadius: '12px', 
-                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
-                        backdropFilter: 'blur(8px)', transition: 'all 0.2s' 
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.22)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'; }}
-                    >
-                      {slide.secondaryBtn}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Centered Dots Indicator */}
-          <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: '8px' }}>
-            {dynamicSlides.map((_, idx) => (
-              <button 
-                key={idx}
-                onClick={() => setCurrentSlide(idx)}
-                style={{
-                  width: idx === currentSlide ? '24px' : '8px',
-                  height: '8px',
-                  borderRadius: '4px',
-                  background: idx === currentSlide ? '#FF6B00' : 'rgba(255, 255, 255, 0.4)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s'
-                }}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* ── Value Props Row ── */}
-        <section style={{ 
-          background: '#ffffff', padding: '16px 28px', borderRadius: '18px', 
-          border: '1px solid #E2E8F0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' 
-        }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'center' }}>
-            {[
-              { icon: <Star size={20} style={{ color: '#F59E0B' }} />, title: "4.9/5 Rating", sub: "From 1M+ Users", bg: "#FEF3C7" },
-              { icon: <ShieldCheck size={20} style={{ color: '#10B981' }} />, title: "NABH Accredited", sub: "Quality Assured", bg: "#D1FAE5" },
-              { icon: <PhoneCall size={20} style={{ color: '#6366F1' }} />, title: "24/7 Support", sub: "Always here for you", bg: "#E0E7FF" },
-              { icon: <Pill size={20} style={{ color: '#0D9488' }} />, title: "100% Genuine", sub: "Medicines & Tests", bg: "#CCFBF1" }
-            ].map((v, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ 
-                  width: '42px', height: '42px', borderRadius: '50%', background: v.bg, 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
-                }}>
-                  {v.icon}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <b style={{ fontSize: '13.5px', color: '#0F172A', fontWeight: '700' }}>{v.title}</b>
-                  <span style={{ fontSize: '11.5px', color: '#64748B' }}>{v.sub}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-      </div>
-
-      {/* ── Your Health Ecosystem ── */}
-      <div style={{ 
-        width: '100%', 
-        background: 'linear-gradient(135deg, #CFE8E3 0%, #BFE0D9 50%, #B2D8D0 100%)', 
-        padding: '64px 0', 
-        borderTop: '1px solid rgba(13, 92, 99, 0.1)', 
-        borderBottom: '1px solid rgba(13, 92, 99, 0.1)',
-        margin: '16px 0',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Background Decorative Ambient Elements */}
-        <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(45,212,191,0.25) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-
-        <section style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 2 }}>
-          {/* Header */}
-          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 40px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#0F2930', letterSpacing: '-0.02em', marginBottom: '8px' }}>
-              Your Health Ecosystem
-            </h2>
-            <p style={{ fontSize: '15px', color: '#2E555C', lineHeight: 1.6 }}>
-              Everything you need to manage your health, payments, and rewards—all in one place.
-            </p>
-          </div>
-
-          {/* Grid Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
-            
-            {/* Card 1: ABHA Hub */}
-            <div 
-              onClick={() => go("/abha")}
-              style={{ 
-                background: 'rgba(255, 255, 255, 0.75)', 
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderRadius: '24px', 
-                padding: '28px', 
-                border: '1.5px solid rgba(255, 255, 255, 0.9)', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between',
-                gap: '20px', 
-                boxShadow: '0 10px 30px rgba(13, 92, 99, 0.08)', 
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                position: 'relative'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 18px 36px rgba(13, 92, 99, 0.16)';
-                e.currentTarget.style.borderColor = '#0D9488';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(13, 92, 99, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)';
-              }}
-            >
-              <div>
-                <div style={{ 
-                  width: '52px', height: '52px', borderRadius: '16px', 
-                  background: 'rgba(13, 148, 136, 0.14)', color: '#0D9488', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' 
-                }}>
-                  <CreditCard size={26} strokeWidth={1.8} />
-                </div>
-                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
-                  ABHA Hub
-                </h3>
-                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
-                  Create & link your ABHA ID for seamless, instant health data access across providers.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px' }}>
-                <span style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
-                  background: 'rgba(13, 148, 136, 0.15)', color: '#0F766E', 
-                  padding: '8px 18px', borderRadius: '99px', fontSize: '13px', fontWeight: '700' 
-                }}>
-                  Explore <ArrowRight size={14} />
-                </span>
-              </div>
+          {/* Sub-Hero Quick Stat Indicators Pill Bar */}
+          <div style={{ marginTop: '28px', display: 'flex', gap: '24px', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
+              <b style={{ fontSize: '18px', fontWeight: '800', color: '#00A896' }}>7+</b>
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Years Experience</span>
             </div>
-
-            {/* Card 2: Arvaya Rewards (FEATURED CARD) */}
-            <div 
-              onClick={() => go("/rewards")}
-              style={{ 
-                background: 'linear-gradient(145deg, rgba(255, 253, 245, 0.95) 0%, rgba(254, 243, 199, 0.9) 100%)', 
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderRadius: '24px', 
-                padding: '28px', 
-                border: '2px solid #FBBF24', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between',
-                gap: '20px', 
-                boxShadow: '0 12px 32px rgba(245, 158, 11, 0.22)', 
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(245, 158, 11, 0.32)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(245, 158, 11, 0.22)';
-              }}
-            >
-              {/* Featured Badge */}
-              <span style={{ 
-                position: 'absolute', top: 0, right: 0, 
-                background: 'linear-gradient(135deg, #D97706, #B45309)', 
-                color: '#ffffff', fontSize: '10px', fontWeight: '800', 
-                letterSpacing: '0.08em', padding: '5px 14px', 
-                borderRadius: '0 22px 0 12px', textTransform: 'uppercase',
-                boxShadow: '0 2px 8px rgba(180, 83, 9, 0.3)' 
-              }}>
-                FEATURED
-              </span>
-
-              <div>
-                <div style={{ 
-                  width: '52px', height: '52px', borderRadius: '16px', 
-                  background: 'linear-gradient(135deg, #FBBF24, #F59E0B)', color: '#ffffff', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px',
-                  boxShadow: '0 6px 16px rgba(245, 158, 11, 0.35)' 
-                }}>
-                  <Gift size={26} strokeWidth={1.8} />
-                </div>
-                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#78350F', marginBottom: '8px' }}>
-                  Arvaya Rewards
-                </h3>
-                <p style={{ fontSize: '13.5px', color: '#92400E', lineHeight: 1.6 }}>
-                  Earn points on every booking and redeem exclusive health & wellness offers.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px' }}>
-                <span style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
-                  background: 'linear-gradient(135deg, #FF6B00, #F97316)', color: '#ffffff', 
-                  padding: '8px 20px', borderRadius: '99px', fontSize: '13px', fontWeight: '800',
-                  boxShadow: '0 4px 12px rgba(249, 115, 22, 0.35)' 
-                }}>
-                  Explore <ArrowRight size={14} />
-                </span>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
+              <b style={{ fontSize: '18px', fontWeight: '800', color: '#38BDF8' }}>22+</b>
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Top Doctors & Specialists</span>
             </div>
-
-            {/* Card 3: Digital Wallet */}
-            <div 
-              onClick={() => go("/wallet")}
-              style={{ 
-                background: 'rgba(255, 255, 255, 0.75)', 
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderRadius: '24px', 
-                padding: '28px', 
-                border: '1.5px solid rgba(255, 255, 255, 0.9)', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between',
-                gap: '20px', 
-                boxShadow: '0 10px 30px rgba(13, 92, 99, 0.08)', 
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                position: 'relative'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 18px 36px rgba(13, 92, 99, 0.16)';
-                e.currentTarget.style.borderColor = '#0D9488';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(13, 92, 99, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)';
-              }}
-            >
-              <div>
-                <div style={{ 
-                  width: '52px', height: '52px', borderRadius: '16px', 
-                  background: 'rgba(13, 148, 136, 0.14)', color: '#0D9488', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' 
-                }}>
-                  <Wallet size={26} strokeWidth={1.8} />
-                </div>
-                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
-                  Digital Wallet
-                </h3>
-                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
-                  Fast, secure payments with instant refunds guaranteed on cancellations.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px' }}>
-                <span style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
-                  background: 'rgba(13, 148, 136, 0.15)', color: '#0F766E', 
-                  padding: '8px 18px', borderRadius: '99px', fontSize: '13px', fontWeight: '700' 
-                }}>
-                  Explore <ArrowRight size={14} />
-                </span>
-              </div>
-            </div>
-
-            {/* Card 4: Health Records */}
-            <div 
-              onClick={() => go("/records")}
-              style={{ 
-                background: 'rgba(255, 255, 255, 0.75)', 
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderRadius: '24px', 
-                padding: '28px', 
-                border: '1.5px solid rgba(255, 255, 255, 0.9)', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between',
-                gap: '20px', 
-                boxShadow: '0 10px 30px rgba(13, 92, 99, 0.08)', 
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 18px 36px rgba(13, 92, 99, 0.16)';
-                e.currentTarget.style.borderColor = '#0D9488';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(13, 92, 99, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.9)';
-              }}
-            >
-              {/* Encrypted Top Right Badge */}
-              <span style={{ 
-                position: 'absolute', top: 0, right: 0, 
-                background: 'linear-gradient(135deg, #10B981, #059669)', 
-                color: '#ffffff', fontSize: '10px', fontWeight: '800', 
-                letterSpacing: '0.08em', padding: '5px 14px', 
-                borderRadius: '0 22px 0 12px', textTransform: 'uppercase',
-                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)' 
-              }}>
-                ENCRYPTED
-              </span>
-
-              <div>
-                <div style={{ 
-                  width: '52px', height: '52px', borderRadius: '16px', 
-                  background: 'rgba(13, 148, 136, 0.14)', color: '#0D9488', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' 
-                }}>
-                  <FileText size={26} strokeWidth={1.8} />
-                </div>
-                <h3 style={{ fontSize: '19px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
-                  Health Records
-                </h3>
-                <p style={{ fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
-                  Your complete medical history, fully encrypted and accessible anytime.
-                </p>
-              </div>
-              <div style={{ marginTop: '16px' }}>
-                <span style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
-                  background: 'rgba(13, 148, 136, 0.15)', color: '#0F766E', 
-                  padding: '8px 18px', borderRadius: '99px', fontSize: '13px', fontWeight: '700' 
-                }}>
-                  Explore <ArrowRight size={14} />
-                </span>
-              </div>
-            </div>
-
-          </div>
-        </section>
-      </div>
-
-      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '20px 16px 40px 16px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
-
-        {/* ── How It Works Section (Exact White Card UI with Bottom Corner Mint Wave Overlays as Provided Image) ── */}
-        <section style={{ 
-          position: 'relative',
-          width: '100%',
-          borderRadius: '24px',
-          background: '#ffffff',
-          border: '1px solid #E2E8F0',
-          padding: '44px 32px',
-          textAlign: 'center',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-          overflow: 'hidden'
-        }}>
-          {/* Bottom-Left Soft Mint/Cyan Wave Overlay */}
-          <svg 
-            style={{ position: 'absolute', left: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
-            viewBox="0 0 220 180" 
-            fill="none"
-          >
-            <path d="M0,180 L0,70 Q60,60 120,120 Q160,160 220,180 Z" fill="rgba(207, 240, 233, 0.6)" />
-            <path d="M0,180 L0,100 Q80,100 140,155 Q170,170 220,180 Z" fill="rgba(167, 243, 208, 0.45)" />
-            <path d="M0,180 L0,130 Q70,130 130,170 Q160,175 220,180 Z" fill="rgba(45, 212, 191, 0.3)" />
-          </svg>
-
-          {/* Bottom-Right Soft Mint/Cyan Wave Overlay */}
-          <svg 
-            style={{ position: 'absolute', right: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
-            viewBox="0 0 220 180" 
-            fill="none"
-          >
-            <path d="M220,180 L220,70 Q160,60 100,120 Q60,160 0,180 Z" fill="rgba(207, 240, 233, 0.6)" />
-            <path d="M220,180 L220,100 Q140,100 80,155 Q50,170 0,180 Z" fill="rgba(167, 243, 208, 0.45)" />
-            <path d="M220,180 L220,130 Q150,130 90,170 Q60,175 0,180 Z" fill="rgba(45, 212, 191, 0.3)" />
-          </svg>
-
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0F2930', marginBottom: '6px', letterSpacing: '-0.01em' }}>
-              How It Works
-            </h2>
-            <p style={{ fontSize: '14.5px', color: '#64748B', marginBottom: '44px' }}>
-              Book a doctor appointment in 3 simple steps.
-            </p>
-
-            <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', maxWidth: '860px', margin: '0 auto' }}>
-              
-              {/* Connecting Arrow Line 1 (between step 1 and step 2) */}
-              <div style={{ 
-                position: 'absolute', top: '36px', left: '25%', width: '18%', height: '1px', 
-                background: '#CBD5E1', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' 
-              }}>
-                <span style={{ color: '#38BDF8', fontSize: '10px', transform: 'translateX(3px)' }}>➤</span>
-              </div>
-
-              {/* Connecting Arrow Line 2 (between step 2 and step 3) */}
-              <div style={{ 
-                position: 'absolute', top: '36px', left: '58%', width: '18%', height: '1px', 
-                background: '#CBD5E1', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' 
-              }}>
-                <span style={{ color: '#38BDF8', fontSize: '10px', transform: 'translateX(3px)' }}>➤</span>
-              </div>
-              
-              {[
-                { icon: <Search size={26} />, title: "Search", desc: "Find specialists by name, specialty, or location", bg: "linear-gradient(135deg, #00A896 0%, #0F766E 100%)" },
-                { icon: <CalendarCheck size={26} />, title: "Book", desc: "Pick a convenient slot and confirm instantly", bg: "linear-gradient(135deg, #0D5C63 0%, #064E54 100%)" },
-                { icon: <Stethoscope size={26} />, title: "Consult", desc: "Visit the clinic or join a video consultation", bg: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)" },
-              ].map((s) => (
-                <div key={s.title} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ 
-                    width: '72px', height: '72px', borderRadius: '50%', background: s.bg, 
-                    color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                    marginBottom: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '4px solid #ffffff' 
-                  }}>
-                    {s.icon}
-                  </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>{s.title}</h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, maxWidth: '220px' }}>{s.desc}</p>
-                </div>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
+              <b style={{ fontSize: '18px', fontWeight: '800', color: '#FBBF24' }}>24/7</b>
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Emergency Ambulance Dispatch</span>
             </div>
           </div>
-        </section>
 
-        {/* ── Consult Top Specialties ── */}
+        </div>
+
+        {/* Carousel Dots */}
+        <div style={{ position: 'absolute', bottom: '16px', right: '32px', zIndex: 10, display: 'flex', gap: '8px' }}>
+          {dynamicSlides.map((_, idx) => (
+            <button 
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              style={{
+                width: idx === currentSlide ? '24px' : '8px',
+                height: '8px',
+                borderRadius: '4px',
+                background: idx === currentSlide ? '#00A896' : 'rgba(255, 255, 255, 0.4)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.3s'
+              }}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Main Container Wrapper ── */}
+      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '32px 16px 40px 16px', display: 'flex', flexDirection: 'column', gap: '44px' }}>
+        
+        {/* ── Section 1: 4 Solid Contrast Service Cards Grid ── */}
         <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginBottom: '4px' }}>
-                Consult Top Specialties
-              </h2>
-              <p style={{ fontSize: '14px', color: '#64748B' }}>Consult with India's best specialists</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+            
+            {/* Card 1: Doctor Consultation (Royal Blue) */}
+            <div 
+              onClick={() => go('/doctors')}
+              style={{
+                background: 'linear-gradient(135deg, #0A369D 0%, #072AC8 100%)',
+                color: '#ffffff',
+                borderRadius: '16px',
+                padding: '24px 20px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '160px',
+                boxShadow: '0 8px 20px rgba(10, 54, 157, 0.18)',
+                transition: 'transform 0.25s, box-shadow 0.25s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 14px 28px rgba(10, 54, 157, 0.28)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(10, 54, 157, 0.18)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Stethoscope size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Doctor Consultation</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
+                Book video consultations or hospital visits with certified top specialists across 35+ departments.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#6EE7B7' }}>
+                Book Doctor <ArrowRight size={14} />
+              </div>
             </div>
+
+            {/* Card 2: Emergency Care (Deep Teal) */}
+            <div 
+              onClick={() => setShowAmbulanceModal(true)}
+              style={{
+                background: 'linear-gradient(135deg, #005F73 0%, #0A9396 100%)',
+                color: '#ffffff',
+                borderRadius: '16px',
+                padding: '24px 20px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '160px',
+                boxShadow: '0 8px 20px rgba(0, 95, 115, 0.18)',
+                transition: 'transform 0.25s, box-shadow 0.25s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 14px 28px rgba(0, 95, 115, 0.28)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 95, 115, 0.18)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Activity size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Emergency Care</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
+                Instant emergency medical care response team available 24/7 for urgent hospital admission.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#A7F3D0' }}>
+                Get Immediate Help <ArrowRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 3: Ambulance Services (Cyan Blue) */}
+            <div 
+              onClick={() => go('/ambulance')}
+              style={{
+                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                color: '#ffffff',
+                borderRadius: '16px',
+                padding: '24px 20px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '160px',
+                boxShadow: '0 8px 20px rgba(2, 132, 199, 0.18)',
+                transition: 'transform 0.25s, box-shadow 0.25s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 14px 28px rgba(2, 132, 199, 0.28)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(2, 132, 199, 0.18)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Navigation size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Ambulance Dispatch</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
+                GPS-tracked mobile ICU ambulance dispatch with trained paramedic life support teams.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#BAE6FD' }}>
+                Track Ambulance <ArrowRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 4: 24/7 Diagnostics (Dark Navy Slate) */}
+            <div 
+              onClick={() => go('/labs')}
+              style={{
+                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+                color: '#ffffff',
+                borderRadius: '16px',
+                padding: '24px 20px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '160px',
+                boxShadow: '0 8px 20px rgba(15, 23, 42, 0.18)',
+                transition: 'transform 0.25s, box-shadow 0.25s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 14px 28px rgba(15, 23, 42, 0.28)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.18)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TestTube size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>24/7 Diagnostics</h3>
+              </div>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
+                100% NABL accredited lab checkups with doorstep sample collection & 24h digital reports.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#38BDF8' }}>
+                Book Lab Test <ArrowRight size={14} />
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ── Section 2: "Compassionate Care Meets Modern Medicine" (Split Feature Layout inspired by Image) ── */}
+        <section style={{ 
+          background: '#ffffff', 
+          borderRadius: '24px', 
+          padding: '40px 32px', 
+          border: '1px solid #E2E8F0', 
+          boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '36px',
+          alignItems: 'center'
+        }}>
+          {/* Left Side: Medical Team Image Showcase */}
+          <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', minHeight: '340px', boxShadow: '0 12px 30px rgba(15, 23, 42, 0.1)' }}>
+            <img 
+              src="/banner_healthcare_1.png" 
+              alt="Compassionate Care Meets Modern Medicine" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: '340px', display: 'block' }} 
+            />
+            {/* Top Left Experience Badge */}
+            <div style={{ 
+              position: 'absolute', top: '16px', left: '16px', 
+              background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
+              color: '#ffffff', padding: '8px 16px', borderRadius: '12px',
+              display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '700'
+            }}>
+              <Award size={16} style={{ color: '#00A896' }} />
+              NABH Accredited Care
+            </div>
+          </div>
+
+          {/* Right Side: Detailed Copy & Highlight Points */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ height: '2px', width: '24px', background: '#00A896', display: 'inline-block' }}></span>
+              <span style={{ fontSize: '12px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Arvaya Healthcare
+              </span>
+            </div>
+
+            <h2 style={{ fontSize: '30px', fontWeight: '800', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.02em' }}>
+              Compassionate Care Meets <span style={{ color: '#00A896' }}>Modern Medicine</span>
+            </h2>
+
+            <p style={{ fontSize: '14.5px', color: '#475569', lineHeight: 1.65 }}>
+              We bring together world-class specialists, state-of-the-art diagnostic technology, and rapid response emergency services to deliver seamless, patient-first care every day.
+            </p>
+
+            {/* 4 Feature Points Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '12px' }}>
+              
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <PhoneCall size={18} />
+                </div>
+                <div>
+                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>24/7 Ambulance</b>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>5-min rapid dispatch</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Users size={18} />
+                </div>
+                <div>
+                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>Top Specialists</b>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>35+ Specialties</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#DCFCE7', color: '#15803D', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <TestTube size={18} />
+                </div>
+                <div>
+                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>Doorstep Samples</b>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>Digital reports in 24h</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F0F9FF', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ShieldCheck size={18} />
+                </div>
+                <div>
+                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>100% Genuine</b>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>Certified medicine & lab</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div style={{ marginTop: '12px' }}>
+              <button 
+                onClick={() => go('/doctors')}
+                style={{ 
+                  padding: '12px 24px', background: '#0F172A', color: '#ffffff', 
+                  border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
+                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  boxShadow: '0 4px 14px rgba(15,23,42,0.2)', transition: 'background 0.2s' 
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#00A896'}
+                onMouseLeave={e => e.currentTarget.style.background = '#0F172A'}
+              >
+                <span>Find Your Specialist</span> <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 4: "Care Across Every Specialty" Grid ── */}
+        <section>
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 28px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+              <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                OUR DEPARTMENTS
+              </span>
+              <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
+            </div>
+            <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginBottom: '12px' }}>
+              Care Across Every <span style={{ color: '#00A896', fontStyle: 'italic' }}>Speciality</span>
+            </h2>
             <button 
               onClick={() => go("/doctors")}
               style={{ 
-                background: '#ffffff', border: '1px solid #CBD5E1', borderRadius: '99px', 
-                padding: '8px 18px', fontSize: '13px', fontWeight: '700', color: '#0F172A', 
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.03)' 
+                background: '#0F172A', border: 'none', borderRadius: '99px', 
+                padding: '8px 20px', fontSize: '13px', fontWeight: '700', color: '#ffffff', 
+                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                boxShadow: '0 4px 10px rgba(15,23,42,0.15)' 
               }}
             >
-              View All <ArrowRight size={14} />
+              View All Specialists <ArrowRight size={14} />
             </button>
           </div>
           
@@ -828,198 +781,44 @@ export default function Home() {
                 style={{ 
                   background: '#ffffff', borderRadius: '16px', padding: '20px 14px', 
                   border: '1px solid #E2E8F0', cursor: 'pointer', textAlign: 'center', 
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', 
-                  transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' 
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', 
+                  transition: 'all 0.25s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' 
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.06)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
+                  e.currentTarget.style.borderColor = spec.color;
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+                  e.currentTarget.style.borderColor = '#E2E8F0';
                 }}
               >
                 <div style={{ 
-                  width: '52px', height: '52px', borderRadius: '50%', background: spec.bg, 
+                  width: '56px', height: '56px', borderRadius: '50%', background: spec.bg, 
                   color: spec.color, display: 'flex', alignItems: 'center', justifyContent: 'center' 
                 }}>
                   {spec.icon}
                 </div>
                 <div>
-                  <b style={{ fontSize: '14px', color: '#0F172A', display: 'block', fontWeight: '700' }}>{spec.name}</b>
-                  <span style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px', display: 'block' }}>{spec.consults}</span>
+                  <b style={{ fontSize: '14.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>{spec.name}</b>
+                  <span style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', display: 'block' }}>{spec.consults}</span>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── Featured Health Packages (Display Exactly 4 Records) ── */}
-        <section style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginBottom: '4px' }}>
-                Featured Health Packages
-              </h2>
-              <p style={{ fontSize: '14px', color: '#64748B' }}>Comprehensive checkups with home sample collection</p>
-            </div>
-            <button 
-              onClick={() => go("/labs")}
-              style={{ 
-                background: '#ffffff', border: '1px solid #CBD5E1', borderRadius: '99px', 
-                padding: '8px 18px', fontSize: '13px', fontWeight: '700', color: '#0F172A', 
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.03)' 
-              }}
-            >
-              View All <ArrowRight size={14} />
-            </button>
-          </div>
-
-          <div style={{ position: 'relative', width: '100%' }}>
-            {/* Left Navigation Arrow */}
-            <button 
-              aria-label="Previous Packages"
-              style={{ 
-                position: 'absolute', top: '50%', left: '-18px', transform: 'translateY(-50%)',
-                width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
-                color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
-                boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#0F766E';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.borderColor = '#0F766E';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#0F172A';
-                e.currentTarget.style.borderColor = '#CBD5E1';
-              }}
-            >
-              <ChevronLeft size={22} />
-            </button>
-
-            {/* Right Navigation Arrow */}
-            <button 
-              aria-label="Next Packages"
-              style={{ 
-                position: 'absolute', top: '50%', right: '-18px', transform: 'translateY(-50%)',
-                width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
-                color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
-                boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#0F766E';
-                e.currentTarget.style.color = '#ffffff';
-                e.currentTarget.style.borderColor = '#0F766E';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = '#ffffff';
-                e.currentTarget.style.color = '#0F172A';
-                e.currentTarget.style.borderColor = '#CBD5E1';
-              }}
-            >
-              <ChevronRight size={22} />
-            </button>
-
-            {/* Cards Grid Container - FIXED EXACTLY 4 CARDS */}
-            <div 
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
-                gap: '20px'
-              }}
-            >
-              {apiPackages.slice(0, 4).map((pkg) => (
-                <div 
-                  key={pkg.id || pkg.title}
-                  style={{ 
-                    background: '#ffffff', borderRadius: '18px', border: '1px solid #E2E8F0', 
-                    overflow: 'hidden', display: 'flex', flexDirection: 'column', 
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)', transition: 'all 0.25s' 
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.03)';
-                  }}
-                >
-                  {/* Image Container */}
-                  <div style={{ position: 'relative', height: '140px', background: '#F1F5F9', overflow: 'hidden' }}>
-                    <img src={pkg.img} alt={pkg.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    {pkg.trend && (
-                      <span style={{ 
-                        position: 'absolute', top: '10px', left: '10px', 
-                        background: 'rgba(15, 23, 42, 0.85)', color: '#ffffff', 
-                        fontSize: '10.5px', fontWeight: '700', padding: '4px 10px', 
-                        borderRadius: '8px', backdropFilter: 'blur(4px)' 
-                      }}>
-                        {pkg.trend}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Card Body */}
-                  <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <b style={{ fontSize: '16px', color: '#0F172A', fontWeight: '800', lineHeight: 1.3, marginBottom: '8px' }}>
-                      {pkg.title}
-                    </b>
-
-                    <div style={{ 
-                      display: 'inline-flex', alignItems: 'center', gap: '4px', 
-                      background: '#DCFCE7', color: '#15803D', fontSize: '11px', 
-                      fontWeight: '700', padding: '3px 8px', borderRadius: '6px', 
-                      width: 'fit-content', marginBottom: '16px' 
-                    }}>
-                      <ShieldCheck size={13} /> {pkg.tests}
-                    </div>
-
-                    <div style={{ marginTop: 'auto', paddingTop: '12px', borderTop: '1px dashed #E2E8F0', marginBottom: '16px' }}>
-                      <span style={{ fontSize: '10px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '700', display: 'block' }}>
-                        STARTING AT
-                      </span>
-                      <span style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A' }}>
-                        {pkg.price}
-                      </span>
-                    </div>
-
-                    <button 
-                      onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id || pkg.title)}`, { state: { package: pkg } })}
-                      style={{ 
-                        width: '100%', background: '#0D5C63', color: '#ffffff', 
-                        border: 'none', padding: '10px 16px', borderRadius: '10px', 
-                        fontSize: '13px', fontWeight: '700', display: 'flex', 
-                        alignItems: 'center', justifyContent: 'center', gap: '6px', 
-                        cursor: 'pointer', transition: 'background 0.2s' 
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#0F766E'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#0D5C63'}
-                    >
-                      View Details <ArrowRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── What Our Patients Say (Exact Same White Card UI & Bottom Corner Mint Wave Overlays as How It Works) ── */}
+        {/* ── Section 6: "Care Close to You — Across Karnataka & Maharashtra" / Ecosystem Services ── */}
         <section style={{ 
-          position: 'relative',
+          position: 'relative', 
           width: '100%',
-          borderRadius: '24px',
+          borderRadius: '24px', 
           background: '#ffffff', 
           padding: '44px 32px', 
           border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
           overflow: 'hidden'
         }}>
           {/* Bottom-Left Soft Mint/Cyan Wave Overlay */}
@@ -1045,12 +844,186 @@ export default function Home() {
           </svg>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-              <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0F2930', marginBottom: '4px' }}>
-                What Our Patients Say
+            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 36px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  OUR NETWORK & PLATFORM
+                </span>
+                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
+              </div>
+              <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginTop: '4px', marginBottom: '8px' }}>
+                Your Health Ecosystem
+                 {/* — <span style={{ color: '#00A896', fontStyle: 'italic' }}>Across Karnataka & Maharashtra</span> */}
               </h2>
-              <p style={{ fontSize: '14.5px', color: '#64748B' }}>Join 1 million+ happy patients across India</p>
-              
+            </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+            
+            {/* Card 1: ABHA Hub */}
+            <div 
+              onClick={() => go("/abha")}
+              style={{ 
+                background: '#F8FAFC', borderRadius: '18px', padding: '24px', 
+                border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', 
+                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
+                transition: 'all 0.25s' 
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15,23,42,0.08)';
+                e.currentTarget.style.borderColor = '#00A896';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#E2E8F0';
+              }}
+            >
+              <div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <CreditCard size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>ABHA Hub</h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  Create & link your official ABHA ID for instant health data access across all hospital networks.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#0F766E' }}>
+                Explore <ArrowRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 2: Arvaya Rewards */}
+            <div 
+              onClick={() => go("/rewards")}
+              style={{ 
+                background: 'linear-gradient(145deg, #FFFDF5 0%, #FEF3C7 100%)', borderRadius: '18px', padding: '24px', 
+                border: '1.5px solid #FBBF24', cursor: 'pointer', display: 'flex', 
+                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
+                position: 'relative', overflow: 'hidden', transition: 'all 0.25s' 
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(245,158,11,0.2)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <span style={{ position: 'absolute', top: 0, right: 0, background: '#D97706', color: '#ffffff', fontSize: '9.5px', fontWeight: '800', padding: '4px 10px', borderRadius: '0 16px 0 10px', textTransform: 'uppercase' }}>
+                FEATURED
+              </span>
+              <div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#F59E0B', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <Gift size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#78350F', marginBottom: '6px' }}>Arvaya Rewards</h3>
+                <p style={{ fontSize: '13px', color: '#92400E', lineHeight: 1.5 }}>
+                  Earn reward points on every doctor consultation & lab checkup booking to redeem offers.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#B45309' }}>
+                Explore Rewards <ArrowRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 3: Digital Wallet */}
+            <div 
+              onClick={() => go("/wallet")}
+              style={{ 
+                background: '#F8FAFC', borderRadius: '18px', padding: '24px', 
+                border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', 
+                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
+                transition: 'all 0.25s' 
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15,23,42,0.08)';
+                e.currentTarget.style.borderColor = '#00A896';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#E2E8F0';
+              }}
+            >
+              <div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <Wallet size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>Digital Wallet</h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  Fast, secure digital payments with instant refunds guaranteed on appointment cancellations.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#0F766E' }}>
+                Explore Wallet <ArrowRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 4: Health Records */}
+            <div 
+              onClick={() => go("/records")}
+              style={{ 
+                background: '#F8FAFC', borderRadius: '18px', padding: '24px', 
+                border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', 
+                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
+                position: 'relative', overflow: 'hidden', transition: 'all 0.25s' 
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15,23,42,0.08)';
+                e.currentTarget.style.borderColor = '#00A896';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#E2E8F0';
+              }}
+            >
+              <span style={{ position: 'absolute', top: 0, right: 0, background: '#10B981', color: '#ffffff', fontSize: '9.5px', fontWeight: '800', padding: '4px 10px', borderRadius: '0 16px 0 10px', textTransform: 'uppercase' }}>
+                ENCRYPTED
+              </span>
+              <div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <FileText size={24} />
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>Health Records</h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  Your complete medical history and prescriptions, fully encrypted & accessible anytime.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#0F766E' }}>
+                View Records <ArrowRight size={14} />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+
+
+        {/* ── Section 8: "What Our Patients Say" Testimonials Slider Card ── */}
+        <section style={{ 
+          position: 'relative',
+          width: '100%'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 28px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  PATIENT TESTIMONIALS
+                </span>
+                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
+              </div>
+              <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginTop: '4px', marginBottom: '8px' }}>
+                What Our <span style={{ color: '#00A896', fontStyle: 'italic' }}>Patients Say</span>
+              </h2>
+              <p style={{ fontSize: '14.5px', color: '#64748B', margin: 0 }}>Join 1 million+ happy patients across India</p>
             </div>
 
             {/* Slider Container with Left & Right Arrow Buttons */}
@@ -1062,23 +1035,25 @@ export default function Home() {
                 aria-label="Previous Review"
                 style={{ 
                   position: 'absolute', top: '50%', left: '-18px', transform: 'translateY(-50%)',
-                  width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+                  width: '46px', height: '46px', borderRadius: '50%', background: '#ffffff',
                   color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
+                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.14)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = '#0F766E';
                   e.currentTarget.style.color = '#ffffff';
                   e.currentTarget.style.borderColor = '#0F766E';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = '#ffffff';
                   e.currentTarget.style.color = '#0F172A';
                   e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                 }}
               >
-                <ChevronLeft size={22} />
+                <ChevronLeft size={24} />
               </button>
 
               {/* Right Navigation Arrow */}
@@ -1087,23 +1062,25 @@ export default function Home() {
                 aria-label="Next Review"
                 style={{ 
                   position: 'absolute', top: '50%', right: '-18px', transform: 'translateY(-50%)',
-                  width: '44px', height: '44px', borderRadius: '50%', background: '#ffffff',
+                  width: '46px', height: '46px', borderRadius: '50%', background: '#ffffff',
                   color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.12)', transition: 'all 0.2s'
+                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.14)', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = '#0F766E';
                   e.currentTarget.style.color = '#ffffff';
                   e.currentTarget.style.borderColor = '#0F766E';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = '#ffffff';
                   e.currentTarget.style.color = '#0F172A';
                   e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                 }}
               >
-                <ChevronRight size={22} />
+                <ChevronRight size={24} />
               </button>
 
               {/* Scrollable Track - Displays ALL records from reviews */}
@@ -1125,54 +1102,99 @@ export default function Home() {
                     key={i} 
                     style={{ 
                       flex: '0 0 calc(33.333% - 14px)', 
-                      minWidth: '280px', 
+                      minWidth: '290px', 
                       scrollSnapAlign: 'start',
-                      background: '#F8FAFC', 
-                      padding: '24px', 
-                      borderRadius: '18px', 
+                      background: '#ffffff', 
+                      padding: '26px 22px', 
+                      borderRadius: '20px', 
                       border: '1px solid #E2E8F0', 
                       display: 'flex', 
                       flexDirection: 'column', 
-                      justify: 'space-between', 
-                      gap: '16px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                      transition: 'all 0.25s'
+                      justifyContent: 'space-between', 
+                      gap: '18px',
+                      boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.transform = 'translateY(-3px)';
-                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(-6px)';
+                      e.currentTarget.style.borderColor = '#00A896';
+                      e.currentTarget.style.boxShadow = '0 16px 32px rgba(0, 168, 150, 0.12)';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+                      e.currentTarget.style.borderColor = '#E2E8F0';
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.04)';
                     }}
                   >
+                    {/* Top Decorative Gradient Accent Bar */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #00A896 0%, #0D766E 100%)' }} />
+
+                    {/* Card Header: Quote Icon & Rating Stars */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ 
-                        fontSize: '34px', color: '#94A3B8', fontFamily: 'serif', lineHeight: 0.8 
+                      <div style={{ 
+                        width: '38px', height: '38px', borderRadius: '12px', 
+                        background: '#E6F4F1', color: '#0F766E', display: 'flex', 
+                        alignItems: 'center', justifyContent: 'center' 
                       }}>
-                        “
-                      </span>
+                        <Quote size={18} />
+                      </div>
+                      
+                      {/* Star Rating & Verified Pill */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          {[...Array(t.rating || 5)].map((_, starIdx) => (
+                            <Star key={starIdx} size={14} fill="#F59E0B" color="#F59E0B" />
+                          ))}
+                        </div>
+                        <span style={{ 
+                          display: 'inline-flex', alignItems: 'center', gap: '3px', 
+                          background: '#ECFDF5', color: '#047857', padding: '2px 8px', 
+                          borderRadius: '99px', fontSize: '10.5px', fontWeight: '700', 
+                          border: '1px solid #A7F3D0' 
+                        }}>
+                          <ShieldCheck size={11} /> Verified
+                        </span>
+                      </div>
                     </div>
 
-                    <p style={{ fontSize: '15px', fontWeight: '600', color: '#0F172A', fontStyle: 'normal', flex: 1, margin: 0 }}>
+                    {/* Testimonial Quote Text */}
+                    <p style={{ 
+                      fontSize: '14.5px', fontWeight: '500', color: '#334155', 
+                      lineHeight: 1.6, flex: 1, margin: 0, fontStyle: 'italic' 
+                    }}>
                       "{t.text}"
                     </p>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '14px', borderTop: '1px solid #E2E8F0', marginTop: 'auto' }}>
+                    {/* Card Footer: Patient Profile Avatar & Name */}
+                    <div style={{ 
+                      display: 'flex', alignItems: 'center', gap: '12px', 
+                      paddingTop: '16px', borderTop: '1px solid #F1F5F9', marginTop: 'auto' 
+                    }}>
                       <div style={{ 
-                        width: '38px', height: '38px', borderRadius: '50%', background: '#93C5FD', 
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                        fontWeight: '700', color: '#1E3A8A', fontSize: '14px' 
+                        width: '42px', height: '42px', borderRadius: '50%', 
+                        background: 'linear-gradient(135deg, #0F766E 0%, #00A896 100%)', 
+                        color: '#ffffff', display: 'flex', alignItems: 'center', 
+                        justifyContent: 'center', fontWeight: '800', fontSize: '15px',
+                        boxShadow: '0 4px 10px rgba(0, 168, 150, 0.25)', flexShrink: 0
                       }}>
-                        {t.name ? t.name.charAt(0) : "M"}
+                        {t.name ? t.name.charAt(0).toUpperCase() : "M"}
                       </div>
-                      <div>
-                        <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block' }}>{t.name}</b>
-                        <span style={{ fontSize: '11.5px', color: '#64748B' }}>{t.role}</span>
-                      </div>
-                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#F59E0B' }}>5.0 ★</span>
+                      <div style={{ overflow: 'hidden' }}>
+                        <b style={{ 
+                          fontSize: '14px', fontWeight: '800', color: '#0F172A', 
+                          display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+                        }}>
+                          {t.name}
+                        </b>
+                        <span style={{ 
+                          fontSize: '12px', color: '#64748B', display: 'flex', 
+                          alignItems: 'center', gap: '4px', marginTop: '1px' 
+                        }}>
+                          <MapPin size={11} style={{ color: '#00A896' }} />
+                          {t.role || "Verified Patient"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1184,7 +1206,7 @@ export default function Home() {
 
       </div>
 
-      {/* ── Get the Arvaya App CTA (Fixed Background Attached Behind Section) ── */}
+      {/* ── Section 9: "Get the Arvaya App" CTA (Fixed Background Dark Navy Banner) ── */}
       <section style={{ 
         position: 'relative', 
         width: '100%', 
@@ -1198,14 +1220,14 @@ export default function Home() {
         backgroundRepeat: 'no-repeat',
         minHeight: '380px'
       }}>
-        {/* Professional Dark Gradient Overlay */}
+        {/* Dark Navy Gradient Overlay */}
         <div style={{
           position: 'absolute',
           top: 0,
           left: 0,
           width: '100%',
           height: '100%',
-          background: 'linear-gradient(90deg, rgba(13, 56, 63, 0.92) 0%, rgba(13, 56, 63, 0.8) 50%, rgba(13, 56, 63, 0.4) 100%)',
+          background: 'linear-gradient(90deg, rgba(13, 56, 63, 0.94) 0%, rgba(13, 56, 63, 0.82) 50%, rgba(13, 56, 63, 0.45) 100%)',
           zIndex: 1
         }} />
 
@@ -1285,6 +1307,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Ambulance Modal Trigger */}
       {showAmbulanceModal && (
         <AmbulanceRequestModal onClose={() => setShowAmbulanceModal(false)} />
       )}

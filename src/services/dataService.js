@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { getImageUrl } from "./uploadService";
+import { getImageUrl, downloadFileAsset, downloadFileImage, fetchImageBlob } from "./uploadService";
 import { slots as mockSlots, packages as mockPackages } from "../mocks/data";
 const USE_MOCK = true; // Forced static data for the dashboard after login
 
@@ -355,7 +355,7 @@ export async function getBanners(filtersParam = {}) {
     const defaultFilters = [{ column: "is_active", operator: "=", value: 1 }];
     const filtersArray = buildFiltersArray(filtersParam, defaultFilters);
     const payload = {
-      filters: filtersArray
+      filter: filtersArray
     };
     const res = await api.post("/banner/get", payload);
     return res?.data || res?.result || res?.list || res || [];
@@ -364,6 +364,50 @@ export async function getBanners(filtersParam = {}) {
     return [];
   }
 }
+ 
+/**
+ * Downloads a banner image and converts the API's base64 response to an image URL
+ * that can be assigned directly to an <img> element.
+ */
+/**
+ * Downloads a banner image using /api/downloadFile
+ */
+export async function downloadBannerAsset(filename) {
+  return downloadFileAsset(filename, "bannerImages");
+}
+
+export async function downloadBannerImage(filename) {
+  return downloadFileImage(filename, "bannerImages");
+}
+
+export async function downloadDoctorAsset(filename) {
+  return downloadFileAsset(filename, "doctorProfileImage");
+}
+
+export async function downloadDoctorImage(filename) {
+  return downloadFileImage(filename, "doctorProfileImage");
+}
+
+export async function downloadPatientAsset(filename) {
+  return downloadFileAsset(filename, "patientProfileImage");
+}
+
+export async function downloadPatientImage(filename) {
+  return downloadFileImage(filename, "patientProfileImage");
+}
+
+export async function downloadFamilyAsset(filename) {
+  return downloadFileAsset(filename, "familyProfileImage");
+}
+
+export async function downloadFamilyImage(filename) {
+  return downloadFileImage(filename, "familyProfileImage");
+}
+
+export async function downloadHealthRecordAsset(filename) {
+  return downloadFileAsset(filename, "HealthRecords");
+}
+ 
 
 export async function upsertPlan(data) {
   if (USE_MOCK) return { success: true };

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,89 +8,1117 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+    rel="stylesheet" />
 </head>
+
 <body>
   <div id="root">
-    <link rel="preload" as="image" href="logo.png"/><link rel="preload" as="image" href="banner_healthcare_1.png"/><link rel="preload" as="image" href="banner_healthcare_2.png"/><link rel="preload" as="image" href="banner_healthcare_3.png"/><link rel="preload" as="image" href="checkup_fullbody.png"/><link rel="preload" as="image" href="checkup_diabetes.png"/><link rel="preload" as="image" href="checkup_heart.png"/><link rel="preload" as="image" href="checkup_thyroid.png"/><div class="app-wrapper"><header class="glass" style="position:sticky;top:0px;z-index:100"><div class="container flex justify-between items-center header-main-row" style="height:76px;padding:0 24px;gap:16px"><a class="flex items-center gap-2" style="flex-shrink:0" href="index.html" data-discover="true"><img src="logo.png" alt="Arvaya Logo" style="height:36px;width:auto"/></a><div class="header-search-bar flex-1 flex items-center" style="position:relative;max-width:600px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(255, 255, 255, 0.8);box-shadow:var(--shadow-sm);height:44px;transition:all 0.25s"><div style="position:relative;height:100%"><div class="header-location-picker flex items-center gap-1" style="padding:0 16px;border-right:1px solid var(--border);color:var(--text-main);font-size:13px;font-weight:600;cursor:pointer;background:var(--bg-app);height:100%;transition:background 0.2s;flex-shrink:0;user-select:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin text-primary" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg><span>Bangalore</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down text-muted" aria-hidden="true" style="transform:none;transition:transform 0.2s"><path d="m6 9 6 6 6-6"></path></svg></div></div><form class="flex-1 flex items-center gap-2" style="padding:0 16px;background:transparent;min-width:0;height:100%"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search text-muted" aria-hidden="true" style="flex-shrink:0"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg><input placeholder="Search doctors, specialties, lab tests..." style="border:none;background:transparent;outline:none;width:100%;font-size:14px;color:var(--text-main)" value=""/></form></div><div class="header-desktop-auth flex items-center gap-4" style="flex-shrink:0"><div class="flex items-center gap-4"><div class="flex flex-col items-end"><span class="text-muted" style="font-size:12px">Welcome,</span><span style="font-size:14px;font-weight:600;color:var(--text-main)">Rahul</span></div><button class="btn btn-secondary flex items-center gap-2" style="padding:8px 12px"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Logout</button></div></div><button class="mobile-hamburger-btn" aria-label="Toggle Navigation Menu" style="display:none;padding:8px;background:var(--bg-app);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-main);cursor:pointer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu" aria-hidden="true"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg></button></div><div style="border-top:1px solid var(--border);background:rgba(255, 255, 255, 0.3)"><div class="container flex items-center gap-6 no-scrollbar" style="height:48px;overflow-x:auto"><a aria-current="page" class="active" style="color:var(--primary);font-weight:600;font-size:14px;border-bottom:3px solid var(--primary);height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="index.html" data-discover="true">Home</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="doctors.html" data-discover="true">Consult Doctors</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="labs.html" data-discover="true">Lab Tests</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="abha.html" data-discover="true">ABHA Hub</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="records.html" data-discover="true">Patient Portal</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="wallet.html" data-discover="true">Wallet</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="rewards.html" data-discover="true">Rewards</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="analytics.html" data-discover="true">Analytics</a><a class="" style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap" href="ambulance.html" data-discover="true">🚑 Ambulance</a></div></div></header><style>
+    <link rel="preload" as="image" href="logo.png" />
+    <link rel="preload" as="image" href="banner_healthcare_1.png" />
+    <link rel="preload" as="image" href="banner_healthcare_2.png" />
+    <link rel="preload" as="image" href="banner_healthcare_3.png" />
+    <link rel="preload" as="image" href="checkup_fullbody.png" />
+    <link rel="preload" as="image" href="checkup_diabetes.png" />
+    <link rel="preload" as="image" href="checkup_heart.png" />
+    <link rel="preload" as="image" href="checkup_thyroid.png" />
+    <div class="app-wrapper">
+      <header class="glass" style="position:sticky;top:0px;z-index:100">
+        <div class="container flex justify-between items-center header-main-row"
+          style="height:76px;padding:0 24px;gap:16px"><a class="flex items-center gap-2" style="flex-shrink:0"
+            href="index.html" data-discover="true"><img src="logo.png" alt="Arvaya Logo"
+              style="height:36px;width:auto" /></a>
+          <div class="header-search-bar flex-1 flex items-center"
+            style="position:relative;max-width:600px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(255, 255, 255, 0.8);box-shadow:var(--shadow-sm);height:44px;transition:all 0.25s">
+            <div style="position:relative;height:100%">
+              <div class="header-location-picker flex items-center gap-1"
+                style="padding:0 16px;border-right:1px solid var(--border);color:var(--text-main);font-size:13px;font-weight:600;cursor:pointer;background:var(--bg-app);height:100%;transition:background 0.2s;flex-shrink:0;user-select:none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-map-pin text-primary" aria-hidden="true">
+                  <path
+                    d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+                  </path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg><span>Bangalore</span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" class="lucide lucide-chevron-down text-muted" aria-hidden="true"
+                  style="transform:none;transition:transform 0.2s">
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg></div>
+            </div>
+            <form class="flex-1 flex items-center gap-2"
+              style="padding:0 16px;background:transparent;min-width:0;height:100%"><svg
+                xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-search text-muted" aria-hidden="true" style="flex-shrink:0">
+                <path d="m21 21-4.34-4.34"></path>
+                <circle cx="11" cy="11" r="8"></circle>
+              </svg><input placeholder="Search doctors, specialties, lab tests..."
+                style="border:none;background:transparent;outline:none;width:100%;font-size:14px;color:var(--text-main)"
+                value="" /></form>
+          </div>
+          <div class="header-desktop-auth flex items-center gap-4" style="flex-shrink:0">
+            <div class="flex items-center gap-4">
+              <div class="flex flex-col items-end"><span class="text-muted" style="font-size:12px">Welcome,</span><span
+                  style="font-size:14px;font-weight:600;color:var(--text-main)">Rahul</span></div><button
+                class="btn btn-secondary flex items-center gap-2" style="padding:8px 12px"><svg
+                  xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-log-out" aria-hidden="true">
+                  <path d="m16 17 5-5-5-5"></path>
+                  <path d="M21 12H9"></path>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                </svg> Logout</button>
+            </div>
+          </div><button class="mobile-hamburger-btn" aria-label="Toggle Navigation Menu"
+            style="display:none;padding:8px;background:var(--bg-app);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-main);cursor:pointer"><svg
+              xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-menu" aria-hidden="true">
+              <path d="M4 5h16"></path>
+              <path d="M4 12h16"></path>
+              <path d="M4 19h16"></path>
+            </svg></button>
+        </div>
+        <div style="border-top:1px solid var(--border);background:rgba(255, 255, 255, 0.3)">
+          <div class="container flex items-center gap-6 no-scrollbar" style="height:48px;overflow-x:auto"><a
+              aria-current="page" class="active"
+              style="color:var(--primary);font-weight:600;font-size:14px;border-bottom:3px solid var(--primary);height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="index.html" data-discover="true">Home</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="doctors.html" data-discover="true">Consult Doctors</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="labs.html" data-discover="true">Lab Tests</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="abha.html" data-discover="true">ABHA Hub</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="records.html" data-discover="true">Patient Portal</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="wallet.html" data-discover="true">Wallet</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="rewards.html" data-discover="true">Rewards</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="analytics.html" data-discover="true">Analytics</a><a class=""
+              style="color:var(--text-main);font-weight:500;font-size:14px;border-bottom:3px solid transparent;height:100%;display:flex;align-items:center;padding:0 4px;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap"
+              href="ambulance.html" data-discover="true">🚑 Ambulance</a></div>
+        </div>
+      </header>
+      <style>
         @media (max-width: 768px) {
           .header-desktop-auth {
             display: none !important;
           }
+
           .mobile-hamburger-btn {
             display: flex !important;
           }
+
           .header-location-picker {
             padding: 0 10px !important;
             font-size: 12px !important;
           }
+
           .header-search-bar {
             max-width: 100% !important;
           }
         }
+
         @media (max-width: 520px) {
           .header-location-picker {
             display: none !important;
           }
         }
-      </style><main class="page page-enter" style="padding:0"><div style="background:linear-gradient(90deg, #b91c1c, #dc2626);color:white"><div class="container" style="display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.15)"><div style="display:flex;align-items:center;gap:8px;font-weight:bold;font-size:14px">🚨 Medical Emergency?</div><button class="btn" style="background:white;color:#dc2626;padding:6px 16px;font-size:13px;font-weight:bold;border-radius:var(--radius-full);border:none;cursor:pointer;display:flex;align-items:center;gap:6px">🚑 Call Ambulance</button></div><div style="padding:6px 0;font-size:13px;display:flex;align-items:center"><span style="font-weight:bold;padding-right:12px;border-right:1px solid rgba(255,255,255,0.3);margin-right:12px;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Updates</span><div class="ticker-wrap"><span class="ticker-content">🎉 Avail flat 20% off on all Full Body Checkups this week!  •  🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi  •  ⭐ Free consultation with our top specialists for ABHA card holders  •  🎉 Avail flat 20% off on all Full Body Checkups this week!  •  🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi  •  ⭐ Free consultation with our top specialists for ABHA card holders  •  </span></div></div></div></div><section class="home-hero-section" style="position:relative;width:100%;min-height:480px;overflow:hidden"><div style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:1;transition:opacity 1.2s ease-in-out;z-index:1"><img src="banner_healthcare_1.png" alt="Banner 1" style="width:100%;height:100%;object-fit:cover"/><div style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)"></div></div><div style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 1.2s ease-in-out;z-index:0"><img src="banner_healthcare_2.png" alt="Banner 2" style="width:100%;height:100%;object-fit:cover"/><div style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)"></div></div><div style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 1.2s ease-in-out;z-index:0"><img src="banner_healthcare_3.png" alt="Banner 3" style="width:100%;height:100%;object-fit:cover"/><div style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)"></div></div><button style="position:absolute;left:20px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:#ffffff;color:#1e293b;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:all 0.2s" aria-label="Previous Slide"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button style="position:absolute;right:20px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:#ffffff;color:#1e293b;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:all 0.2s" aria-label="Next Slide"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button><div class="container" style="position:relative;height:100%;min-height:480px;display:flex;flex-direction:column;justify-content:center;z-index:10;padding:48px 24px"><div class="animate-fade-in-up" style="max-width:640px"><span style="display:inline-flex;align-items:center;gap:8px;background:rgba(18, 51, 58, 0.7);backdrop-filter:blur(10px);color:#2dd4bf;padding:8px 18px;border-radius:99px;font-size:12px;font-weight:700;margin-bottom:20px;border:1px solid rgba(45, 212, 191, 0.4);text-transform:uppercase;letter-spacing:0.06em">✨ 15 MIN EMERGENCY RESPONSE</span><h1 class="hero-title" style="font-size:42px;font-weight:800;color:white;line-height:1.15;margin-bottom:20px;letter-spacing:-0.02em;font-family:var(--font-display)">24/7 Smart ICU Emergency &amp;<br/>Mobile Dispatch</h1><p class="hero-subtext" style="font-size:17px;color:rgba(255,255,255,0.85);margin-bottom:32px;line-height:1.6">Rapid emergency ambulance dispatch equipped with mobile life support and live tracking.</p><div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center"><button style="padding:14px 28px;font-size:15px;font-weight:700;color:#ffffff;background:linear-gradient(135deg, #FF6B00 0%, #F97316 100%);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(249, 115, 22, 0.4);transition:all 0.3s"><span>Request Ambulance</span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div></div></div><div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px"><button style="width:28px;height:10px;border-radius:5px;background:white;border:none;cursor:pointer;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"></button><button style="width:10px;height:10px;border-radius:5px;background:rgba(255, 255, 255, 0.4);border:none;cursor:pointer;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"></button><button style="width:10px;height:10px;border-radius:5px;background:rgba(255, 255, 255, 0.4);border:none;cursor:pointer;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"></button></div></section><section style="background:var(--bg-surface);padding:20px 0;border-bottom:1px solid var(--border)"><div class="container value-props-container" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px"><div class="flex items-center gap-3" style="padding:8px 0"><div style="color:var(--accent)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></div><div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">4.9/5 Rating</b><span class="text-muted" style="font-size:12px">From 1M+ Users</span></div></div><div class="flex items-center gap-3" style="padding:8px 0"><div style="color:var(--success)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg></div><div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">NABH Accredited</b><span class="text-muted" style="font-size:12px">Quality Assured</span></div></div><div class="flex items-center gap-3" style="padding:8px 0"><div style="color:var(--primary)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone-call" aria-hidden="true"><path d="M13 2a9 9 0 0 1 9 9"></path><path d="M13 6a5 5 0 0 1 5 5"></path><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></div><div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">24/7 Support</b><span class="text-muted" style="font-size:12px">Always here for you</span></div></div><div class="flex items-center gap-3" style="padding:8px 0"><div style="color:var(--accent)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pill" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg></div><div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">100% Genuine</b><span class="text-muted" style="font-size:12px">Medicines &amp; Tests</span></div></div></div></section><div class="bg-mesh-primary" style="padding:56px 0;border-bottom:1px solid var(--border)"><section class="container" style="padding:0 24px"><style>
-          .ecosystem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-          @media (max-width: 900px) { .ecosystem-grid { grid-template-columns: repeat(2, 1fr); } }
-          @media (max-width: 600px) { .ecosystem-grid { grid-template-columns: 1fr; } }
-        </style><div class="flex justify-between items-center mb-8"><div><h2 class="text-h2">Your Health Ecosystem</h2><p class="text-muted mt-2">Manage everything from one place</p></div></div><div class="ecosystem-grid"><div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up" style="padding:28px;border-top:4px solid #2E666E;animation-delay:0ms"><div style="width:56px;height:56px;border-radius:14px;background:#E4EEEF;color:#2E666E;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg></div><div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">ABHA Hub</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Create &amp; link your ABHA ID for seamless health data access</span></div><div style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#2E666E;font-size:14px;font-weight:700">Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div></div><div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up" style="padding:28px;border-top:4px solid #FB913F;animation-delay:80ms"><div style="width:56px;height:56px;border-radius:14px;background:#FEF0E2;color:#FB913F;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gift" aria-hidden="true"><path d="M12 7v14"></path><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"></path><path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"></path><rect x="3" y="7" width="18" height="4" rx="1"></rect></svg></div><div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">Arvaya Rewards</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Earn points on every booking and redeem exclusive offers</span></div><div style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#FB913F;font-size:14px;font-weight:700">Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div></div><div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up" style="padding:28px;border-top:4px solid #3D7A83;animation-delay:160ms"><div style="width:56px;height:56px;border-radius:14px;background:#E4EEEF;color:#3D7A83;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wallet" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"></path><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path></svg></div><div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">Digital Wallet</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Fast, secure payments with instant refunds guaranteed</span></div><div style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#3D7A83;font-size:14px;font-weight:700">Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div></div><div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up" style="padding:28px;border-top:4px solid #1F4F57;animation-delay:240ms"><div style="width:56px;height:56px;border-radius:14px;background:#DCE9EB;color:#1F4F57;display:flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text" aria-hidden="true"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg></div><div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">Health Records</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Your complete medical history, encrypted and always accessible</span></div><div style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#1F4F57;font-size:14px;font-weight:700">Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div></div></div></section></div><section style="padding:56px 0;background:var(--bg-surface);border-bottom:1px solid var(--border)"><div class="container" style="text-align:center"><h2 class="text-h2" style="margin-bottom:8px">How It Works</h2><p class="text-muted mb-8" style="font-size:15px">Book a doctor appointment in 3 simple steps</p><div class="how-it-works-grid" style="position:relative"><div class="how-it-works-line" style="position:absolute;top:40px;left:20%;right:20%;height:2px;background:var(--border);z-index:0"></div><div class="animate-fade-in-up" style="position:relative;z-index:1;animation-delay:0ms"><div style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46, 102, 110, 0.3);border:4px solid var(--bg-surface)"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search" aria-hidden="true"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></div><h3 style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:8px">Search</h3><p class="text-muted" style="font-size:14px;line-height:1.5;max-width:220px;margin:0 auto">Find specialists by name, specialty, or location</p></div><div class="animate-fade-in-up" style="position:relative;z-index:1;animation-delay:150ms"><div style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46, 102, 110, 0.3);border:4px solid var(--bg-surface)"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-check" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg></div><h3 style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:8px">Book</h3><p class="text-muted" style="font-size:14px;line-height:1.5;max-width:220px;margin:0 auto">Pick a convenient slot and confirm instantly</p></div><div class="animate-fade-in-up" style="position:relative;z-index:1;animation-delay:300ms"><div style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46, 102, 110, 0.3);border:4px solid var(--bg-surface)"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-stethoscope" aria-hidden="true"><path d="M11 2v2"></path><path d="M5 2v2"></path><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"></path><path d="M8 15a6 6 0 0 0 12 0v-3"></path><circle cx="20" cy="10" r="2"></circle></svg></div><h3 style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:8px">Consult</h3><p class="text-muted" style="font-size:14px;line-height:1.5;max-width:220px;margin:0 auto">Visit the clinic or join a video consultation</p></div></div></div></section><section class="container" style="padding:56px 24px"><style>
-          .specialties-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
-          @media (max-width: 900px) { .specialties-grid { grid-template-columns: repeat(3, 1fr); } }
-          @media (max-width: 600px) { .specialties-grid { grid-template-columns: repeat(2, 1fr); } }
-        </style><div class="flex justify-between items-center mb-8"><div><h2 class="text-h2">Consult Top Specialties</h2><p class="text-muted mt-2">Consult with India&#x27;s best specialists</p></div><button class="btn btn-secondary flex items-center gap-2">View All <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div><div class="specialties-grid"><div class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style="padding:24px 16px;text-align:center;animation-delay:0ms"><div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path></svg></div><b style="font-size:14px;color:var(--text-main)">Cardiology</b><span class="text-muted" style="font-size:12px">2.5k+ Consults</span></div><div class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style="padding:24px 16px;text-align:center;animation-delay:60ms"><div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain" aria-hidden="true"><path d="M12 18V5"></path><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"></path><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"></path><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"></path><path d="M18 18a4 4 0 0 0 2-7.464"></path><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"></path><path d="M6 18a4 4 0 0 1-2-7.464"></path><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"></path></svg></div><b style="font-size:14px;color:var(--text-main)">Neurology</b><span class="text-muted" style="font-size:12px">1.8k+ Consults</span></div><div class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style="padding:24px 16px;text-align:center;animation-delay:120ms"><div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-baby" aria-hidden="true"><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path><path d="M15 12h.01"></path><path d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"></path><path d="M9 12h.01"></path></svg></div><b style="font-size:14px;color:var(--text-main)">Pediatrics</b><span class="text-muted" style="font-size:12px">3.2k+ Consults</span></div><div class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style="padding:24px 16px;text-align:center;animation-delay:180ms"><div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bone" aria-hidden="true"><path d="M17 10c.7-.7 1.69 0 2.5 0a2.5 2.5 0 1 0 0-5 .5.5 0 0 1-.5-.5 2.5 2.5 0 1 0-5 0c0 .81.7 1.8 0 2.5l-7 7c-.7.7-1.69 0-2.5 0a2.5 2.5 0 0 0 0 5c.28 0 .5.22.5.5a2.5 2.5 0 1 0 5 0c0-.81-.7-1.8 0-2.5Z"></path></svg></div><b style="font-size:14px;color:var(--text-main)">Orthopedics</b><span class="text-muted" style="font-size:12px">1.4k+ Consults</span></div><div class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style="padding:24px 16px;text-align:center;animation-delay:240ms"><div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-activity" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path></svg></div><b style="font-size:14px;color:var(--text-main)">General Medicine</b><span class="text-muted" style="font-size:12px">5.1k+ Consults</span></div><div class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in" style="padding:24px 16px;text-align:center;animation-delay:300ms"><div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></div><b style="font-size:14px;color:var(--text-main)">Dermatology</b><span class="text-muted" style="font-size:12px">2.1k+ Consults</span></div></div></section><section style="padding:0 0 56px 0"><div class="container"><style>
-            .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-            @media (max-width: 1024px) { .packages-grid { grid-template-columns: repeat(2, 1fr); } }
-            @media (max-width: 600px) { .packages-grid { grid-template-columns: 1fr; } }
-          </style><div class="flex justify-between items-center mb-8"><div><h2 class="text-h2">Featured Health Packages</h2><p class="text-muted mt-2">Comprehensive checkups with home sample collection</p></div><button class="btn btn-secondary flex items-center gap-2">View All <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button></div><div class="packages-grid"><div class="card-elevated hover-glow flex flex-col animate-fade-in-up" style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:0ms"><div class="ribbon">Most Popular</div><div style="height:140px;overflow:hidden;background:var(--primary-light)"><img src="checkup_fullbody.png" alt="Full Body Checkup" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s"/></div><div style="padding:20px;display:flex;flex-direction:column;flex:1"><div class="flex justify-between items-start mb-2"><h3 style="font-size:16px;font-weight:700;line-height:1.3">Full Body Checkup</h3><div class="badge badge-accent" style="font-size:11px;flex-shrink:0">35% OFF</div></div><div style="font-size:11px;color:#c2410c;font-weight:700;margin-bottom:8px">🔥 Booked 150+ times today</div><p class="text-muted mb-4" style="font-size:13px">80+ tests included</p><div class="flex justify-between items-center mt-auto" style="padding-top:16px;border-top:1px dashed var(--border)"><div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹2,300</s><b style="font-size:20px;color:var(--text-main)">₹1,499</b></div><button class="btn btn-accent">Book</button></div></div></div><div class="card-elevated hover-glow flex flex-col animate-fade-in-up" style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:80ms"><div style="height:140px;overflow:hidden;background:var(--primary-light)"><img src="checkup_diabetes.png" alt="Diabetes Profile" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s"/></div><div style="padding:20px;display:flex;flex-direction:column;flex:1"><div class="flex justify-between items-start mb-2"><h3 style="font-size:16px;font-weight:700;line-height:1.3">Diabetes Profile</h3><div class="badge badge-accent" style="font-size:11px;flex-shrink:0">33% OFF</div></div><div style="font-size:11px;color:#c2410c;font-weight:700;margin-bottom:8px">⭐ Most Popular for Seniors</div><p class="text-muted mb-4" style="font-size:13px">30+ tests included</p><div class="flex justify-between items-center mt-auto" style="padding-top:16px;border-top:1px dashed var(--border)"><div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹1,200</s><b style="font-size:20px;color:var(--text-main)">₹799</b></div><button class="btn btn-accent">Book</button></div></div></div><div class="card-elevated hover-glow flex flex-col animate-fade-in-up" style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:160ms"><div style="height:140px;overflow:hidden;background:var(--primary-light)"><img src="checkup_heart.png" alt="Heart Health" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s"/></div><div style="padding:20px;display:flex;flex-direction:column;flex:1"><div class="flex justify-between items-start mb-2"><h3 style="font-size:16px;font-weight:700;line-height:1.3">Heart Health</h3><div class="badge badge-accent" style="font-size:11px;flex-shrink:0">33% OFF</div></div><p class="text-muted mb-4" style="font-size:13px">40+ tests included</p><div class="flex justify-between items-center mt-auto" style="padding-top:16px;border-top:1px dashed var(--border)"><div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹1,800</s><b style="font-size:20px;color:var(--text-main)">₹1,199</b></div><button class="btn btn-accent">Book</button></div></div></div><div class="card-elevated hover-glow flex flex-col animate-fade-in-up" style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:240ms"><div style="height:140px;overflow:hidden;background:var(--primary-light)"><img src="checkup_thyroid.png" alt="Thyroid Profile" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s"/></div><div style="padding:20px;display:flex;flex-direction:column;flex:1"><div class="flex justify-between items-start mb-2"><h3 style="font-size:16px;font-weight:700;line-height:1.3">Thyroid Profile</h3><div class="badge badge-accent" style="font-size:11px;flex-shrink:0">28% OFF</div></div><div style="font-size:11px;color:#c2410c;font-weight:700;margin-bottom:8px">👩‍⚕️ Recommended for Women</div><p class="text-muted mb-4" style="font-size:13px">24+ tests included</p><div class="flex justify-between items-center mt-auto" style="padding-top:16px;border-top:1px dashed var(--border)"><div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹900</s><b style="font-size:20px;color:var(--text-main)">₹649</b></div><button class="btn btn-accent">Book</button></div></div></div></div></div></section><section style="padding:56px 0;background:var(--bg-surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)"><div class="container"><div style="text-align:center;margin-bottom:48px"><h2 class="text-h2">What Our Patients Say</h2><p class="text-muted mt-2" style="font-size:15px">Join 1 million+ happy patients across India</p></div><style>
-            .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-            @media (max-width: 768px) { .testimonials-grid { grid-template-columns: 1fr; } }
-          </style><div class="testimonials-grid"><div class="card-elevated animate-fade-in-up" style="padding:28px;display:flex;flex-direction:column;gap:16px;animation-delay:0ms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote" aria-hidden="true" style="color:var(--primary-soft);transform:scaleX(-1)"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg><p style="font-size:14px;color:var(--text-main);line-height:1.7;flex:1">&quot;Booking an appointment was incredibly seamless. The doctor was available the same day and the consultation was thorough. Arvaya has become my go-to healthcare platform.&quot;</p><div style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light), var(--primary-soft));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:14px">A</div><div><b style="font-size:14px;color:var(--text-main);display:block">Ananya Reddy</b><span class="text-muted" style="font-size:12px">Bangalore</span></div><div style="margin-left:auto;display:flex;gap:2px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></div></div></div><div class="card-elevated animate-fade-in-up" style="padding:28px;display:flex;flex-direction:column;gap:16px;animation-delay:100ms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote" aria-hidden="true" style="color:var(--primary-soft);transform:scaleX(-1)"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg><p style="font-size:14px;color:var(--text-main);line-height:1.7;flex:1">&quot;The home sample collection for lab tests is a game-changer. The phlebotomist was on time, professional, and I got my reports within 24 hours. Highly recommended!&quot;</p><div style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light), var(--primary-soft));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:14px">V</div><div><b style="font-size:14px;color:var(--text-main);display:block">Vikram Singh</b><span class="text-muted" style="font-size:12px">Mumbai</span></div><div style="margin-left:auto;display:flex;gap:2px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></div></div></div><div class="card-elevated animate-fade-in-up" style="padding:28px;display:flex;flex-direction:column;gap:16px;animation-delay:200ms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-quote" aria-hidden="true" style="color:var(--primary-soft);transform:scaleX(-1)"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"></path></svg><p style="font-size:14px;color:var(--text-main);line-height:1.7;flex:1">&quot;Managing my family&#x27;s health records in one place is so convenient. The ABHA integration makes sharing records with new doctors effortless. Love this platform!&quot;</p><div style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;gap:12px"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light), var(--primary-soft));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:14px">P</div><div><b style="font-size:14px;color:var(--text-main);display:block">Priya Nair</b><span class="text-muted" style="font-size:12px">Delhi</span></div><div style="margin-left:auto;display:flex;gap:2px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></div></div></div></div></div></section><section style="padding:56px 0"><div class="container"><div class="animate-fade-in-up home-cta-card" style="background:linear-gradient(135deg, var(--primary), var(--primary-dark));border-radius:var(--radius-xl);padding:44px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 20px 40px rgba(46, 102, 110, 0.25);position:relative;overflow:hidden;flex-wrap:wrap;gap:32px"><div style="position:absolute;top:-60%;right:-5%;width:400px;height:400px;background:radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);border-radius:50%"></div><div style="position:absolute;bottom:-40%;left:-5%;width:300px;height:300px;background:radial-gradient(circle, rgba(251,145,63,0.1) 0%, transparent 70%);border-radius:50%"></div><div style="position:relative;z-index:1;max-width:480px"><span style="display:inline-block;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);padding:4px 14px;border-radius:var(--radius-full);font-size:12px;font-weight:600;margin-bottom:16px;border:1px solid rgba(255,255,255,0.15)">📱 Available on iOS &amp; Android</span><h2 style="color:white;font-size:28px;font-weight:800;margin-bottom:12px;line-height:1.2;letter-spacing:-0.02em">Get the Arvaya App</h2><p style="color:rgba(255,255,255,0.75);font-size:15px;line-height:1.6;margin-bottom:24px">Book appointments, manage health records, order medicines, and earn rewards — all from your pocket.</p><div class="flex gap-3" style="flex-wrap:wrap"><button class="btn" style="padding:14px 28px;background:white;color:var(--primary-dark);font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.15)">🍎 App Store</button><button class="btn" style="padding:14px 28px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25)">▶️ Google Play</button></div></div><div style="position:relative;z-index:1;display:flex;gap:32px;flex-wrap:wrap"><div style="text-align:center"><b style="display:block;font-size:28px;color:white;line-height:1">1M+</b><span style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">Downloads</span></div><div style="text-align:center"><b style="display:block;font-size:28px;color:white;line-height:1">4.9★</b><span style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">App Rating</span></div><div style="text-align:center"><b style="display:block;font-size:28px;color:white;line-height:1">50K+</b><span style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">Daily Users</span></div></div></div></div></section><style>
-        .how-it-works-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 48px;
-          max-width: 800px;
-          margin: 0 auto;
-        }
+      </style>
+      <main class="page page-enter" style="padding:0">
+        <div style="background:linear-gradient(90deg, #b91c1c, #dc2626);color:white">
+          <div class="container" style="display:flex;flex-direction:column">
+            <div
+              style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.15)">
+              <div style="display:flex;align-items:center;gap:8px;font-weight:bold;font-size:14px">🚨 Medical Emergency?
+              </div><button class="btn"
+                style="background:white;color:#dc2626;padding:6px 16px;font-size:13px;font-weight:bold;border-radius:var(--radius-full);border:none;cursor:pointer;display:flex;align-items:center;gap:6px">🚑
+                Call Ambulance</button>
+            </div>
+            <div style="padding:6px 0;font-size:13px;display:flex;align-items:center"><span
+                style="font-weight:bold;padding-right:12px;border-right:1px solid rgba(255,255,255,0.3);margin-right:12px;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Updates</span>
+              <div class="ticker-wrap"><span class="ticker-content">🎉 Avail flat 20% off on all Full Body Checkups this
+                  week! • 🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi • ⭐ Free consultation
+                  with our top specialists for ABHA card holders • 🎉 Avail flat 20% off on all Full Body Checkups this
+                  week! • 🏥 24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi • ⭐ Free consultation
+                  with our top specialists for ABHA card holders • </span></div>
+            </div>
+          </div>
+        </div>
+        <section class="home-hero-section" style="position:relative;width:100%;min-height:480px;overflow:hidden">
+          <div
+            style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:1;transition:opacity 1.2s ease-in-out;z-index:1">
+            <img src="banner_healthcare_1.png" alt="Banner 1" style="width:100%;height:100%;object-fit:cover" />
+            <div
+              style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)">
+            </div>
+          </div>
+          <div
+            style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 1.2s ease-in-out;z-index:0">
+            <img src="banner_healthcare_2.png" alt="Banner 2" style="width:100%;height:100%;object-fit:cover" />
+            <div
+              style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)">
+            </div>
+          </div>
+          <div
+            style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 1.2s ease-in-out;z-index:0">
+            <img src="banner_healthcare_3.png" alt="Banner 3" style="width:100%;height:100%;object-fit:cover" />
+            <div
+              style="position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)">
+            </div>
+          </div><button
+            style="position:absolute;left:20px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:#ffffff;color:#1e293b;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:all 0.2s"
+            aria-label="Previous Slide"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" class="lucide lucide-chevron-left" aria-hidden="true">
+              <path d="m15 18-6-6 6-6"></path>
+            </svg></button><button
+            style="position:absolute;right:20px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:#ffffff;color:#1e293b;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:all 0.2s"
+            aria-label="Next Slide"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-chevron-right" aria-hidden="true">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg></button>
+          <div class="container"
+            style="position:relative;height:100%;min-height:480px;display:flex;flex-direction:column;justify-content:center;z-index:10;padding:48px 24px">
+            <div class="animate-fade-in-up" style="max-width:640px"><span
+                style="display:inline-flex;align-items:center;gap:8px;background:rgba(18, 51, 58, 0.7);backdrop-filter:blur(10px);color:#2dd4bf;padding:8px 18px;border-radius:99px;font-size:12px;font-weight:700;margin-bottom:20px;border:1px solid rgba(45, 212, 191, 0.4);text-transform:uppercase;letter-spacing:0.06em">✨
+                15 MIN EMERGENCY RESPONSE</span>
+              <h1 class="hero-title"
+                style="font-size:42px;font-weight:800;color:white;line-height:1.15;margin-bottom:20px;letter-spacing:-0.02em;font-family:var(--font-display)">
+                24/7 Smart ICU Emergency &amp;<br />Mobile Dispatch</h1>
+              <p class="hero-subtext"
+                style="font-size:17px;color:rgba(255,255,255,0.85);margin-bottom:32px;line-height:1.6">Rapid emergency
+                ambulance dispatch equipped with mobile life support and live tracking.</p>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center"><button
+                  style="padding:14px 28px;font-size:15px;font-weight:700;color:#ffffff;background:linear-gradient(135deg, #FF6B00 0%, #F97316 100%);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(249, 115, 22, 0.4);transition:all 0.3s"><span>Request
+                    Ambulance</span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-arrow-right" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg></button></div>
+            </div>
+          </div>
+          <div
+            style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px">
+            <button
+              style="width:28px;height:10px;border-radius:5px;background:white;border:none;cursor:pointer;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"></button><button
+              style="width:10px;height:10px;border-radius:5px;background:rgba(255, 255, 255, 0.4);border:none;cursor:pointer;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"></button><button
+              style="width:10px;height:10px;border-radius:5px;background:rgba(255, 255, 255, 0.4);border:none;cursor:pointer;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"></button>
+          </div>
+        </section>
+        <section style="background:var(--bg-surface);padding:20px 0;border-bottom:1px solid var(--border)">
+          <div class="container value-props-container"
+            style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px">
+            <div class="flex items-center gap-3" style="padding:8px 0">
+              <div style="color:var(--accent)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true">
+                  <path
+                    d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                  </path>
+                </svg></div>
+              <div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">4.9/5 Rating</b><span
+                  class="text-muted" style="font-size:12px">From 1M+ Users</span></div>
+            </div>
+            <div class="flex items-center gap-3" style="padding:8px 0">
+              <div style="color:var(--success)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" class="lucide lucide-shield-check" aria-hidden="true">
+                  <path
+                    d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z">
+                  </path>
+                  <path d="m9 12 2 2 4-4"></path>
+                </svg></div>
+              <div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">NABH Accredited</b><span
+                  class="text-muted" style="font-size:12px">Quality Assured</span></div>
+            </div>
+            <div class="flex items-center gap-3" style="padding:8px 0">
+              <div style="color:var(--primary)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" class="lucide lucide-phone-call" aria-hidden="true">
+                  <path d="M13 2a9 9 0 0 1 9 9"></path>
+                  <path d="M13 6a5 5 0 0 1 5 5"></path>
+                  <path
+                    d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384">
+                  </path>
+                </svg></div>
+              <div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">24/7 Support</b><span
+                  class="text-muted" style="font-size:12px">Always here for you</span></div>
+            </div>
+            <div class="flex items-center gap-3" style="padding:8px 0">
+              <div style="color:var(--accent)"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" class="lucide lucide-pill" aria-hidden="true">
+                  <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path>
+                  <path d="m8.5 8.5 7 7"></path>
+                </svg></div>
+              <div class="flex flex-col"><b style="font-size:14px;color:var(--text-main)">100% Genuine</b><span
+                  class="text-muted" style="font-size:12px">Medicines &amp; Tests</span></div>
+            </div>
+          </div>
+        </section>
+        <div class="bg-mesh-primary" style="padding:56px 0;border-bottom:1px solid var(--border)">
+          <section class="container" style="padding:0 24px">
+            <style>
+              .ecosystem-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+              }
 
-        @media (max-width: 768px) {
-          .home-hero-section {
-            min-height: 420px !important;
-          }
-          .hero-title {
-            font-size: 32px !important;
-          }
-          .hero-subtext {
-            font-size: 15px !important;
-          }
+              @media (max-width: 900px) {
+                .ecosystem-grid {
+                  grid-template-columns: repeat(2, 1fr);
+                }
+              }
+
+              @media (max-width: 600px) {
+                .ecosystem-grid {
+                  grid-template-columns: 1fr;
+                }
+              }
+            </style>
+            <div class="flex justify-between items-center mb-8">
+              <div>
+                <h2 class="text-h2">Your Health Ecosystem</h2>
+                <p class="text-muted mt-2">Manage everything from one place</p>
+              </div>
+            </div>
+            <div class="ecosystem-grid">
+              <div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up"
+                style="padding:28px;border-top:4px solid #2E666E;animation-delay:0ms">
+                <div
+                  style="width:56px;height:56px;border-radius:14px;background:#E4EEEF;color:#2E666E;display:flex;align-items:center;justify-content:center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-credit-card" aria-hidden="true">
+                    <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                    <line x1="2" x2="22" y1="10" y2="10"></line>
+                  </svg></div>
+                <div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">ABHA Hub</b><span
+                    class="text-muted" style="font-size:13px;line-height:1.5;display:block">Create &amp; link your ABHA
+                    ID for seamless health data access</span></div>
+                <div
+                  style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#2E666E;font-size:14px;font-weight:700">
+                  Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-arrow-right" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg></div>
+              </div>
+              <div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up"
+                style="padding:28px;border-top:4px solid #FB913F;animation-delay:80ms">
+                <div
+                  style="width:56px;height:56px;border-radius:14px;background:#FEF0E2;color:#FB913F;display:flex;align-items:center;justify-content:center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-gift" aria-hidden="true">
+                    <path d="M12 7v14"></path>
+                    <path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"></path>
+                    <path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"></path>
+                    <rect x="3" y="7" width="18" height="4" rx="1"></rect>
+                  </svg></div>
+                <div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">Arvaya
+                    Rewards</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Earn points
+                    on every booking and redeem exclusive offers</span></div>
+                <div
+                  style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#FB913F;font-size:14px;font-weight:700">
+                  Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-arrow-right" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg></div>
+              </div>
+              <div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up"
+                style="padding:28px;border-top:4px solid #3D7A83;animation-delay:160ms">
+                <div
+                  style="width:56px;height:56px;border-radius:14px;background:#E4EEEF;color:#3D7A83;display:flex;align-items:center;justify-content:center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-wallet" aria-hidden="true">
+                    <path
+                      d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1">
+                    </path>
+                    <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path>
+                  </svg></div>
+                <div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">Digital
+                    Wallet</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Fast, secure
+                    payments with instant refunds guaranteed</span></div>
+                <div
+                  style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#3D7A83;font-size:14px;font-weight:700">
+                  Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-arrow-right" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg></div>
+              </div>
+              <div class="card-elevated hover-glow flex flex-col gap-4 cursor-pointer animate-fade-in-up"
+                style="padding:28px;border-top:4px solid #1F4F57;animation-delay:240ms">
+                <div
+                  style="width:56px;height:56px;border-radius:14px;background:#DCE9EB;color:#1F4F57;display:flex;align-items:center;justify-content:center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-file-text" aria-hidden="true">
+                    <path
+                      d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z">
+                    </path>
+                    <path d="M14 2v5a1 1 0 0 0 1 1h5"></path>
+                    <path d="M10 9H8"></path>
+                    <path d="M16 13H8"></path>
+                    <path d="M16 17H8"></path>
+                  </svg></div>
+                <div><b style="font-size:17px;display:block;margin-bottom:6px;color:var(--text-main)">Health
+                    Records</b><span class="text-muted" style="font-size:13px;line-height:1.5;display:block">Your
+                    complete medical history, encrypted and always accessible</span></div>
+                <div
+                  style="margin-top:auto;display:flex;align-items:center;gap:4px;color:#1F4F57;font-size:14px;font-weight:700">
+                  Explore <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-arrow-right" aria-hidden="true">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg></div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <section style="padding:56px 0;background:var(--bg-surface);border-bottom:1px solid var(--border)">
+          <div class="container" style="text-align:center">
+            <h2 class="text-h2" style="margin-bottom:8px">How It Works</h2>
+            <p class="text-muted mb-8" style="font-size:15px">Book a doctor appointment in 3 simple steps</p>
+            <div class="how-it-works-grid" style="position:relative">
+              <div class="how-it-works-line"
+                style="position:absolute;top:40px;left:20%;right:20%;height:2px;background:var(--border);z-index:0">
+              </div>
+              <div class="animate-fade-in-up" style="position:relative;z-index:1;animation-delay:0ms">
+                <div
+                  style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46, 102, 110, 0.3);border:4px solid var(--bg-surface)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-search" aria-hidden="true">
+                    <path d="m21 21-4.34-4.34"></path>
+                    <circle cx="11" cy="11" r="8"></circle>
+                  </svg></div>
+                <h3 style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:8px">Search</h3>
+                <p class="text-muted" style="font-size:14px;line-height:1.5;max-width:220px;margin:0 auto">Find
+                  specialists by name, specialty, or location</p>
+              </div>
+              <div class="animate-fade-in-up" style="position:relative;z-index:1;animation-delay:150ms">
+                <div
+                  style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46, 102, 110, 0.3);border:4px solid var(--bg-surface)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-calendar-check" aria-hidden="true">
+                    <path d="M8 2v4"></path>
+                    <path d="M16 2v4"></path>
+                    <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                    <path d="M3 10h18"></path>
+                    <path d="m9 16 2 2 4-4"></path>
+                  </svg></div>
+                <h3 style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:8px">Book</h3>
+                <p class="text-muted" style="font-size:14px;line-height:1.5;max-width:220px;margin:0 auto">Pick a
+                  convenient slot and confirm instantly</p>
+              </div>
+              <div class="animate-fade-in-up" style="position:relative;z-index:1;animation-delay:300ms">
+                <div
+                  style="width:80px;height:80px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(46, 102, 110, 0.3);border:4px solid var(--bg-surface)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-stethoscope" aria-hidden="true">
+                    <path d="M11 2v2"></path>
+                    <path d="M5 2v2"></path>
+                    <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"></path>
+                    <path d="M8 15a6 6 0 0 0 12 0v-3"></path>
+                    <circle cx="20" cy="10" r="2"></circle>
+                  </svg></div>
+                <h3 style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:8px">Consult</h3>
+                <p class="text-muted" style="font-size:14px;line-height:1.5;max-width:220px;margin:0 auto">Visit the
+                  clinic or join a video consultation</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="container" style="padding:56px 24px">
+          <style>
+            .specialties-grid {
+              display: grid;
+              grid-template-columns: repeat(6, 1fr);
+              gap: 20px;
+            }
+
+            @media (max-width: 900px) {
+              .specialties-grid {
+                grid-template-columns: repeat(3, 1fr);
+              }
+            }
+
+            @media (max-width: 600px) {
+              .specialties-grid {
+                grid-template-columns: repeat(2, 1fr);
+              }
+            }
+          </style>
+          <div class="flex justify-between items-center mb-8">
+            <div>
+              <h2 class="text-h2">Consult Top Specialties</h2>
+              <p class="text-muted mt-2">Consult with India&#x27;s best specialists</p>
+            </div><button class="btn btn-secondary flex items-center gap-2">View All <svg
+                xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-arrow-right" aria-hidden="true">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg></button>
+          </div>
+          <div class="specialties-grid">
+            <div
+              class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in"
+              style="padding:24px 16px;text-align:center;animation-delay:0ms">
+              <div
+                style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-heart" aria-hidden="true">
+                  <path
+                    d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5">
+                  </path>
+                </svg></div><b style="font-size:14px;color:var(--text-main)">Cardiology</b><span class="text-muted"
+                style="font-size:12px">2.5k+ Consults</span>
+            </div>
+            <div
+              class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in"
+              style="padding:24px 16px;text-align:center;animation-delay:60ms">
+              <div
+                style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-brain" aria-hidden="true">
+                  <path d="M12 18V5"></path>
+                  <path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"></path>
+                  <path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"></path>
+                  <path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"></path>
+                  <path d="M18 18a4 4 0 0 0 2-7.464"></path>
+                  <path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"></path>
+                  <path d="M6 18a4 4 0 0 1-2-7.464"></path>
+                  <path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"></path>
+                </svg></div><b style="font-size:14px;color:var(--text-main)">Neurology</b><span class="text-muted"
+                style="font-size:12px">1.8k+ Consults</span>
+            </div>
+            <div
+              class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in"
+              style="padding:24px 16px;text-align:center;animation-delay:120ms">
+              <div
+                style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-baby" aria-hidden="true">
+                  <path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
+                  <path d="M15 12h.01"></path>
+                  <path
+                    d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1">
+                  </path>
+                  <path d="M9 12h.01"></path>
+                </svg></div><b style="font-size:14px;color:var(--text-main)">Pediatrics</b><span class="text-muted"
+                style="font-size:12px">3.2k+ Consults</span>
+            </div>
+            <div
+              class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in"
+              style="padding:24px 16px;text-align:center;animation-delay:180ms">
+              <div
+                style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-bone" aria-hidden="true">
+                  <path
+                    d="M17 10c.7-.7 1.69 0 2.5 0a2.5 2.5 0 1 0 0-5 .5.5 0 0 1-.5-.5 2.5 2.5 0 1 0-5 0c0 .81.7 1.8 0 2.5l-7 7c-.7.7-1.69 0-2.5 0a2.5 2.5 0 0 0 0 5c.28 0 .5.22.5.5a2.5 2.5 0 1 0 5 0c0-.81-.7-1.8 0-2.5Z">
+                  </path>
+                </svg></div><b style="font-size:14px;color:var(--text-main)">Orthopedics</b><span class="text-muted"
+                style="font-size:12px">1.4k+ Consults</span>
+            </div>
+            <div
+              class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in"
+              style="padding:24px 16px;text-align:center;animation-delay:240ms">
+              <div
+                style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-activity" aria-hidden="true">
+                  <path
+                    d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2">
+                  </path>
+                </svg></div><b style="font-size:14px;color:var(--text-main)">General Medicine</b><span
+                class="text-muted" style="font-size:12px">5.1k+ Consults</span>
+            </div>
+            <div
+              class="card-elevated hover-glow flex flex-col items-center justify-center gap-3 cursor-pointer animate-scale-in"
+              style="padding:24px 16px;text-align:center;animation-delay:300ms">
+              <div
+                style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;transition:all 0.3s">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-eye" aria-hidden="true">
+                  <path
+                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0">
+                  </path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg></div><b style="font-size:14px;color:var(--text-main)">Dermatology</b><span class="text-muted"
+                style="font-size:12px">2.1k+ Consults</span>
+            </div>
+          </div>
+        </section>
+        <section style="padding:0 0 56px 0">
+          <div class="container">
+            <style>
+              .packages-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+              }
+
+              @media (max-width: 1024px) {
+                .packages-grid {
+                  grid-template-columns: repeat(2, 1fr);
+                }
+              }
+
+              @media (max-width: 600px) {
+                .packages-grid {
+                  grid-template-columns: 1fr;
+                }
+              }
+            </style>
+            <div class="flex justify-between items-center mb-8">
+              <div>
+                <h2 class="text-h2">Featured Health Packages</h2>
+                <p class="text-muted mt-2">Comprehensive checkups with home sample collection</p>
+              </div><button class="btn btn-secondary flex items-center gap-2">View All <svg
+                  xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-arrow-right" aria-hidden="true">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg></button>
+            </div>
+            <div class="packages-grid">
+              <div class="card-elevated hover-glow flex flex-col animate-fade-in-up"
+                style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:0ms">
+                <div class="ribbon">Most Popular</div>
+                <div style="height:140px;overflow:hidden;background:var(--primary-light)"><img
+                    src="checkup_fullbody.png" alt="Full Body Checkup"
+                    style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" /></div>
+                <div style="padding:20px;display:flex;flex-direction:column;flex:1">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 style="font-size:16px;font-weight:700;line-height:1.3">Full Body Checkup</h3>
+                    <div class="badge badge-accent" style="font-size:11px;flex-shrink:0">35% OFF</div>
+                  </div>
+                  <div style="font-size:11px;color:#c2410c;font-weight:700;margin-bottom:8px">🔥 Booked 150+ times today
+                  </div>
+                  <p class="text-muted mb-4" style="font-size:13px">80+ tests included</p>
+                  <div class="flex justify-between items-center mt-auto"
+                    style="padding-top:16px;border-top:1px dashed var(--border)">
+                    <div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹2,300</s><b
+                        style="font-size:20px;color:var(--text-main)">₹1,499</b></div><button
+                      class="btn btn-accent">Book</button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-elevated hover-glow flex flex-col animate-fade-in-up"
+                style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:80ms">
+                <div style="height:140px;overflow:hidden;background:var(--primary-light)"><img
+                    src="checkup_diabetes.png" alt="Diabetes Profile"
+                    style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" /></div>
+                <div style="padding:20px;display:flex;flex-direction:column;flex:1">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 style="font-size:16px;font-weight:700;line-height:1.3">Diabetes Profile</h3>
+                    <div class="badge badge-accent" style="font-size:11px;flex-shrink:0">33% OFF</div>
+                  </div>
+                  <div style="font-size:11px;color:#c2410c;font-weight:700;margin-bottom:8px">⭐ Most Popular for Seniors
+                  </div>
+                  <p class="text-muted mb-4" style="font-size:13px">30+ tests included</p>
+                  <div class="flex justify-between items-center mt-auto"
+                    style="padding-top:16px;border-top:1px dashed var(--border)">
+                    <div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹1,200</s><b
+                        style="font-size:20px;color:var(--text-main)">₹799</b></div><button
+                      class="btn btn-accent">Book</button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-elevated hover-glow flex flex-col animate-fade-in-up"
+                style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:160ms">
+                <div style="height:140px;overflow:hidden;background:var(--primary-light)"><img src="checkup_heart.png"
+                    alt="Heart Health" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" />
+                </div>
+                <div style="padding:20px;display:flex;flex-direction:column;flex:1">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 style="font-size:16px;font-weight:700;line-height:1.3">Heart Health</h3>
+                    <div class="badge badge-accent" style="font-size:11px;flex-shrink:0">33% OFF</div>
+                  </div>
+                  <p class="text-muted mb-4" style="font-size:13px">40+ tests included</p>
+                  <div class="flex justify-between items-center mt-auto"
+                    style="padding-top:16px;border-top:1px dashed var(--border)">
+                    <div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹1,800</s><b
+                        style="font-size:20px;color:var(--text-main)">₹1,199</b></div><button
+                      class="btn btn-accent">Book</button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-elevated hover-glow flex flex-col animate-fade-in-up"
+                style="padding:0;height:100%;overflow:hidden;position:relative;animation-delay:240ms">
+                <div style="height:140px;overflow:hidden;background:var(--primary-light)"><img src="checkup_thyroid.png"
+                    alt="Thyroid Profile" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s" />
+                </div>
+                <div style="padding:20px;display:flex;flex-direction:column;flex:1">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 style="font-size:16px;font-weight:700;line-height:1.3">Thyroid Profile</h3>
+                    <div class="badge badge-accent" style="font-size:11px;flex-shrink:0">28% OFF</div>
+                  </div>
+                  <div style="font-size:11px;color:#c2410c;font-weight:700;margin-bottom:8px">👩‍⚕️ Recommended for
+                    Women</div>
+                  <p class="text-muted mb-4" style="font-size:13px">24+ tests included</p>
+                  <div class="flex justify-between items-center mt-auto"
+                    style="padding-top:16px;border-top:1px dashed var(--border)">
+                    <div class="flex flex-col"><s class="text-muted" style="font-size:12px">₹900</s><b
+                        style="font-size:20px;color:var(--text-main)">₹649</b></div><button
+                      class="btn btn-accent">Book</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          style="padding:56px 0;background:var(--bg-surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+          <div class="container">
+            <div style="text-align:center;margin-bottom:48px">
+              <h2 class="text-h2">What Our Patients Say</h2>
+              <p class="text-muted mt-2" style="font-size:15px">Join 1 million+ happy patients across India</p>
+            </div>
+            <style>
+              .testimonials-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+              }
+
+              @media (max-width: 768px) {
+                .testimonials-grid {
+                  grid-template-columns: 1fr;
+                }
+              }
+            </style>
+            <div class="testimonials-grid">
+              <div class="card-elevated animate-fade-in-up"
+                style="padding:28px;display:flex;flex-direction:column;gap:16px;animation-delay:0ms"><svg
+                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-quote" aria-hidden="true" style="color:var(--primary-soft);transform:scaleX(-1)">
+                  <path
+                    d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z">
+                  </path>
+                  <path
+                    d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z">
+                  </path>
+                </svg>
+                <p style="font-size:14px;color:var(--text-main);line-height:1.7;flex:1">&quot;Booking an appointment was
+                  incredibly seamless. The doctor was available the same day and the consultation was thorough. Arvaya
+                  has become my go-to healthcare platform.&quot;</p>
+                <div
+                  style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;gap:12px">
+                  <div
+                    style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light), var(--primary-soft));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:14px">
+                    A</div>
+                  <div><b style="font-size:14px;color:var(--text-main);display:block">Ananya Reddy</b><span
+                      class="text-muted" style="font-size:12px">Bangalore</span></div>
+                  <div style="margin-left:auto;display:flex;gap:2px"><svg xmlns="http://www.w3.org/2000/svg" width="14"
+                      height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg></div>
+                </div>
+              </div>
+              <div class="card-elevated animate-fade-in-up"
+                style="padding:28px;display:flex;flex-direction:column;gap:16px;animation-delay:100ms"><svg
+                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-quote" aria-hidden="true" style="color:var(--primary-soft);transform:scaleX(-1)">
+                  <path
+                    d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z">
+                  </path>
+                  <path
+                    d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z">
+                  </path>
+                </svg>
+                <p style="font-size:14px;color:var(--text-main);line-height:1.7;flex:1">&quot;The home sample collection
+                  for lab tests is a game-changer. The phlebotomist was on time, professional, and I got my reports
+                  within 24 hours. Highly recommended!&quot;</p>
+                <div
+                  style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;gap:12px">
+                  <div
+                    style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light), var(--primary-soft));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:14px">
+                    V</div>
+                  <div><b style="font-size:14px;color:var(--text-main);display:block">Vikram Singh</b><span
+                      class="text-muted" style="font-size:12px">Mumbai</span></div>
+                  <div style="margin-left:auto;display:flex;gap:2px"><svg xmlns="http://www.w3.org/2000/svg" width="14"
+                      height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg></div>
+                </div>
+              </div>
+              <div class="card-elevated animate-fade-in-up"
+                style="padding:28px;display:flex;flex-direction:column;gap:16px;animation-delay:200ms"><svg
+                  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-quote" aria-hidden="true" style="color:var(--primary-soft);transform:scaleX(-1)">
+                  <path
+                    d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z">
+                  </path>
+                  <path
+                    d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z">
+                  </path>
+                </svg>
+                <p style="font-size:14px;color:var(--text-main);line-height:1.7;flex:1">&quot;Managing my family&#x27;s
+                  health records in one place is so convenient. The ABHA integration makes sharing records with new
+                  doctors effortless. Love this platform!&quot;</p>
+                <div
+                  style="border-top:1px solid var(--border);padding-top:16px;display:flex;align-items:center;gap:12px">
+                  <div
+                    style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--primary-light), var(--primary-soft));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:14px">
+                    P</div>
+                  <div><b style="font-size:14px;color:var(--text-main);display:block">Priya Nair</b><span
+                      class="text-muted" style="font-size:12px">Delhi</span></div>
+                  <div style="margin-left:auto;display:flex;gap:2px"><svg xmlns="http://www.w3.org/2000/svg" width="14"
+                      height="14" viewBox="0 0 24 24" fill="#FBBF24" stroke="#FBBF24" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="#FBBF24" stroke="#FBBF24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-star" aria-hidden="true">
+                      <path
+                        d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z">
+                      </path>
+                    </svg></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section style="padding:56px 0">
+          <div class="container">
+            <div class="animate-fade-in-up home-cta-card"
+              style="background:linear-gradient(135deg, var(--primary), var(--primary-dark));border-radius:var(--radius-xl);padding:44px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 20px 40px rgba(46, 102, 110, 0.25);position:relative;overflow:hidden;flex-wrap:wrap;gap:32px">
+              <div
+                style="position:absolute;top:-60%;right:-5%;width:400px;height:400px;background:radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);border-radius:50%">
+              </div>
+              <div
+                style="position:absolute;bottom:-40%;left:-5%;width:300px;height:300px;background:radial-gradient(circle, rgba(251,145,63,0.1) 0%, transparent 70%);border-radius:50%">
+              </div>
+              <div style="position:relative;z-index:1;max-width:480px"><span
+                  style="display:inline-block;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.9);padding:4px 14px;border-radius:var(--radius-full);font-size:12px;font-weight:600;margin-bottom:16px;border:1px solid rgba(255,255,255,0.15)">📱
+                  Available on iOS &amp; Android</span>
+                <h2
+                  style="color:white;font-size:28px;font-weight:800;margin-bottom:12px;line-height:1.2;letter-spacing:-0.02em">
+                  Get the Arvaya App</h2>
+                <p style="color:rgba(255,255,255,0.75);font-size:15px;line-height:1.6;margin-bottom:24px">Book
+                  appointments, manage health records, order medicines, and earn rewards — all from your pocket.</p>
+                <div class="flex gap-3" style="flex-wrap:wrap"><button class="btn"
+                    style="padding:14px 28px;background:white;color:var(--primary-dark);font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.15)">🍎
+                    App Store</button><button class="btn"
+                    style="padding:14px 28px;background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25)">▶️
+                    Google Play</button></div>
+              </div>
+              <div style="position:relative;z-index:1;display:flex;gap:32px;flex-wrap:wrap">
+                <div style="text-align:center"><b
+                    style="display:block;font-size:28px;color:white;line-height:1">1M+</b><span
+                    style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">Downloads</span></div>
+                <div style="text-align:center"><b
+                    style="display:block;font-size:28px;color:white;line-height:1">4.9★</b><span
+                    style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">App Rating</span></div>
+                <div style="text-align:center"><b
+                    style="display:block;font-size:28px;color:white;line-height:1">50K+</b><span
+                    style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">Daily Users</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <style>
           .how-it-works-grid {
-            grid-template-columns: 1fr !important;
-            gap: 32px !important;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            max-width: 800px;
+            margin: 0 auto;
           }
-          .how-it-works-line {
-            display: none !important;
-          }
-          .home-cta-card {
-            padding: 28px !important;
-            flex-direction: column !important;
-            align-items: flex-start !important;
-          }
-        }
 
-        @media (max-width: 480px) {
-          .hero-title {
-            font-size: 26px !important;
+          @media (max-width: 768px) {
+            .home-hero-section {
+              min-height: 420px !important;
+            }
+
+            .hero-title {
+              font-size: 32px !important;
+            }
+
+            .hero-subtext {
+              font-size: 15px !important;
+            }
+
+            .how-it-works-grid {
+              grid-template-columns: 1fr !important;
+              gap: 32px !important;
+            }
+
+            .how-it-works-line {
+              display: none !important;
+            }
+
+            .home-cta-card {
+              padding: 28px !important;
+              flex-direction: column !important;
+              align-items: flex-start !important;
+            }
           }
-        }
-      </style></main><footer style="background:var(--bg-surface);border-top:1px solid var(--border);padding-top:64px;padding-bottom:0"><style>
-        .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; }
-        @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
-      </style><div class="container"><div class="footer-grid" style="margin-bottom:48px"><div class="flex flex-col gap-4"><img src="logo.png" alt="Arvaya" style="height:40px;width:fit-content"/><p style="font-size:13px;line-height:1.7;max-width:280px;color:var(--text-muted)">India&#x27;s most trusted healthcare platform. Connecting you with top doctors, diagnostic centers, and pharmacies across the country.</p><div class="flex flex-col gap-2 mt-4" style="font-size:13px;color:var(--text-muted)"><span class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin" aria-hidden="true" style="color:var(--primary)"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg> 123 Healthcare Ave, Bangalore, 560001</span><span class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone" aria-hidden="true" style="color:var(--primary)"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg> +91 1800-123-4567</span><span class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail" aria-hidden="true" style="color:var(--primary)"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg> support@arvaya.health</span></div><div class="flex gap-3 mt-4"><a href="#" style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg></a><a href="#" style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg></a><a href="#" style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2m-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5M12 7a5 5 0 110 10 5 5 0 010-10m0 2a3 3 0 100 6 3 3 0 000-6z"></path></svg></a><a href="#" style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 2a2 2 0 110 4 2 2 0 010-4z"></path></svg></a></div></div><div><h3 style="color:var(--text-main);font-size:16px;font-weight:700;margin-bottom:20px">For Patients</h3><div class="flex flex-col gap-3" style="font-size:14px"><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Home</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="doctors.html" data-discover="true">Consult Doctors</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="labs.html" data-discover="true">Lab Tests</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="abha.html" data-discover="true">ABHA Hub</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="records.html" data-discover="true">Patient Portal</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="wallet.html" data-discover="true">Wallet</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="rewards.html" data-discover="true">Rewards</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="analytics.html" data-discover="true">Analytics</a></div></div><div><h3 style="color:var(--text-main);font-size:16px;font-weight:700;margin-bottom:20px">For Providers</h3><div class="flex flex-col gap-3" style="font-size:14px"><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Arvaya Profile</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">For Clinics</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Ray by Arvaya</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Arvaya Pro</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Arvaya Reach</a></div></div><div><h3 style="color:var(--text-main);font-size:16px;font-weight:700;margin-bottom:20px">Corporate</h3><div class="flex flex-col gap-3" style="font-size:14px;margin-bottom:24px"><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">About Us</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Careers</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Blog</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Press</a><a style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html" data-discover="true">Contact Us</a></div><div style="margin-top:8px"><h4 style="color:var(--text-main);font-size:14px;font-weight:700;margin-bottom:12px">Stay Updated</h4><div style="display:flex;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)"><input type="email" placeholder="Your email" style="flex:1;padding:10px 12px;border:none;background:var(--bg-app);color:var(--text-main);font-size:13px;outline:none" value=""/><button style="background:var(--primary);color:#fff;border:none;padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg></button></div></div></div></div><div style="border-top:1px solid var(--border);padding:24px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px"><p style="font-size:13px;color:var(--text-muted)">© 2026 Arvaya Healthcare. All rights reserved.</p><div class="flex gap-6" style="font-size:13px"><a style="color:var(--text-muted);transition:color 0.2s" href="index.html" data-discover="true">Terms &amp; Conditions</a><a style="color:var(--text-muted);transition:color 0.2s" href="index.html" data-discover="true">Privacy Policy</a><a style="color:var(--text-muted);transition:color 0.2s" href="index.html" data-discover="true">Refund Policy</a></div></div></div></footer></div>
+
+          @media (max-width: 480px) {
+            .hero-title {
+              font-size: 26px !important;
+            }
+          }
+        </style>
+      </main>
+      <footer style="background:var(--bg-surface);border-top:1px solid var(--border);padding-top:64px;padding-bottom:0">
+        <style>
+          .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 32px;
+          }
+
+          @media (max-width: 900px) {
+            .footer-grid {
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .footer-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        </style>
+        <div class="container">
+          <div class="footer-grid" style="margin-bottom:48px">
+            <div class="flex flex-col gap-4"><img src="logo.png" alt="Arvaya" style="height:40px;width:fit-content" />
+              <p style="font-size:13px;line-height:1.7;max-width:280px;color:var(--text-muted)">India&#x27;s most
+                trusted healthcare platform. Connecting you with top doctors, diagnostic centers, and pharmacies across
+                the country.</p>
+              <div class="flex flex-col gap-2 mt-4" style="font-size:13px;color:var(--text-muted)"><span
+                  class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" class="lucide lucide-map-pin" aria-hidden="true"
+                    style="color:var(--primary)">
+                    <path
+                      d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0">
+                    </path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg> 123 Healthcare Ave, Bangalore, 560001</span><span class="flex items-center gap-2"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-phone" aria-hidden="true" style="color:var(--primary)">
+                    <path
+                      d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384">
+                    </path>
+                  </svg> +91 1800-123-4567</span><span class="flex items-center gap-2"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-mail" aria-hidden="true" style="color:var(--primary)">
+                    <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path>
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  </svg> support@arvaya.health</span></div>
+              <div class="flex gap-3 mt-4"><a href="#"
+                  style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg
+                    viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                    <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path>
+                  </svg></a><a href="#"
+                  style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg
+                    viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                    <path
+                      d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z">
+                    </path>
+                  </svg></a><a href="#"
+                  style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg
+                    viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                    <path
+                      d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2m-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5M12 7a5 5 0 110 10 5 5 0 010-10m0 2a3 3 0 100 6 3 3 0 000-6z">
+                    </path>
+                  </svg></a><a href="#"
+                  style="width:36px;height:36px;border-radius:50%;background:var(--bg-app);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:all 0.25s"><svg
+                    viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                    <path
+                      d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 2a2 2 0 110 4 2 2 0 010-4z">
+                    </path>
+                  </svg></a></div>
+            </div>
+            <div>
+              <h3 style="color:var(--text-main);font-size:16px;font-weight:700;margin-bottom:20px">For Patients</h3>
+              <div class="flex flex-col gap-3" style="font-size:14px"><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Home</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="doctors.html"
+                  data-discover="true">Consult Doctors</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="labs.html"
+                  data-discover="true">Lab Tests</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="abha.html"
+                  data-discover="true">ABHA Hub</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="records.html"
+                  data-discover="true">Patient Portal</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="wallet.html"
+                  data-discover="true">Wallet</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="rewards.html"
+                  data-discover="true">Rewards</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="analytics.html"
+                  data-discover="true">Analytics</a></div>
+            </div>
+            <div>
+              <h3 style="color:var(--text-main);font-size:16px;font-weight:700;margin-bottom:20px">For Providers</h3>
+              <div class="flex flex-col gap-3" style="font-size:14px"><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Arvaya Profile</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">For Clinics</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Ray by Arvaya</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Arvaya Pro</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Arvaya Reach</a></div>
+            </div>
+            <div>
+              <h3 style="color:var(--text-main);font-size:16px;font-weight:700;margin-bottom:20px">Corporate</h3>
+              <div class="flex flex-col gap-3" style="font-size:14px;margin-bottom:24px"><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">About Us</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Careers</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Blog</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Press</a><a
+                  style="color:var(--text-muted);transition:all 0.2s;display:inline-block" href="index.html"
+                  data-discover="true">Contact Us</a></div>
+              <div style="margin-top:8px">
+                <h4 style="color:var(--text-main);font-size:14px;font-weight:700;margin-bottom:12px">Stay Updated</h4>
+                <div style="display:flex;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)">
+                  <input type="email" placeholder="Your email"
+                    style="flex:1;padding:10px 12px;border:none;background:var(--bg-app);color:var(--text-main);font-size:13px;outline:none"
+                    value="" /><button
+                    style="background:var(--primary);color:#fff;border:none;padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s"><svg
+                      xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="lucide lucide-send" aria-hidden="true">
+                      <path
+                        d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z">
+                      </path>
+                      <path d="m21.854 2.147-10.94 10.939"></path>
+                    </svg></button></div>
+              </div>
+            </div>
+          </div>
+          <div
+            style="border-top:1px solid var(--border);padding:24px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+            <p style="font-size:13px;color:var(--text-muted)">© 2026 Arvaya Healthcare. All rights reserved.</p>
+            <div class="flex gap-6" style="font-size:13px"><a style="color:var(--text-muted);transition:color 0.2s"
+                href="index.html" data-discover="true">Terms &amp; Conditions</a><a
+                style="color:var(--text-muted);transition:color 0.2s" href="index.html" data-discover="true">Privacy
+                Policy</a><a style="color:var(--text-muted);transition:color 0.2s" href="index.html"
+                data-discover="true">Refund Policy</a></div>
+          </div>
+        </div>
+      </footer>
+    </div>
   </div>
 
   <!-- Universal Static Interactive Script: Exact React Flow & State Replication -->
@@ -349,4 +1378,5 @@
     });
   </script>
 </body>
+
 </html>
