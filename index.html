@@ -5,13 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arvaya | Your Health, Our Priority</title>
   <meta name="description" content="India's most trusted healthcare platform. Book top doctors, order lab tests with home collection, store health records securely, and manage your ABHA ID — all in one place." />
+  <meta name="keywords" content="Arvaya healthcare, book doctors online, lab tests home collection, health records, ABHA ID, telemedicine India" />
+  <meta name="author" content="Arvaya Healthcare" />
+  <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#2E666E" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://arvaya.health/" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="Arvaya Healthcare — Your Health, Our Priority" />
   <meta property="og:description" content="Book top doctors, order lab tests, and manage health records securely on India's #1 healthcare platform." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://arvaya.health/" />
   <meta property="og:image" content="/logo.png" />
+  <meta property="og:image:alt" content="Arvaya Healthcare Logo" />
+  <meta property="og:site_name" content="Arvaya Healthcare" />
+  <meta property="og:locale" content="en_IN" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Arvaya Healthcare — Your Health, Our Priority" />
+  <meta name="twitter:description" content="Book top doctors, order lab tests, and manage health records securely on India's #1 healthcare platform." />
+  <meta name="twitter:image" content="/logo.png" />
+  <meta name="twitter:site" content="@arvayahealth" />
 
   <!-- Preconnect for Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,6 +36,65 @@
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/logo.png" />
+
+  <!-- Structured Data: Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Arvaya Healthcare",
+    "url": "https://arvaya.health",
+    "logo": "https://arvaya.health/logo.png",
+    "description": "India's most trusted healthcare platform. Book top doctors, order lab tests with home collection, store health records securely, and manage your ABHA ID.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "123 Healthcare Ave",
+      "addressLocality": "Bangalore",
+      "postalCode": "560001",
+      "addressCountry": "IN"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+91-1800-123-4567",
+      "contactType": "customer service",
+      "areaServed": "IN",
+      "availableLanguage": "en"
+    }
+  }
+  </script>
+
+  <!-- Structured Data: Medical Business -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    "name": "Arvaya Healthcare",
+    "url": "https://arvaya.health",
+    "description": "Healthcare platform offering doctor consultations, lab tests, ambulance services, health records, and ABHA ID management.",
+    "areasServed": {
+      "@type": "City",
+      "name": "Bangalore"
+    },
+    "service": [
+      {
+        "@type": "HealthCheckup",
+        "name": "Doctor Consultation"
+      },
+      {
+        "@type": "MedicalTest",
+        "name": "Lab Tests"
+      },
+      {
+        "@type": "EmergencyService",
+        "name": "Ambulance Services"
+      },
+      {
+        "@type": "HealthRecord",
+        "name": "Health Records Management"
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <div id="root"></div>

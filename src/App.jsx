@@ -4,6 +4,7 @@ import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/common/ScrollToTop";
+import Analytics from "./components/common/Analytics";
 import { useAuth } from "./context/AuthContext";
 import ChatBot from "./components/chatbot/ChatBot";
 
@@ -23,6 +24,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <Analytics />
       <Header />
       <AppRoutes />
       <Footer />

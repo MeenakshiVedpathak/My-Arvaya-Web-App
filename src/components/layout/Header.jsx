@@ -442,7 +442,7 @@ export default function Header() {
       {/* ── Main Header ── */}
       <header className="glass" style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
 
-        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px', position: 'relative' }}>
+        <div className="container flex justify-between items-center header-main-row" style={{ height: '56px', padding: '0 12px', gap: '12px', position: 'relative' }}>
 
           {/* Logo & Location Group */}
           <div className="flex items-center gap-4" style={{ flexShrink: 0 }}>
@@ -716,7 +716,7 @@ export default function Header() {
 
         {/* ── Secondary Navigation ── */}
         <div className="header-secondary-nav" style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
-          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '48px', overflowX: 'auto', gap: '8px' }}>
+          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '42px', overflowX: 'auto', gap: '8px' }}>
             {navLinks.map(([label, path]) => (
               <NavLink
                 key={label}
@@ -1398,7 +1398,7 @@ export default function Header() {
             display: none !important;
           }
           .header-main-row {
-            height: 60px !important;
+            height: 52px !important;
             padding: 0 8px !important;
             gap: 4px !important;
           }

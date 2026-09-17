@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import SEO from "../components/common/SEO";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 import { downloadBannerAsset, getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";import { getImageUrl } from "../services/uploadService";
 import { useAuth } from "../context/AuthContext";
@@ -246,6 +247,14 @@ export default function Home() {
 
   return (
     <main className="page page-enter" style={{ padding: 0, background: '#F8FAFC', fontFamily: "Inter, system-ui, sans-serif", color: '#0F172A' }}>
+      <SEO
+        title="Arvaya Healthcare — Book Doctors, Lab Tests & Health Records Online"
+        description="India's most trusted healthcare platform. Book top doctors, order lab tests with home collection, store health records securely, and manage your ABHA ID — all in one place."
+        keywords="Arvaya healthcare, book doctors online, lab tests home collection, health records, ABHA ID, telemedicine India"
+        canonical="https://arvaya.health/"
+        ogImage="/banner_healthcare_1.png"
+        ogType="website"
+      />
       
       {/* ── Top Emergency & Ticker Header Bar (Dark Teal Gradient Theme) ── */}
       <div style={{ background: 'linear-gradient(90deg, rgb(13, 92, 99), rgb(46, 102, 110))', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
@@ -290,7 +299,7 @@ export default function Home() {
       </div>
 
       {/* ── Section 1: Full-Width Hero Banner (0 Upper/Left/Right Margins) ── */}
-      <section style={{ position: 'relative', width: '100%', margin: 0, padding: 0, overflow: 'hidden', minHeight: '440px', background: '#0F172A' }}>
+      <section style={{ position: 'relative', width: '100%', margin: 0, padding: 0, overflow: 'hidden', minHeight: '340px', background: '#0F172A' }}>
         {dynamicSlides.map((slide, idx) => (
           <div key={`${slide.bg}-${idx}`} style={{
               position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -352,7 +361,7 @@ export default function Home() {
         </button>
 
         {/* Hero Inner Centered Content */}
-        <div style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', height: '100%', minHeight: '440px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '48px 24px' }}>
+        <div style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', height: '100%', minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '24px 24px' }}>
           
           {/* Reference Header Tagline */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -426,7 +435,7 @@ export default function Home() {
           ))}
 
           {/* Sub-Hero Quick Stat Indicators Pill Bar */}
-          <div style={{ marginTop: '28px', display: 'flex', gap: '24px', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '16px' }}>
+          <div style={{ marginTop: '20px', display: 'flex', gap: '24px', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
               <b style={{ fontSize: '18px', fontWeight: '800', color: '#00A896' }}>7+</b>
               <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Years Experience</span>
@@ -464,7 +473,7 @@ export default function Home() {
       </section>
 
       {/* ── Main Container Wrapper ── */}
-      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '32px 16px 40px 16px', display: 'flex', flexDirection: 'column', gap: '44px' }}>
+      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '24px 16px 28px 16px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
         
         {/* ── Section 1: 4 Solid Contrast Service Cards Grid ── */}
         <section>
@@ -1237,7 +1246,7 @@ export default function Home() {
           margin: '0 auto', 
           position: 'relative', 
           zIndex: 2, 
-          padding: '64px 24px', 
+          padding: '48px 24px', 
           display: 'flex', 
           justify: 'space-between', 
           alignItems: 'center', 
