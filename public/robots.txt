@@ -19,4 +19,4 @@ Disallow: /prescriptions
 Disallow: /orders
 Disallow: /payments
 Disallow: /referrals
-Sitemap: https://arvaya.health/sitemap.xml
+Sitemap: https://my.arvayahealth.com/sitemap.xml

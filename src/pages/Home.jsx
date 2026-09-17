@@ -251,7 +251,7 @@ export default function Home() {
         title="Arvaya Healthcare — Book Doctors, Lab Tests & Health Records Online"
         description="India's most trusted healthcare platform. Book top doctors, order lab tests with home collection, store health records securely, and manage your ABHA ID — all in one place."
         keywords="Arvaya healthcare, book doctors online, lab tests home collection, health records, ABHA ID, telemedicine India"
-        canonical="https://arvaya.health/"
+        canonical="https://my.arvayahealth.com/"
         ogImage="/banner_healthcare_1.png"
         ogType="website"
       />
