@@ -409,38 +409,7 @@ export async function downloadHealthRecordAsset(filename) {
 }
  
 
-/**
- * Downloads a banner image and converts the API's base64 response to an image URL
- * that can be assigned directly to an <img> element.
- */
-export async function downloadBannerAsset(filename) {
-  if (!filename) return null;
-
-  try {
-    const res = await api.post("/api/downloadFile", {
-      filename: String(filename).split("/").pop(),
-      folderName: "bannerImages"
-    });
-    const response = res?.data && typeof res.data === "object" ? res.data : res;
-    const base64Data = response?.data;
-    const mimeType = response?.MIMETYPE || response?.mimeType || response?.mimetype || "image/jpeg";
-
-    if (!base64Data || typeof base64Data !== "string") return null;
-    const url = base64Data.startsWith("data:")
-      ? base64Data
-      : `data:${mimeType};base64,${base64Data}`;
-    return { url, mimeType: mimeType.toLowerCase() };
-  } catch (error) {
-    console.error(`Failed to download banner image: ${filename}`, error);
-    return null;
-  }
-}
-
-// Kept as a convenience for image-only consumers.
-export async function downloadBannerImage(filename) {
-  const asset = await downloadBannerAsset(filename);
-  return asset?.url || "";
-}
+ 
 
 export async function upsertPlan(data) {
   if (USE_MOCK) return { success: true };

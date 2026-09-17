@@ -511,22 +511,44 @@ export default function Records() {
         subtitle="ISO 27001 Certified • 256-bit Encrypted Storage"
         actions={
           <button
-            className="btn btn-accent flex items-center gap-2 hover-glow"
             onClick={() => setShowUploadModal(true)}
             style={{
-              padding: '10px 20px',
-              borderRadius: 'var(--radius-full)',
-              background: '#005F56',
-              color: '#fff',
-              border: 'none',
-              fontWeight: '600',
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '10px',
+              background: '#FFFFFF',
+              color: '#0F2930',
+              padding: '7px 20px 7px 10px',
+              borderRadius: '99px',
+              border: '1px solid rgba(255, 255, 255, 0.9)',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '700',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.18)',
+              transition: 'all 0.25s ease'
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.18)';
             }}
           >
-            <CloudUpload size={16} /> Upload Record
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: 'rgba(15, 118, 110, 0.12)',
+              color: '#0F766E',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <CloudUpload size={15} />
+            </div>
+            <span>Upload Record</span>
           </button>
         }
       />

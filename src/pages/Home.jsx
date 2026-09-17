@@ -255,10 +255,10 @@ export default function Home() {
           <button 
             onClick={() => setShowAmbulanceModal(true)} 
             style={{ 
-              background: '#EF4444', color: 'white', padding: '6px 14px', fontSize: '12px', 
+              background: 'linear-gradient(135deg, #FB913F 0%, #EF7D24 100%)', color: 'white', padding: '6px 14px', fontSize: '12px', 
               fontWeight: '700', borderRadius: '99px', border: 'none', cursor: 'pointer', 
               display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-              boxShadow: '0 2px 10px rgba(239, 68, 68, 0.4)', transition: 'transform 0.2s'
+              boxShadow: '0 2px 10px rgba(251, 145, 63, 0.4)', transition: 'transform 0.2s'
             }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}

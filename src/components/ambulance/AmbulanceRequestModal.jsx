@@ -68,7 +68,7 @@ function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true
   const styles = {
     accent: { background: disabled ? "var(--border)" : "var(--accent)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(251,145,63,0.25)" },
     primary: { background: disabled ? "var(--border)" : "var(--primary)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(46,102,110,0.25)" },
-    danger: { background: disabled ? "var(--border)" : "#dc2626", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(220,38,38,0.25)" },
+    danger: { background: disabled ? "var(--border)" : "var(--accent)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(251,145,63,0.25)" },
   };
   return (
     <button type={type} disabled={disabled} onClick={onClick} style={{ ...base, ...styles[variant] }}
@@ -215,8 +215,8 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const leftPanel = (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
       {/* Icon */}
-      <div className="ambulance-modal-left-icon" style={{ width: "60px", height: "60px", borderRadius: "18px", background: "rgba(220,38,38,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", border: "1px solid rgba(220,38,38,0.3)" }}>
-        <Ambulance size={28} color="#ef4444" />
+      <div className="ambulance-modal-left-icon" style={{ width: "60px", height: "60px", borderRadius: "18px", background: "rgba(251,145,63,0.18)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", border: "1px solid rgba(251,145,63,0.3)" }}>
+        <Ambulance size={28} color="var(--accent)" />
       </div>
       <h2 style={{ fontSize: "30px", fontWeight: "800", color: "#fff", lineHeight: 1.15, margin: "0 0 14px", fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
         Emergency<br/>Ambulance
@@ -316,7 +316,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
         <FieldError msg={fieldErrors.emergencyType} />
       </div>
 
-      <Btn variant="danger" disabled={busy} onClick={handleSubmit}>
+      <Btn variant="accent" disabled={busy} onClick={handleSubmit}>
         {busy ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Submitting…</> : <><Ambulance size={18} /> Call Ambulance</>}
       </Btn>
     </div>
@@ -365,7 +365,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
 
         {/* Left Panel */}
         <div className="ambulance-modal-left">
-          <div style={{ position: "absolute", top: "-80px", right: "-60px", width: "220px", height: "220px", borderRadius: "50%", background: "#dc2626", opacity: 0.15 }} />
+          <div style={{ position: "absolute", top: "-80px", right: "-60px", width: "220px", height: "220px", borderRadius: "50%", background: "var(--primary)", opacity: 0.25 }} />
           <div style={{ position: "absolute", bottom: "-100px", left: "-40px", width: "260px", height: "260px", borderRadius: "50%", background: "var(--accent)", opacity: 0.08 }} />
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
             {leftPanel}

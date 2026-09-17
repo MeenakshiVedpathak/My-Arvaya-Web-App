@@ -1289,32 +1289,32 @@ function toTitleCase(str) {
         padding="20px 0"
       >
         {/* Top Hero Banner */}
-        <div className="lab-hero-banner">
-          <div className="lab-hero-content">
+        <div className="lab-hero-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
+          <div className="lab-hero-content" style={{ flex: '1 1 500px' }}>
             
             {/* Pre-title Pill Tag */}
-            <div className="lab-hero-pill-tag">
-              <Sparkles size={13} color="#0d5c63" /> NABL & ISO Certified Partner Labs
+            <div className="lab-hero-pill-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(45, 212, 191, 0.15)', color: '#2DD4BF', border: '1px solid rgba(45, 212, 191, 0.3)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>
+              <Sparkles size={13} color="#2DD4BF" /> NABL & ISO Certified Partner Labs
             </div>
 
             {/* Title & Subtitle */}
-            <h1 className="lab-hero-title">
+            <h1 className="lab-hero-title" style={{ fontSize: '26px', fontWeight: '800', color: '#FFFFFF', margin: '4px 0 6px 0', lineHeight: '1.25', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
               Book trusted lab tests & health packages with ease.
             </h1>
-            <p className="lab-hero-subtitle">
+            <p className="lab-hero-subtitle" style={{ fontSize: '14.5px', color: 'rgba(255, 255, 255, 0.78)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
               Free doorstep sample collection by certified phlebotomists.
             </p>
 
             {/* Trust Micro Badges */}
-            <div className="lab-hero-badges">
-              <span className="lab-hero-badge">
-                <CheckCircle2 size={14} color="#16a34a" /> Certified Labs
+            <div className="lab-hero-badges" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span className="lab-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                <CheckCircle2 size={14} color="#2DD4BF" /> Certified Labs
               </span>
-              <span className="lab-hero-badge">
-                <Clock size={14} color="#0d5c63" /> 12-24h Reports
+              <span className="lab-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                <Clock size={14} color="#2DD4BF" /> 12-24h Reports
               </span>
-              <span className="lab-hero-badge">
-                <ShieldCheck size={14} color="#f97316" /> Free Home Sample
+              <span className="lab-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                <ShieldCheck size={14} color="#2DD4BF" /> Free Home Sample
               </span>
             </div>
 

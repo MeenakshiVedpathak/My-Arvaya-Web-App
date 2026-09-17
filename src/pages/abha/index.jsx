@@ -161,16 +161,40 @@ export default function ABHA() {
           title="ABHA Management"
           subtitle="Manage your Ayushman Bharat Health Account, consents & providers."
           actions={
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", background: "rgba(15, 118, 110, 0.06)", padding: "6px 14px", borderRadius: "99px", border: "1px solid rgba(15, 118, 110, 0.15)" }}>
-              <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: abhaData.photoColor || "#2E666E", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700" }}>
+            <div 
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "10px", 
+                background: "#FFFFFF", 
+                padding: "6px 20px 6px 8px", 
+                borderRadius: "99px", 
+                border: "1px solid rgba(255, 255, 255, 0.9)", 
+                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.18)",
+                transition: "all 0.25s ease"
+              }}
+            >
+              <div style={{ 
+                width: "30px", 
+                height: "30px", 
+                borderRadius: "50%", 
+                background: "rgba(15, 118, 110, 0.12)", 
+                color: "#0F766E", 
+                border: "1px solid rgba(15, 118, 110, 0.2)",
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                fontSize: "12.5px", 
+                fontWeight: "800" 
+              }}>
                 {abhaData.photoInitials}
               </div>
-              <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-main)" }}>{abhaData.name}</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: "#0F2930", letterSpacing: "0.01em" }}>{abhaData.name}</div>
             </div>
           }
         >
           {/* ── Horizontal Navigation ── */}
-          <nav style={{ display: "flex", gap: "32px", marginTop: "16px" }}>
+          <nav style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
             {tabs.map(({ id, label, icon: Icon }) => {
               const isActive = activeTab === id;
               return (
@@ -180,13 +204,16 @@ export default function ABHA() {
                     handleOpenAbhaOtpModal();
                   }
                 }} style={{
-                  display: "flex", alignItems: "center", gap: "8px", padding: "0 0 12px 0",
-                  background: "none", border: "none", cursor: "pointer", fontSize: "14px", fontWeight: "600",
-                  color: isActive ? "var(--primary-dark)" : "var(--text-muted)",
-                  borderBottom: isActive ? "3px solid var(--primary)" : "3px solid transparent",
+                  display: "flex", alignItems: "center", gap: "8px", padding: "8px 18px",
+                  background: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.12)",
+                  border: isActive ? "1px solid #FFFFFF" : "1px solid rgba(255, 255, 255, 0.2)",
+                  cursor: "pointer", fontSize: "13.5px", fontWeight: "700",
+                  color: isActive ? "#0F766E" : "#FFFFFF",
+                  borderRadius: "99px",
+                  boxShadow: isActive ? "0 4px 14px rgba(0, 0, 0, 0.18)" : "none",
                   transition: "all 0.2s"
                 }}>
-                  <Icon size={16} />{label}
+                  <Icon size={15} />{label}
                 </button>
               );
             })}

@@ -64,23 +64,39 @@ export default function Pharmacy() {
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '8px', 
-              background: 'var(--primary)', 
-              color: 'white', 
-              padding: '0 18px', 
-              height: '40px', 
-              borderRadius: '10px', 
-              border: 'none', 
+              gap: '10px', 
+              background: '#FFFFFF', 
+              color: '#0F2930', 
+              padding: '7px 20px 7px 10px', 
+              borderRadius: '99px', 
+              border: '1px solid rgba(255, 255, 255, 0.9)', 
               cursor: 'pointer', 
-              fontSize: '13.5px', 
-              fontWeight: '600', 
-              boxShadow: '0 4px 14px rgba(15, 118, 110, 0.25)',
-              transition: 'all 0.2s' 
+              fontSize: '14px', 
+              fontWeight: '700', 
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.18)',
+              transition: 'all 0.25s ease' 
             }} 
-            onMouseOver={e => e.currentTarget.style.background='var(--primary-dark)'} 
-            onMouseOut={e => e.currentTarget.style.background='var(--primary)'}
+            onMouseOver={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
+            }} 
+            onMouseOut={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.18)';
+            }}
           >
-            <ShoppingCart size={17} />
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: 'rgba(15, 118, 110, 0.12)',
+              color: '#0F766E',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <ShoppingCart size={15} />
+            </div>
             <span>Cart ({cart.reduce((acc, c) => acc + c.qty, 0)})</span>
           </button>
         }
