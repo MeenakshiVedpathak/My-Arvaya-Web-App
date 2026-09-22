@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
-export default function Modal({ isOpen, onClose, title, children, maxWidth = "600px" }) {
+export default function Modal({ isOpen, onClose, title, children, maxWidth = "600px", hideHeader = false }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (isOpen) {
@@ -23,12 +23,14 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "60
         onClick={(e) => e.stopPropagation()} 
         style={{ maxWidth }}
       >
-        <div className="modal-header">
-          <h3>{title}</h3>
-          <button className="modal-close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
+        {!hideHeader && (
+          <div className="modal-header">
+            <h3>{title}</h3>
+            <button className="modal-close-btn" onClick={onClose}>
+              <X size={20} />
+            </button>
+          </div>
+        )}
         <div className="modal-body">
           {children}
         </div>

@@ -1,7 +1,6 @@
 import { Brain, HeartPulse, Activity, ChevronRight, ShieldCheck, FileText, ActivitySquare, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import PageHeader from "../components/common/PageHeader";
 
 export default function AIAssistant() {
   const [symptom, setSymptom] = useState("");
@@ -14,29 +13,33 @@ export default function AIAssistant() {
     setTimeout(() => {
       setAnalyzing(false);
       setResult({
-        condition: "Mild Tension Headache / Stress",
-        urgency: "Low - Self Care",
-        recommendations: [
-          "Stay hydrated (drink 2-3L water daily)",
-          "Take adequate rest and limit screen time",
-          "If pain persists over 48 hours, consult a General Physician"
-        ]
+        condition: "Viral Infection (Possible)",
+        severity: "Mild",
+        recommendation: "Rest, hydrate, and consider a virtual consultation with a General Physician. Monitor temperature for the next 24 hours.",
+        actionText: "Consult General Physician"
       });
-    }, 1500);
+    }, 2000);
   };
 
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Arvaya AI' }
-        ]}
-        title="Arvaya AI Intelligence"
-        icon={<Brain size={24} />}
-        subtitle="Predictive health scores and AI-powered symptom checking."
-      />
+      <div style={{ background: 'linear-gradient(135deg, var(--bg-surface) 0%, rgba(46, 102, 110, 0.05) 100%)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
+        <div className="container">
+          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Arvaya AI</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 16px rgba(46, 102, 110, 0.3)' }}>
+              <Brain size={24} />
+            </div>
+            <div>
+              <h1 className="text-h2" style={{ fontSize: '24px' }}>Arvaya AI Intelligence</h1>
+              <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Predictive health scores and AI-powered symptom checking.</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         

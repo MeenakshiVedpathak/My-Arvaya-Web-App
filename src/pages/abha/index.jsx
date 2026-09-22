@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Shield, Building2, ArrowLeft, Link2, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { CreditCard, Shield, Building2, Link2, ShieldCheck, ArrowRight, Loader2, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import PageHeader from "../../components/common/PageHeader";
 
 import { AbhaTab } from "./components/AbhaTab";
 import { ConsentTab } from "./components/ConsentTab";
@@ -152,65 +151,79 @@ export default function ABHA() {
     <>
       <main className="page animate-fade-in-up" style={{ background: "var(--bg-app)", minHeight: "100vh", padding: 0 }}>
         
-        {/* ── Enterprise Top Header ── */}
-        <PageHeader
-          breadcrumbs={[
-            { label: 'Home', link: '/' },
-            { label: 'ABHA Hub' }
-          ]}
-          title="ABHA Management"
-          subtitle="Manage your Ayushman Bharat Health Account, consents & providers."
-          actions={
-            <div 
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "10px", 
-                background: "#FFFFFF", 
-                padding: "6px 20px 6px 8px", 
-                borderRadius: "99px", 
-                border: "1px solid rgba(255, 255, 255, 0.9)", 
-                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.18)",
-                transition: "all 0.25s ease"
-              }}
-            >
-              <div style={{ 
-                width: "30px", 
-                height: "30px", 
-                borderRadius: "50%", 
-                background: "rgba(15, 118, 110, 0.12)", 
-                color: "#0F766E", 
-                border: "1px solid rgba(15, 118, 110, 0.2)",
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center", 
-                fontSize: "12.5px", 
-                fontWeight: "800" 
+        {/* ── Themed Hero Header ── */}
+      <div style={{ padding: "16px 0 0" }}>
+        <div className="container" style={{ maxWidth: "1280px", margin: "0 auto" }}>
+
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: "26px",
+              padding: "10px 32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "24px",
+              flexWrap: "wrap",
+              color: "#fff",
+              background:
+                "linear-gradient(120deg, rgba(255,255,255,0.08), transparent 45%), linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 62%, #133a41 100%)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              boxShadow: "0 20px 44px rgba(31, 79, 87, 0.28)",
+            }}
+          >
+            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: "16px" }}>
+              <div style={{
+                width: "52px", height: "52px", borderRadius: "16px", flexShrink: 0,
+                background: "#fff", color: "var(--primary-dark)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 12px 24px rgba(0,60,55,0.2)", transform: "rotate(-6deg)"
               }}>
-                {abhaData.photoInitials}
+                <CreditCard size={26} />
               </div>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "#0F2930", letterSpacing: "0.01em" }}>{abhaData.name}</div>
+              <div>
+                <h1 style={{ fontSize: "24px", fontWeight: "800", margin: "0 0 4px", color: "#fff", letterSpacing: "-0.02em" }}>ABHA Management</h1>
+                <p style={{ margin: "0 0 10px", fontSize: "13px", color: "rgba(255,255,255,0.82)" }}>Manage your Ayushman Bharat Digital Health Account</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {[
+                    { icon: ShieldCheck, label: "NHA Certified", color: "#4ade80" },
+                    { icon: Zap, label: "Instant Verification", color: "#fbbf24" },
+                  ].map(({ icon: Icon, label, color }) => (
+                    <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 9px", color: "#fff", background: "rgba(18,51,58,0.5)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: "10.5px", fontWeight: "700", backdropFilter: "blur(10px)" }}>
+                      <Icon size={13} color={color} /> {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-          }
-        >
-          {/* ── Horizontal Navigation ── */}
-          <nav style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
+
+            <div className="abha-hero-visual" style={{ position: "relative", zIndex: 1 }}>
+              <img src="/images/abha-id.png" alt="" className="abha-hero-img" />
+
+              {abhaData.name && abhaData.name !== "—" && (
+                <div style={{ position: "absolute", left: "50%", bottom: "-10px", transform: "translateX(-50%)", zIndex: 1, display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap", background: "rgba(18,51,58,0.85)", border: "1px solid rgba(255,255,255,0.2)", padding: "5px 12px 5px 5px", borderRadius: "99px", backdropFilter: "blur(10px)" }}>
+                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", background: "#fff", color: "var(--primary-dark)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "700" }}>
+                    {abhaData.photoInitials}
+                  </div>
+                  <div style={{ fontSize: "12px", fontWeight: "600", color: "#fff" }}>{abhaData.name}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Tab Navigation ── */}
+          <nav className="styled-scrollbar" style={{ display: "flex", gap: "4px", marginTop: "18px", padding: "4px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "14px", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", overflowX: "auto", maxWidth: "100%" }}>
             {tabs.map(({ id, label, icon: Icon }) => {
               const isActive = activeTab === id;
               return (
-                <button key={id} onClick={() => {
-                  setActiveTab(id);
-                  if (id === "abha" && isUserOtpLogin) {
-                    handleOpenAbhaOtpModal();
-                  }
-                }} style={{
-                  display: "flex", alignItems: "center", gap: "8px", padding: "8px 18px",
-                  background: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.12)",
-                  border: isActive ? "1px solid #FFFFFF" : "1px solid rgba(255, 255, 255, 0.2)",
-                  cursor: "pointer", fontSize: "13.5px", fontWeight: "700",
-                  color: isActive ? "#0F766E" : "#FFFFFF",
-                  borderRadius: "99px",
-                  boxShadow: isActive ? "0 4px 14px rgba(0, 0, 0, 0.18)" : "none",
+                <button key={id} onClick={() => setActiveTab(id)} style={{
+                  display: "flex", alignItems: "center", gap: "8px", padding: "9px 16px",
+                  border: "none", cursor: "pointer", fontSize: "13.5px", fontWeight: "700",
+                  borderRadius: "10px", whiteSpace: "nowrap", flexShrink: 0,
+                  color: isActive ? "#fff" : "var(--text-muted)",
+                  background: isActive ? "linear-gradient(135deg, var(--primary), var(--primary-dark))" : "transparent",
+                  boxShadow: isActive ? "0 4px 12px rgba(46,102,110,0.3)" : "none",
                   transition: "all 0.2s"
                 }}>
                   <Icon size={15} />{label}
@@ -219,50 +232,58 @@ export default function ABHA() {
             })}
           </nav>
 
-        </PageHeader>
+        </div>
+      </div>
 
       {/* ── Main Content Area ── */}
-      <div className="container" style={{ maxWidth: "1280px", margin: "32px auto", padding: "0 24px" }}>
+      <div className="container" style={{ maxWidth: "1280px", margin: "28px auto", padding: "0 24px" }}>
         <div id="static-abha-tab-data" style={{ display: activeTab === "abha" ? "block" : "none" }}>
           {isUserOtpLogin ? (
-            <div style={{
-              background: "#fff", border: "1px solid #e5e7eb", borderRadius: "16px",
-              padding: "48px 32px", textAlign: "center", maxWidth: "720px", margin: "40px auto",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.05)"
-            }}>
-              <div style={{
-                width: "64px", height: "64px", borderRadius: "50%", background: "#e0f2fe",
-                color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
-                margin: "0 auto 20px auto"
-              }}>
-                <CreditCard size={32} />
-              </div>
-              <h2 style={{ fontSize: "22px", fontWeight: "700", color: "#111827", marginBottom: "12px" }}>
-                Link ABHA ID or Login ABHA ID
-              </h2>
-              <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: "1.6", marginBottom: "32px", maxWidth: "540px", margin: "0 auto 32px auto" }}>
-                You logged in via Mobile OTP. To access your Digital Health Card and Profile Verification details, please link your ABHA ID or login using your ABHA number.
-              </p>
-
-              <div style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
-                <button
-                  onClick={handleOpenAbhaOtpModal}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: "10px",
-                    background: "var(--primary)", color: "#fff", border: "none",
-                    padding: "14px 28px", borderRadius: "12px", fontSize: "15px",
-                    fontWeight: "600", cursor: "pointer", boxShadow: "0 4px 14px rgba(46,102,110,0.3)",
-                    transition: "all 0.2s"
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.transform = "translateY(-1px)"}
-                  onMouseLeave={e => e.currentTarget.style.transform = "none"}
-                >
-                  <Link2 size={18} /> Link Abha Id / Login Abha Id <ArrowRight size={18} />
-                </button>
+            <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "16px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+              <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", background: "var(--bg-app)" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-main)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <CreditCard size={18} color="var(--text-muted)" /> ABHA Data
+                </h2>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0 }}>Link your Ayushman Bharat Health Account to unlock this section</p>
               </div>
 
-              <div style={{ marginTop: "36px", display: "inline-flex", alignItems: "center", gap: "8px", background: "#f0fdf4", color: "#166534", padding: "8px 16px", borderRadius: "99px", fontSize: "13px", border: "1px solid #bbf7d0" }}>
-                <ShieldCheck size={16} /> Secured by NHA — Ayushman Bharat Digital Mission
+              <div style={{ padding: "24px" }}>
+                <div style={{ textAlign: "center", padding: "48px 32px", border: "1px dashed var(--border)", borderRadius: "8px", background: "var(--bg-app)" }}>
+                  <div style={{
+                    width: "64px", height: "64px", borderRadius: "50%", background: "var(--primary-light)",
+                    color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
+                    margin: "0 auto 16px auto"
+                  }}>
+                    <CreditCard size={28} />
+                  </div>
+                  <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-main)", marginBottom: "8px" }}>
+                    Link ABHA ID or Login ABHA ID
+                  </h3>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", lineHeight: "1.6", maxWidth: "420px", margin: "0 auto 24px auto" }}>
+                    You logged in via Mobile OTP. To access your Digital Health Card and Profile Verification details, please link your ABHA ID or login using your ABHA number.
+                  </p>
+
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "var(--primary-light)", color: "var(--primary-dark)", padding: "7px 14px", borderRadius: "99px", fontSize: "12px", fontWeight: "600", marginBottom: "16px" }}>
+                    <ShieldCheck size={14} /> Secured by NHA — Ayushman Bharat Digital Mission
+                  </div>
+
+                  <div>
+                    <button
+                      onClick={handleOpenAbhaOtpModal}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: "10px",
+                        background: "linear-gradient(135deg, var(--primary), var(--primary-dark))", color: "#fff", border: "none",
+                        padding: "12px 24px", borderRadius: "12px", fontSize: "14px",
+                        fontWeight: "700", cursor: "pointer", boxShadow: "0 4px 14px rgba(46,102,110,0.3)",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.transform = "translateY(-1px)"}
+                      onMouseLeave={e => e.currentTarget.style.transform = "none"}
+                    >
+                      <Link2 size={16} /> Link Abha Id / Login Abha Id <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ) : (

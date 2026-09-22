@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import PageHeader from "../components/common/PageHeader";
-import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2, ChevronRight } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2, Zap, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getAmbulanceRequests, STATUS_FLOW, EMERGENCY_TYPES } from "../services/ambulanceService";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
@@ -98,38 +97,57 @@ export default function AmbulancePage() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Track Ambulance' }
-        ]}
-        title="Track Ambulance"
-        subtitle="Monitor your emergency ambulance requests in real-time."
-        actions={
-          <button 
-            onClick={() => setShowModal(true)} 
-            style={{ 
-              background: "#dc2626", 
-              color: "#fff", 
-              border: "none", 
-              borderRadius: "12px", 
-              padding: "12px 24px", 
-              fontSize: "15px", 
-              fontWeight: "700", 
-              cursor: "pointer", 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "8px", 
-              transition: "all 0.2s", 
-              boxShadow: "0 4px 14px rgba(220,38,38,0.3)" 
-            }} 
-            onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.1)"} 
-            onMouseLeave={e => e.currentTarget.style.filter = "none"}
+      <div style={{ padding: '16px 0 0' }}>
+        <div className="container">
+          <div
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: '26px',
+              padding: '10px 32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '24px',
+              flexWrap: 'wrap',
+              color: '#fff',
+              background:
+                'linear-gradient(120deg, rgba(255,255,255,0.08), transparent 45%), linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 62%, #133a41 100%)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: '0 20px 44px rgba(31, 79, 87, 0.28)',
+            }}
           >
-            <Ambulance size={18} /> Call Ambulance
-          </button>
-        }
-      />
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                width: '52px', height: '52px', borderRadius: '16px', flexShrink: 0,
+                background: '#fff', color: 'var(--primary-dark)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 12px 24px rgba(0,60,55,0.2)', transform: 'rotate(-6deg)'
+              }}>
+                <Ambulance size={26} />
+              </div>
+              <div>
+                <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', color: '#fff', letterSpacing: '-0.02em' }}>Track Ambulance</h1>
+                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Monitor your emergency ambulance requests.</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { icon: Zap, label: 'Fast Response', color: '#fbbf24' },
+                    { icon: ShieldCheck, label: 'Emergency Support', color: '#5eead4' },
+                  ].map(({ icon: Icon, label, color }) => (
+                    <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 10px', color: '#fff', background: 'rgba(18,51,58,0.5)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '11.5px', fontWeight: '650', backdropFilter: 'blur(10px)' }}>
+                      <Icon size={13} color={color} /> {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <img src="/images/trackAmbulance.png" alt="" className="ambulance-hero-img" aria-hidden="true" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="container" style={{ padding: "32px 24px" }}>
 
@@ -140,9 +158,35 @@ export default function AmbulancePage() {
           </div>
         ) : requests.length === 0 ? (
           /* ── Empty State ── */
-          <div style={{ textAlign: "center", padding: "80px 0" }}>
-            <div style={{ width: "120px", height: "120px", borderRadius: "50%", background: "var(--bg-app)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px", border: "1px solid var(--border)" }}>
-              <FileX2 size={48} color="var(--text-muted)" strokeWidth={1.5} />
+          <div style={{ textAlign: "center", padding: "32px 0 80px" }}>
+            <div style={{ width: "148px", height: "148px", borderRadius: "50%", background: "var(--primary-light)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px" }}>
+              <svg width="92" height="80" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                {/* speed lines */}
+                <line x1="2" y1="34" x2="18" y2="34" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" opacity="0.35" />
+                <line x1="2" y1="46" x2="14" y2="46" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" opacity="0.25" />
+                <line x1="2" y1="58" x2="20" y2="58" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" opacity="0.35" />
+                {/* ground shadow */}
+                <ellipse cx="64" cy="88" rx="46" ry="6" fill="var(--primary)" opacity="0.12" />
+                {/* rear box */}
+                <rect x="24" y="26" width="60" height="42" rx="6" fill="#ffffff" stroke="var(--primary)" strokeWidth="3" />
+                {/* cab */}
+                <path d="M84 40 H104 C107 40 109 42 110 45 L114 56 C115 58.5 113 61 110.5 61 H84 V40Z" fill="var(--primary)" stroke="var(--primary)" strokeWidth="3" strokeLinejoin="round" />
+                {/* cab window */}
+                <path d="M89 45 H101 L105 54 H89 Z" fill="#cdeae8" />
+                {/* cross badge */}
+                <rect x="40" y="36" width="28" height="22" rx="4" fill="var(--primary-light)" />
+                <rect x="51.5" y="40" width="5" height="14" rx="1.5" fill="var(--accent)" />
+                <rect x="46" y="45.5" width="16" height="5" rx="1.5" fill="var(--accent)" />
+                {/* side stripe */}
+                <rect x="24" y="60" width="90.5" height="5" fill="var(--accent)" opacity="0.85" />
+                {/* light bar */}
+                <rect x="46" y="19" width="18" height="7" rx="2" fill="#dc2626" />
+                {/* wheels */}
+                <circle cx="42" cy="70" r="10" fill="#1f2937" />
+                <circle cx="42" cy="70" r="4" fill="#cbd5e1" />
+                <circle cx="96" cy="70" r="10" fill="#1f2937" />
+                <circle cx="96" cy="70" r="4" fill="#cbd5e1" />
+              </svg>
             </div>
             <h2 style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px", fontFamily: "var(--font-display)" }}>No Ambulance Requests Found</h2>
             <p style={{ fontSize: "15px", color: "var(--text-muted)", marginBottom: "32px", maxWidth: "400px", margin: "0 auto 32px", lineHeight: 1.6 }}>

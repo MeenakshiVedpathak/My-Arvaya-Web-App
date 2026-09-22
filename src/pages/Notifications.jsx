@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bell, Calendar, Activity, CreditCard, Gift, AlertCircle, Info, Trash2, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import PageHeader from "../components/common/PageHeader";
 import { getNotifications } from "../services/dataService";
 
 function getNotificationMeta(type, title = "") {
@@ -123,25 +122,29 @@ export default function Notifications() {
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       
       {/* ── Internal Hero ── */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Notifications' }
-        ]}
-        title="Notifications"
-        badge={unreadCount > 0 ? `${unreadCount} New` : null}
-        subtitle="Stay updated with your appointments and health alerts."
-        actions={
-          <button 
-            className="btn btn-secondary hover-glow"
-            onClick={markAllRead}
-            style={{ padding: '8px 16px', fontSize: '13px', borderRadius: 'var(--radius-full)' }}
-            disabled={unreadCount === 0}
-          >
-            <CheckCircle2 size={16} /> Mark all as read
-          </button>
-        }
-      />
+      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
+        <div className="container">
+          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Notifications</span>
+          </div>
+          <div className="flex justify-between items-center flex-wrap gap-4">
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '650', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Notifications {unreadCount > 0 && <span style={{ background: 'var(--danger)', color: 'white', fontSize: '12px', padding: '2px 8px', borderRadius: '99px', verticalAlign: 'middle' }}>{unreadCount} New</span>}
+              </h1>
+              <p className="text-muted mt-1" style={{ fontSize: '14px' }}>Stay updated with your appointments and health alerts.</p>
+            </div>
+            <button 
+              className="btn btn-secondary hover-glow"
+              onClick={markAllRead}
+              style={{ padding: '8px 16px', fontSize: '13px', borderRadius: 'var(--radius-full)' }}
+              disabled={unreadCount === 0}
+            >
+              <CheckCircle2 size={16} /> Mark all as read
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 280px) 1fr', gap: '32px', alignItems: 'start' }} className="notifications-grid">

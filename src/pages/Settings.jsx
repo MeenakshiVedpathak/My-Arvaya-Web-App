@@ -55,14 +55,15 @@ export default function Settings() {
   return (
     <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
       {/* ── Internal Hero ── */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Account Settings' }
-        ]}
-        title="Account Settings"
-        subtitle="Manage your web security, preferences, and notifications."
-      />
+      <div style={{ background: 'var(--bg-surface)', padding: '24px 0', borderBottom: '1px solid var(--border)' }}>
+        <div className="container">
+          <div className="flex items-center gap-2 text-muted mb-2" style={{ fontSize: '12px', fontWeight: '500' }}>
+            <Link to="/" style={{ transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color='var(--primary)'} onMouseOut={e => e.currentTarget.style.color=''}>Home</Link> <ChevronRight size={12} /> <span>Account Settings</span>
+          </div>
+          <h1 className="text-h2" style={{ fontSize: '24px', color: 'var(--text-main)' }}>Account Settings</h1>
+          <p className="text-muted mt-2" style={{ fontSize: '14px' }}>Manage your web security, preferences, and notifications.</p>
+        </div>
+      </div>
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
         <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 280px) 1fr', gap: '32px', alignItems: 'stretch' }}>

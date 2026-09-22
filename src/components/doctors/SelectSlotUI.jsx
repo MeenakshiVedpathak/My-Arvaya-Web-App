@@ -38,8 +38,8 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
         </div>
       )}
 
+      {type !== "lab" && (
       <div className="slot-grid-layout">
-        {type !== "lab" && (
         <div className="date-selector-section">
           <div className="section-title-row">
             <Calendar size={18} color="var(--primary)" />
@@ -89,9 +89,7 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
             </div>
           </div>
         </div>
-        )}
 
-        {type !== "lab" && (
         <div className="slots-section">
           <div className="section-title-row" style={{ justifyContent: "space-between", width: "100%" }}>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -113,13 +111,13 @@ export default function SelectSlotUI({ doctor, onConfirm, type = "doctor", submi
             ))}
           </div>
         </div>
-        )}
       </div>
+      )}
 
       {/* Sticky Bottom Button */}
-      <div className="bottom-fixed-action" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+      <div className="bottom-fixed-action" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: type === "lab" ? '12px' : '24px', display: 'flex', justifyContent: 'flex-end' }}>
         <button
-          className="btn btn-accent"
+          className="btn btn-primary"
           disabled={!selectedTime || submitting}
           onClick={() => onConfirm({ date: formatDateForDisplay(selectedDateObj), time: selectedTime })}
           style={{ padding: '12px 24px', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}

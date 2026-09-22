@@ -1,4 +1,4 @@
-import { Building2, Stethoscope, User, FileText, CalendarDays, CheckCircle2, ClipboardCheck, ChevronRight } from "lucide-react";
+import { Building2, Stethoscope, User, FileText, CalendarDays, CheckCircle2, ClipboardCheck, ChevronRight, ShieldCheck, Clock, Heart } from "lucide-react";
 import { useBooking } from "../../context/BookingContext";
 import { useNavigate } from "react-router-dom";
 
@@ -30,47 +30,69 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
   return (
     <main className="page booking-page-layout animate-fade-in-up">
       <div className="container booking-main-container">
-        
+
         {/* Top Fixed Section: Stepper, Summary & Title */}
         <div style={{ flexShrink: 0, paddingBottom: '8px' }}>
-          
+
+          {/* Booking Flow Hero Banner */}
+          <div className="booking-hero-banner">
+            <div className="booking-hero-left">
+              <div className="booking-hero-icon"><CalendarDays size={26} /></div>
+              <div className="booking-hero-copy">
+                <h1>Book Your Appointment</h1>
+                <p>Choose your preferred medical center and book in minutes.</p>
+                <div className="booking-hero-badges">
+                  <span><ShieldCheck size={13} color="#4ade80" /> Verified Hospitals</span>
+                  <span><Clock size={13} color="#67e8f9" /> Real-time Availability</span>
+                  <span><Heart size={13} color="#fb923c" /> Trusted Healthcare</span>
+                </div>
+              </div>
+            </div>
+            <img src="/images/consult-doctor.png" alt="" className="booking-hero-img" aria-hidden="true" />
+          </div>
+
           {/* Horizontal Progress Stepper */}
           <div className="booking-stepper">
             {/* Connecting Line */}
-            <div className="booking-stepper-line" />
-            
+            <div className="booking-stepper-line">
+              <div
+                className="booking-stepper-line-fill"
+                style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+              />
+            </div>
+
             {STEPS.map((step) => {
               const isCompleted = currentStep > step.id;
               const isCurrent = currentStep === step.id;
               const Icon = step.icon;
               const canClick = step.id < currentStep;
-              
+
               let iconBg = 'var(--bg-app)';
               let iconColor = 'var(--text-muted)';
               let iconBorder = '2px solid var(--border)';
-              
+
               if (isCompleted) {
-                iconBg = 'var(--primary)';
+                iconBg = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
                 iconColor = '#fff';
                 iconBorder = '2px solid var(--primary)';
               } else if (isCurrent) {
-                iconBg = 'var(--bg-surface)';
-                iconColor = 'var(--primary)';
+                iconBg = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+                iconColor = '#fff';
                 iconBorder = '2px solid var(--primary)';
               }
 
               return (
-                <div 
-                  key={step.id} 
+                <div
+                  key={step.id}
                   onClick={() => handleStepClick(step)}
-                  className="booking-step-item"
-                  style={{ 
+                  className={`booking-step-item${isCurrent ? ' is-current' : ''}`}
+                  style={{
                     cursor: canClick ? 'pointer' : 'default',
                     opacity: (isCompleted || isCurrent) ? 1 : 0.45
                   }}
                 >
                   <div className="booking-step-icon" style={{ background: iconBg, border: iconBorder, color: iconColor }}>
-                    {isCompleted ? <CheckCircle2 size={15} /> : <Icon size={14} />}
+                    {isCompleted ? <CheckCircle2 size={15} /> : <Icon size={16} />}
                   </div>
                   <div className="booking-step-title" style={{ fontWeight: isCurrent ? '700' : '600', color: isCurrent ? 'var(--primary-dark)' : 'var(--text-muted)' }}>
                     {step.title}

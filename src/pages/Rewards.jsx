@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import PageHeader from "../components/common/PageHeader";
 import { 
   ChevronRight, 
   ChevronDown, 
@@ -15,9 +14,14 @@ import {
   Award,
   IndianRupee,
   Loader2,
-  Lock
+  Lock,
+  Star,
+  Mountain,
+  Gift,
+  FlaskConical,
+  CalendarDays,
+  CalendarClock
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getLoyaltyConfig, getPatientLoyalty, getLoyaltyHistory, redeemLoyaltyPoints } from "../services/dataService";
 
@@ -34,14 +38,14 @@ function formatModuleName(moduleStr = "") {
 
 function getTaskIcon(title = "", type = "") {
   const lower = (title + " " + type).toLowerCase();
-  if (lower.includes("appointment") || lower.includes("booking") || lower.includes("visit") || lower.includes("consult")) {
-    return Calendar;
-  }
   if (lower.includes("offline") || lower.includes("payment") || lower.includes("bill") || lower.includes("pay")) {
-    return CreditCard;
+    return CalendarClock;
+  }
+  if (lower.includes("appointment") || lower.includes("booking") || lower.includes("visit") || lower.includes("consult")) {
+    return CalendarDays;
   }
   if (lower.includes("lab") || lower.includes("upload") || lower.includes("record") || lower.includes("test")) {
-    return Upload;
+    return FlaskConical;
   }
   if (lower.includes("refer") || lower.includes("friend") || lower.includes("invite")) {
     return UserPlus;
@@ -56,9 +60,9 @@ function getTaskIcon(title = "", type = "") {
 }
 
 const defaultEarnTasks = [
-  { id: 3, source_module: "lab", moduleName: "Lab", points_per_amount: "50", expiry_days: 180, rateText: "+1 Pt / ₹50", icon: Upload },
-  { id: 2, source_module: "offline_payment", moduleName: "Offline Appointment", points_per_amount: "20", expiry_days: 365, rateText: "+1 Pt / ₹20", icon: CreditCard },
-  { id: 1, source_module: "appointment", moduleName: "Appointment", points_per_amount: "10", expiry_days: 365, rateText: "+1 Pt / ₹10", icon: Calendar }
+  { id: 3, source_module: "lab", moduleName: "Lab", points_per_amount: "50", expiry_days: 180, rateText: "+1 Pt / ₹50", icon: FlaskConical },
+  { id: 2, source_module: "offline_payment", moduleName: "Offline Appointment", points_per_amount: "20", expiry_days: 365, rateText: "+1 Pt / ₹20", icon: CalendarDays },
+  { id: 1, source_module: "appointment", moduleName: "Online Appointment", points_per_amount: "10", expiry_days: 365, rateText: "+1 Pt / ₹10", icon: CalendarClock }
 ];
 
 export default function Rewards() {
@@ -384,511 +388,206 @@ export default function Rewards() {
     showToast(`Earn 1 Pt for every ${amt ? `₹${amt}` : 'eligible spend'} on ${name}`);
   };
 
+  const redeemThreshold = maxRedeemPoints || 30;
+  const canRedeem = isLoggedIn && points >= redeemThreshold;
+
   return (
-    <main className="page" style={{ background: 'var(--bg-app)', minHeight: '100vh', paddingBottom: '60px' }}>
-      
-      {/* Toast Notification Alert */}
+    <main className="page rewards-page">
       {toastMessage && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          background: 'var(--text-main)',
-          color: 'white',
-          padding: '12px 20px',
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: '600',
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          animation: 'fadeIn 0.2s ease-out'
-        }}>
-          <Sparkles size={16} color="var(--accent)" />
+        <div className="wallet-toast" role="status">
+          <Sparkles size={16} />
           {toastMessage}
         </div>
       )}
 
-      {/* Header Banner */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Loyalty Points' }
-        ]}
-        title="Loyalty & Rewards Points"
-        subtitle="Earn points on health actions and track your reward activity."
-      />
-
-      <div className="container" style={{ paddingTop: '28px' }}>
-        
-        {/* TWO-COLUMN GRID: Equal column bottom alignment */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px', alignItems: 'stretch' }} className="loyalty-grid">
-
-          {/* LEFT COLUMN: Available Points Card + Earn Points Section */}
-          <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            
-            {/* Available Points Card */}
-            <div style={{
-              background: 'linear-gradient(135deg, #0F4D58 0%, #0A343C 100%)',
-              borderRadius: '20px',
-              padding: '28px 28px',
-              color: 'white',
+      <header style={{ padding: '16px 0 0' }}>
+        <div className="container">
+          <div
+            style={{
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 8px 24px rgba(15, 77, 88, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '26px',
+              padding: '24px 32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              gap: '16px',
               flexWrap: 'wrap',
-              gap: '16px'
-            }}>
-              {/* Subtle background glow */}
+              color: '#fff',
+              background:
+                'linear-gradient(120deg, rgba(255,255,255,0.08), transparent 45%), linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 62%, #133a41 100%)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: '0 20px 44px rgba(31, 79, 87, 0.28)',
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
-                position: 'absolute',
-                top: '-30px',
-                right: '-30px',
-                width: '180px',
-                height: '180px',
-                background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-                borderRadius: '50%',
-                pointerEvents: 'none'
-              }} />
-
-              {/* Left Side: Rupee Badge & Points Display */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative', zIndex: 1 }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '50%',
-                  background: '#5C3818',
-                  border: '2px solid #8C5627',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 4px 10px rgba(0,0,0,0.15)'
-                }}>
-                  <IndianRupee size={22} color="#FDBF8B" strokeWidth={2.5} />
-                </div>
-
-                <div>
-                  <span style={{
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    color: 'rgba(255, 255, 255, 0.75)',
-                    display: 'block',
-                    marginBottom: '4px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.8px'
-                  }}>
-                    Available Points
-                  </span>
-                  
-                  {loadingPoints ? (
-                    <div style={{ display: 'flex', alignItems: 'center', minHeight: '28px', marginTop: '4px' }}>
-                      <Loader2 size={24} className="animate-spin" style={{ color: 'white' }} />
-                    </div>
-                  ) : (
-                    <span style={{
-                      fontSize: '28px',
-                      fontWeight: '800',
-                      color: 'white',
-                      lineHeight: 1,
-                      letterSpacing: '-0.3px'
-                    }}>
-                      {points.toLocaleString()}
+                width: '52px', height: '52px', borderRadius: '16px', flexShrink: 0,
+                background: '#fff', color: 'var(--primary-dark)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 12px 24px rgba(0,60,55,0.2)', transform: 'rotate(-6deg)'
+              }}>
+                <Award size={26} />
+              </div>
+              <div>
+                <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', color: '#fff', letterSpacing: '-0.02em' }}>Rewards & Loyalty</h1>
+                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Earn points on eligible health services and track your activity.</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { icon: Star, label: 'Earn Rewards', color: '#fbbf24' },
+                    { icon: Mountain, label: 'Health Milestones', color: '#2dd4bf' },
+                    { icon: Gift, label: 'Special Benefits', color: '#60a5fa' },
+                  ].map(({ icon: Icon, label, color }) => (
+                    <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 10px', color: '#fff', background: 'rgba(18,51,58,0.5)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '11.5px', fontWeight: '650', backdropFilter: 'blur(10px)' }}>
+                      <Icon size={13} color={color} /> {label}
                     </span>
-                  )}
+                  ))}
                 </div>
               </div>
-
-              {/* Right Side: Progress Pill Badge (clickable, triggers /api/loyalty/redeem with { patient_id, points_to_redeem }) */}
-              {(maxRedeemPoints !== null ? points >= maxRedeemPoints : true) && (
-                <div 
-                  onClick={handleRedeemTabClick}
-                  className="hover-glow"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.12)',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid rgba(255, 255, 255, 0.25)',
-                    padding: '8px 16px',
-                    borderRadius: '99px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    color: '#A7F3D0',
-                    position: 'relative',
-                    zIndex: 1,
-                    cursor: isRedeeming ? 'not-allowed' : 'pointer',
-                    userSelect: 'none',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                    opacity: isRedeeming ? 0.7 : 1
-                  }}
-                  title="Click to redeem loyalty points"
-                >
-                  {isRedeeming ? (
-                    <Loader2 size={14} className="animate-spin" color="#A7F3D0" />
-                  ) : (
-                    <TrendingUp size={14} color="#A7F3D0" />
-                  )}
-                  <span>{isRedeeming ? "Redeeming..." : (maxRedeemPoints ? `${maxRedeemPoints} to next reward` : '30 to next reward')}</span>
-                </div>
-              )}
             </div>
 
-            {/* Earn Points Section */}
-            <div style={{
-              background: 'var(--bg-surface)',
-              borderRadius: '20px',
-              padding: '24px',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--shadow-sm)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-                <div>
-                  <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
-                    Earn Points
-                  </h2>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-                    Earn 1 Pt for every eligible spend based on active module rules.
-                  </p>
+            <img src="/images/rewards-loyalty.png" alt="" className="rewards-hero-img" aria-hidden="true" />
+          </div>
+        </div>
+      </header>
+
+      <div className="container rewards-shell">
+        <div className="rewards-layout">
+          <section className="rewards-primary-column">
+            <article className="rewards-balance-card new-rewards-card">
+              <div className="rewards-balance-left">
+                <span className="wallet-eyebrow">Available loyalty points</span>
+                <div className="rewards-balance-row">
+                  <span className="rewards-balance-icon-square"><IndianRupee size={32} strokeWidth={2.5} /></span>
+                  <div className="rewards-points-value" aria-label={`${points} available points`}>
+                    {loadingPoints ? <Loader2 size={32} className="animate-spin" /> : points.toLocaleString()}
+                    {!loadingPoints && <small>points</small>}
+                  </div>
                 </div>
+                <p className="rewards-balance-sub">Start using our services to earn points and unlock rewards.</p>
+              </div>
+
+              <div className="rewards-balance-right">
+                <div className="rewards-gift-container">
+                  <img src="/images/rewards.png" alt="" className="rewards-gift-img" />
+                </div>
+                <div className="rewards-balance-action">
+                  {canRedeem ? (
+                    <button type="button" onClick={handleRedeemTabClick} disabled={isRedeeming}>
+                      {isRedeeming ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+                      {isRedeeming ? "Redeeming" : `Redeem ${redeemThreshold} points`}
+                    </button>
+                  ) : (
+                    <span className="rewards-redeem-badge"><TrendingUp size={15} /> {redeemThreshold} points to redeem</span>
+                  )}
+                  <small>Points can be applied to eligible services.</small>
+                </div>
+              </div>
+            </article>
+
+            <section className="wallet-panel rewards-earn-panel">
+              <div className="wallet-panel-heading">
+                <div className="wallet-section-title">
+                  <span className="wallet-section-icon"><TrendingUp size={20} /></span>
+                  <div>
+                    <h2>Earn Points</h2>
+                    <p>Active earning rules for healthcare services</p>
+                  </div>
+                </div>
+                {!loadingTasks && <span className="wallet-count-badge">{earnTasks.length} ways</span>}
               </div>
 
               {loadingTasks ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                  <Loader2 size={24} className="animate-spin" style={{ color: 'var(--primary)' }} />
-                </div>
+                <div className="rewards-loading"><Loader2 size={25} className="animate-spin" /></div>
               ) : earnTasks.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
-                  No earn rules available.
+                <div className="wallet-empty-state compact">
+                  <span className="wallet-empty-icon"><Inbox size={22} /></span>
+                  <h3>No earning rules available</h3>
+                  <p>New opportunities will appear here.</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {displayedEarnTasks.map((task, idx) => {
+                <div className="rewards-task-list">
+                  {displayedEarnTasks.map((task, index) => {
                     const IconComp = task.icon || Sparkles;
                     const numAmt = parseFloat(task.points_per_amount || 0);
-                    return (
-                      <div 
-                        key={task.id}
-                        onClick={() => handleEarnTaskClick(task)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '12px 14px',
-                          borderRadius: '12px',
-                          background: 'var(--bg-app)',
-                          border: '1px solid var(--border)',
-                          transition: 'all 0.15s ease',
-                          cursor: 'pointer',
-                          gap: '10px',
-                          width: '100%',
-                          boxSizing: 'border-box'
-                        }}
-                        className="hover:border-primary earn-task-card"
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 auto', minWidth: 0 }}>
-                          {/* Circular Icon Container */}
-                          <div style={{
-                            width: '38px',
-                            height: '38px',
-                            borderRadius: '50%',
-                            background: 'rgba(15, 77, 88, 0.1)',
-                            color: '#0F4D58',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                          }}>
-                            <IconComp size={18} color="#0F4D58" />
-                          </div>
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <b style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '2px', lineHeight: 1.25 }}>
-                              {task.moduleName || task.title}
-                            </b>
-                            {task.expiry_days && (
-                              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: '500', display: 'block' }}>
-                                Valid for {task.expiry_days} days
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                    
+                    let colorClass = "is-blue";
+                    if (index % 3 === 1 || IconComp === CalendarDays) colorClass = "is-orange";
+                    if (index % 3 === 2 || IconComp === CalendarClock) colorClass = "is-purple";
 
-                        {/* Earn Rate Badge */}
-                        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                          <span className="earn-task-badge" style={{
-                            color: '#16A34A',
-                            fontWeight: '800',
-                            fontSize: '12px',
-                            background: 'rgba(22, 163, 74, 0.1)',
-                            padding: '5px 10px',
-                            borderRadius: '20px',
-                            whiteSpace: 'nowrap',
-                            display: 'inline-block'
-                          }}>
-                            {task.rateText || `+1 Pt / ₹${numAmt || task.points_per_amount}`}
-                          </span>
-                        </div>
-                      </div>
+                    return (
+                      <button type="button" key={task.id} className="rewards-task-card" onClick={() => handleEarnTaskClick(task)}>
+                        <span className={`rewards-task-icon ${colorClass}`}><IconComp size={22} strokeWidth={2.5} /></span>
+                        <span className="rewards-task-copy">
+                          <strong>{task.moduleName || task.title}</strong>
+                          <small>{task.expiry_days ? `Valid for ${task.expiry_days} days` : "Active earning rule"}</small>
+                        </span>
+                        <span className="rewards-task-rate">
+                          {task.rateText || `+1 Pt / ₹${numAmt || task.points_per_amount}`}
+                        </span>
+                        <ChevronRight size={17} className="rewards-task-arrow" />
+                      </button>
                     );
                   })}
+                  {earnTasks.length > 5 && (
+                    <button type="button" className="rewards-show-more" onClick={() => setShowMoreEarn(!showMoreEarn)}>
+                      {showMoreEarn ? <>Show less <ChevronRight size={14} className="is-up" /></> : <>Show {earnTasks.length - 5} more <ChevronDown size={14} /></>}
+                    </button>
+                  )}
                 </div>
               )}
-
-              {/* Show more / Show less toggle */}
-              {earnTasks.length > 5 && (
-                <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
-                  <button
-                    onClick={() => setShowMoreEarn(!showMoreEarn)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--primary)',
-                      fontSize: '13px',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    {showMoreEarn ? (
-                      <>Show less <ChevronRight size={14} style={{ transform: 'rotate(-90deg)' }} /></>
-                    ) : (
-                      <>Show {earnTasks.length - 5} more <ChevronDown size={14} /></>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-
+            </section>
           </section>
 
-          {/* RIGHT COLUMN: Recent History Section (Aligned to Left Column Bottom) */}
-          <aside style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{
-              background: 'var(--bg-surface)',
-              borderRadius: '20px',
-              padding: '24px 24px 16px 24px',
-              border: '1px solid var(--border)',
-              boxShadow: 'var(--shadow-sm)',
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              boxSizing: 'border-box'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexShrink: 0 }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
-                  Recent History
-                </h2>
-                {isLoggedIn && (
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
-                    {history.length} activities
-                  </span>
-                )}
+          <aside className="wallet-panel rewards-history-panel">
+            <div className="wallet-panel-heading">
+              <div className="wallet-section-title">
+                <span className="wallet-section-icon accent"><FileText size={20} /></span>
+                <div>
+                  <h2>Recent History</h2>
+                  <p>Your points activity</p>
+                </div>
               </div>
-
-              {!isLoggedIn ? (
-                <div style={{
-                  padding: '40px 20px',
-                  textAlign: 'center',
-                  background: 'var(--bg-app)',
-                  borderRadius: '16px',
-                  border: '1.5px dashed var(--border)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  flex: 1
-                }}>
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    background: 'var(--primary-light)',
-                    color: 'var(--primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto'
-                  }}>
-                    <Lock size={22} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
-                      Log in to View Recent History
-                    </h4>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                      Please log in to see your points activity and redemption history.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => openLoginModal && openLoginModal()}
-                    style={{
-                      marginTop: '8px',
-                      background: 'var(--primary)',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '10px 20px',
-                      borderRadius: '10px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
-                    }}
-                  >
-                    Log In / Sign Up
-                  </button>
-                </div>
-              ) : history.length === 0 ? (
-                /* Empty state */
-                <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    background: 'var(--bg-app)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 12px auto'
-                  }}>
-                    <Inbox size={24} color="var(--text-muted)" />
-                  </div>
-                  <p style={{ fontSize: '13px', fontWeight: '500', margin: 0 }}>No transactions yet</p>
-                </div>
-              ) : (
-                /* Scrollable list filling the full card height without bottom gap */
-                <div 
-                  style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    flex: 1,
-                    minHeight: 0,
-                    maxHeight: '440px',
-                    overflowY: 'auto',
-                    paddingRight: '8px'
-                  }}
-                  className="history-scroller"
-                >
-                  {history.map((item, idx) => (
-                    <div 
-                      key={item.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '14px 0',
-                        borderBottom: idx !== history.length - 1 ? '1px solid var(--border)' : 'none'
-                      }}
-                    >
-                      <div>
-                        <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block', marginBottom: '2px', fontWeight: '600' }}>
-                          {item.title}
-                        </b>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {item.date}
-                        </span>
-                      </div>
-                      <span style={{
-                        fontSize: '14px',
-                        fontWeight: '800',
-                        color: item.type === 'earned' ? '#16A34A' : '#DC2626'
-                      }}>
-                        {item.points} pts
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {isLoggedIn && <span className="wallet-count-badge">{history.length} activities</span>}
             </div>
-          </aside>
 
+            {!isLoggedIn ? (
+              <div className="wallet-empty-state rewards-history-empty">
+                <span className="wallet-empty-icon"><Lock size={22} /></span>
+                <h3>Log in to view recent history</h3>
+                <p>See your points activity and redemption history.</p>
+                <button type="button" className="wallet-primary-button" onClick={() => openLoginModal && openLoginModal()}>
+                  Log In / Sign Up
+                </button>
+              </div>
+            ) : history.length === 0 ? (
+              <div className="wallet-empty-state compact rewards-history-empty">
+                <span className="wallet-empty-icon"><Inbox size={22} /></span>
+                <h3>No activity yet</h3>
+                <p>Your earned and redeemed points will appear here.</p>
+              </div>
+            ) : (
+              <div className="rewards-history-list custom-scroller">
+                {history.map(item => (
+                  <article className="rewards-history-item" key={item.id}>
+                    <span className={`rewards-history-icon ${item.type}`}>
+                      {item.type === "earned" ? <TrendingUp size={18} /> : <CreditCard size={18} />}
+                    </span>
+                    <span className="rewards-history-copy">
+                      <strong>{item.title}</strong>
+                      <small>{item.date}</small>
+                    </span>
+                    <span className={`rewards-history-points ${item.type}`}>
+                      <strong>{item.points} pts</strong>
+                      <small>{item.type === "earned" ? "Earned" : "Redeemed"}</small>
+                    </span>
+                  </article>
+                ))}
+              </div>
+            )}
+          </aside>
         </div>
       </div>
-
-      {/* Embedded Responsive & Custom Scrollbar Styles (Identical to Wallet.jsx) */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .history-scroller {
-          flex: 1 !important;
-          min-height: 0 !important;
-          max-height: 440px !important;
-          overflow-y: auto !important;
-        }
-        .history-scroller::-webkit-scrollbar {
-          width: 6px !important;
-          display: block !important;
-        }
-        .history-scroller::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.03) !important;
-          border-radius: 4px !important;
-        }
-        .history-scroller::-webkit-scrollbar-thumb {
-          background: var(--primary-soft, #C9DDE0) !important;
-          border-radius: 4px !important;
-        }
-        .history-scroller::-webkit-scrollbar-thumb:hover {
-          background: var(--primary, #2E666E) !important;
-        }
-        @media (max-width: 868px) {
-          .loyalty-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .earn-task-card {
-            padding: 10px 12px !important;
-            gap: 8px !important;
-          }
-          .earn-task-badge {
-            font-size: 11px !important;
-            padding: 4px 8px !important;
-          }
-        }
-        @media (max-width: 360px) {
-          .earn-task-card {
-            padding: 8px 10px !important;
-            gap: 6px !important;
-          }
-          .earn-task-card b {
-            font-size: 12.5px !important;
-          }
-          .earn-task-card span {
-            font-size: 10.5px !important;
-          }
-          .earn-task-badge {
-            font-size: 10px !important;
-            padding: 3px 6px !important;
-          }
-        }
-        @media (max-width: 320px) {
-          .earn-task-card {
-            padding: 6px 8px !important;
-            gap: 5px !important;
-          }
-          .earn-task-card b {
-            font-size: 11.5px !important;
-          }
-          .earn-task-card span {
-            font-size: 9.5px !important;
-          }
-          .earn-task-badge {
-            font-size: 9.5px !important;
-            padding: 3px 5px !important;
-            letter-spacing: -0.2px !important;
-          }
-        }
-      `}} />
     </main>
   );
 }

@@ -1,14 +1,47 @@
-import { 
-  ChevronRight, ChevronLeft, ArrowRight, Activity, Heart, Eye, Brain, Bone, Baby, 
-  ShieldCheck, Star, Pill, PhoneCall, Wallet, Gift, FileText, CreditCard, Search, 
-  Users, CalendarCheck, Stethoscope, Quote, Sparkles, MapPin, Building2, Navigation, 
-  TestTube, Clock, Flame, Check, ExternalLink, Download, Phone, MessageSquare, Award, Zap
+import {
+  ChevronRight,
+  ChevronLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Activity,
+  Heart,
+  Eye,
+  Brain,
+  Bone,
+  Baby,
+  ShieldCheck,
+  Star,
+  Pill,
+  PhoneCall,
+  Wallet,
+  Gift,
+  FileText,
+  CreditCard,
+  Search,
+  Users,
+  CalendarCheck,
+  Stethoscope,
+  Quote,
+  Sparkles,
+  MapPin,
+  Building2,
+  Navigation,
+  TestTube,
+  Clock,
+  Siren,
+  Smartphone,
+  Download,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import SEO from "../components/common/SEO";
+import { packages } from "../mocks/data";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
-import { downloadBannerAsset, getBanners, getDiagnosticPackages, getPatientReviews } from "../services/dataService";import { getImageUrl } from "../services/uploadService";
+import {
+  getBanners,
+  getDiagnosticPackages,
+  getPatientReviews,
+} from "../services/dataService";
+import { getImageUrl } from "../services/uploadService";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
@@ -18,81 +51,36 @@ export default function Home() {
 
   const scrollReviews = (dir) => {
     if (reviewsScrollRef.current) {
-      const container = reviewsScrollRef.current;
-      const firstCard = container.firstElementChild;
-      const cardWidth = firstCard ? firstCard.offsetWidth + 20 : 310;
-      
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      const maxScroll = scrollWidth - clientWidth;
-
-      if (maxScroll <= 0) return;
-
-      if (dir === 'right') {
-        if (scrollLeft >= maxScroll - 15) {
-          container.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          container.scrollBy({ left: cardWidth, behavior: 'smooth' });
-        }
-      } else {
-        if (scrollLeft <= 15) {
-          container.scrollTo({ left: maxScroll, behavior: 'smooth' });
-        } else {
-          container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-        }
-      }
+      const scrollAmount = reviewsScrollRef.current.clientWidth / 2;
+      reviewsScrollRef.current.scrollBy({
+        left: dir === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
     }
   };
-
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showAmbulanceModal, setShowAmbulanceModal] = useState(false);
-
-  const defaultHomePackages = [
+  const [apiPackages, setApiPackages] = useState(packages.slice(0, 4));
+  const [reviews, setReviews] = useState([
     {
-      id: "ortho-robotics",
-      title: "Ortho Robotics Package",
-      tests: "97% Tests Included",
-      price: "₹197380",
-      img: "/checkup_fullbody.png",
-      trend: "Doctor Verified"
+      name: "Ananya Reddy",
+      role: "Bangalore",
+      text: "Booking an appointment was incredibly seamless. The doctor was available the same day and the consultation was thorough. Arvaya has become my go-to healthcare platform.",
+      rating: 5,
     },
     {
-      id: "paediatric-surgery",
-      title: "Paediatric Surgery - 3A,51&71A3",
-      tests: "91% Tests Included",
-      price: "₹40000",
-      img: "/checkup_heart.png",
-      trend: "Popular"
+      name: "Vikram Singh",
+      role: "Mumbai",
+      text: "The home sample collection for lab tests is a game-changer. The phlebotomist was on time, professional, and I got my reports within 24 hours. Highly recommended!",
+      rating: 5,
     },
     {
-      id: "orthopedics-29a",
-      title: "Orthopedics - 28.58.00029A",
-      tests: "91% Tests Included",
-      price: "₹40000",
-      img: "/checkup_fullbody.png",
-      trend: "Doctor Verified"
+      name: "Priya Nair",
+      role: "Delhi",
+      text: "Managing my family's health records in one place is so convenient. The ABHA integration makes sharing records with new doctors effortless. Love this platform!",
+      rating: 5,
     },
-    {
-      id: "orthopedics-90",
-      title: "Orthopedics - 28.55.00090",
-      tests: "85% Tests Included",
-      price: "₹50000",
-      img: "/checkup_heart.png",
-      trend: "Recommended for Women"
-    }
-  ];
-
-  const [apiPackages, setApiPackages] = useState(defaultHomePackages);
-
-  const defaultReviews = [
-    { name: "Rohit Chaudhari", role: "Bangalore", text: "Booked a cardiac consultation and got connected with a top cardiologist in 10 minutes. Super smooth experience!", rating: 5 },
-    { name: "Mrs. Geethanjali D", role: "Mumbai", text: "The lab technician arrived right on time for home sample collection. Digital reports were ready in 18 hours.", rating: 5 },
-    { name: "Dr. Ananya Sharma", role: "Delhi NCR", text: "Arvaya platform makes managing health records and ABHA health ID incredibly easy for my entire family.", rating: 5 },
-    { name: "Vikram Patil", role: "Pune", text: "Emergency ambulance request was dispatched instantly with live GPS tracking. Saved critical time for hospital admission.", rating: 5 },
-    { name: "Meenakshi K", role: "Hyderabad", text: "Very user-friendly patient portal! I can view all past prescriptions and diagnostic test history in one place.", rating: 5 },
-    { name: "Siddharth Rao", role: "Chennai", text: "Excellent diagnostic services with transparent pricing. Earned reward points on my lab test package booking too!", rating: 5 },
-  ];
-
-  const [reviews, setReviews] = useState(defaultReviews);
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -100,87 +88,142 @@ export default function Home() {
       .then((apiReviews) => {
         if (!isMounted) return;
         if (Array.isArray(apiReviews) && apiReviews.length > 0) {
-          const normalized = apiReviews.map(r => ({
-            name: r.patient_name || r.name || "Verified Patient",
-            role: r.city || r.location || "Verified Patient",
-            text: r.review || r.text || "",
-            rating: r.ratings || r.rating || 5
+          const normalized = apiReviews.map((r) => ({
+            name: r.patient_name || "Patient",
+            role: "Verified Patient",
+            text: r.review || "",
+            rating: r.ratings || 5,
           }));
-          if (normalized.length < 6) {
-            setReviews([...normalized, ...defaultReviews.slice(normalized.length)]);
-          } else {
-            setReviews(normalized);
-          }
+          setReviews(normalized);
         }
       })
       .catch((err) => {
-        console.error("Failed to fetch patient reviews:", err);
+        console.error("Failed to fetch /api/patientReview/get for Home:", err);
       });
 
-    getDiagnosticPackages({ pageSize: 4 })
+    getDiagnosticPackages({ pageSize: 10 })
       .then((apiPkgs) => {
         if (!isMounted) return;
         if (Array.isArray(apiPkgs) && apiPkgs.length > 0) {
-          const normalized = apiPkgs.slice(0, 4).map((p, idx) => {
-            const rawTitle = p.package_name || p.name || p.title || `Health Package ${idx+1}`;
-            const priceVal = parseFloat(p.package_price || p.price || p.cost || p.amount || 999);
-
-            const defaultBadges = [
-              "Doctor Verified",
-              "Popular",
-              "Doctor Verified",
-              "Recommended for Women"
-            ];
+          const normalized = apiPkgs.map((p, idx) => {
+            let rawTitle =
+              p.package_name ||
+              p.name ||
+              p.title ||
+              `Health Package ${idx + 1}`;
+            if (rawTitle.includes('-')) rawTitle = rawTitle.split('-')[0].trim();
+            const priceVal = parseFloat(
+              p.package_price || p.price || p.cost || p.amount || 999,
+            );
+            const oldPriceVal = Math.round(priceVal * 1.25);
+            const itemCount =
+              Array.isArray(p.subitems) && p.subitems.length > 0
+                ? `${p.subitems.length}+ Tests Included`
+                : "30+ Tests";
 
             return {
-              id: p.rateplan_package_id || p.id || p.package_key || `api-pkg-${idx}`,
+              id:
+                p.rateplan_package_id ||
+                p.id ||
+                p.package_key ||
+                `api-pkg-${idx}`,
               title: rawTitle,
-              tests: p.subitems ? `${p.subitems.length}% Tests Included` : "91% Tests Included",
+              tests: itemCount,
               price: `₹${priceVal}`,
-              img: p.img || p.image || (idx % 2 === 0 ? "/checkup_fullbody.png" : "/checkup_heart.png"),
-              trend: p.badge || defaultBadges[idx % defaultBadges.length]
+              oldPrice: `₹${oldPriceVal}`,
+              discount: `${Math.round(((oldPriceVal - priceVal) / oldPriceVal) * 100)}% OFF`,
+              img:
+                p.img ||
+                p.image ||
+                (rawTitle.toLowerCase().includes("diabet")
+                  ? "/images/diabetes.png"
+                  : rawTitle.toLowerCase().includes("heart")
+                    ? "/images/heart-health.png"
+                    : rawTitle.toLowerCase().includes("thyroid")
+                      ? "/images/thyroid-profile.png"
+                      : "/images/full-body-checkup.png"),
+              trend:
+                p.badge ||
+                (idx === 0
+                  ? "Most Booked"
+                  : idx === 1
+                    ? "Popular"
+                    : "Doctor Verified"),
             };
           });
           setApiPackages(normalized.slice(0, 4));
         }
       })
       .catch((err) => {
-        console.error("Failed to fetch packages:", err);
+        console.error(
+          "Failed to fetch /api/diagnostic/getPackages for Home:",
+          err,
+        );
       });
-      return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   const heroSlides = [
     {
-      badge: "⚡ 5 MIN EMERGENCY RESPONSE",
-      title: <>24/7 Smart ICU Emergency &<br/><span style={{ color: '#00A896' }}>Mobile Dispatch</span></>,
-      subtitle: "Rapid emergency ambulance dispatch equipped with mobile life support and live tracking.",
+      badge: "15 MIN EMERGENCY RESPONSE",
+      badgeIcon: <Clock size={14} strokeWidth={2.4} aria-hidden="true" />,
+      badgeColor: "#2dd4bf",
+      badgeBorder: "rgba(45, 212, 191, 0.4)",
+      badgeBg: "rgba(18, 51, 58, 0.7)",
+      title: (
+        <>
+          24/7 Smart ICU Emergency &<br />
+          Mobile Dispatch
+        </>
+      ),
+      subtitle:
+        "Rapid emergency ambulance dispatch equipped with mobile life support and live tracking.",
       primaryBtn: "Request Ambulance",
-      primaryAction: () => go('/ambulance'),
-      secondaryBtn: "Book Consultation",
-      secondaryAction: () => go('/doctors'),
-      bg: "/banner_healthcare_1.png"
+      primaryAction: () => go("/ambulance"),
+      bg: "/banner_healthcare_1.png",
     },
     {
-      badge: "⭐ INDIA'S #1 HEALTHCARE PLATFORM",
-      title: <>Consult Top Doctors &<br/><span style={{ color: '#FDBF8B' }}>Specialists Online</span></>,
-      subtitle: "Instant video consultations with verified top doctors across 35+ medical specialties.",
+      badge: "INDIA'S #1 HEALTHCARE PLATFORM",
+      badgeIcon: <ShieldCheck size={14} strokeWidth={2.4} aria-hidden="true" />,
+      badgeColor: "#FDBF8B",
+      badgeBorder: "rgba(253, 191, 139, 0.4)",
+      badgeBg: "rgba(255, 255, 255, 0.1)",
+      title: (
+        <>
+          Consult Top Doctors &<br />
+          <span style={{ color: "#FDBF8B" }}>Specialists Online</span>
+        </>
+      ),
+      subtitle:
+        "Instant video consultations with verified top doctors across 35+ medical specialties.",
       primaryBtn: "Find a Doctor",
-      primaryAction: () => go('/doctors'),
+      primaryAction: () => go("/doctors"),
       secondaryBtn: "Book Lab Test",
-      secondaryAction: () => go('/labs'),
-      bg: "/banner_healthcare_2.png"
+      secondaryAction: () => go("/labs"),
+      bg: "/banner_healthcare_2.png",
     },
     {
-      badge: "🔬 100% NABL ACCREDITED LABS",
-      title: <>Accurate Diagnostic Tests &<br/><span style={{ color: '#38bdf8' }}>Home Sample Collection</span></>,
-      subtitle: "Sample collection at your doorstep with guaranteed digital reports within 24 hours.",
+      badge: "100% NABL ACCREDITED LABS",
+      badgeIcon: <TestTube size={14} strokeWidth={2.4} aria-hidden="true" />,
+      badgeColor: "#38bdf8",
+      badgeBorder: "rgba(56, 189, 248, 0.4)",
+      badgeBg: "rgba(15, 23, 42, 0.6)",
+      title: (
+        <>
+          Accurate Diagnostic Tests &<br />
+          <span style={{ color: "#38bdf8" }}>Home Sample Collection</span>
+        </>
+      ),
+      subtitle:
+        "Sample collection at your doorstep with guaranteed digital reports within 24 hours.",
       primaryBtn: "Book Lab Package",
-      primaryAction: () => go('/labs'),
-      secondaryBtn: "View Health Records",
-      secondaryAction: () => go('/records'),
-      bg: "/banner_healthcare_3.png"
-    }
+      primaryAction: () => go("/labs"),
+      secondaryBtn: "View Health Vault",
+      secondaryAction: () => go("/records"),
+      bg: "/banner_healthcare_3.png",
+    },
   ];
 
   const [dynamicSlides, setDynamicSlides] = useState(heroSlides);
@@ -190,19 +233,18 @@ export default function Home() {
       try {
         const res = await getBanners();
         const banners = res?.data || res || [];
-        if (Array.isArray(banners) && banners.length > 0) {
-          const newSlides = await Promise.all(banners.map(async (b, i) => {
+        if (banners.length > 0) {
+          const newSlides = banners.map((b, i) => {
             const baseSlide = heroSlides[i % heroSlides.length];
-            const filename = b.filename || b.file_name || b.image || b.image_name || b.img_url;
-            const asset = await downloadBannerAsset(filename);
+            const fullImgUrl = b.img_url
+              ? getImageUrl(b.img_url, "bannerImages")
+              : "";
             return {
               ...baseSlide,
-              bg: asset?.url || baseSlide.bg,
-              mimeType: asset?.mimeType || "image/*"
+              bg: fullImgUrl || baseSlide.bg,
             };
-          }));
+          });
           setDynamicSlides(newSlides);
-          setCurrentSlide(0);
         }
       } catch (e) {
         console.error("Error fetching banners:", e);
@@ -210,7 +252,6 @@ export default function Home() {
     };
     fetchDynamicBanners();
   }, []);
- 
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -219,1104 +260,1387 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [dynamicSlides.length]);
 
+  // Auto-scroll testimonials
   useEffect(() => {
     if (!reviews || reviews.length === 0) return;
-    
+
     const interval = setInterval(() => {
       if (reviewsScrollRef.current) {
-        const container = reviewsScrollRef.current;
-        const firstCard = container.firstElementChild;
-        const cardWidth = firstCard ? firstCard.offsetWidth + 20 : 310;
-        const { scrollLeft, scrollWidth, clientWidth } = container;
+        const { scrollLeft, scrollWidth, clientWidth } =
+          reviewsScrollRef.current;
         const maxScroll = scrollWidth - clientWidth;
-        
-        if (maxScroll <= 0) return;
+        const scrollAmount = clientWidth / 2;
 
-        if (scrollLeft >= maxScroll - 15) {
-          container.scrollTo({ left: 0, behavior: 'smooth' });
+        if (scrollLeft >= maxScroll - 10) {
+          reviewsScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
         } else {
-          container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+          reviewsScrollRef.current.scrollBy({
+            left: scrollAmount,
+            behavior: "smooth",
+          });
         }
       }
-    }, 4500);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [reviews]);
 
-  const tickerText = "24/7 Full Body Checkup this week!  •  Emergency Services now active in Bangalore, Mumbai, and Delhi...  •  Free consultation on  •  ";
+  const tickerItems = [
+    {
+      icon: Sparkles,
+      text: "Avail flat 20% off on all Full Body Checkups this week!",
+    },
+    {
+      icon: Building2,
+      text: "24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi",
+    },
+    {
+      icon: Star,
+      text: "Free consultation with our top specialists for ABHA card holders",
+    },
+  ];
 
   return (
-    <main className="page page-enter" style={{ padding: 0, background: '#F8FAFC', fontFamily: "Inter, system-ui, sans-serif", color: '#0F172A' }}>
-      <SEO
-        title="Arvaya Healthcare — Book Doctors, Lab Tests & Health Records Online"
-        description="India's most trusted healthcare platform. Book top doctors, order lab tests with home collection, store health records securely, and manage your ABHA ID — all in one place."
-        keywords="Arvaya healthcare, book doctors online, lab tests home collection, health records, ABHA ID, telemedicine India"
-        canonical="https://my.arvayahealth.com/"
-        ogImage="/banner_healthcare_1.png"
-        ogType="website"
-      />
-      
-      {/* ── Top Emergency & Ticker Header Bar (Dark Teal Gradient Theme) ── */}
-      <div style={{ background: 'linear-gradient(90deg, rgb(13, 92, 99), rgb(46, 102, 110))', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '9px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'nowrap' }}>
-          
-          {/* Emergency Call Pill */}
-          <button 
-            onClick={() => setShowAmbulanceModal(true)} 
-            style={{ 
-              background: 'linear-gradient(135deg, #FB913F 0%, #EF7D24 100%)', color: 'white', padding: '6px 14px', fontSize: '12px', 
-              fontWeight: '700', borderRadius: '99px', border: 'none', cursor: 'pointer', 
-              display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-              boxShadow: '0 2px 10px rgba(251, 145, 63, 0.4)', transition: 'transform 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-          >
-            <span style={{ fontSize: '13px' }}>🚨</span> Medical Emergency? Call Ambulance
-          </button>
-
-          {/* Ticker Row */}
-          <div style={{ display: 'flex', alignItems: 'center', flex: 1, overflow: 'hidden', fontSize: '12.5px' }}>
-            <span style={{ 
-              fontWeight: '800', background: 'hsla(0, 0%, 100%, 1.00)', color: '#043633ff', padding: '3px 9px', 
-              borderRadius: '4px', marginRight: '12px', fontSize: '10.5px', textTransform: 'uppercase', 
-              letterSpacing: '0.05em', whiteSpace: 'nowrap', border: '1px solid rgba(255, 255, 255, 0.25)'
-            }}>
-              UPDATES
-            </span>
-            <div className="ticker-wrap" style={{ overflow: 'hidden', whiteSpace: 'nowrap', width: '100%' }}>
-              <span className="ticker-content" style={{ display: 'inline-block', color: 'rgba(255, 255, 255, 0.95)', fontWeight: '600' }}>
-                {tickerText}{tickerText}
-              </span>
-            </div>
+    <main className="page page-enter home-page" style={{ padding: 0 }}>
+      {/* ── Emergency & Ticker ── */}
+      <div
+        className="home-alert-strip"
+        style={{
+          background: "linear-gradient(90deg, #0d5c63, #2E666E)",
+          color: "white",
+        }}
+      >
+        <div className="container home-alert-row">
+          <div className="home-alert-emergency">
+            <Siren size={18} strokeWidth={2.3} aria-hidden="true" />
+            <span>Medical Emergency?</span>
           </div>
-
-          {/* Phone Number */}
-          <a href="tel:18001234567" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ffffff', textDecoration: 'none', fontSize: '12.5px', fontWeight: '800', whiteSpace: 'nowrap' }}>
-            <Phone size={14} style={{ color: '#2DD4BF' }} /> 1800 123 4567
-          </a>
+          <button
+            onClick={() => setShowAmbulanceModal(true)}
+            className="btn home-alert-call"
+          >
+            <PhoneCall size={17} strokeWidth={2.3} aria-hidden="true" />
+            <span>Call Ambulance</span>
+          </button>
+          <span className="home-alert-divider" aria-hidden="true" />
+          <span className="home-alert-updates">Updates</span>
+          <div className="ticker-wrap">
+            <span className="ticker-content">
+              {[...tickerItems, ...tickerItems].map(
+                ({ icon: Icon, text }, index) => (
+                  <span className="ticker-item" key={`${text}-${index}`}>
+                    <Icon size={14} strokeWidth={2.2} aria-hidden="true" />
+                    <span>{text}</span>
+                    <span className="ticker-separator" aria-hidden="true">
+                      •
+                    </span>
+                  </span>
+                ),
+              )}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ── Section 1: Full-Width Hero Banner (0 Upper/Left/Right Margins) ── */}
-      <section style={{ position: 'relative', width: '100%', margin: 0, padding: 0, overflow: 'hidden', minHeight: '340px', background: '#0F172A' }}>
+      {/* ── Carousel Banner ── */}
+      <section
+        className="home-hero-section"
+        style={{
+          position: "relative",
+          width: "100%",
+          minHeight: "480px",
+          overflow: "hidden",
+        }}
+      >
         {dynamicSlides.map((slide, idx) => (
-          <div key={`${slide.bg}-${idx}`} style={{
-              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-              opacity: idx === currentSlide ? 1 : 0, 
-              transition: 'opacity 1s ease-in-out',
-              zIndex: idx === currentSlide ? 1 : 0
-          }}>
-            {slide.mimeType?.startsWith('video/') ? (
-                <video
-                  src={slide.bg}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label={`Banner ${idx + 1}`}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }}
-                />
-              ) : (
-                <img
-                  src={slide.bg}
-                  alt={`Banner ${idx + 1}`}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center right', display: 'block' }}
-                />
-              )}
-            <div style={{ 
-              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
-              background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.72) 48%, rgba(15, 23, 42, 0.2) 100%)' 
-            }}></div>
+          <div
+            key={`${slide.bg}-${idx}`}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              opacity: idx === currentSlide ? 1 : 0,
+              transition: "opacity 1.2s ease-in-out",
+              zIndex: idx === currentSlide ? 1 : 0,
+            }}
+          >
+            <img
+              src={slide.bg}
+              alt={`Banner ${idx + 1}`}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "fill",
+                display: "block",
+              }}
+            />
+            {slide.title && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  background:
+                    "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%)",
+                }}
+              ></div>
+            )}
           </div>
         ))}
 
-        {/* Nav Arrows */}
-        <button 
-          onClick={() => setCurrentSlide((prev) => (prev === 0 ? dynamicSlides.length - 1 : prev - 1))}
+        {/* Carousel Navigation Arrows */}
+        <button
+          className="home-hero-arrow home-hero-arrow-prev"
+          onClick={() =>
+            setCurrentSlide((prev) =>
+              prev === 0 ? dynamicSlides.length - 1 : prev - 1,
+            )
+          }
           style={{
-            position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
-            width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
-            color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-            backdropFilter: 'blur(8px)', transition: 'all 0.2s'
+            position: "absolute",
+            left: "20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: "#ffffff",
+            color: "#1e293b",
+            border: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 20,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+            transition: "all 0.2s",
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.transform = "translateY(-50%) scale(1.08)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.transform = "translateY(-50%) scale(1)")
+          }
           aria-label="Previous Slide"
         >
           <ChevronLeft size={20} />
         </button>
 
-        <button 
-          onClick={() => setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)}
+        <button
+          className="home-hero-arrow home-hero-arrow-next"
+          onClick={() =>
+            setCurrentSlide((prev) => (prev + 1) % dynamicSlides.length)
+          }
           style={{
-            position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
-            width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.25)',
-            color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.4)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-            backdropFilter: 'blur(8px)', transition: 'all 0.2s'
+            position: "absolute",
+            right: "20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: "#ffffff",
+            color: "#1e293b",
+            border: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 20,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+            transition: "all 0.2s",
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.transform = "translateY(-50%) scale(1.08)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.transform = "translateY(-50%) scale(1)")
+          }
           aria-label="Next Slide"
         >
           <ChevronRight size={20} />
         </button>
 
-        {/* Hero Inner Centered Content */}
-        <div style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', height: '100%', minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, padding: '24px 24px' }}>
-          
-          {/* Reference Header Tagline */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ height: '2px', width: '28px', background: '#00A896', display: 'inline-block', borderRadius: '2px' }}></span>
-            <span style={{ fontSize: '12px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-              We Care About Your Health
-            </span>
-          </div>
+        {/* Overlay Content */}
+        <div
+          className="container"
+          style={{
+            position: "relative",
+            height: "100%",
+            minHeight: "480px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            zIndex: 10,
+            padding: "48px 24px",
+            pointerEvents: "none",
+          }}
+        >
+          {dynamicSlides.map(
+            (slide, idx) =>
+              idx === currentSlide && (
+                <div
+                  key={idx}
+                  className="animate-fade-in-up"
+                  style={{ maxWidth: "640px", pointerEvents: "auto" }}
+                >
+                  {slide.badge && (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        background: slide.badgeBg,
+                        backdropFilter: "blur(10px)",
+                        color: slide.badgeColor,
+                        padding: "8px 18px",
+                        borderRadius: "99px",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        marginBottom: "20px",
+                        border: `1px solid ${slide.badgeBorder}`,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                      }}
+                    >
+                      {slide.badgeIcon}
+                      <span>{slide.badge}</span>
+                    </span>
+                  )}
+                  {slide.title && (
+                    <h1
+                      className="hero-title"
+                      style={{
+                        fontSize: "42px",
+                        fontWeight: "800",
+                        color: "white",
+                        lineHeight: 1.15,
+                        marginBottom: "20px",
+                        letterSpacing: "-0.02em",
+                        fontFamily: "var(--font-display)",
+                      }}
+                    >
+                      {slide.title}
+                    </h1>
+                  )}
+                  {slide.subtitle && (
+                    <p
+                      className="hero-subtext"
+                      style={{
+                        fontSize: "17px",
+                        color: "rgba(255,255,255,0.85)",
+                        marginBottom: "32px",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {slide.subtitle}
+                    </p>
+                  )}
 
-          {dynamicSlides.map((slide, idx) => idx === currentSlide && (
-            <div key={idx} className="animate-fade-in-up" style={{ maxWidth: '600px' }}>
-              {slide.badge && (
-                <span style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '6px', 
-                  background: 'rgba(255, 255, 255, 0.14)', backdropFilter: 'blur(10px)', 
-                  color: '#FDBF8B', padding: '6px 14px', borderRadius: '99px', 
-                  fontSize: '11px', fontWeight: '700', marginBottom: '16px', 
-                  border: '1px solid rgba(253, 191, 139, 0.3)', textTransform: 'uppercase', 
-                  letterSpacing: '0.06em' 
-                }}>
-                  {slide.badge}
-                </span>
-              )}
-              {slide.title && (
-                <h1 style={{ fontSize: '38px', fontWeight: '800', color: '#ffffff', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.02em' }}>
-                  {slide.title}
-                </h1>
-              )}
-              {slide.subtitle && (
-                <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.88)', marginBottom: '28px', lineHeight: 1.6 }}>
-                  {slide.subtitle}
-                </p>
-              )}
-              
-              <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
-                {slide.primaryBtn && (
-                  <button 
-                    onClick={slide.primaryAction} 
-                    style={{ 
-                      padding: '12px 26px', fontSize: '14px', fontWeight: '700', 
-                      color: '#ffffff', background: 'linear-gradient(135deg, #00A896 0%, #0D766E 100%)', 
-                      border: 'none', borderRadius: '12px', cursor: 'pointer', 
-                      display: 'flex', alignItems: 'center', gap: '8px', 
-                      boxShadow: '0 4px 16px rgba(0, 168, 150, 0.4)', transition: 'transform 0.2s' 
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                  >
-                    <span>{slide.primaryBtn}</span> <ArrowRight size={16} />
-                  </button>
-                )}
+                  {(slide.primaryBtn || slide.secondaryBtn) && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "16px",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                      }}
+                    >
+                      {/* Primary Orange CTA Button */}
+                      {slide.primaryBtn && (
+                        <button
+                          onClick={slide.primaryAction}
+                          style={{
+                            padding: "14px 28px",
+                            fontSize: "15px",
+                            fontWeight: "700",
+                            color: "#ffffff",
+                            background:
+                              "linear-gradient(135deg, #FF6B00 0%, #F97316 100%)",
+                            border: "none",
+                            borderRadius: "14px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            boxShadow: "0 4px 20px rgba(249, 115, 22, 0.4)",
+                            transition: "all 0.3s",
+                          }}
+                          onMouseEnter={(e) =>
+                          (e.currentTarget.style.transform =
+                            "translateY(-2px)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "translateY(0)")
+                          }
+                        >
+                          <span>{slide.primaryBtn}</span>{" "}
+                          <ArrowRight size={16} />
+                        </button>
+                      )}
 
-                {slide.secondaryBtn && (
-                  <button 
-                    onClick={slide.secondaryAction} 
-                    style={{ 
-                      padding: '12px 24px', fontSize: '14px', fontWeight: '700', 
-                      color: '#ffffff', background: 'rgba(255, 255, 255, 0.12)', 
-                      border: '1.5px solid rgba(255, 255, 255, 0.35)', borderRadius: '12px', 
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
-                      backdropFilter: 'blur(8px)', transition: 'all 0.2s' 
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.22)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)'; }}
-                  >
-                    {slide.secondaryBtn}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Sub-Hero Quick Stat Indicators Pill Bar */}
-          <div style={{ marginTop: '20px', display: 'flex', gap: '24px', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
-              <b style={{ fontSize: '18px', fontWeight: '800', color: '#00A896' }}>7+</b>
-              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Years Experience</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
-              <b style={{ fontSize: '18px', fontWeight: '800', color: '#38BDF8' }}>22+</b>
-              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Top Doctors & Specialists</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
-              <b style={{ fontSize: '18px', fontWeight: '800', color: '#FBBF24' }}>24/7</b>
-              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>Emergency Ambulance Dispatch</span>
-            </div>
-          </div>
-
+                      {/* Secondary Outlined CTA Button */}
+                      {slide.secondaryBtn && (
+                        <button
+                          onClick={slide.secondaryAction}
+                          style={{
+                            padding: "14px 28px",
+                            fontSize: "15px",
+                            fontWeight: "700",
+                            color: "#ffffff",
+                            background:
+                              "linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.14))",
+                            border: "1.5px solid rgba(255, 255, 255, 0.78)",
+                            borderRadius: "14px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            backdropFilter: "blur(18px) saturate(165%)",
+                            WebkitBackdropFilter: "blur(18px) saturate(165%)",
+                            boxShadow:
+                              "0 10px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.38)",
+                            textShadow: "0 1px 3px rgba(0, 0, 0, 0.45)",
+                            transition: "all 0.3s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background =
+                              "linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.24))";
+                            e.currentTarget.style.borderColor = "#ffffff";
+                            e.currentTarget.style.boxShadow =
+                              "0 12px 32px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.5)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background =
+                              "linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.14))";
+                            e.currentTarget.style.borderColor =
+                              "rgba(255, 255, 255, 0.78)";
+                            e.currentTarget.style.boxShadow =
+                              "0 10px 28px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.38)";
+                          }}
+                        >
+                          {slide.secondaryBtn}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ),
+          )}
         </div>
 
-        {/* Carousel Dots */}
-        <div style={{ position: 'absolute', bottom: '16px', right: '32px', zIndex: 10, display: 'flex', gap: '8px' }}>
+        {/* Navigation Dots */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 10,
+            display: "flex",
+            gap: "8px",
+          }}
+        >
           {dynamicSlides.map((_, idx) => (
-            <button 
+            <button
               key={idx}
               onClick={() => setCurrentSlide(idx)}
               style={{
-                width: idx === currentSlide ? '24px' : '8px',
-                height: '8px',
-                borderRadius: '4px',
-                background: idx === currentSlide ? '#00A896' : 'rgba(255, 255, 255, 0.4)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
+                width: idx === currentSlide ? "28px" : "10px",
+                height: "10px",
+                borderRadius: "5px",
+                background:
+                  idx === currentSlide ? "white" : "rgba(255, 255, 255, 0.4)",
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
               }}
             />
           ))}
         </div>
       </section>
 
-      {/* ── Main Container Wrapper ── */}
-      <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '24px 16px 28px 16px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-        
-        {/* ── Section 1: 4 Solid Contrast Service Cards Grid ── */}
-        <section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            
-            {/* Card 1: Doctor Consultation (Royal Blue) */}
-            <div 
-              onClick={() => go('/doctors')}
-              style={{
-                background: 'linear-gradient(135deg, #0A369D 0%, #072AC8 100%)',
-                color: '#ffffff',
-                borderRadius: '16px',
-                padding: '24px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: '160px',
-                boxShadow: '0 8px 20px rgba(10, 54, 157, 0.18)',
-                transition: 'transform 0.25s, box-shadow 0.25s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 14px 28px rgba(10, 54, 157, 0.28)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(10, 54, 157, 0.18)';
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Stethoscope size={24} />
+      {/* ── Value Props ── */}
+      <section style={{ padding: "20px 0" }}>
+        <div className="container">
+          <div className="trust-features-panel">
+            <div className="trust-features-grid">
+              {[
+                { icon: <Star size={26} />, title: "4.9/5 Rating", sub: "From 1M+ Users", color: "#D97706", bg: "#FEF3C7" },
+                { icon: <ShieldCheck size={26} />, title: "NABH Accredited", sub: "Quality Assured", color: "var(--primary)", bg: "var(--primary-light)" },
+                { icon: <PhoneCall size={26} />, title: "24/7 Support", sub: "Always here for you", color: "#2563EB", bg: "#DBEAFE" },
+                { icon: <Pill size={26} />, title: "100% Genuine", sub: "Medicines & Tests", color: "var(--accent)", bg: "#FEF0E2" },
+              ].map((v, i) => (
+                <div key={i} className="trust-feature-item">
+                  <div className="trust-feature-icon" style={{ background: v.bg, color: v.color }}>
+                    {v.icon}
+                  </div>
+                  <div>
+                    <h4>{v.title}</h4>
+                    <p>{v.sub}</p>
+                  </div>
                 </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Doctor Consultation</h3>
-              </div>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
-                Book video consultations or hospital visits with certified top specialists across 35+ departments.
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#6EE7B7' }}>
-                Book Doctor <ArrowRight size={14} />
-              </div>
+              ))}
             </div>
-
-            {/* Card 2: Emergency Care (Deep Teal) */}
-            <div 
-              onClick={() => setShowAmbulanceModal(true)}
-              style={{
-                background: 'linear-gradient(135deg, #005F73 0%, #0A9396 100%)',
-                color: '#ffffff',
-                borderRadius: '16px',
-                padding: '24px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: '160px',
-                boxShadow: '0 8px 20px rgba(0, 95, 115, 0.18)',
-                transition: 'transform 0.25s, box-shadow 0.25s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 14px 28px rgba(0, 95, 115, 0.28)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 95, 115, 0.18)';
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Activity size={24} />
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Emergency Care</h3>
-              </div>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
-                Instant emergency medical care response team available 24/7 for urgent hospital admission.
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#A7F3D0' }}>
-                Get Immediate Help <ArrowRight size={14} />
-              </div>
-            </div>
-
-            {/* Card 3: Ambulance Services (Cyan Blue) */}
-            <div 
-              onClick={() => go('/ambulance')}
-              style={{
-                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
-                color: '#ffffff',
-                borderRadius: '16px',
-                padding: '24px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: '160px',
-                boxShadow: '0 8px 20px rgba(2, 132, 199, 0.18)',
-                transition: 'transform 0.25s, box-shadow 0.25s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 14px 28px rgba(2, 132, 199, 0.28)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(2, 132, 199, 0.18)';
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Navigation size={24} />
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>Ambulance Dispatch</h3>
-              </div>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
-                GPS-tracked mobile ICU ambulance dispatch with trained paramedic life support teams.
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#BAE6FD' }}>
-                Track Ambulance <ArrowRight size={14} />
-              </div>
-            </div>
-
-            {/* Card 4: 24/7 Diagnostics (Dark Navy Slate) */}
-            <div 
-              onClick={() => go('/labs')}
-              style={{
-                background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-                color: '#ffffff',
-                borderRadius: '16px',
-                padding: '24px 20px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: '160px',
-                boxShadow: '0 8px 20px rgba(15, 23, 42, 0.18)',
-                transition: 'transform 0.25s, box-shadow 0.25s'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 14px 28px rgba(15, 23, 42, 0.28)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(15, 23, 42, 0.18)';
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <TestTube size={24} />
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', margin: 0 }}>24/7 Diagnostics</h3>
-              </div>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', lineHeight: 1.5, margin: '12px 0' }}>
-                100% NABL accredited lab checkups with doorstep sample collection & 24h digital reports.
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#38BDF8' }}>
-                Book Lab Test <ArrowRight size={14} />
-              </div>
-            </div>
-
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── Section 2: "Compassionate Care Meets Modern Medicine" (Split Feature Layout inspired by Image) ── */}
-        <section style={{ 
-          background: '#ffffff', 
-          borderRadius: '24px', 
-          padding: '40px 32px', 
-          border: '1px solid #E2E8F0', 
-          boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '36px',
-          alignItems: 'center'
-        }}>
-          {/* Left Side: Medical Team Image Showcase */}
-          <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', minHeight: '340px', boxShadow: '0 12px 30px rgba(15, 23, 42, 0.1)' }}>
-            <img 
-              src="/banner_healthcare_1.png" 
-              alt="Compassionate Care Meets Modern Medicine" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: '340px', display: 'block' }} 
-            />
-            {/* Top Left Experience Badge */}
-            <div style={{ 
-              position: 'absolute', top: '16px', left: '16px', 
-              background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
-              color: '#ffffff', padding: '8px 16px', borderRadius: '12px',
-              display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '700'
-            }}>
-              <Award size={16} style={{ color: '#00A896' }} />
-              NABH Accredited Care
+      {/* ── Arvaya Ecosystem ── */}
+      <div
+        className="bg-mesh-primary"
+        style={{ padding: "56px 0", borderBottom: "1px solid var(--border)" }}
+      >
+        <section className="container" style={{ padding: "0 24px" }}>
+          <style>{`
+          .ecosystem-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; align-items: start; }
+          @media (max-width: 900px) { .ecosystem-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+          @media (max-width: 600px) { .ecosystem-grid { grid-template-columns: 1fr; } }
+        `}</style>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-h2">Your Health Ecosystem</h2>
+              <p className="text-muted mt-2">
+                Manage everything from one place
+              </p>
             </div>
           </div>
 
-          {/* Right Side: Detailed Copy & Highlight Points */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ height: '2px', width: '24px', background: '#00A896', display: 'inline-block' }}></span>
-              <span style={{ fontSize: '12px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Arvaya Healthcare
-              </span>
-            </div>
-
-            <h2 style={{ fontSize: '30px', fontWeight: '800', color: '#0F172A', lineHeight: 1.25, letterSpacing: '-0.02em' }}>
-              Compassionate Care Meets <span style={{ color: '#00A896' }}>Modern Medicine</span>
-            </h2>
-
-            <p style={{ fontSize: '14.5px', color: '#475569', lineHeight: 1.65 }}>
-              We bring together world-class specialists, state-of-the-art diagnostic technology, and rapid response emergency services to deliver seamless, patient-first care every day.
-            </p>
-
-            {/* 4 Feature Points Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '12px' }}>
-              
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <PhoneCall size={18} />
-                </div>
-                <div>
-                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>24/7 Ambulance</b>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>5-min rapid dispatch</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EEF2FF', color: '#4F46E5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Users size={18} />
-                </div>
-                <div>
-                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>Top Specialists</b>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>35+ Specialties</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#DCFCE7', color: '#15803D', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <TestTube size={18} />
-                </div>
-                <div>
-                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>Doorstep Samples</b>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>Digital reports in 24h</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#F0F9FF', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <ShieldCheck size={18} />
-                </div>
-                <div>
-                  <b style={{ fontSize: '13.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>100% Genuine</b>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>Certified medicine & lab</span>
-                </div>
-              </div>
-
-            </div>
-
-            <div style={{ marginTop: '12px' }}>
-              <button 
-                onClick={() => go('/doctors')}
-                style={{ 
-                  padding: '12px 24px', background: '#0F172A', color: '#ffffff', 
-                  border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
-                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  boxShadow: '0 4px 14px rgba(15,23,42,0.2)', transition: 'background 0.2s' 
+          <div className="ecosystem-grid">
+            {[
+              {
+                title: "ABHA Hub",
+                sub: "Create & link your ABHA ID for seamless health data access",
+                icon: <CreditCard size={29} strokeWidth={1.8} />,
+                link: "/abha",
+                start: "#10add5",
+                end: "#087eb8",
+                iconColor: "#087b9c",
+              },
+              {
+                title: "Arvaya Rewards",
+                sub: "Earn points on every booking and redeem exclusive offers",
+                icon: <Gift size={29} strokeWidth={1.8} />,
+                link: "/rewards",
+                start: "#aa56f3",
+                end: "#7d2be8",
+                iconColor: "#7d2be8",
+              },
+              {
+                title: "Digital Wallet",
+                sub: "Fast, secure payments with instant refunds guaranteed",
+                icon: <Wallet size={29} strokeWidth={1.8} />,
+                link: "/wallet",
+                start: "#12bca0",
+                end: "#087f74",
+                iconColor: "#087b73",
+              },
+              {
+                title: "Health Records",
+                sub: "Your complete medical history, encrypted and always accessible",
+                icon: <FileText size={29} strokeWidth={1.8} />,
+                link: "/records",
+                start: "#ff9d42",
+                end: "#ef701b",
+                iconColor: "#d95f10",
+              },
+            ].map((item, idx) => (
+              <article
+                key={item.title}
+                className="ecosystem-card cursor-pointer animate-fade-in-up"
+                style={{
+                  "--eco-start": item.start,
+                  "--eco-end": item.end,
+                  "--eco-icon-color": item.iconColor,
+                  animationDelay: `${idx * 80}ms`,
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#00A896'}
-                onMouseLeave={e => e.currentTarget.style.background = '#0F172A'}
+                onClick={() => go(item.link)}
               >
-                <span>Find Your Specialist</span> <ArrowRight size={16} />
-              </button>
-            </div>
+                <span
+                  className="ecosystem-orb ecosystem-orb-top"
+                  aria-hidden="true"
+                />
+                <span
+                  className="ecosystem-orb ecosystem-orb-bottom"
+                  aria-hidden="true"
+                />
+                <div className="ecosystem-card-top">
+                  <div className="ecosystem-card-icon">{item.icon}</div>
+                  <div className="ecosystem-card-arrow" aria-hidden="true">
+                    <ArrowUpRight size={23} strokeWidth={2.1} />
+                  </div>
+                </div>
+                <div className="ecosystem-card-copy">
+                  <h3>{item.title}</h3>
+                  <p>{item.sub}</p>
+                  <span className="ecosystem-card-action">
+                    Explore <ArrowRight size={16} />
+                  </span>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
+      </div>
 
-        {/* ── Section 4: "Care Across Every Specialty" Grid ── */}
-        <section>
-          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 28px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-              <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                OUR DEPARTMENTS
-              </span>
-              <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
-            </div>
-            <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginBottom: '12px' }}>
-              Care Across Every <span style={{ color: '#00A896', fontStyle: 'italic' }}>Speciality</span>
-            </h2>
-            <button 
-              onClick={() => go("/doctors")}
-              style={{ 
-                background: '#0F172A', border: 'none', borderRadius: '99px', 
-                padding: '8px 20px', fontSize: '13px', fontWeight: '700', color: '#ffffff', 
-                cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
-                boxShadow: '0 4px 10px rgba(15,23,42,0.15)' 
+      {/* ── How It Works ── */}
+      <section className="home-how-section">
+        <div className="container home-how-panel">
+          <div className="home-how-heading">
+            <h2 className="text-h2">How It Works</h2>
+            <p className="text-muted mt-2">
+              Book a doctor appointment in 3 simple steps
+            </p>
+          </div>
+
+          <div className="how-it-works-grid">
+            {[
+              {
+                step: "1",
+                icon: <Search size={28} />,
+                title: "Search",
+                desc: "Find specialists by name, specialty, or location",
+                color: "#f28a28",
+                soft: "#fff3e8",
+              },
+              {
+                step: "2",
+                icon: <CalendarCheck size={28} />,
+                title: "Book",
+                desc: "Pick a convenient slot and confirm instantly",
+                color: "#08a57b",
+                soft: "#e8faf4",
+              },
+              {
+                step: "3",
+                icon: <Stethoscope size={28} />,
+                title: "Consult",
+                desc: "Visit the clinic or join a video consultation",
+                color: "#2583d8",
+                soft: "#edf6ff",
+              },
+            ].map((s, i) => (
+              <article
+                key={s.step}
+                className="home-how-card animate-fade-in-up"
+                style={{
+                  "--step-accent": s.color,
+                  "--step-soft": s.soft,
+                  animationDelay: `${i * 150}ms`,
+                }}
+              >
+                <div className="home-how-card-top">
+                  <div className="home-how-icon">{s.icon}</div>
+                  <span className="home-how-step">0{s.step}</span>
+                </div>
+                <div className="home-how-copy">
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                </div>
+                {i < 2 && (
+                  <span className="home-how-connector" aria-hidden="true">
+                    <span>
+                      <ArrowRight size={15} strokeWidth={2.2} />
+                    </span>
+                  </span>
+                )}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Consult Top Specialties ── */}
+      <section
+        className="container home-specialties-section"
+        style={{ padding: "56px 24px" }}
+      >
+        <style>{`
+          .specialties-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+          @media (max-width: 900px) { .specialties-grid { grid-template-columns: repeat(3, 1fr); } }
+          @media (max-width: 600px) { .specialties-grid { grid-template-columns: repeat(2, 1fr); } }
+        `}</style>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-h2">Consult Top Specialties</h2>
+            <p className="text-muted mt-2">
+              Consult with India's best specialists
+            </p>
+          </div>
+          <button
+            className="btn btn-view-all flex items-center gap-2"
+            onClick={() => go("/doctors")}
+          >
+            View All <ArrowRight size={16} />
+          </button>
+        </div>
+
+        <div className="specialties-grid">
+          {[
+            {
+              name: "Cardiology",
+              icon: <Heart size={28} strokeWidth={1.7} />,
+              consults: "2.5k+",
+              color: "#ff8a1f",
+              soft: "#fff5e8",
+            },
+            {
+              name: "Neurology",
+              icon: <Brain size={28} strokeWidth={1.7} />,
+              consults: "1.8k+",
+              color: "#08aa79",
+              soft: "#e9faf4",
+            },
+            {
+              name: "Pediatrics",
+              icon: <Baby size={28} strokeWidth={1.7} />,
+              consults: "3.2k+",
+              color: "#2b84ef",
+              soft: "#edf5ff",
+            },
+            {
+              name: "Orthopedics",
+              icon: <Bone size={28} strokeWidth={1.7} />,
+              consults: "1.4k+",
+              color: "#8e52ef",
+              soft: "#f4efff",
+            },
+            {
+              name: "General Medicine",
+              icon: <Activity size={28} strokeWidth={1.7} />,
+              consults: "5.1k+",
+              color: "#ef4054",
+              soft: "#fff0f2",
+            },
+            {
+              name: "Dermatology",
+              icon: <Eye size={28} strokeWidth={1.7} />,
+              consults: "2.1k+",
+              color: "#05a9c4",
+              soft: "#eafafd",
+            },
+          ].map((spec, i) => (
+            <div
+              key={spec.name}
+              className="specialty-card cursor-pointer animate-scale-in"
+              style={{
+                "--specialty-accent": spec.color,
+                "--specialty-soft": spec.soft,
+                animationDelay: `${i * 60}ms`,
               }}
+              onClick={() => go("/doctors")}
             >
-              View All Specialists <ArrowRight size={14} />
+              <div className="specialty-icon">{spec.icon}</div>
+              <b className="specialty-title">{spec.name}</b>
+              <span className="specialty-count">{spec.consults} Consults</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Featured Lab Packages ── */}
+      <section style={{ padding: "0 0 56px 0" }}>
+        <div className="container">
+          <style>{`
+            .packages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+            @media (max-width: 1024px) { .packages-grid { grid-template-columns: repeat(2, 1fr); } }
+            @media (max-width: 600px) { .packages-grid { grid-template-columns: 1fr; } }
+            
+            .pkg-card {
+              width: 100%;
+              background: #ffffff;
+              border-radius: 18px;
+              border: 1px solid var(--border);
+              overflow: hidden;
+              display: flex;
+              flex-direction: column;
+              transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+              box-shadow: 0 2px 8px rgba(18, 51, 58, 0.04);
+              position: relative;
+            }
+            .pkg-card:hover {
+              transform: translateY(-4px);
+              box-shadow: 0 12px 28px rgba(18, 51, 58, 0.1);
+              border-color: var(--primary-soft);
+            }
+            .pkg-card-img-container {
+              height: 135px;
+              width: 100%;
+              background: #f0f7f7;
+              overflow: hidden;
+              position: relative;
+            }
+            .pkg-card-body {
+              padding: 16px;
+              display: flex;
+              flex-direction: column;
+              flex: 1;
+            }
+            .pkg-card-title {
+              font-weight: 800;
+              font-size: 15px;
+              line-height: 1.3;
+              color: var(--text-main);
+              margin-bottom: 6px;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              min-height: 40px;
+            }
+            .pkg-card-tests-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 11px;
+              font-weight: 600;
+              color: #16a34a;
+              background: #dcfce7;
+              padding: 3px 8px;
+              border-radius: 6px;
+              width: fit-content;
+              margin-bottom: 12px;
+            }
+            .pkg-card-btn {
+              width: 100%;
+              background: #1b4d54;
+              color: #ffffff;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 20px;
+              font-size: 12.5px;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              cursor: pointer;
+              transition: background 0.2s, transform 0.15s;
+            }
+            .pkg-card-btn:hover {
+              background: var(--primary);
+            }
+            .lab-card-price-row {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-top: auto;
+              padding-top: 12px;
+              border-top: 1px dashed var(--border);
+              gap: 6px;
+              margin-bottom: 16px;
+            }
+            .lab-card-price {
+              font-weight: 800;
+              font-size: 18px;
+              color: #12333A;
+              line-height: 1.1;
+            }
+            .lab-card-img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              transition: transform 0.3s;
+            }
+            .pkg-card:hover .lab-card-img {
+              transform: scale(1.05);
+            }
+          `}</style>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-h2">Featured Health Packages</h2>
+              <p className="text-muted mt-2">
+                Comprehensive checkups with home sample collection
+              </p>
+            </div>
+            <button
+              className="btn btn-view-all flex items-center gap-2"
+              onClick={() => go("/labs")}
+            >
+              View All <ArrowRight size={16} />
             </button>
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
-            {[
-              { name: "Cardiology", icon: <Heart size={24} />, consults: "2.5k+ Consults", bg: "#E6F4F1", color: "#0F766E" },
-              { name: "Neurology", icon: <Brain size={24} />, consults: "1.8k+ Consults", bg: "#EEF2FF", color: "#4F46E5" },
-              { name: "Pediatrics", icon: <Baby size={24} />, consults: "3.2k+ Consults", bg: "#FFF7ED", color: "#EA580C" },
-              { name: "Orthopedics", icon: <Bone size={24} />, consults: "1.4k+ Consults", bg: "#F0F9FF", color: "#0284C7" },
-              { name: "General Medicine", icon: <Activity size={24} />, consults: "5.1k+ Consults", bg: "#CCFBF1", color: "#0D9488" },
-              { name: "Dermatology", icon: <Eye size={24} />, consults: "2.1k+ Consults", bg: "#FDF2F8", color: "#DB2777" },
-            ].map((spec) => (
-              <div 
-                key={spec.name} 
-                onClick={() => go("/doctors")}
-                style={{ 
-                  background: '#ffffff', borderRadius: '16px', padding: '20px 14px', 
-                  border: '1px solid #E2E8F0', cursor: 'pointer', textAlign: 'center', 
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', 
-                  transition: 'all 0.25s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' 
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(15, 23, 42, 0.08)';
-                  e.currentTarget.style.borderColor = spec.color;
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
-                  e.currentTarget.style.borderColor = '#E2E8F0';
-                }}
+
+          <div className="packages-grid">
+            {apiPackages.map((pkg, idx) => (
+              <div
+                className="pkg-card animate-fade-in-up"
+                key={pkg.id || pkg.title}
+                style={{ animationDelay: `${idx * 80}ms` }}
               >
-                <div style={{ 
-                  width: '56px', height: '56px', borderRadius: '50%', background: spec.bg, 
-                  color: spec.color, display: 'flex', alignItems: 'center', justifyContent: 'center' 
-                }}>
-                  {spec.icon}
+                <div className="pkg-card-img-container">
+                  <img src={pkg.img} alt={pkg.title} className="lab-card-img" />
                 </div>
-                <div>
-                  <b style={{ fontSize: '14.5px', color: '#0F172A', display: 'block', fontWeight: '700' }}>{spec.name}</b>
-                  <span style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', display: 'block' }}>{spec.consults}</span>
+                <div className="pkg-card-body">
+                  <div className="pkg-card-title">{pkg.title}</div>
+                  <div className="pkg-card-tests-badge">
+                    <ShieldCheck size={12} /> {pkg.tests}
+                  </div>
+                  <button
+                    className="pkg-card-btn"
+                    onClick={() =>
+                      go(
+                        `/labs/package-details/${encodeURIComponent(pkg.id || pkg.title)}`,
+                        { state: { package: pkg } },
+                      )
+                    }
+                  >
+                    View Details <ArrowRight size={14} />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── Section 6: "Care Close to You — Across Karnataka & Maharashtra" / Ecosystem Services ── */}
-        <section style={{ 
-          position: 'relative', 
-          width: '100%',
-          borderRadius: '24px', 
-          background: '#ffffff', 
-          padding: '44px 32px', 
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-          overflow: 'hidden'
-        }}>
-          {/* Bottom-Left Soft Mint/Cyan Wave Overlay */}
-          <svg 
-            style={{ position: 'absolute', left: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
-            viewBox="0 0 220 180" 
-            fill="none"
-          >
-            <path d="M0,180 L0,70 Q60,60 120,120 Q160,160 220,180 Z" fill="rgba(207, 240, 233, 0.6)" />
-            <path d="M0,180 L0,100 Q80,100 140,155 Q170,170 220,180 Z" fill="rgba(167, 243, 208, 0.45)" />
-            <path d="M0,180 L0,130 Q70,130 130,170 Q160,175 220,180 Z" fill="rgba(45, 212, 191, 0.3)" />
-          </svg>
+      {/* ── Testimonials ── */}
+      <section
+        style={{
+          padding: "56px 0",
+          background: "var(--bg-surface)",
+          borderTop: "1px solid var(--border)",
+          borderBottom: "1px solid var(--border)",
+          position: "relative",
+        }}
+      >
+        <div className="container">
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <h2 className="text-h2">What Our Patients Say</h2>
+            <p className="text-muted mt-2" style={{ fontSize: "15px" }}>
+              Join 1 million+ happy patients across India
+            </p>
+          </div>
 
-          {/* Bottom-Right Soft Mint/Cyan Wave Overlay */}
-          <svg 
-            style={{ position: 'absolute', right: 0, bottom: 0, width: '220px', height: '180px', pointerEvents: 'none', zIndex: 1 }} 
-            viewBox="0 0 220 180" 
-            fill="none"
-          >
-            <path d="M220,180 L220,70 Q160,60 100,120 Q60,160 0,180 Z" fill="rgba(207, 240, 233, 0.6)" />
-            <path d="M220,180 L220,100 Q140,100 80,155 Q50,170 0,180 Z" fill="rgba(167, 243, 208, 0.45)" />
-            <path d="M220,180 L220,130 Q150,130 90,170 Q60,175 0,180 Z" fill="rgba(45, 212, 191, 0.3)" />
-          </svg>
+          <style>{`
+            .testimonials-slider { 
+              display: flex; 
+              overflow-x: auto; 
+              scroll-snap-type: x mandatory; 
+              gap: 24px; 
+              padding-bottom: 20px;
+              scrollbar-width: none;
+            }
+            .testimonials-slider::-webkit-scrollbar { display: none; }
+            .testimonial-card-wrap {
+              flex: 0 0 calc(33.333% - 16px);
+              scroll-snap-align: start;
+            }
+            @media (max-width: 1024px) { .testimonial-card-wrap { flex: 0 0 calc(50% - 12px); } }
+            @media (max-width: 768px) { .testimonial-card-wrap { flex: 0 0 100%; } }
+            .review-nav-btn {
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 44px; height: 44px; border-radius: 50%; background: #ffffff;
+              color: #1e293b; border: 1px solid var(--border); display: flex;
+              align-items: center; justify-content: center; cursor: pointer; z-index: 20;
+              box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.2s;
+            }
+            .review-nav-btn:hover {
+              background: var(--primary); color: white; border-color: var(--primary);
+            }
+            .review-nav-btn.left { left: -20px; }
+            .review-nav-btn.right { right: -20px; }
+            @media (max-width: 1024px) {
+              .review-nav-btn { display: none; }
+            }
+          `}</style>
 
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 36px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  OUR NETWORK & PLATFORM
-                </span>
-                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
-              </div>
-              <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginTop: '4px', marginBottom: '8px' }}>
-                Your Health Ecosystem
-                 {/* — <span style={{ color: '#00A896', fontStyle: 'italic' }}>Across Karnataka & Maharashtra</span> */}
-              </h2>
-            </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-            
-            {/* Card 1: ABHA Hub */}
-            <div 
-              onClick={() => go("/abha")}
-              style={{ 
-                background: '#F8FAFC', borderRadius: '18px', padding: '24px', 
-                border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', 
-                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
-                transition: 'all 0.25s' 
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15,23,42,0.08)';
-                e.currentTarget.style.borderColor = '#00A896';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
+          <div style={{ position: "relative" }}>
+            <button
+              className="review-nav-btn left"
+              onClick={() => scrollReviews("left")}
             >
-              <div>
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                  <CreditCard size={24} />
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>ABHA Hub</h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  Create & link your official ABHA ID for instant health data access across all hospital networks.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#0F766E' }}>
-                Explore <ArrowRight size={14} />
-              </div>
-            </div>
-
-            {/* Card 2: Arvaya Rewards */}
-            <div 
-              onClick={() => go("/rewards")}
-              style={{ 
-                background: 'linear-gradient(145deg, #FFFDF5 0%, #FEF3C7 100%)', borderRadius: '18px', padding: '24px', 
-                border: '1.5px solid #FBBF24', cursor: 'pointer', display: 'flex', 
-                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
-                position: 'relative', overflow: 'hidden', transition: 'all 0.25s' 
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px rgba(245,158,11,0.2)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              className="review-nav-btn right"
+              onClick={() => scrollReviews("right")}
             >
-              <span style={{ position: 'absolute', top: 0, right: 0, background: '#D97706', color: '#ffffff', fontSize: '9.5px', fontWeight: '800', padding: '4px 10px', borderRadius: '0 16px 0 10px', textTransform: 'uppercase' }}>
-                FEATURED
-              </span>
-              <div>
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#F59E0B', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                  <Gift size={24} />
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#78350F', marginBottom: '6px' }}>Arvaya Rewards</h3>
-                <p style={{ fontSize: '13px', color: '#92400E', lineHeight: 1.5 }}>
-                  Earn reward points on every doctor consultation & lab checkup booking to redeem offers.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#B45309' }}>
-                Explore Rewards <ArrowRight size={14} />
-              </div>
-            </div>
+              <ChevronRight size={20} />
+            </button>
 
-            {/* Card 3: Digital Wallet */}
-            <div 
-              onClick={() => go("/wallet")}
-              style={{ 
-                background: '#F8FAFC', borderRadius: '18px', padding: '24px', 
-                border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', 
-                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
-                transition: 'all 0.25s' 
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15,23,42,0.08)';
-                e.currentTarget.style.borderColor = '#00A896';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
-            >
-              <div>
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                  <Wallet size={24} />
+            <div className="testimonials-slider" ref={reviewsScrollRef}>
+              {reviews.map((t, i) => (
+                <div key={i} className="testimonial-card-wrap">
+                  <div
+                    className="card-elevated animate-fade-in-up"
+                    style={{
+                      padding: "28px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "16px",
+                      height: "100%",
+                      animationDelay: `${(i % 3) * 100}ms`,
+                    }}
+                  >
+                    <Quote
+                      size={24}
+                      style={{
+                        color: "var(--primary-soft)",
+                        transform: "scaleX(-1)",
+                      }}
+                    />
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        color: "var(--text-main)",
+                        lineHeight: 1.7,
+                        flex: 1,
+                      }}
+                    >
+                      "{t.text}"
+                    </p>
+                    <div
+                      style={{
+                        borderTop: "1px solid var(--border)",
+                        paddingTop: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(135deg, var(--primary-light), var(--primary-soft))",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: "700",
+                          color: "var(--primary-dark)",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {t.name.charAt(0)}
+                      </div>
+                      <div>
+                        <b
+                          style={{
+                            fontSize: "14px",
+                            color: "var(--text-main)",
+                            display: "block",
+                          }}
+                        >
+                          {t.name}
+                        </b>
+                        <span
+                          className="text-muted"
+                          style={{ fontSize: "12px" }}
+                        >
+                          {t.role}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          display: "flex",
+                          gap: "2px",
+                        }}
+                      >
+                        {Array(t.rating)
+                          .fill(null)
+                          .map((_, si) => (
+                            <Star
+                              key={si}
+                              size={14}
+                              fill="#FBBF24"
+                              color="#FBBF24"
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>Digital Wallet</h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  Fast, secure digital payments with instant refunds guaranteed on appointment cancellations.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#0F766E' }}>
-                Explore Wallet <ArrowRight size={14} />
-              </div>
+              ))}
             </div>
-
-            {/* Card 4: Health Records */}
-            <div 
-              onClick={() => go("/records")}
-              style={{ 
-                background: '#F8FAFC', borderRadius: '18px', padding: '24px', 
-                border: '1px solid #E2E8F0', cursor: 'pointer', display: 'flex', 
-                flexDirection: 'column', justifyContent: 'space-between', gap: '16px',
-                position: 'relative', overflow: 'hidden', transition: 'all 0.25s' 
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px rgba(15,23,42,0.08)';
-                e.currentTarget.style.borderColor = '#00A896';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
-            >
-              <span style={{ position: 'absolute', top: 0, right: 0, background: '#10B981', color: '#ffffff', fontSize: '9.5px', fontWeight: '800', padding: '4px 10px', borderRadius: '0 16px 0 10px', textTransform: 'uppercase' }}>
-                ENCRYPTED
-              </span>
-              <div>
-                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#E6F4F1', color: '#0F766E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                  <FileText size={24} />
-                </div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', marginBottom: '6px' }}>Health Records</h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-                  Your complete medical history and prescriptions, fully encrypted & accessible anytime.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#0F766E' }}>
-                View Records <ArrowRight size={14} />
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
 
+      {/* ── App Download CTA ── */}
+      <section style={{ padding: "24px 0 30px" }}>
+        <div className="container">
+          <div
+            className="animate-fade-in-up home-cta-card"
+            style={{
+              backgroundImage:
+                "url('/app-download-background1.png'), linear-gradient(112deg, #064b58 0%, #08727d 48%, #25b4b1 100%)",
+              backgroundSize: "calc(100% + 60px) auto",
+              backgroundPosition: "100% 40%",
+              backgroundRepeat: "no-repeat",
+              borderRadius: "30px",
+              minHeight: "320px",
+              padding: "16px 36px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              boxShadow: "0 24px 42px rgba(30, 103, 112, 0.28)",
+              position: "relative",
+              overflow: "hidden",
+              flexWrap: "nowrap",
+              gap: "32px",
+            }}
+          >
+            {/* Decorative glow & arcs */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: "26%",
+                transform: "translateY(-50%)",
+                width: "520px",
+                height: "520px",
+                borderRadius: "50%",
+                background:
+                  "radial-gradient(circle, rgba(150,235,235,0.20) 0%, rgba(150,235,235,0.07) 42%, transparent 68%)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-40%",
+                left: "-5%",
+                width: "300px",
+                height: "300px",
+                background:
+                  "radial-gradient(circle, rgba(251,145,63,0.1) 0%, transparent 70%)",
+                borderRadius: "50%",
+                zIndex: 0,
+              }}
+            />
+            <svg
+              viewBox="0 0 400 400"
+              preserveAspectRatio="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: "420px",
+                height: "100%",
+                pointerEvents: "none",
+                zIndex: 0,
+              }}
+            >
+              <path
+                d="M120 -40 C 300 40, 380 200, 300 440"
+                fill="none"
+                stroke="rgba(255,255,255,0.14)"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M210 -60 C 400 60, 440 240, 360 460"
+                fill="none"
+                stroke="rgba(255,255,255,0.10)"
+                strokeWidth="1.5"
+              />
+            </svg>
 
-
-        {/* ── Section 8: "What Our Patients Say" Testimonials Slider Card ── */}
-        <section style={{ 
-          position: 'relative',
-          width: '100%'
-        }}>
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 28px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#00A896', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  PATIENT TESTIMONIALS
-                </span>
-                <span style={{ height: '2px', width: '20px', background: '#00A896', display: 'inline-block' }}></span>
-              </div>
-              <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', marginTop: '4px', marginBottom: '8px' }}>
-                What Our <span style={{ color: '#00A896', fontStyle: 'italic' }}>Patients Say</span>
+            <div
+              className="home-cta-copy"
+              style={{ position: "relative", zIndex: 2, maxWidth: "460px" }}
+            >
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.9)",
+                  padding: "6px 16px",
+                  borderRadius: "var(--radius-full)",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  marginBottom: "18px",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                }}
+              >
+                <Smartphone size={14} aria-hidden="true" /> Available on iOS &
+                Android
+              </span>
+              <h2
+                className="text-h2"
+                style={{
+                  color: "white",
+                  marginBottom: "16px",
+                }}
+              >
+                Get the Arvaya App
               </h2>
-              <p style={{ fontSize: '14.5px', color: '#64748B', margin: 0 }}>Join 1 million+ happy patients across India</p>
-            </div>
-
-            {/* Slider Container with Left & Right Arrow Buttons */}
-            <div style={{ position: 'relative', width: '100%' }}>
-              
-              {/* Left Navigation Arrow */}
-              <button 
-                onClick={() => scrollReviews('left')}
-                aria-label="Previous Review"
-                style={{ 
-                  position: 'absolute', top: '50%', left: '-18px', transform: 'translateY(-50%)',
-                  width: '46px', height: '46px', borderRadius: '50%', background: '#ffffff',
-                  color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.14)', transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = '#0F766E';
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.borderColor = '#0F766E';
-                  e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = '#ffffff';
-                  e.currentTarget.style.color = '#0F172A';
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                  e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+              <p
+                style={{
+                  color: "rgba(255,255,255,1)",
+                  textShadow: "0 2px 4px rgba(0,0,0,1)",
+                  fontSize: "17px",
+                  lineHeight: 1.55,
+                  marginBottom: "34px",
                 }}
               >
-                <ChevronLeft size={24} />
-              </button>
-
-              {/* Right Navigation Arrow */}
-              <button 
-                onClick={() => scrollReviews('right')}
-                aria-label="Next Review"
-                style={{ 
-                  position: 'absolute', top: '50%', right: '-18px', transform: 'translateY(-50%)',
-                  width: '46px', height: '46px', borderRadius: '50%', background: '#ffffff',
-                  color: '#0F172A', border: '1px solid #CBD5E1', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.14)', transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = '#0F766E';
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.borderColor = '#0F766E';
-                  e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = '#ffffff';
-                  e.currentTarget.style.color = '#0F172A';
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                  e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-                }}
-              >
-                <ChevronRight size={24} />
-              </button>
-
-              {/* Scrollable Track - Displays ALL records from reviews */}
-              <div 
-                ref={reviewsScrollRef}
-                style={{ 
-                  display: 'flex', 
-                  gap: '20px', 
-                  overflowX: 'auto', 
-                  scrollSnapType: 'x mandatory', 
-                  padding: '4px 4px 16px 4px',
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none'
-                }}
-                className="no-scrollbar"
-              >
-                {reviews.map((t, i) => (
-                  <div 
-                    key={i} 
-                    style={{ 
-                      flex: '0 0 calc(33.333% - 14px)', 
-                      minWidth: '290px', 
-                      scrollSnapAlign: 'start',
-                      background: '#ffffff', 
-                      padding: '26px 22px', 
-                      borderRadius: '20px', 
-                      border: '1px solid #E2E8F0', 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      justifyContent: 'space-between', 
-                      gap: '18px',
-                      boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.transform = 'translateY(-6px)';
-                      e.currentTarget.style.borderColor = '#00A896';
-                      e.currentTarget.style.boxShadow = '0 16px 32px rgba(0, 168, 150, 0.12)';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.borderColor = '#E2E8F0';
-                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(15, 23, 42, 0.04)';
+                Book appointments, manage health records, order medicines, and
+                earn rewards — all from your pocket.
+              </p>
+              <div className="flex gap-3" style={{ flexWrap: "wrap" }}>
+                <button
+                  className="btn glare-btn"
+                  style={{
+                    padding: "6px 22px",
+                    background: "#000000",
+                    color: "#ffffff",
+                    fontWeight: "700",
+                    boxShadow: "0 5px 14px rgba(0,0,0,0.24)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "8px",
+                      background: "#171717",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    {/* Top Decorative Gradient Accent Bar */}
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #00A896 0%, #0D766E 100%)' }} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffffff">
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.51-3.74 4.25z" />
+                    </svg>
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ fontSize: "14px", fontWeight: "700" }}>
+                      App Store
+                    </span>
+                  </span>
+                </button>
+                <button
+                  className="btn glare-btn"
+                  style={{
+                    padding: "6px 22px",
+                    background: "#ffffff",
+                    color: "#111111",
+                    border: "1px solid rgba(15,23,42,0.12)",
+                    boxShadow: "0 5px 14px rgba(0,0,0,0.24)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src="/google-play-logo.svg"
+                      alt=""
+                      width="15"
+                      height="17"
+                      style={{ display: "block" }}
+                    />
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ fontSize: "14px", fontWeight: "700" }}>
+                      Google Play
+                    </span>
+                  </span>
+                </button>
+              </div>
+            </div>
 
-                    {/* Card Header: Quote Icon & Rating Stars */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ 
-                        width: '38px', height: '38px', borderRadius: '12px', 
-                        background: '#E6F4F1', color: '#0F766E', display: 'flex', 
-                        alignItems: 'center', justifyContent: 'center' 
-                      }}>
-                        <Quote size={18} />
-                      </div>
-                      
-                      {/* Star Rating & Verified Pill */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          {[...Array(t.rating || 5)].map((_, starIdx) => (
-                            <Star key={starIdx} size={14} fill="#F59E0B" color="#F59E0B" />
-                          ))}
-                        </div>
-                        <span style={{ 
-                          display: 'inline-flex', alignItems: 'center', gap: '3px', 
-                          background: '#ECFDF5', color: '#047857', padding: '2px 8px', 
-                          borderRadius: '99px', fontSize: '10.5px', fontWeight: '700', 
-                          border: '1px solid #A7F3D0' 
-                        }}>
-                          <ShieldCheck size={11} /> Verified
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Testimonial Quote Text */}
-                    <p style={{ 
-                      fontSize: '14.5px', fontWeight: '500', color: '#334155', 
-                      lineHeight: 1.6, flex: 1, margin: 0, fontStyle: 'italic' 
-                    }}>
-                      "{t.text}"
-                    </p>
-
-                    {/* Card Footer: Patient Profile Avatar & Name */}
-                    <div style={{ 
-                      display: 'flex', alignItems: 'center', gap: '12px', 
-                      paddingTop: '16px', borderTop: '1px solid #F1F5F9', marginTop: 'auto' 
-                    }}>
-                      <div style={{ 
-                        width: '42px', height: '42px', borderRadius: '50%', 
-                        background: 'linear-gradient(135deg, #0F766E 0%, #00A896 100%)', 
-                        color: '#ffffff', display: 'flex', alignItems: 'center', 
-                        justifyContent: 'center', fontWeight: '800', fontSize: '15px',
-                        boxShadow: '0 4px 10px rgba(0, 168, 150, 0.25)', flexShrink: 0
-                      }}>
-                        {t.name ? t.name.charAt(0).toUpperCase() : "M"}
-                      </div>
-                      <div style={{ overflow: 'hidden' }}>
-                        <b style={{ 
-                          fontSize: '14px', fontWeight: '800', color: '#0F172A', 
-                          display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
-                        }}>
-                          {t.name}
-                        </b>
-                        <span style={{ 
-                          fontSize: '12px', color: '#64748B', display: 'flex', 
-                          alignItems: 'center', gap: '4px', marginTop: '1px' 
-                        }}>
-                          <MapPin size={11} style={{ color: '#00A896' }} />
-                          {t.role || "Verified Patient"}
-                        </span>
-                      </div>
-                    </div>
+            {/* Stats overlay on the supplied background artwork */}
+            <div
+              className="home-cta-visual"
+              style={{
+                position: "relative",
+                zIndex: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: "24px",
+                flexWrap: "nowrap",
+              }}
+            >
+              <div
+                className="home-cta-stats-row"
+                style={{ display: "flex", gap: "7px", flexWrap: "nowrap" }}
+              >
+                {[
+                  {
+                    icon: <Download size={18} aria-hidden="true" />,
+                    num: "1M+",
+                    label: "Downloads",
+                  },
+                  {
+                    icon: <Star size={18} fill="white" aria-hidden="true" />,
+                    num: "4.9★",
+                    label: "App Rating",
+                  },
+                  {
+                    icon: <Users size={18} aria-hidden="true" />,
+                    num: "50K+",
+                    label: "Daily Users",
+                  },
+                ].map((s, i) => (
+                  <div
+                    key={i}
+                    className="home-cta-stat-card"
+                    style={{
+                      width: "90px",
+                      padding: "10px 6px 9px",
+                      borderRadius: "16px",
+                      background: "rgba(121, 237, 231, 0.18)",
+                      border: "1px solid rgba(210,255,250,0.32)",
+                      backdropFilter: "blur(10px)",
+                      boxShadow: "0 10px 26px rgba(0,0,0,0.24)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "5px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "50%",
+                        background: "rgba(210,255,250,0.2)",
+                        border: "1px solid rgba(220,255,252,0.38)",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {s.icon}
+                    </span>
+                    <b
+                      style={{
+                        display: "block",
+                        fontSize: "18px",
+                        fontWeight: "800",
+                        color: "white",
+                        lineHeight: 1,
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      {s.num}
+                    </b>
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: "rgba(239,255,253,0.86)",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {s.label}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-        </section>
-
-      </div>
-
-      {/* ── Section 9: "Get the Arvaya App" CTA (Fixed Background Dark Navy Banner) ── */}
-      <section style={{ 
-        position: 'relative', 
-        width: '100%', 
-        margin: '16px 0 0 0',
-        padding: 0, 
-        color: 'white', 
-        backgroundImage: 'url(/banner_healthcare_2.png)',
-        backgroundAttachment: 'fixed',
-        backgroundPosition: 'center center',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        minHeight: '380px'
-      }}>
-        {/* Dark Navy Gradient Overlay */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(90deg, rgba(13, 56, 63, 0.94) 0%, rgba(13, 56, 63, 0.82) 50%, rgba(13, 56, 63, 0.45) 100%)',
-          zIndex: 1
-        }} />
-
-        {/* Content Container Centered Inside Full-Width Section */}
-        <div style={{ 
-          maxWidth: '1240px', 
-          margin: '0 auto', 
-          position: 'relative', 
-          zIndex: 2, 
-          padding: '48px 24px', 
-          display: 'flex', 
-          justify: 'space-between', 
-          alignItems: 'center', 
-          flexWrap: 'wrap', 
-          gap: '32px' 
-        }}>
-          <div style={{ maxWidth: '520px' }}>
-            <span style={{ 
-              display: 'inline-flex', alignItems: 'center', gap: '6px',
-              background: 'rgba(255,255,255,0.15)', 
-              color: '#ffffff', padding: '6px 16px', borderRadius: '99px', 
-              fontSize: '12px', fontWeight: '700', marginBottom: '16px', 
-              border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)'
-            }}>
-              📱 Available on iOS & Android
-            </span>
-            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#ffffff', marginBottom: '14px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Get the Arvaya App
-            </h2>
-            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, marginBottom: '28px' }}>
-              Book appointments, manage health records, order medicines, and earn rewards — all from your pocket.
-            </p>
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-              <button style={{ 
-                padding: '12px 24px', background: '#ffffff', color: '#0F172A', 
-                border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '700', 
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.2)', transition: 'all 0.2s' 
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-              >
-                <Download size={16} /> App Store
-              </button>
-              <button style={{ 
-                padding: '12px 24px', background: 'rgba(255,255,255,0.15)', color: '#ffffff', 
-                border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: '12px', fontSize: '14px', 
-                fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                backdropFilter: 'blur(8px)', transition: 'all 0.2s' 
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-              }}
-              >
-                <Download size={16} /> Google Play
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
-            {[
-              { num: "1M+", label: "Downloads" },
-              { num: "4.9★", label: "App Rating" },
-              { num: "50K+", label: "Daily Users" }
-            ].map((s, i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <b style={{ display: 'block', fontSize: '32px', color: '#ffffff', lineHeight: 1, fontWeight: '800' }}>{s.num}</b>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', fontWeight: '600', marginTop: '6px', display: 'block' }}>{s.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Ambulance Modal Trigger */}
+      {/* Embedded CSS for Home Responsiveness */}
+      <style>{`
+        .how-it-works-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+          .home-hero-section {
+            min-height: 420px !important;
+          }
+          .hero-title {
+            font-size: 32px !important;
+          }
+          .hero-subtext {
+            font-size: 15px !important;
+          }
+          .how-it-works-grid {
+            grid-template-columns: 1fr !important;
+            gap: 64px !important;
+          }
+          .home-cta-card {
+            padding: 26px 24px !important;
+            min-height: 0 !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            background-image:
+              linear-gradient(180deg, rgba(5,44,52,0.94) 0%, rgba(5,44,52,0.78) 38%, rgba(5,44,52,0.4) 68%, rgba(5,44,52,0.12) 100%),
+              url('/app-download-background1.png'),
+              linear-gradient(112deg, #064b58 0%, #08727d 48%, #25b4b1 100%) !important;
+            background-size: 100% 100%, 190% auto, 100% 100% !important;
+            background-position: center, 78% 100%, center !important;
+            background-repeat: no-repeat, no-repeat, no-repeat !important;
+          }
+          .home-cta-copy {
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .home-cta-visual {
+            gap: 24px !important;
+            width: 100% !important;
+            margin-top: 8px !important;
+          }
+          .home-cta-stats-row {
+            width: 100% !important;
+            justify-content: space-between !important;
+          }
+          .home-cta-stat-card {
+            width: 31% !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hero-title {
+            font-size: 26px !important;
+          }
+          .home-cta-stat-card {
+            padding: 9px 4px 8px !important;
+          }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .home-cta-card {
+            padding: 16px 28px !important;
+          }
+          .home-cta-copy {
+            max-width: 48% !important;
+          }
+          .home-cta-visual {
+            gap: 14px !important;
+          }
+          .home-cta-stat-card {
+            width: 76px !important;
+          }
+        }
+      `}</style>
+
       {showAmbulanceModal && (
         <AmbulanceRequestModal onClose={() => setShowAmbulanceModal(false)} />
       )}

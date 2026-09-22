@@ -4,7 +4,6 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import PageHeader from "../components/common/PageHeader";
 import { getDiagnosticPackages } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
@@ -41,7 +40,8 @@ export default function AllHealthPackages() {
       .then((apiPkgs) => {
         if (Array.isArray(apiPkgs)) {
           const normalized = apiPkgs.map((p, idx) => {
-            const rawTitle = p.package_name || p.name || p.title || `Health Package ${idx + 1}`;
+            let rawTitle = p.package_name || p.name || p.title || `Health Package ${idx + 1}`;
+            if (rawTitle.includes('-')) rawTitle = rawTitle.split('-')[0].trim();
             const priceVal = parseFloat(p.package_price || p.price || p.cost || p.amount || 999);
             const subitems = Array.isArray(p.subitems) ? p.subitems : [];
             const itemCount = subitems.length > 0 
@@ -57,7 +57,7 @@ export default function AllHealthPackages() {
               price: priceVal,
               fasting: p.fasting || (p.fasting_required ? "Fasting Required" : "10-12 Hrs Fasting"),
               reportTime: p.reportTime || p.report_time || "24 Hours",
-              img: p.img || p.image || (idx % 3 === 0 ? "/checkup_fullbody.png" : idx % 3 === 1 ? "/checkup_heart.png" : "/checkup_diabetes.png"),
+              img: p.img || p.image || (rawTitle.toLowerCase().includes("diabet") ? "/images/diabetes.png" : rawTitle.toLowerCase().includes("heart") ? "/images/heart-health.png" : rawTitle.toLowerCase().includes("thyroid") ? "/images/thyroid-profile.png" : "/images/full-body-checkup.png"),
               badge: p.badge || (idx === 0 ? "Most Booked" : idx === 1 ? "Popular" : "Doctor Verified")
             };
           });
@@ -317,79 +317,98 @@ export default function AllHealthPackages() {
       `}</style>
 
       {/* Hero Header */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Lab Tests', link: '/labs' },
-          { label: 'All Health Packages' }
-        ]}
-        title="All Health Checkup Packages"
-        subtitle="Book full body health screening & specialized diagnostic checkups with doctor consultation."
-        actions={
-          <button 
-            onClick={() => go('/labs')}
-            className="btn btn-secondary flex items-center gap-2"
-            style={{ fontSize: '13px', fontWeight: '700', padding: '8px 16px', borderRadius: '20px' }}
-          >
-            <ArrowLeft size={15} /> Back to Lab Tests
-          </button>
-        }
-      >
-        {/* Search Bar & Category Filters */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ 
-            background: '#ffffff', 
-            border: '1.5px solid var(--border)', 
-            borderRadius: '16px', 
-            padding: '6px 16px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-          }}>
-            <Search size={20} color="var(--text-muted)" style={{ marginRight: '12px', flexShrink: 0 }} />
-            <form 
-              onSubmit={(e) => { 
-                e.preventDefault(); 
-                fetchPackagesFromApi(q.trim()); 
-              }} 
-              style={{ flex: 1, display: 'flex', alignItems: 'center' }}
+      <div className="all-pkg-hero">
+        <div className="container">
+          
+          {/* Top Breadcrumb & Back */}
+          <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: '12px' }}>
+            <div className="app-breadcrumbs">
+              <Link to="/">Home</Link> 
+              <ChevronRight size={12} /> 
+              <Link to="/labs">Lab Tests</Link> 
+              <ChevronRight size={12} /> 
+              <span>All Health Packages</span>
+            </div>
+
+            <button 
+              onClick={() => go('/labs')}
+              className="btn btn-secondary flex items-center gap-2"
+              style={{ fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px' }}
             >
-              <input
-                placeholder="Search health packages (e.g. Ortho, Diabetes, Cardiac, Senior)..."
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    fetchPackagesFromApi(q.trim());
-                  }
-                }}
-                style={{ 
-                  border: 'none', 
-                  background: 'transparent', 
-                  outline: 'none', 
-                  width: '100%', 
-                  fontSize: '14.5px', 
-                  color: 'var(--text-main)', 
-                  padding: '10px 0',
-                  fontWeight: '500'
-                }}
-              />
-            </form>
-            {q && (
-              <button 
-                onClick={() => {
-                  setQ("");
-                  fetchPackagesFromApi("");
-                }} 
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-              >
-                <X size={18} />
-              </button>
-            )}
+              <ArrowLeft size={15} /> Back to Lab Tests
+            </button>
           </div>
+
+          <h1 style={{ 
+            fontFamily: "'Plus Jakarta Sans', var(--font-sans)", 
+            fontWeight: 800, 
+            fontSize: '24px', 
+            color: '#12333A', 
+            margin: '0 0 6px 0' 
+          }}>
+            All Health Checkup Packages
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '0 0 20px 0' }}>
+            Book full body health screening & specialized diagnostic checkups with doctor consultation.
+          </p>
+
+          {/* Search Bar & Category Filters */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ 
+              background: '#ffffff', 
+              border: '1.5px solid var(--border)', 
+              borderRadius: '16px', 
+              padding: '6px 16px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+            }}>
+              <Search size={20} color="var(--text-muted)" style={{ marginRight: '12px', flexShrink: 0 }} />
+              <form 
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  fetchPackagesFromApi(q.trim()); 
+                }} 
+                style={{ flex: 1, display: 'flex', alignItems: 'center' }}
+              >
+                <input
+                  placeholder="Search health packages (e.g. Ortho, Diabetes, Cardiac, Senior)..."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      fetchPackagesFromApi(q.trim());
+                    }
+                  }}
+                  style={{ 
+                    border: 'none', 
+                    background: 'transparent', 
+                    outline: 'none', 
+                    width: '100%', 
+                    fontSize: '14.5px', 
+                    color: 'var(--text-main)', 
+                    padding: '10px 0',
+                    fontWeight: '500'
+                  }}
+                />
+              </form>
+              {q && (
+                <button 
+                  onClick={() => {
+                    setQ("");
+                    fetchPackagesFromApi("");
+                  }} 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+          </div>
+
         </div>
-      </PageHeader>
+      </div>
 
       {/* Main Grid Content */}
       <div className="container" style={{ padding: '32px 16px 64px 16px' }}>
@@ -433,10 +452,6 @@ export default function AllHealthPackages() {
                     <ShieldCheck size={12} /> {pkg.tests}
                   </div>
                   <div className="all-pkg-card-footer">
-                    <div className="all-pkg-card-price-col">
-                      <span className="all-pkg-card-price-label">Package Price</span>
-                      <span className="all-pkg-card-price">₹{pkg.price.toLocaleString()}</span>
-                    </div>
                     <button className="all-pkg-card-btn" onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id)}`, { state: { package: pkg } })}>
                       View Details <ArrowRight size={13} />
                     </button>

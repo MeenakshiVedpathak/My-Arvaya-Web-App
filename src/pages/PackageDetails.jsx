@@ -110,7 +110,7 @@ export default function PackageDetails() {
               oldPrice: Math.round(priceVal * 1.25),
               fasting: found.fasting || (found.fasting_required ? "10-12 Hours Fasting Required" : "10-12 Hours Fasting Required"),
               reportTime: found.reportTime || found.report_time || "24 Hours Report Delivery",
-              img: found.img || found.image || "/checkup_fullbody.png",
+              img: found.img || found.image || (rawTitle.toLowerCase().includes("diabet") ? "/images/diabetes.png" : rawTitle.toLowerCase().includes("heart") ? "/images/heart-health.png" : rawTitle.toLowerCase().includes("thyroid") ? "/images/thyroid-profile.png" : "/images/full-body-checkup.png"),
               badge: found.badge || "Doctor Verified"
             });
           }
@@ -227,7 +227,7 @@ export default function PackageDetails() {
       {/* ── STYLES ── */}
       <style>{`
         .web-pkg-hero {
-          background: linear-gradient(135deg, #0e3b43 0%, #1b4d54 50%, #12333a 100%);
+          background: linear-gradient(135deg, var(--primary), var(--primary-dark));
           color: #ffffff;
           padding: 36px 0 44px 0;
           position: relative;
@@ -584,17 +584,7 @@ export default function PackageDetails() {
       <section className="web-pkg-hero">
         <div className="container">
           
-          {/* Breadcrumbs */}
-          <div className="pkg-breadcrumbs">
-            <Link to="/" className="pkg-breadcrumb-item">Home</Link>
-            <ChevronRight size={12} className="pkg-breadcrumb-arrow" />
-            <Link to="/labs" className="pkg-breadcrumb-item">Lab Tests</Link>
-            <ChevronRight size={12} className="pkg-breadcrumb-arrow" />
-            <Link to="/labs/all-packages" className="pkg-breadcrumb-item">Health Packages</Link>
-            <ChevronRight size={12} className="pkg-breadcrumb-arrow" />
-            <span className="pkg-breadcrumb-current" title={title}>{title}</span>
-          </div>
-
+          {/* Breadcrumbs Removed */}
           <div className="web-pkg-hero-inner">
             <div>
               {/* Badges Row */}

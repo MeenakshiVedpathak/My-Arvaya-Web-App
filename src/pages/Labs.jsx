@@ -2,11 +2,10 @@ import {
   Search, ChevronRight, ChevronLeft, Activity, FlaskConical, Clock, Heart, ShieldCheck, 
   Sparkles, Droplets, Bone, Brain, Baby, Eye, Ribbon, Flame, Wind, Pill, Syringe, 
   Scissors, Apple, Zap, Users, Dumbbell, Beaker, Microscope, TestTube, Stethoscope, 
-  CalendarDays, MapPin, ArrowRight, CheckCircle2, Filter, X, Wallet
+  CalendarDays, MapPin, ArrowRight, CheckCircle2, Filter, X, Wallet, Home, Building2
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import PageHeader from "../components/common/PageHeader";
+import { useNavigate } from "react-router-dom";
 import { getLabPackages, getDiagnosticTests, getDiagnosticPackages, getAppointments, getLabOrderHistory, createLabOrder, verifyLabPayment, loadRazorpayScript, getWalletAmount } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
@@ -134,7 +133,7 @@ const mockHealthPackages = [
     discount: "12% OFF",
     fasting: "Fasting Required",
     reportTime: "24 Hours",
-    img: "/checkup_fullbody.png",
+    img: "/images/full-body-checkup.png",
     badge: "Specialized"
   },
   {
@@ -147,7 +146,7 @@ const mockHealthPackages = [
     discount: "20% OFF",
     fasting: "Fasting Required",
     reportTime: "24 Hours",
-    img: "/checkup_thyroid.png",
+    img: "/images/thyroid-profile.png",
     badge: "Clinical"
   },
   {
@@ -160,7 +159,7 @@ const mockHealthPackages = [
     discount: "35% OFF",
     fasting: "10-12 Hrs Fasting",
     reportTime: "24 Hours",
-    img: "/checkup_fullbody.png",
+    img: "/images/full-body-checkup.png",
     badge: "Most Booked"
   },
   {
@@ -173,7 +172,7 @@ const mockHealthPackages = [
     discount: "33% OFF",
     fasting: "10-12 Hrs Fasting",
     reportTime: "24 Hours",
-    img: "/checkup_diabetes.png",
+    img: "/images/diabetes.png",
     badge: "Popular for Seniors"
   },
   {
@@ -186,7 +185,7 @@ const mockHealthPackages = [
     discount: "33% OFF",
     fasting: "Fasting Required",
     reportTime: "24 Hours",
-    img: "/checkup_heart.png",
+    img: "/images/heart-health.png",
     badge: "Doctor Verified"
   }
 ];
@@ -201,6 +200,23 @@ const categoriesFilterList = [
   { name: "Vitamins", icon: <Apple size={16} /> },
   { name: "Full Body", icon: <Stethoscope size={16} /> }
 ];
+
+function LabItemIcon({ item, size = 38 }) {
+  const value = `${item?.title || ""} ${item?.category || ""} ${item?.department || ""}`.toLowerCase();
+  let Icon = FlaskConical;
+
+  if (value.includes("diabetes") || value.includes("sugar") || value.includes("hba1c")) Icon = Droplets;
+  else if (value.includes("liver") || value.includes("bilirubin")) Icon = Beaker;
+  else if (value.includes("heart") || value.includes("cardiac") || value.includes("lipid")) Icon = Heart;
+  else if (value.includes("thyroid") || value.includes("tsh")) Icon = Activity;
+  else if (value.includes("blood") || value.includes("cbc") || value.includes("hematology")) Icon = TestTube;
+  else if (value.includes("vitamin")) Icon = Apple;
+  else if (value.includes("bone") || value.includes("ortho") || value.includes("joint")) Icon = Bone;
+  else if (value.includes("paediatric") || value.includes("pediatric") || value.includes("child")) Icon = Baby;
+  else if (value.includes("full body") || value.includes("preventive")) Icon = Stethoscope;
+
+  return <Icon size={size} strokeWidth={1.75} aria-hidden="true" />;
+}
 
 const mockLabAppointments = [
   { id: 1, date: "June 27, 2026", status: "Upcoming", name: "Complete Blood Count", lab: "LifeCare Diagnostics", time: "10:30 AM" },
@@ -264,7 +280,8 @@ function toTitleCase(str) {
         if (!isMounted) return;
         if (Array.isArray(apiTests) && apiTests.length > 0) {
           const normalized = apiTests.map((t, idx) => {
-            const rawTitle = t.service_name || t.name || t.title || t.test_name || `Lab Test ${idx+1}`;
+            let rawTitle = t.service_name || t.name || t.title || t.test_name || `Lab Test ${idx+1}`;
+            if (rawTitle.includes('-')) rawTitle = rawTitle.split('-')[0].trim();
             const rawCategory = t.profile_name || t.category || t.test_category_name || t.department || "Fluid & Clinical Test";
             const priceVal = parseFloat(t.price || t.cost || t.amount || 150);
             const oldPriceVal = Math.round(priceVal * 1.4);
@@ -299,7 +316,8 @@ function toTitleCase(str) {
         if (!isMounted) return;
         if (Array.isArray(apiPkgs) && apiPkgs.length > 0) {
           const normalized = apiPkgs.map((p, idx) => {
-            const rawTitle = p.package_name || p.name || p.title || `Health Package ${idx+1}`;
+            let rawTitle = p.package_name || p.name || p.title || `Health Package ${idx+1}`;
+            if (rawTitle.includes('-')) rawTitle = rawTitle.split('-')[0].trim();
             const priceVal = parseFloat(p.package_price || p.price || p.cost || p.amount || 999);
             const oldPriceVal = Math.round(priceVal * 1.25);
             const itemCount = Array.isArray(p.subitems) && p.subitems.length > 0 
@@ -317,7 +335,7 @@ function toTitleCase(str) {
               discount: `${Math.round(((oldPriceVal - priceVal) / oldPriceVal) * 100)}% OFF`,
               fasting: p.fasting || (p.fasting_required ? "Fasting Required" : "10-12 Hrs Fasting"),
               reportTime: p.reportTime || p.report_time || "24 Hours",
-              img: p.img || p.image || (idx % 2 === 0 ? "/checkup_fullbody.png" : "/checkup_heart.png"),
+              img: p.img || p.image || (rawTitle.toLowerCase().includes("diabet") ? "/images/diabetes.png" : rawTitle.toLowerCase().includes("heart") ? "/images/heart-health.png" : rawTitle.toLowerCase().includes("thyroid") ? "/images/thyroid-profile.png" : "/images/full-body-checkup.png"),
               badge: p.badge || (idx === 0 ? "Most Booked" : idx === 1 ? "Popular" : "Doctor Verified")
             };
           });
@@ -581,32 +599,50 @@ function toTitleCase(str) {
   };
 
   return (
-    <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)', color: 'var(--text-main)' }}>
+    <main className="page page-enter labs-page" style={{ padding: 0, color: 'var(--text-main)' }}>
       
       {/* Embedded Responsive Styling for Lab UI */}
       <style>{`
         .lab-container-custom {
-          padding: 32px 16px 64px 16px;
+          padding: 32px 16px 40px 16px;
         }
 
         .lab-hero-banner {
-          background: transparent;
-          border-radius: 0;
-          margin-top: 4px;
-          padding: 4px 0 0 0;
+          background: linear-gradient(135deg, #eef8f6 0%, #e0f2f0 55%, #d8eae7 100%);
+          border-radius: 24px;
+          margin-top: 12px;
+          padding: 28px 32px;
           position: relative;
-          box-shadow: none;
-          border: none;
+          overflow: hidden;
+          box-shadow: 0 8px 24px rgba(46, 102, 110, 0.08);
+          border: 1px solid rgba(46, 102, 110, 0.15);
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 0;
+          margin-bottom: 24px;
           gap: 24px;
         }
 
         .lab-hero-content {
+          display: flex;
+          align-items: center;
+          gap: 16px;
           flex: 1;
           max-width: 600px;
+        }
+
+        .lab-hero-icon {
+          display: flex;
+          width: 52px;
+          height: 52px;
+          flex-shrink: 0;
+          align-items: center;
+          justify-content: center;
+          color: var(--primary-dark);
+          background: #fff;
+          border-radius: 16px;
+          box-shadow: 0 12px 24px rgba(0, 60, 55, 0.2);
+          transform: rotate(-6deg);
         }
 
         .lab-hero-pill-tag {
@@ -1088,12 +1124,6 @@ function toTitleCase(str) {
           gap: 16px;
         }
 
-        .lab-features-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 24px;
-        }
-
         /* ── MEDIA QUERIES FOR FULL RESPONSIVENESS ── */
 
         /* Tablets & Laptops (641px to 1024px) */
@@ -1115,10 +1145,6 @@ function toTitleCase(str) {
           }
           .lab-scroll-arrow.left { left: -4px; }
           .lab-scroll-arrow.right { right: -4px; }
-          .lab-features-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-          }
         }
 
         /* Mobile Devices (320px to 640px) */
@@ -1128,10 +1154,10 @@ function toTitleCase(str) {
           }
           .lab-hero-banner {
             flex-direction: column;
-            padding: 8px 0 0 0;
-            border-radius: 0;
-            margin-top: 0;
-            margin-bottom: 0;
+            padding: 20px 16px;
+            border-radius: 20px;
+            margin-top: 6px;
+            margin-bottom: 20px;
             gap: 14px;
             text-align: left;
             align-items: flex-start;
@@ -1259,18 +1285,10 @@ function toTitleCase(str) {
             grid-template-columns: 1fr;
             gap: 10px;
           }
-          .lab-features-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-          }
         }
 
         /* Very Small Screens (< 420px) */
         @media (max-width: 420px) {
-          .lab-features-grid {
-            grid-template-columns: 1fr;
-            gap: 12px;
-          }
           .lab-card {
             width: 195px;
           }
@@ -1280,61 +1298,568 @@ function toTitleCase(str) {
         }
       `}</style>
 
-      {/* ── Top Header Bar / Breadcrumb ── */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Lab Tests & Packages' }
-        ]}
-        padding="20px 0"
-      >
-        {/* Top Hero Banner */}
-        <div className="lab-hero-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
-          <div className="lab-hero-content" style={{ flex: '1 1 500px' }}>
-            
-            {/* Pre-title Pill Tag */}
-            <div className="lab-hero-pill-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(45, 212, 191, 0.15)', color: '#2DD4BF', border: '1px solid rgba(45, 212, 191, 0.3)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', marginBottom: '8px' }}>
-              <Sparkles size={13} color="#2DD4BF" /> NABL & ISO Certified Partner Labs
+      <style>{`
+        .labs-page {
+          min-height: 100vh;
+          background:
+            radial-gradient(circle at 1% 12%, rgba(71, 220, 174, 0.15), transparent 24rem),
+            radial-gradient(circle at 98% 62%, rgba(51, 157, 225, 0.1), transparent 25rem),
+            #f7fbfa;
+        }
+
+        .lab-top-shell {
+          padding: 16px 0 0 !important;
+          background: transparent !important;
+          border-bottom: 0 !important;
+        }
+
+        .lab-hero-banner {
+          min-height: 145px;
+          margin: 0 0 14px;
+          padding: 18px 28px;
+          overflow: hidden;
+          color: #fff;
+          background:
+            linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 45%),
+            linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 62%, #133a41 100%);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 26px;
+          box-shadow: 0 20px 44px rgba(31, 79, 87, 0.28);
+        }
+
+        .lab-hero-content,
+        .lab-hero-img-col {
+          position: relative;
+          z-index: 1;
+        }
+
+        .lab-hero-content {
+          max-width: 660px;
+        }
+
+        .lab-hero-pill-tag {
+          margin-bottom: 10px;
+          padding: 6px 11px;
+          color: #d8fff3;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.045em;
+          text-transform: uppercase;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+
+        .lab-hero-pill-tag svg {
+          color: #d8fff3 !important;
+        }
+
+        .lab-hero-title {
+          max-width: 640px;
+          margin-bottom: 6px;
+          color: #fff;
+          font-family: var(--font-display);
+          font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+          line-height: 1.18;
+          letter-spacing: -0.03em;
+        }
+
+        .lab-hero-subtitle {
+          margin-bottom: 10px;
+          color: rgba(255, 255, 255, 0.82);
+          font-size: 12.5px;
+          font-weight: 500;
+        }
+
+        .lab-hero-search-wrapper {
+          max-width: 570px;
+          margin-bottom: 15px;
+          padding: 10px 13px;
+          background: rgba(255, 255, 255, 0.96);
+          border: 1px solid rgba(255, 255, 255, 0.78);
+          border-radius: 14px;
+          box-shadow: 0 10px 24px rgba(0, 57, 53, 0.16);
+        }
+
+        .lab-hero-search-wrapper:focus-within {
+          border-color: #fff;
+          box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.14), 0 12px 28px rgba(0, 57, 53, 0.2);
+        }
+
+        .lab-hero-search-input {
+          font-size: 12.5px;
+        }
+
+        .lab-hero-badges {
+          gap: 8px;
+        }
+
+        .lab-hero-badge {
+          padding: 6px 9px;
+          color: #fff;
+          background: rgba(18, 51, 58, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          font-size: 10px;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
+        .lab-hero-img-wrap {
+          position: relative;
+          top: -13px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .lab-hero-img-photo {
+          display: block;
+          width: auto;
+          height: 100%;
+          max-height: 150px;
+          max-width: 100%;
+          object-fit: contain;
+        }
+
+        .lab-hero-stat-badge {
+          bottom: -13px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 9px;
+          color: var(--primary-dark);
+          border: 0;
+          border-radius: 9px;
+          font-size: 9px;
+          font-weight: 800;
+          box-shadow: 0 9px 20px rgba(0, 53, 49, 0.18);
+        }
+
+        .lab-hero-stat-badge svg {
+          color: #08a579;
+        }
+
+        .lab-category-strip {
+          display: flex;
+          gap: 9px;
+          margin-top: 6px;
+          padding: 5px 2px 14px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+
+        .lab-category-strip::-webkit-scrollbar {
+          display: none;
+        }
+
+        .lab-category-chip {
+          display: inline-flex;
+          min-height: 37px;
+          flex: 0 0 auto;
+          align-items: center;
+          gap: 7px;
+          padding: 8px 12px;
+          color: var(--text-muted);
+          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(8, 120, 125, 0.13);
+          border-radius: 12px;
+          box-shadow: 0 6px 16px rgba(5, 73, 78, 0.055);
+          font-size: 11.5px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .lab-category-chip:hover,
+        .lab-category-chip.active {
+          color: #fff;
+          background: linear-gradient(135deg, #10a88e, #087b73);
+          border-color: transparent;
+          box-shadow: 0 9px 19px rgba(8, 123, 115, 0.2);
+          transform: translateY(-2px);
+        }
+
+        .lab-container-custom {
+          padding: 28px 16px 40px;
+        }
+
+        .lab-container-custom > section {
+          margin-bottom: 44px !important;
+        }
+
+        .lab-container-custom > section:last-child {
+          margin-bottom: 0 !important;
+        }
+
+        .lab-section-header {
+          margin-bottom: 17px;
+        }
+
+        .lab-section-title {
+          color: var(--text-main);
+          font-family: var(--font-display);
+          font-size: 24px;
+          font-weight: 800;
+          letter-spacing: -0.025em;
+        }
+
+        .lab-view-all-btn {
+          min-height: 36px;
+          padding: 8px 11px;
+          color: var(--primary);
+          background: var(--primary-light);
+          border: 1px solid rgba(8, 120, 125, 0.13);
+          border-radius: 11px;
+          font-size: 11.5px;
+        }
+
+        .lab-view-all-btn:hover {
+          color: #fff;
+          background: var(--primary);
+          transform: translateX(0) translateY(-2px);
+        }
+
+        .lab-scroll-row {
+          gap: 17px;
+          padding: 6px 4px 18px;
+        }
+
+        .lab-scroll-arrow {
+          width: 40px;
+          height: 40px;
+          color: var(--primary-dark);
+          border-color: rgba(8, 120, 125, 0.16);
+          box-shadow: 0 8px 22px rgba(5, 73, 78, 0.14);
+        }
+
+        .lab-theme-0,
+        .lab-theme-1,
+        .lab-theme-2,
+        .lab-theme-3,
+        .lab-theme-4,
+        .lab-theme-5 {
+          --lab-accent: #087b73;
+          --lab-soft: #e8f6f3;
+          --lab-tint: #f7fbfa;
+        }
+
+        .lab-card,
+        .pkg-card {
+          overflow: hidden;
+          border: 1px solid rgba(8, 120, 125, 0.14);
+          border-radius: 22px;
+          box-shadow: 0 11px 28px rgba(5, 73, 78, 0.08);
+        }
+
+        .lab-card {
+          width: 232px;
+        }
+
+        .pkg-card {
+          width: 260px;
+        }
+
+        .lab-card::before,
+        .pkg-card::before {
+          content: "";
+          position: absolute;
+          inset: 0 0 auto;
+          z-index: 3;
+          height: 5px;
+          background: var(--lab-accent);
+        }
+
+        .lab-card:hover,
+        .pkg-card:hover {
+          border-color: rgba(8, 120, 125, 0.3);
+          box-shadow: 0 17px 36px rgba(5, 73, 78, 0.13);
+        }
+
+        .lab-card-img-container,
+        .pkg-card-img-container {
+          display: grid;
+          height: 146px;
+          place-items: end center;
+          padding: 47px 14px 14px;
+          box-sizing: border-box;
+          background: linear-gradient(145deg, var(--lab-tint), var(--lab-soft));
+        }
+
+        .lab-card-visual {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          width: 76px;
+          height: 76px;
+          place-items: center;
+          color: var(--lab-accent);
+          background: rgba(255, 255, 255, 0.94);
+          border: 1px solid rgba(255, 255, 255, 0.92);
+          border-radius: 24px;
+          box-shadow: 0 10px 22px rgba(5, 73, 78, 0.1);
+          transform: none;
+          transition: transform 0.25s ease;
+        }
+
+        .lab-card-visual.package {
+          border-radius: 50%;
+          transform: none;
+        }
+
+        .lab-card:hover .lab-card-visual,
+        .pkg-card:hover .lab-card-visual {
+          transform: scale(1.04);
+        }
+
+        .lab-card-tag,
+        .pkg-card-badge {
+          top: 15px;
+          left: 13px;
+          z-index: 4;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 8px;
+          color: var(--lab-accent);
+          background: rgba(255, 255, 255, 0.92);
+          border: 1px solid color-mix(in srgb, var(--lab-accent) 22%, transparent);
+          border-radius: 9px;
+          box-shadow: 0 5px 13px rgba(5, 73, 78, 0.06);
+          font-size: 9.5px;
+          font-weight: 800;
+        }
+
+        .lab-card-body,
+        .pkg-card-body {
+          padding: 15px;
+        }
+
+        .lab-card-title,
+        .pkg-card-title {
+          color: var(--text-main);
+          font-family: var(--font-display);
+          font-size: 13.5px;
+          font-weight: 800;
+        }
+
+        .lab-card-title {
+          min-height: 37px;
+        }
+
+        .lab-card-sub,
+        .pkg-card-tests-badge {
+          color: var(--lab-accent);
+          background: var(--lab-soft);
+          border-radius: 999px;
+          font-size: 9.5px;
+          font-weight: 750;
+        }
+
+        .lab-card-footer {
+          margin-top: auto;
+          padding-top: 11px;
+          border-top: 1px dashed color-mix(in srgb, var(--lab-accent) 22%, #dce8e7);
+        }
+
+        .lab-card-btn,
+        .pkg-card-btn {
+          min-height: 35px;
+          justify-content: center;
+          color: #fff;
+          background: var(--lab-accent);
+          border-radius: 11px;
+          box-shadow: 0 7px 16px color-mix(in srgb, var(--lab-accent) 22%, transparent);
+        }
+
+        .lab-card-btn {
+          width: 100%;
+        }
+
+        .lab-card-btn:hover,
+        .pkg-card-btn:hover {
+          background: var(--lab-accent);
+          filter: brightness(0.94) saturate(1.08);
+        }
+
+        .lab-grid-view,
+        .pkg-grid-view {
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 18px;
+        }
+
+        .lab-order-card,
+        .lab-order-empty {
+          border: 1px solid rgba(8, 120, 125, 0.13) !important;
+          border-radius: 20px !important;
+          box-shadow: 0 11px 28px rgba(5, 73, 78, 0.07) !important;
+        }
+
+        .lab-order-card {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .lab-order-card::before {
+          content: "";
+          position: absolute;
+          inset: 0 0 auto;
+          height: 4px;
+          background: linear-gradient(90deg, #0ca695, #2c82e0);
+        }
+
+        @media (max-width: 1024px) {
+          .lab-hero-banner {
+            padding: 20px 26px;
+          }
+
+          .lab-card { width: 218px; }
+          .pkg-card { width: 245px; }
+        }
+
+        @media (max-width: 640px) {
+          .lab-top-shell {
+            padding-top: 10px !important;
+          }
+
+          .lab-hero-banner {
+            min-height: auto;
+            padding: 20px 18px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 62%, #133a41 100%);
+            border-radius: 22px;
+          }
+
+          .lab-hero-pill-tag {
+            margin-bottom: 10px;
+            color: #d8fff3;
+          }
+
+          .lab-hero-title {
+            color: #fff;
+            font-size: 1.35rem;
+          }
+
+          .lab-hero-subtitle {
+            color: rgba(255, 255, 255, 0.82);
+          }
+
+          .lab-hero-search-wrapper {
+            padding: 9px 11px;
+          }
+
+          .lab-category-strip {
+            margin-inline: -2px;
+          }
+
+          .lab-container-custom {
+            padding: 20px 12px 42px;
+          }
+
+          .lab-section-title {
+            font-size: 19px;
+          }
+
+          .lab-view-all-btn {
+            min-height: 33px;
+            padding: 7px 9px;
+            font-size: 10.5px;
+          }
+
+          .lab-scroll-row {
+            gap: 12px;
+          }
+
+          .lab-card {
+            width: 202px;
+            border-radius: 18px;
+          }
+
+          .pkg-card {
+            width: 224px;
+            border-radius: 18px;
+          }
+
+          .lab-card-img-container,
+          .pkg-card-img-container {
+            height: 126px;
+            padding: 42px 10px 10px;
+          }
+
+          .lab-card-visual {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+          }
+
+          .lab-card-visual svg {
+            width: 36px;
+            height: 36px;
+          }
+
+          .lab-card-body,
+          .pkg-card-body {
+            padding: 13px;
+          }
+        }
+      `}</style>
+
+      {/* ── Top Header Bar ── */}
+      <div className="lab-top-shell">
+        <div className="container">
+          {/* Top Hero Banner */}
+          <div className="lab-hero-banner">
+            <div className="lab-hero-content">
+              <div className="lab-hero-icon" aria-hidden="true">
+                <Microscope size={26} />
+              </div>
+
+              <div>
+                {/* Pre-title Pill Tag */}
+                <div className="lab-hero-pill-tag">
+                  <Sparkles size={13} color="#0d5c63" /> NABL & ISO Certified Partner Labs
+                </div>
+
+                {/* Title & Subtitle */}
+                <h1 className="lab-hero-title">
+                  Book trusted lab tests & health packages with ease.
+                </h1>
+                <p className="lab-hero-subtitle">
+                  Free doorstep sample collection by certified phlebotomists.
+                </p>
+
+                {/* Trust Micro Badges */}
+                <div className="lab-hero-badges">
+                  <span className="lab-hero-badge">
+                    <CheckCircle2 size={14} color="#4ade80" /> Certified Labs
+                  </span>
+                  <span className="lab-hero-badge">
+                    <Clock size={14} color="#67e8f9" /> 12-24h Reports
+                  </span>
+                  <span className="lab-hero-badge">
+                    <ShieldCheck size={14} color="#fb923c" /> Free Home Sample
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Title & Subtitle */}
-            <h1 className="lab-hero-title" style={{ fontSize: '26px', fontWeight: '800', color: '#FFFFFF', margin: '4px 0 6px 0', lineHeight: '1.25', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
-              Book trusted lab tests & health packages with ease.
-            </h1>
-            <p className="lab-hero-subtitle" style={{ fontSize: '14.5px', color: 'rgba(255, 255, 255, 0.78)', margin: '0 0 16px 0', lineHeight: '1.4' }}>
-              Free doorstep sample collection by certified phlebotomists.
-            </p>
-
-            {/* Trust Micro Badges */}
-            <div className="lab-hero-badges" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <span className="lab-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
-                <CheckCircle2 size={14} color="#2DD4BF" /> Certified Labs
-              </span>
-              <span className="lab-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
-                <Clock size={14} color="#2DD4BF" /> 12-24h Reports
-              </span>
-              <span className="lab-hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.1)', color: '#FFFFFF', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
-                <ShieldCheck size={14} color="#2DD4BF" /> Free Home Sample
-              </span>
-            </div>
-
-          </div>
-
-          {/* Right Graphic/Illustration (Desktop & Tablet) */}
-          <div className="lab-hero-img-col">
-            <div className="lab-hero-img-card">
-              <img 
-                src="/reward_lab.png" 
-                alt="Lab Diagnostics Illustration" 
-                className="lab-hero-img"
-              />
-              <div className="lab-hero-stat-badge">
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#12333a' }}>⭐ 4.9 Pathologist Rating</span>
+            {/* Right Graphic/Illustration (Desktop & Tablet) */}
+            <div className="lab-hero-img-col">
+              <div className="lab-hero-img-wrap" aria-hidden="true">
+                <img src="/images/lab-tests.png" alt="" className="lab-hero-img-photo" />
+                <div className="lab-hero-stat-badge">
+                  <CheckCircle2 size={14} />
+                  <span>4.9 Pathologist Rating</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </PageHeader>
+      </div>
 
       {/* Main Content Area */}
       <div className="container lab-container-custom">
@@ -1358,22 +1883,18 @@ function toTitleCase(str) {
             </div>
           ) : showAllTests ? (
             <div className="lab-grid-view">
-              {filteredTests.map((test) => (
-                <div className="lab-card" key={test.id} style={{ width: '100%' }}>
+              {filteredTests.map((test, index) => (
+                <div className={`lab-card lab-theme-${index % 6}`} key={test.id} style={{ width: '100%' }}>
                   <div className="lab-card-img-container">
-                    <img src={test.img} alt={test.title} className="lab-card-img" />
+                    <div className="lab-card-visual"><LabItemIcon item={test} size={43} /></div>
                     <span className="lab-card-tag"><TestTube size={10} /> Certified</span>
                   </div>
                   <div className="lab-card-body">
                     <div className="lab-card-title">{toTitleCase(test.title)}</div>
                     <div className="lab-card-sub">{toTitleCase(test.category)}</div>
                     <div className="lab-card-footer">
-                      <div className="lab-card-price-col">
-                        <span className="lab-card-price-label">Price</span>
-                        <span className="lab-card-price">₹{test.price}</span>
-                      </div>
                       <button className="lab-card-btn" onClick={() => setSelectedItem(test)}>
-                        Book Now <ArrowRight size={13} />
+                        More Details <ArrowRight size={13} />
                       </button>
                     </div>
                   </div>
@@ -1387,22 +1908,18 @@ function toTitleCase(str) {
               </button>
               
               <div className="lab-scroll-row" ref={testsScrollRef}>
-                {filteredTests.map((test) => (
-                  <div className="lab-card" key={test.id}>
+                {filteredTests.map((test, index) => (
+                  <div className={`lab-card lab-theme-${index % 6}`} key={test.id}>
                     <div className="lab-card-img-container">
-                      <img src={test.img} alt={test.title} className="lab-card-img" />
+                      <div className="lab-card-visual"><LabItemIcon item={test} size={43} /></div>
                       <span className="lab-card-tag"><TestTube size={10} /> Certified</span>
                     </div>
                     <div className="lab-card-body">
                       <div className="lab-card-title">{toTitleCase(test.title)}</div>
                       <div className="lab-card-sub">{toTitleCase(test.category)}</div>
                       <div className="lab-card-footer">
-                        <div className="lab-card-price-col">
-                          <span className="lab-card-price-label">Price</span>
-                          <span className="lab-card-price">₹{test.price}</span>
-                        </div>
                         <button className="lab-card-btn" onClick={() => setSelectedItem(test)}>
-                          Book Now <ArrowRight size={13} />
+                          More Details <ArrowRight size={13} />
                         </button>
                       </div>
                     </div>
@@ -1436,19 +1953,16 @@ function toTitleCase(str) {
             </div>
           ) : showAllPackages ? (
             <div className="pkg-grid-view">
-              {filteredPackages.map((pkg) => (
-                <div className="pkg-card" key={pkg.id} style={{ width: '100%' }}>
+              {filteredPackages.map((pkg, index) => (
+                <div className={`pkg-card lab-theme-${(index + 2) % 6}`} key={pkg.id} style={{ width: '100%' }}>
                   <div className="pkg-card-img-container">
-                    <img src={pkg.img} alt={pkg.title} className="lab-card-img" />
+                    <div className="lab-card-visual package"><LabItemIcon item={pkg} size={45} /></div>
                     {pkg.badge && <div className="pkg-card-badge">{pkg.badge}</div>}
                   </div>
                   <div className="pkg-card-body">
                     <div className="pkg-card-title">{pkg.title}</div>
                     <div className="pkg-card-tests-badge">
                       <ShieldCheck size={12} /> {pkg.tests}
-                    </div>
-                    <div className="lab-card-price-row">
-                      <span className="lab-card-price">₹{pkg.price.toLocaleString()}</span>
                     </div>
                     <button className="pkg-card-btn" onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id)}`, { state: { package: pkg } })}>
                       View Details <ArrowRight size={14} />
@@ -1464,19 +1978,16 @@ function toTitleCase(str) {
               </button>
 
               <div className="lab-scroll-row" ref={packagesScrollRef}>
-                {filteredPackages.map((pkg) => (
-                  <div className="pkg-card" key={pkg.id}>
+                {filteredPackages.map((pkg, index) => (
+                  <div className={`pkg-card lab-theme-${(index + 2) % 6}`} key={pkg.id}>
                     <div className="pkg-card-img-container">
-                      <img src={pkg.img} alt={pkg.title} className="lab-card-img" />
+                      <div className="lab-card-visual package"><LabItemIcon item={pkg} size={45} /></div>
                       {pkg.badge && <div className="pkg-card-badge">{pkg.badge}</div>}
                     </div>
                     <div className="pkg-card-body">
                       <div className="pkg-card-title">{pkg.title}</div>
                       <div className="pkg-card-tests-badge">
                         <ShieldCheck size={12} /> {pkg.tests}
-                      </div>
-                      <div className="lab-card-price-row">
-                        <span className="lab-card-price">₹{pkg.price.toLocaleString()}</span>
                       </div>
                       <button className="pkg-card-btn" onClick={() => go(`/labs/package-details/${encodeURIComponent(pkg.id)}`, { state: { package: pkg } })}>
                         View Details <ArrowRight size={14} />
@@ -1507,6 +2018,7 @@ function toTitleCase(str) {
               {appointments.slice(0, 4).map((appt) => (
                 <div 
                   key={appt.id} 
+                  className="lab-order-card"
                   style={{
                     background: '#ffffff',
                     borderRadius: '16px',
@@ -1545,52 +2057,48 @@ function toTitleCase(str) {
               ))}
             </div>
           ) : (
-            <div style={{
+            <div className="lab-order-empty" style={{
               background: '#ffffff',
               borderRadius: '16px',
               border: '1px solid var(--border)',
-              padding: '24px',
-              textAlign: 'center',
-              color: 'var(--text-muted)',
-              fontSize: '14px'
+              padding: '32px 24px',
+              textAlign: 'center'
             }}>
-              No orders found.
+              <div style={{ width: '124px', height: '124px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="76" height="76" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <ellipse cx="60" cy="102" rx="34" ry="5" fill="var(--primary)" opacity="0.1" />
+                  <path d="M34 20 H86 V88 L80 94 L74 88 L68 94 L62 88 L56 94 L50 88 L44 94 L38 88 L34 94 Z"
+                        fill="#ffffff" stroke="var(--primary)" strokeWidth="3" strokeLinejoin="round" />
+                  <rect x="43" y="33" width="34" height="4" rx="2" fill="var(--primary-light)" />
+                  <rect x="43" y="43" width="26" height="4" rx="2" fill="var(--primary-light)" />
+                  <rect x="43" y="53" width="30" height="4" rx="2" fill="var(--primary-light)" />
+                  <rect x="43" y="65" width="18" height="6" rx="3" fill="var(--primary)" opacity="0.85" />
+                  <circle cx="84" cy="78" r="16" fill="var(--accent)" stroke="#ffffff" strokeWidth="3" />
+                  <path d="M77.5 78 L82 82.5 L91 72.5" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '16px', color: 'var(--text-main)', marginBottom: '6px', fontWeight: '700' }}>No Orders Found</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Your lab test orders will show up here once you book one.</p>
             </div>
           )}
         </section>
 
         {/* ── SECTION 4: TRUST & QUALITY FEATURES ── */}
-        <section style={{ 
-          background: '#ffffff', 
-          borderRadius: '24px', 
-          border: '1px solid var(--border)', 
-          padding: '32px 24px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
-        }}>
-          <div className="lab-features-grid">
+        <section className="trust-features-panel">
+          <div className="trust-features-grid">
             {[
-              { icon: <ShieldCheck size={26} />, title: "Certified Labs", sub: "100% NABL & ISO accredited partners", color: "#16a34a", bg: "#dcfce7" },
-              { icon: <Clock size={26} />, title: "On-time Reports", sub: "Digital reports within 12 to 24 hours", color: "#2E666E", bg: "#E4EEEF" },
-              { icon: <Microscope size={26} />, title: "Home Sample Collection", sub: "Safe & hygienic doorstep phlebotomist", color: "#FB913F", bg: "#FEF0E2" },
-              { icon: <Stethoscope size={26} />, title: "Doctor Verified", sub: "Reviewed by expert clinical pathologists", color: "#8e44ad", bg: "#f3e8fd" },
+              { icon: <ShieldCheck size={26} />, title: "Certified Labs", sub: "100% NABL & ISO accredited partners", color: "var(--primary)", bg: "var(--primary-light)" },
+              { icon: <Clock size={26} />, title: "On-time Reports", sub: "Digital reports within 12 to 24 hours", color: "#2563EB", bg: "#DBEAFE" },
+              { icon: <Microscope size={26} />, title: "Home Sample Collection", sub: "Safe & hygienic doorstep phlebotomist", color: "var(--accent)", bg: "#FEF0E2" },
+              { icon: <Stethoscope size={26} />, title: "Doctor Verified", sub: "Reviewed by expert clinical pathologists", color: "#DB2777", bg: "#FCE7F3" },
             ].map((feature, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ 
-                  width: '52px', 
-                  height: '52px', 
-                  borderRadius: '16px', 
-                  background: feature.bg, 
-                  color: feature.color, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  flexShrink: 0 
-                }}>
+              <div key={i} className="trust-feature-item">
+                <div className="trust-feature-icon" style={{ background: feature.bg, color: feature.color }}>
                   {feature.icon}
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 2px 0' }}>{feature.title}</h4>
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.3 }}>{feature.sub}</p>
+                  <h4>{feature.title}</h4>
+                  <p>{feature.sub}</p>
                 </div>
               </div>
             ))}
@@ -1607,7 +2115,7 @@ function toTitleCase(str) {
         maxWidth="680px"
       >
         {selectedItem && (
-          <div style={{ marginBottom: "24px", padding: '18px', background: 'var(--bg-app)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+          <div style={{ marginBottom: "16px", padding: '16px', background: 'var(--bg-app)', borderRadius: '16px', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>{selectedItem.title}</h3>
@@ -1620,17 +2128,17 @@ function toTitleCase(str) {
 
             <div style={{ display: 'flex', gap: '16px', marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed var(--border)', flexWrap: 'wrap' }}>
               <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
-                <Clock size={14} color="var(--primary)" /> <b>Report Delivery:</b> {selectedItem.reportTime || "24 Hours"}
+                <Clock size={15} color="var(--primary)" /> <b>Report Delivery:</b> {selectedItem.reportTime || "24 Hours"}
               </div>
               <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
-                <ShieldCheck size={14} color="#16a34a" /> <b>Fasting:</b> {selectedItem.fasting || "No Fasting Required"}
+                <ShieldCheck size={15} color="var(--primary)" /> <b>Fasting:</b> {selectedItem.fasting || "No Fasting Required"}
               </div>
             </div>
           </div>
         )}
 
         {!loadingWallet && walletBalance > 0 && (
-          <div style={{ marginBottom: "24px", background: '#ffffff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ marginBottom: "16px", background: '#ffffff', borderRadius: '16px', border: '1px solid var(--border)', padding: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '50%' }}>
@@ -1691,13 +2199,13 @@ function toTitleCase(str) {
         )}
 
         {loadingWallet && (
-          <div style={{ marginBottom: "24px", textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: "16px", textAlign: 'center', padding: '16px', color: 'var(--text-muted)' }}>
             <div className="spinner" style={{ width: '20px', height: '20px', borderTopColor: 'var(--primary)', border: '2px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite', display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}></div>
             Loading wallet balance...
           </div>
         )}
 
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "0px" }}>
           <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px" }}>
             Select Collection Preference
           </label>
@@ -1714,10 +2222,10 @@ function toTitleCase(str) {
             }}>
               <input type="radio" name="labVisitType" value="home" checked={visitType === 'home'} onChange={() => setVisitType('home')} style={{ display: 'none' }} />
               <div>
-                <b style={{ display: 'block', color: visitType === 'home' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>
-                  🏡 Home Sample Collection
+                <b style={{ display: 'flex', alignItems: 'center', gap: '8px', color: visitType === 'home' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>
+                  <Home size={16} color={visitType === 'home' ? 'var(--primary)' : 'var(--text-muted)'} /> Home Sample Collection
                 </b>
-                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>A certified phlebotomist visits your doorstep.</small>
+                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block', paddingLeft: '24px' }}>A certified phlebotomist visits your doorstep.</small>
               </div>
             </label>
             <label style={{ 
@@ -1732,10 +2240,10 @@ function toTitleCase(str) {
             }}>
               <input type="radio" name="labVisitType" value="lab" checked={visitType === 'lab'} onChange={() => setVisitType('lab')} style={{ display: 'none' }} />
               <div>
-                <b style={{ display: 'block', color: visitType === 'lab' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>
-                  🏥 Diagnostic Center Visit
+                <b style={{ display: 'flex', alignItems: 'center', gap: '8px', color: visitType === 'lab' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>
+                  <Building2 size={16} color={visitType === 'lab' ? 'var(--primary)' : 'var(--text-muted)'} /> Diagnostic Center Visit
                 </b>
-                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>Walk-in to your nearest accredited partner lab.</small>
+                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block', paddingLeft: '24px' }}>Walk-in to your nearest accredited partner lab.</small>
               </div>
             </label>
           </div>

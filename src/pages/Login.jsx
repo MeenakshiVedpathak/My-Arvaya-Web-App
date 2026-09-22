@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, UserPlus, Calendar as CalendarIcon, ChevronLeft, FileText, KeyRound, Sparkles, MapPin, Copy, Check, ChevronDown, ChevronUp, Link as LinkIcon } from "lucide-react";
 import { sendOtp, verifyOtp, getCloudId, getDeviceId, selectProfile } from "../services/authService";
 import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaVerifyUser, abhaSendCreationOtp, abhaCreateByAadhaar, abhaGetSuggestions } from "../services/abhaService";
 import { useNavigate, useLocation } from "react-router-dom";
+
+
 
 export default function Login({ forceOpen = false }) {
   const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession, loginModalScreen, showToast } = useAuth();
@@ -476,7 +478,7 @@ export default function Login({ forceOpen = false }) {
         {/* ── Right Pane ── */}
         <div className="login-modal-right" style={{
           flex: '1.1',
-          padding: screen === "choose_profile" ? '36px 32px 20px' : '32px 36px',
+          padding: screen === "choose_profile" ? '24px 24px 20px' : '24px 28px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: screen === "choose_profile" ? 'flex-start' : 'center',
@@ -504,7 +506,7 @@ function AbhaLeftPane({ step, isCreate = false }) {
   return (
     <div className="login-modal-left" style={{
       flex: '0.9', background: 'linear-gradient(145deg, #134e4a, #0f766e, #0d9488)',
-      padding: '32px 28px', display: 'flex', flexDirection: 'column',
+      padding: '24px 24px', display: 'flex', flexDirection: 'column',
       borderRight: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
       borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
     }}>
@@ -516,7 +518,7 @@ function AbhaLeftPane({ step, isCreate = false }) {
       <div style={{ position: 'relative', zIndex: 2, marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '10px', padding: '8px 10px', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center' }}>
-            <img src="/abha.svg" alt="ABHA" style={{ height: '26px', filter: 'brightness(0) invert(1)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
+            <img src="/abha.svg" alt="ABHA" style={{ height: '28px', filter: 'brightness(0) invert(1)' }} onError={e => { e.currentTarget.style.display = 'none'; }} />
           </div>
           <div>
             <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10.5px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{isCreate ? "Creating" : "Linking"}</div>
@@ -830,7 +832,7 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
           </h3>
         </div>
       </div>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '28px', paddingLeft: '44px', lineHeight: '1.6' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px', paddingLeft: '44px', lineHeight: '1.6' }}>
         Enter the 10-digit mobile number linked with your Aadhaar / ABHA account.
       </p>
 
@@ -859,7 +861,7 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
             onChange={handleInputChange}
             maxLength={10}
             style={{
-              paddingLeft: '88px', padding: '15px 16px 15px 88px', fontSize: '16px', borderRadius: '12px',
+              paddingLeft: '88px', padding: '12px 14px 12px 88px', fontSize: '15px', borderRadius: '12px',
               background: 'var(--bg-app)', letterSpacing: m ? '0.06em' : '0',
               border: localErr ? '1.5px solid var(--danger)' : '1.5px solid var(--border)'
             }}
@@ -868,7 +870,7 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
       </div>
 
       {/* Don't have ABHA — create in-modal */}
-      <div style={{ textAlign: 'right', marginBottom: '28px' }}>
+      <div style={{ textAlign: 'right', marginBottom: '16px' }}>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Don't have ABHA? </span>
         <button onClick={onCreateNow} style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '13px', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
           Create Now →
@@ -880,8 +882,8 @@ function AbhaMobile({ onBack, onSend, onCreateNow, busy, err }) {
         onClick={handleSend}
         style={{
           width: '100%', background: busy || m.length < 10 ? 'var(--border)' : 'var(--accent)',
-          color: busy || m.length < 10 ? 'var(--text-muted)' : '#fff', border: 'none', padding: '16px',
-          borderRadius: '12px', fontSize: '15px', fontWeight: '700',
+          color: busy || m.length < 10 ? 'var(--text-muted)' : '#fff', border: 'none', padding: '12px',
+          borderRadius: '12px', fontSize: '14px', fontWeight: '700',
           cursor: busy || m.length < 10 ? 'not-allowed' : 'pointer', transition: 'all 0.25s',
           boxShadow: busy || m.length < 10 ? 'none' : '0 4px 16px rgba(251,145,63,0.38)',
           letterSpacing: '0.01em'

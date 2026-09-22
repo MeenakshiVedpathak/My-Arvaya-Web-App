@@ -1,31 +1,77 @@
-import { useState } from "react";
-import { Search, ShoppingCart, Plus, Minus, Tag, Heart, ShieldCheck, Truck, ChevronRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  BadgePercent,
+  ChevronRight,
+  Droplets,
+  FileText,
+  HeartPulse,
+  Info,
+  Leaf,
+  Lock,
+  Minus,
+  Pill,
+  Plus,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  ShoppingCart,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+  Truck,
+  X,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Modal from "../components/common/Modal";
-import PageHeader from "../components/common/PageHeader";
 
 const categories = ["All", "Prescription", "Supplements", "Personal Care", "Ayurvedic"];
 
 const initialMedicines = [
-  { id: 1, name: "Paracetamol 500mg", category: "Prescription", price: 45, oldPrice: 55, discount: "18% OFF", manufacturer: "GSK", image: "💊" },
-  { id: 2, name: "Vitamin C Zinc", category: "Supplements", price: 120, oldPrice: 150, discount: "20% OFF", manufacturer: "HealthVeda", image: "💊" },
-  { id: 3, name: "Cetirizine 10mg", category: "Prescription", price: 30, oldPrice: 40, discount: "25% OFF", manufacturer: "Cipla", image: "💊" },
-  { id: 4, name: "Omega 3 Fish Oil", category: "Supplements", price: 599, oldPrice: 899, discount: "33% OFF", manufacturer: "MuscleBlaze", image: "💊" },
-  { id: 5, name: "Ashwagandha Extract", category: "Ayurvedic", price: 299, oldPrice: 399, discount: "25% OFF", manufacturer: "Himalaya", image: "🌿" },
-  { id: 6, name: "Moisturizing Lotion", category: "Personal Care", price: 250, oldPrice: 299, discount: "16% OFF", manufacturer: "Cetaphil", image: "🧴" }
+  { id: 1, name: "Paracetamol 500mg", category: "Prescription", price: 45, oldPrice: 55, discount: "18% OFF", manufacturer: "GSK", icon: Pill },
+  { id: 2, name: "Vitamin C Zinc", category: "Supplements", price: 120, oldPrice: 150, discount: "20% OFF", manufacturer: "HealthVeda", icon: Sparkles },
+  { id: 3, name: "Cetirizine 10mg", category: "Prescription", price: 30, oldPrice: 40, discount: "25% OFF", manufacturer: "Cipla", icon: Pill },
+  { id: 4, name: "Omega 3 Fish Oil", category: "Supplements", price: 599, oldPrice: 899, discount: "33% OFF", manufacturer: "MuscleBlaze", icon: HeartPulse },
+  { id: 5, name: "Ashwagandha Extract", category: "Ayurvedic", price: 299, oldPrice: 399, discount: "25% OFF", manufacturer: "Himalaya", icon: Leaf },
+  { id: 6, name: "Moisturizing Lotion", category: "Personal Care", price: 250, oldPrice: 299, discount: "16% OFF", manufacturer: "Cetaphil", icon: Droplets }
 ];
+
+const categoryTheme = {
+  Prescription: { accent: "var(--primary)", soft: "var(--primary-light)", tint: "#f7fbfa" },
+  Supplements: { accent: "var(--primary)", soft: "var(--primary-light)", tint: "#f7fbfa" },
+  "Personal Care": { accent: "var(--primary)", soft: "var(--primary-light)", tint: "#f7fbfa" },
+  Ayurvedic: { accent: "var(--primary)", soft: "var(--primary-light)", tint: "#f7fbfa" },
+};
+
+function MedicineIcon({ medicine, size = 34 }) {
+  const Icon = medicine?.icon || Pill;
+  return <Icon size={size} strokeWidth={1.8} aria-hidden="true" />;
+}
 
 export default function Pharmacy() {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const go = useNavigate();
+  const productsHeadingRef = useRef(null);
+  const didMountRef = useRef(false);
 
-  const filteredMedicines = initialMedicines.filter(m => 
+  const filteredMedicines = initialMedicines.filter(m =>
     (category === "All" || m.category === category) &&
     m.name.toLowerCase().includes(q.toLowerCase())
   );
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    productsHeadingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [category]);
 
   const addToCart = (med) => {
     setCart(prev => {
@@ -45,193 +91,210 @@ export default function Pharmacy() {
     }).filter(item => item.qty > 0));
   };
 
+  const removeFromCart = (id) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
+  const clearCart = () => setCart([]);
+
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
   const cartOldTotal = cart.reduce((acc, item) => acc + (item.oldPrice * item.qty), 0);
 
+  const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
+
   return (
-    <main className="page animate-fade-in-up" style={{ padding: 0, background: 'var(--bg-app)' }}>
-      {/* ── Internal Hero ── */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Pharmacy' }
-        ]}
-        title="Online E-Pharmacy"
-        subtitle="Order medicines online with 100% genuine guarantee."
-        actions={
-          <button 
-            onClick={() => setIsCartOpen(true)} 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px', 
-              background: '#FFFFFF', 
-              color: '#0F2930', 
-              padding: '7px 20px 7px 10px', 
-              borderRadius: '99px', 
-              border: '1px solid rgba(255, 255, 255, 0.9)', 
-              cursor: 'pointer', 
-              fontSize: '14px', 
-              fontWeight: '700', 
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.18)',
-              transition: 'all 0.25s ease' 
-            }} 
-            onMouseOver={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
-            }} 
-            onMouseOut={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.18)';
-            }}
-          >
-            <div style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              background: 'rgba(15, 118, 110, 0.12)',
-              color: '#0F766E',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <ShoppingCart size={15} />
+    <main className="page pharmacy-page-enter pharmacy-page">
+      <section className="pharmacy-hero-shell">
+        <div className="container">
+          <div className="pharmacy-hero-card">
+            <div className="pharmacy-hero-copy">
+              <div className="pharmacy-hero-icon" aria-hidden="true">
+                <Pill size={26} />
+              </div>
+              <div>
+                <h1>Online E-Pharmacy</h1>
+                <p>Order medicines online with 100% genuine guarantee.</p>
+                <div className="pharmacy-hero-features">
+                  <span><BadgeCheck size={17} color="#4ade80" aria-hidden="true" /> 100% Genuine Medicines</span>
+                  <span><Truck size={17} color="#67e8f9" aria-hidden="true" /> Free Delivery &gt; ₹500</span>
+                </div>
+              </div>
             </div>
-            <span>Cart ({cart.reduce((acc, c) => acc + c.qty, 0)})</span>
-          </button>
-        }
-      />
 
-      <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
-        <div className="pharmacy-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 280px) 1fr', gap: '32px' }}>
-          
-          {/* Left Sidebar: Filters */}
-          <aside className="pharmacy-sidebar">
-            <div className="card-elevated styled-scrollbar" style={{ position: 'sticky', top: '24px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}>
-              <div className="flex justify-between items-center mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                <b style={{ fontSize: '15px' }}>Filters</b>
-                <span className="text-primary cursor-pointer" style={{ fontSize: '12px', fontWeight: '600' }} onClick={() => { setQ(""); setCategory("All"); }}>RESET</span>
+            <div className="pharmacy-hero-visual" aria-hidden="true">
+              <img src="/images/e-pharmacy.png" alt="" />
+            </div>
+
+            <button className="pharmacy-cart-button" onClick={() => setIsCartOpen(true)}>
+              <span className="pharmacy-cart-icon"><ShoppingCart size={19} /></span>
+              <span>Cart ({cartCount})</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="container pharmacy-content">
+        <button
+          className="pharmacy-filter-toggle"
+          onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+          aria-expanded={showFiltersMobile}
+        >
+          <span><SlidersHorizontal size={17} /> Filter &amp; Search Medicines</span>
+          <ChevronRight
+            size={18}
+            style={{ transform: showFiltersMobile ? "rotate(90deg)" : "none" }}
+          />
+        </button>
+
+        <div className="pharmacy-grid">
+          <aside className={`pharmacy-sidebar${showFiltersMobile ? " open" : ""}`}>
+            <div className="pharmacy-filter-card styled-scrollbar">
+              <div className="pharmacy-filter-header">
+                <span><SlidersHorizontal size={18} /> Filters</span>
+                <button onClick={() => { setQ(""); setCategory("All"); }}>
+                  <RotateCcw size={13} /> Reset
+                </button>
               </div>
-              
-              <div className="flex flex-col gap-6">
-                <div>
-                  <div className="flex items-center gap-2" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', transition: 'border-color 0.2s, box-shadow 0.2s', background: 'var(--bg-app)' }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(46, 102, 110, 0.1)'; }} onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                    <Search size={16} className="text-muted" />
-                    <input 
-                      placeholder="Search medicines..." 
-                      value={q}
-                      onChange={(e) => setQ(e.target.value)}
-                      style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px', color: 'var(--text-main)' }}
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Categories</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    {categories.map(cat => (
-                      <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="pharmacy-category" checked={category === cat} onChange={() => setCategory(cat)} style={{ accentColor: 'var(--primary)' }} /> 
-                        {cat}
-                      </label>
-                    ))}
-                  </div>
-                </div>
+              <label className="pharmacy-search-box">
+                <Search size={18} aria-hidden="true" />
+                <input
+                  placeholder="Search medicines..."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+              </label>
 
-                <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Price Range</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Under ₹100</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> ₹100 - ₹500</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> ₹500 - ₹1000</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Above ₹1000</label>
-                  </div>
-                </div>
-
-                <div>
-                  <b className="text-main mb-3" style={{ fontSize: '14px', display: 'block' }}>Top Brands</b>
-                  <div className="flex flex-col gap-2 text-muted" style={{ fontSize: '13px' }}>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Cipla</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Sun Pharma</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> GSK</label>
-                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" /> Himalaya</label>
-                  </div>
+              <div className="pharmacy-filter-group">
+                <b>Categories</b>
+                <div className="pharmacy-category-options">
+                  {categories.map((cat) => (
+                    <label key={cat} className={category === cat ? "active" : ""}>
+                      <input
+                        type="radio"
+                        name="pharmacy-category"
+                        checked={category === cat}
+                        onChange={() => setCategory(cat)}
+                      />
+                      <span>{cat}</span>
+                      <BadgeCheck size={16} aria-hidden="true" />
+                    </label>
+                  ))}
                 </div>
               </div>
-              
-              {/* Feature Badges moved to sidebar */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '32px', borderTop: '1px solid var(--border)', paddingTop: '24px' }}>
-                 <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
-                   <ShieldCheck size={20} /> 100% Genuine Medicines
-                 </div>
-                 <div style={{ background: '#fef08a', color: '#854d0e', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}>
-                   <Truck size={20} /> Free Delivery &gt; ₹500
-                 </div>
+
+              <div className="pharmacy-filter-group">
+                <b>Price Range</b>
+                <div className="pharmacy-check-options">
+                  <label><input type="checkbox" /> Under ₹100</label>
+                  <label><input type="checkbox" /> ₹100 - ₹500</label>
+                  <label><input type="checkbox" /> ₹500 - ₹1000</label>
+                  <label><input type="checkbox" /> Above ₹1000</label>
+                </div>
+              </div>
+
+              <div className="pharmacy-filter-group">
+                <b>Top Brands</b>
+                <div className="pharmacy-check-options">
+                  <label><input type="checkbox" /> Cipla</label>
+                  <label><input type="checkbox" /> Sun Pharma</label>
+                  <label><input type="checkbox" /> GSK</label>
+                  <label><input type="checkbox" /> Himalaya</label>
+                </div>
               </div>
             </div>
           </aside>
 
-          {/* Right Content: Medicine Grid */}
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)' }}>
-                {category === "All" ? "All Products" : category} 
-                <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500', marginLeft: '8px' }}>({filteredMedicines.length} items)</span>
-              </h2>
+          <div className="pharmacy-products-panel">
+            <div className="pharmacy-products-heading" ref={productsHeadingRef}>
+              <div>
+                <h2>{category === "All" ? "All Products" : category}</h2>
+              </div>
+              <span className="pharmacy-result-count">{filteredMedicines.length} items</span>
             </div>
 
-            {/* Medicine Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
-          {filteredMedicines.map(med => {
-            const inCart = cart.find(c => c.id === med.id);
-            return (
-              <div key={med.id} className="card-elevated hover-scale" style={{ padding: '16px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ alignSelf: 'flex-start', background: 'rgba(251, 145, 63, 0.1)', color: 'var(--accent)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', marginBottom: '12px' }}>
-                  {med.discount}
-                </div>
-                
-                <div style={{ fontSize: '48px', textAlign: 'center', margin: '16px 0', opacity: 0.8 }}>
-                  {med.image}
-                </div>
-                
-                <h3 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>{med.name}</h3>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>By {med.manufacturer}</span>
-                
-                <div className="flex justify-between items-end mt-auto" style={{ borderTop: '1px dashed var(--border)', paddingTop: '12px', marginTop: '16px' }}>
-                  <div>
-                    <span className="text-muted" style={{ fontSize: '12px' }}><s>₹{med.oldPrice}</s></span>
-                    <b style={{ fontSize: '18px', display: 'block', color: 'var(--text-main)' }}>₹{med.price}</b>
-                  </div>
-                  
-                  {inCart ? (
-                    <div className="flex items-center gap-3" style={{ background: 'var(--primary-light)', padding: '6px 12px', borderRadius: 'var(--radius-full)' }}>
-                      <button onClick={() => updateQty(med.id, -1)} style={{ color: 'var(--primary)', cursor: 'pointer' }}><Minus size={14}/></button>
-                      <b style={{ fontSize: '14px', color: 'var(--primary-dark)' }}>{inCart.qty}</b>
-                      <button onClick={() => updateQty(med.id, 1)} style={{ color: 'var(--primary)', cursor: 'pointer' }}><Plus size={14}/></button>
+            <div className="pharmacy-products-grid">
+              {filteredMedicines.map((med) => {
+                const theme = categoryTheme[med.category] || categoryTheme.Prescription;
+                return (
+                  <article
+                    key={med.id}
+                    className="pharmacy-product-card"
+                    style={{
+                      "--medicine-accent": theme.accent,
+                      "--medicine-soft": theme.soft,
+                      "--medicine-tint": theme.tint,
+                    }}
+                  >
+                    <div className="pharmacy-product-media">
+                      <span className="pharmacy-discount-badge">
+                        <BadgePercent size={14} /> {med.discount}
+                      </span>
+                      <div className="pharmacy-medicine-icon">
+                        <MedicineIcon medicine={med} size={44} />
+                      </div>
                     </div>
-                  ) : (
-                    <button className="btn btn-secondary hover-glow" onClick={() => addToCart(med)} style={{ padding: '8px 16px', fontSize: '13px' }}>
-                      Add
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                    <div className="pharmacy-product-body">
+                      <span className="pharmacy-category-chip">{med.category}</span>
+                      <h3>{med.name}</h3>
+                      <p>By {med.manufacturer}</p>
+                      <button onClick={() => setSelectedMedicine(med)}>
+                        More Details <ChevronRight size={15} />
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 1024px) {
-          .pharmacy-grid { grid-template-columns: 1fr !important; }
-          .pharmacy-sidebar .card-elevated { position: relative !important; top: 0 !important; max-height: none !important; z-index: 1; margin-bottom: 24px; }
-        }
-      `}} />
+      </section>
+
+      <Modal isOpen={Boolean(selectedMedicine)} onClose={() => setSelectedMedicine(null)} title={selectedMedicine?.name || "Medicine Details"} maxWidth="460px">
+        {selectedMedicine && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div
+              className="pharmacy-detail-visual"
+              style={{
+                "--medicine-accent": (categoryTheme[selectedMedicine.category] || categoryTheme.Prescription).accent,
+                "--medicine-soft": (categoryTheme[selectedMedicine.category] || categoryTheme.Prescription).soft,
+              }}
+            >
+              <MedicineIcon medicine={selectedMedicine} size={64} />
+            </div>
+            <div>
+              <span className="badge badge-primary">{selectedMedicine.category}</span>
+              <p className="text-muted mt-2" style={{ fontSize: '14px' }}>By {selectedMedicine.manufacturer}</p>
+            </div>
+            <div className="flex justify-between items-center" style={{ padding: '16px', borderRadius: '16px', background: 'var(--bg-app)', border: '1px solid var(--border)' }}>
+              <div>
+                <span className="text-muted" style={{ fontSize: '12px' }}><s>₹{selectedMedicine.oldPrice}</s></span>
+                <b style={{ fontSize: '24px', display: 'block', color: 'var(--text-main)' }}>₹{selectedMedicine.price}</b>
+              </div>
+              <span className="badge badge-accent">{selectedMedicine.discount}</span>
+            </div>
+            <button className="btn btn-accent" onClick={() => { addToCart(selectedMedicine); setSelectedMedicine(null); }} style={{ width: '100%' }}>
+              <ShoppingCart size={17} /> Add to Cart
+            </button>
+          </div>
+        )}
+      </Modal>
 
       {/* Cart Modal */}
-      <Modal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} title="Your Cart" maxWidth="500px">
+      <Modal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} maxWidth="560px" hideHeader>
+       <div style={{ margin: '-24px' }}>
+        <div className="pharmacy-cart-header">
+          <div className="pharmacy-cart-header-icon"><ShoppingCart size={19} /></div>
+          <div className="pharmacy-cart-header-copy">
+            <h3>Your Cart</h3>
+            <p>Review your medicines and proceed to checkout</p>
+          </div>
+          <img src="/images/pharmacy-cart.png" alt="" className="pharmacy-cart-header-art" />
+          <button className="pharmacy-cart-header-close" onClick={() => setIsCartOpen(false)} aria-label="Close cart">
+            <X size={18} />
+          </button>
+        </div>
+
         {cart.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
             <ShoppingCart size={48} style={{ opacity: 0.2, margin: '0 auto 16px' }} />
@@ -239,47 +302,87 @@ export default function Pharmacy() {
             <button className="btn btn-secondary mt-4" onClick={() => setIsCartOpen(false)}>Continue Shopping</button>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }} className="styled-scrollbar">
-              {cart.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border)' }}>
-                  <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>{item.name}</h4>
-                    <span style={{ fontSize: '14px', color: 'var(--text-main)' }}>₹{item.price}</span>
-                  </div>
-                  <div className="flex items-center gap-3" style={{ background: 'var(--bg-app)', padding: '6px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border)' }}>
-                    <button onClick={() => updateQty(item.id, -1)} style={{ color: 'var(--text-main)', cursor: 'pointer', background: 'none', border: 'none' }}><Minus size={14}/></button>
-                    <b style={{ fontSize: '14px', color: 'var(--text-main)' }}>{item.qty}</b>
-                    <button onClick={() => updateQty(item.id, 1)} style={{ color: 'var(--text-main)', cursor: 'pointer', background: 'none', border: 'none' }}><Plus size={14}/></button>
-                  </div>
-                </div>
-              ))}
+          <div className="pharmacy-cart-content">
+            <div className="pharmacy-cart-notice">
+              <Info size={15} />
+              <span>Checkout &amp; online payment for Pharmacy orders is still in development — full functionality is coming soon.</span>
             </div>
-            
-            <div style={{ background: 'var(--bg-app)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <div className="flex justify-between text-muted mb-2" style={{ fontSize: '14px' }}>
-                <span>Item Total</span>
-                <span><s>₹{cartOldTotal}</s> ₹{cartTotal}</span>
+
+            <div className="pharmacy-cart-count-row">
+              <b>{cartCount} {cartCount === 1 ? "Item" : "Items"} in Cart</b>
+              <button className="pharmacy-cart-clear-btn" onClick={clearCart}>
+                <Trash2 size={14} /> Clear Cart
+              </button>
+            </div>
+
+            <div className="pharmacy-cart-items styled-scrollbar">
+              {cart.map(item => {
+                const theme = categoryTheme[item.category] || categoryTheme.Prescription;
+                return (
+                  <div key={item.id} className="pharmacy-cart-item-card">
+                    <div className="pharmacy-cart-item-icon" style={{ color: theme.accent, background: theme.soft }}>
+                      <MedicineIcon medicine={item} size={21} />
+                    </div>
+                    <div className="pharmacy-cart-item-info">
+                      <h4>{item.name}</h4>
+                      <span className="pharmacy-cart-item-sub">By {item.manufacturer}</span>
+                      <span className="pharmacy-cart-item-tag">{item.category}</span>
+                      <span className="pharmacy-cart-item-price">₹{item.price}</span>
+                    </div>
+                    <div className="pharmacy-cart-item-actions">
+                      <div className="pharmacy-cart-qty-pill">
+                        <button onClick={() => updateQty(item.id, -1)}><Minus size={14} /></button>
+                        <b>{item.qty}</b>
+                        <button onClick={() => updateQty(item.id, 1)}><Plus size={14} /></button>
+                      </div>
+                      <button className="pharmacy-cart-item-delete" onClick={() => removeFromCart(item.id)} aria-label={`Remove ${item.name}`}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pharmacy-cart-summary">
+              <div className="pharmacy-cart-summary-head">
+                <span className="pharmacy-cart-summary-icon"><FileText size={16} /></span>
+                <b>Order Summary</b>
+                <span className="pharmacy-cart-summary-badge"><Truck size={13} /> Delivery charges may vary</span>
               </div>
-              <div className="flex justify-between text-success mb-2" style={{ fontSize: '14px', fontWeight: '500' }}>
+              <div className="pharmacy-cart-summary-row">
+                <span>Item Total ({cartCount} items)</span>
+                <span>₹{cartOldTotal}</span>
+              </div>
+              <div className="pharmacy-cart-summary-row is-discount">
                 <span>Total Discount</span>
                 <span>- ₹{cartOldTotal - cartTotal}</span>
               </div>
-              <div className="flex justify-between text-muted mb-4" style={{ fontSize: '14px' }}>
+              <div className="pharmacy-cart-summary-row">
                 <span>Delivery Fee</span>
                 <span>{cartTotal > 500 ? <span className="text-success">FREE</span> : "₹50"}</span>
               </div>
-              <div className="flex justify-between items-center" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                <b style={{ fontSize: '18px', color: 'var(--text-main)' }}>Total to Pay</b>
-                <b style={{ fontSize: '20px', color: 'var(--primary-dark)' }}>₹{cartTotal > 500 ? cartTotal : cartTotal + 50}</b>
+              <div className="pharmacy-cart-summary-total">
+                <b>Total to Pay</b>
+                <b>₹{cartTotal > 500 ? cartTotal : cartTotal + 50}</b>
+              </div>
+              <div className="pharmacy-cart-safe-box">
+                <ShieldCheck size={18} />
+                <div>
+                  <b>Safe &amp; Secure Checkout</b>
+                  <span>Your information is always protected with us.</span>
+                </div>
               </div>
             </div>
 
-            <button className="btn btn-accent" onClick={() => { setIsCartOpen(false); go("/payments", { state: { amount: cartTotal > 500 ? cartTotal : cartTotal + 50, type: "Pharmacy Order" } }); }} style={{ width: '100%', padding: '14px', fontSize: '16px' }}>
-              Proceed to Checkout
-            </button>
+            <div className="pharmacy-cart-footer-actions">
+              <button className="pharmacy-cart-checkout-btn" onClick={() => { setIsCartOpen(false); go("/payments", { state: { amount: cartTotal > 500 ? cartTotal : cartTotal + 50, type: "Pharmacy Order" } }); }}>
+                <Lock size={16} /> Proceed to Checkout <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
         )}
+       </div>
       </Modal>
 
     </main>

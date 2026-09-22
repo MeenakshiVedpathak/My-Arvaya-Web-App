@@ -58,7 +58,43 @@ export default function HospitalSelection() {
             </div>
           ) : hospitals.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', gap: '16px', textAlign: 'center' }}>
-              <img src="/empty_reports.png" alt="No Hospitals Found" style={{ width: '180px', opacity: 0.8 }} />
+              <div style={{ width: '140px', height: '140px', borderRadius: '50%', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="104" height="100" viewBox="0 0 120 116" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <ellipse cx="60" cy="106" rx="48" ry="5" fill="var(--primary)" opacity="0.1" />
+
+                  {/* left wing */}
+                  <rect x="12" y="56" width="32" height="44" rx="3" fill="var(--primary-light)" stroke="var(--primary)" strokeWidth="2.5" />
+                  <rect x="8" y="48" width="40" height="11" rx="5.5" fill="var(--primary)" />
+                  <rect x="21" y="63" width="18" height="10" rx="2" fill="#ffffff" stroke="var(--primary)" strokeWidth="1.5" />
+                  <rect x="24" y="66.5" width="12" height="3" rx="1.5" fill="#bfe3ee" />
+                  <rect x="21" y="78" width="18" height="10" rx="2" fill="#ffffff" stroke="var(--primary)" strokeWidth="1.5" />
+                  <rect x="24" y="81.5" width="12" height="3" rx="1.5" fill="#bfe3ee" />
+
+                  {/* right wing */}
+                  <rect x="76" y="56" width="32" height="44" rx="3" fill="var(--primary-light)" stroke="var(--primary)" strokeWidth="2.5" />
+                  <rect x="72" y="48" width="40" height="11" rx="5.5" fill="var(--primary)" />
+                  <rect x="81" y="63" width="18" height="10" rx="2" fill="#ffffff" stroke="var(--primary)" strokeWidth="1.5" />
+                  <rect x="84" y="66.5" width="12" height="3" rx="1.5" fill="#bfe3ee" />
+                  <rect x="81" y="78" width="18" height="10" rx="2" fill="#ffffff" stroke="var(--primary)" strokeWidth="1.5" />
+                  <rect x="84" y="81.5" width="12" height="3" rx="1.5" fill="#bfe3ee" />
+
+                  {/* center tower */}
+                  <rect x="44" y="34" width="32" height="66" rx="3" fill="#ffffff" stroke="var(--primary)" strokeWidth="2.5" />
+                  <rect x="40" y="24" width="40" height="13" rx="6.5" fill="var(--primary-dark)" />
+
+                  {/* cross */}
+                  <path d="M57 42 H63 V47.5 H68.5 V53.5 H63 V59 H57 V53.5 H51.5 V47.5 H57 Z" fill="var(--accent)" />
+
+                  {/* signage lines */}
+                  <rect x="52" y="64" width="16" height="2.6" rx="1.3" fill="var(--primary-light)" />
+                  <rect x="52" y="70" width="16" height="2.6" rx="1.3" fill="var(--primary-light)" />
+
+                  {/* glass door */}
+                  <rect x="51" y="78" width="18" height="22" rx="1.5" fill="var(--primary-dark)" />
+                  <rect x="53" y="80" width="6.5" height="18" rx="1" fill="#bfe3ee" />
+                  <rect x="60.5" y="80" width="6.5" height="18" rx="1" fill="#bfe3ee" />
+                </svg>
+              </div>
               <div>
                 <h3 style={{ fontSize: '16px', color: 'var(--text-main)', marginBottom: '6px' }}>No Hospitals Found</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '13px', maxWidth: '320px', margin: '0 auto' }}>We couldn't find any hospitals for the selected location.</p>

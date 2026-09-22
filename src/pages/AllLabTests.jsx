@@ -4,7 +4,6 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import PageHeader from "../components/common/PageHeader";
 import { getDiagnosticTests, getWalletAmount, createLabOrder, verifyLabPayment, loadRazorpayScript } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
@@ -517,26 +516,43 @@ export default function AllLabTests() {
       `}</style>
 
       {/* Hero / Header Section */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Lab Tests', link: '/labs' },
-          { label: 'All Lab Tests' }
-        ]}
-        title="All Diagnostic Lab Tests"
-        subtitle="Showing NABL & ISO certified individual diagnostic lab tests with doorstep phlebotomist collection."
-        actions={
-          <button 
-            onClick={() => go('/labs')}
-            className="btn btn-secondary flex items-center gap-2"
-            style={{ fontSize: '13px', fontWeight: '700', padding: '8px 16px', borderRadius: '20px' }}
-          >
-            <ArrowLeft size={15} /> Back to Lab Tests
-          </button>
-        }
-      >
-        {/* Search Bar & Profile Filters */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div className="all-tests-hero">
+        <div className="container">
+          
+          {/* Top Breadcrumb & Back */}
+          <div className="flex items-center justify-between mb-4" style={{ flexWrap: 'wrap', gap: '12px' }}>
+            <div className="app-breadcrumbs">
+              <Link to="/">Home</Link> 
+              <ChevronRight size={12} /> 
+              <Link to="/labs">Lab Tests</Link> 
+              <ChevronRight size={12} /> 
+              <span>All Lab Tests</span>
+            </div>
+
+            <button 
+              onClick={() => go('/labs')}
+              className="btn btn-secondary flex items-center gap-2"
+              style={{ fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '20px' }}
+            >
+              <ArrowLeft size={15} /> Back to Lab Tests
+            </button>
+          </div>
+
+          <h1 style={{ 
+            fontFamily: "'Plus Jakarta Sans', var(--font-sans)", 
+            fontWeight: 800, 
+            fontSize: '24px', 
+            color: '#12333A', 
+            margin: '0 0 6px 0' 
+          }}>
+            All Diagnostic Lab Tests
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '0 0 20px 0' }}>
+            Showing NABL & ISO certified individual diagnostic lab tests with doorstep phlebotomist collection.
+          </p>
+
+          {/* Search Bar & Profile Filters */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ 
               background: '#ffffff', 
               border: '1.5px solid var(--border)', 
@@ -590,7 +606,8 @@ export default function AllLabTests() {
             </div>
           </div>
 
-        </PageHeader>
+        </div>
+      </div>
 
       {/* Main Grid Content */}
       <div className="container" style={{ padding: '32px 16px 64px 16px' }}>
@@ -632,12 +649,8 @@ export default function AllLabTests() {
                   <div className="all-tests-card-title">{test.title}</div>
                   <div className="all-tests-card-sub">{toTitleCase(test.category)}</div>
                   <div className="all-tests-card-footer">
-                    <div className="all-tests-card-price-col">
-                      <span className="all-tests-card-price-label">Price</span>
-                      <span className="all-tests-card-price">₹{test.price}</span>
-                    </div>
                     <button className="all-tests-card-btn" onClick={() => setSelectedItem(test)}>
-                      Book Now <ArrowRight size={13} />
+                      More Details <ArrowRight size={13} />
                     </button>
                   </div>
                 </div>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import PageHeader from "../components/common/PageHeader";
 import { 
   Gift, 
   Clock, 
@@ -16,14 +15,18 @@ import {
   Users, 
   Stethoscope, 
   Activity, 
-  X, 
-  Ticket, 
+  X,
+  Ticket,
   Plus,
-  Award,
   Loader2,
-  Lock
+  Lock,
+  Star,
+  Zap,
+  Heart,
+  CreditCard,
+  UserPlus,
+  FileText
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getWalletAmount, getAppointmentHistory, getPlans } from "../services/dataService";
 
@@ -116,6 +119,13 @@ const defaultOffers = [
     image: "/reward_pharmacy.png",
     code: "REGISTRATION_BONUS"
   }
+];
+
+const offerThemes = [
+  { className: "is-green", icon: CreditCard },
+  { className: "is-blue", icon: UserPlus },
+  { className: "is-purple", icon: Users },
+  { className: "is-orange", icon: Gift },
 ];
 
 export default function Wallet() {
@@ -432,661 +442,254 @@ export default function Wallet() {
   };
 
   return (
-    <main className="page" style={{ background: 'var(--bg-app)', minHeight: '100vh', paddingBottom: '60px' }}>
-      
-      {/* Toast Notification */}
+    <main className="page wallet-page">
       {toastMessage && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          background: 'var(--text-main)',
-          color: 'white',
-          padding: '12px 20px',
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: '600',
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          animation: 'fadeIn 0.2s ease-out'
-        }}>
-          <Sparkles size={16} color="var(--accent)" />
+        <div className="wallet-toast" role="status">
+          <Sparkles size={16} />
           {toastMessage}
         </div>
       )}
 
-      {/* Header Banner */}
-      <PageHeader
-        breadcrumbs={[
-          { label: 'Home', link: '/' },
-          { label: 'Arvaya Wallet' }
-        ]}
-        title="Arvaya Wallet & Rewards"
-        subtitle="Earn reward points on bookings & redeem exclusive healthcare benefits."
-      />
-
-      <div className="container" style={{ paddingTop: '28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px' }} className="wallet-layout">
-
-          {/* LEFT COLUMN: Reward Points Top Card & Restored Transaction History UI */}
-          <section style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-            
-            {/* Dark Teal Reward Points Card (Exact match to reference image) */}
-            <div style={{
-              background: 'linear-gradient(135deg, #0F4D58 0%, #0A343C 100%)',
-              borderRadius: '20px',
-              padding: '28px 32px',
-              color: 'white',
+      <header style={{ padding: '16px 0 0' }}>
+        <div className="container">
+          <div
+            style={{
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 12px 30px rgba(15, 77, 88, 0.25)',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-              {/* Background glow circle */}
+              borderRadius: '26px',
+              padding: '24px 32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              flexWrap: 'wrap',
+              color: '#fff',
+              background:
+                'linear-gradient(120deg, rgba(255,255,255,0.08), transparent 45%), linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 62%, #133a41 100%)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: '0 20px 44px rgba(31, 79, 87, 0.28)',
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
-                position: 'absolute',
-                top: '-40px',
-                right: '-40px',
-                width: '240px',
-                height: '240px',
-                background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-                borderRadius: '50%',
-                pointerEvents: 'none'
-              }} />
-
-              {/* Top Row: Label & Gift Icon */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1 }}>
-                <div>
-                  <span style={{
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    letterSpacing: '1px',
-                    color: 'rgba(255, 255, 255, 0.75)',
-                    textTransform: 'uppercase',
-                    display: 'block',
-                    marginBottom: '10px'
-                  }}>
-                    YOUR REWARD POINTS
-                  </span>
-                  
-                  {/* Big Bold Points Display */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '48px' }}>
-                    {loading ? (
-                      <Loader2 size={32} className="animate-spin" style={{ color: 'white' }} />
-                    ) : (
-                      <span style={{ fontSize: '48px', fontWeight: '900', color: 'white', lineHeight: 1, letterSpacing: '-0.5px' }}>
-                        {rewardPoints.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Gift Icon Box */}
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(8px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }}>
-                  <Gift size={28} color="#FFFFFF" strokeWidth={1.75} />
-                </div>
-              </div>
-
-              {/* Footer Note inside card */}
-              <div style={{
-                marginTop: '28px',
-                paddingTop: '16px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px',
-                position: 'relative',
-                zIndex: 1
+                width: '52px', height: '52px', borderRadius: '16px', flexShrink: 0,
+                background: '#fff', color: 'var(--primary-dark)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 12px 24px rgba(0,60,55,0.2)', transform: 'rotate(-6deg)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255, 255, 255, 0.85)', fontSize: '14px', fontWeight: '500' }}>
-                  <Ticket size={16} color="var(--accent)" />
-                  <span>Redeem on your next booking</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', background: 'rgba(255,255,255,0.12)', padding: '4px 12px', borderRadius: '99px', color: '#E4EEEF', fontWeight: '600' }}>
-                  <Award size={14} color="var(--accent)" /> 1 Pt = ₹1 Value
-                </div>
+                <Gift size={26} />
               </div>
-            </div>
-
-            {/* RESTORED ORIGINAL UI: Transaction History Section with Scrollbar */}
-            <div>
-              <div style={{ padding: '16px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <History size={20} /> Transaction History
-                </h3>
-              </div>
-              
-              {!isLoggedIn ? (
-                <div style={{
-                  padding: '36px 24px',
-                  textAlign: 'center',
-                  background: 'var(--bg-surface)',
-                  borderRadius: '16px',
-                  border: '1.5px dashed var(--border)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px'
-                }}>
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    background: 'var(--primary-light)',
-                    color: 'var(--primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Lock size={22} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
-                      Log in to View Transaction History
-                    </h4>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                      Please log in to track your earned and redeemed reward points.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => openLoginModal && openLoginModal()}
-                    style={{
-                      marginTop: '8px',
-                      background: 'var(--primary)',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '10px 20px',
-                      borderRadius: '10px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
-                    }}
-                  >
-                    Log In / Sign Up
-                  </button>
-                </div>
-              ) : transactions.length === 0 ? (
-                <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', background: 'var(--bg-surface)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                  <History size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
-                  <p style={{ margin: 0 }}>No transaction history found.</p>
-                </div>
-              ) : (
-                /* Scrollable Container for Transaction History */
-                <div style={{
-                  maxHeight: '360px',
-                  overflowY: 'auto',
-                  paddingRight: '6px',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }} className="custom-scroller">
-                  {transactions.map((tx, idx) => (
-                    <div key={tx.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: idx !== transactions.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                      
-                      <div style={{ 
-                        background: tx.type === 'credit' ? '#dcfce7' : '#f1f5f9', 
-                        color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', 
-                        width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px', flexShrink: 0 
-                      }}>
-                        {tx.type === 'credit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
-                      </div>
-                      
-                      <div style={{ flex: 1 }}>
-                        <b style={{ fontSize: '15px', color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>{tx.title}</b>
-                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{tx.date}</span>
-                      </div>
-                      
-                      <div style={{ textAlign: 'right' }}>
-                        <strong style={{ fontSize: '16px', color: tx.type === 'credit' ? '#16a34a' : 'var(--text-main)', display: 'block' }}>
-                          {tx.amount}
-                        </strong>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                          {tx.type === 'credit' ? 'Earned' : 'Redeemed'}
-                        </span>
-                      </div>
-
-                    </div>
+              <div>
+                <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', color: '#fff', letterSpacing: '-0.02em' }}>Arvaya Wallet</h1>
+                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Track reward points and redeem healthcare benefits.</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { icon: Star, label: 'Reward Points', color: '#fbbf24' },
+                    { icon: Zap, label: 'Instant Redeem', color: '#2dd4bf' },
+                    { icon: Heart, label: 'Healthcare Benefits', color: '#5eead4' },
+                  ].map(({ icon: Icon, label, color }) => (
+                    <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 10px', color: '#fff', background: 'rgba(18,51,58,0.5)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '11.5px', fontWeight: '650', backdropFilter: 'blur(10px)' }}>
+                      <Icon size={13} color={color} /> {label}
+                    </span>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
 
+            <img src="/images/arvaya-wallet.png" alt="" className="wallet-hero-img" aria-hidden="true" />
+          </div>
+        </div>
+      </header>
 
+      <div className="container wallet-shell">
+        <div className="wallet-layout">
+          <section className="wallet-primary-column">
+            <article className="wallet-balance-card">
+              <div className="wallet-balance-head">
+                <div>
+                  <span className="wallet-eyebrow"><span className="wallet-eyebrow-badge"><Star size={13} /></span> Available reward balance</span>
+                  <div className="wallet-balance-value" aria-label={`${rewardPoints} reward points`}>
+                    {loading ? <Loader2 size={34} className="animate-spin" /> : rewardPoints.toLocaleString()}
+                    {!loading && <small>points</small>}
+                  </div>
+                </div>
+                <div className="wallet-balance-art">
+                  <span className="wallet-balance-tagline">Small Points,<br />Big Care</span>
+                  <span className="wallet-coin wallet-coin-1">₹</span>
+                  <span className="wallet-coin wallet-coin-2">₹</span>
+                  <span className="wallet-coin wallet-coin-3">₹</span>
+                  <img src="/images/wallet-gift.png" alt="" className="wallet-balance-icon" />
+                </div>
+              </div>
+              <div className="wallet-balance-foot">
+                <span><Ticket size={17} /> Redeem on your next booking</span>
+                <span className="wallet-value-chip"><ShieldCheck size={15} /> 1 point = ₹1</span>
+              </div>
+            </article>
 
           </section>
 
-          {/* RIGHT COLUMN: Your Rewards Section with White Background Cards */}
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            
-            {/* Header: Title & Count Badge */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
-                Your Rewards
-              </h2>
-              {isLoggedIn && (
-                <span style={{
-                  background: '#1D3B40',
-                  color: '#6EE7B7',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  padding: '4px 12px',
-                  borderRadius: '99px'
-                }}>
-                  {filteredOffers.length} offers
-                </span>
+          <section className="wallet-panel wallet-rewards-panel">
+            <div className="wallet-panel-heading">
+              <div className="wallet-section-title">
+                <span className="wallet-section-icon accent"><Gift size={20} /></span>
+                <div>
+                  <h2>Your Rewards</h2>
+                  <p>Available offers and vouchers</p>
+                </div>
+              </div>
+              {isLoggedIn && filteredOffers.length > 0 && (
+                <div className="wallet-panel-heading-actions">
+                  <span className="wallet-count-badge">{filteredOffers.length} offers</span>
+                  <a href="#your-rewards" className="wallet-view-all-link">View All <ArrowUpRight size={14} /></a>
+                </div>
               )}
             </div>
 
             {!isLoggedIn ? (
-              <div style={{
-                padding: '36px 20px',
-                textAlign: 'center',
-                background: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1.5px dashed var(--border)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px'
-              }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: 'var(--primary-light)',
-                  color: 'var(--primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Gift size={22} />
-                </div>
-                <div>
-                  <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
-                    Log in to View Rewards
-                  </h4>
-                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                    Access your exclusive healthcare rewards and vouchers.
-                  </p>
-                </div>
-                <button
-                  onClick={() => openLoginModal && openLoginModal()}
-                  style={{
-                    marginTop: '8px',
-                    background: 'var(--primary)',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '10px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(46,102,110,0.2)'
-                  }}
-                >
+              <div className="wallet-empty-state rewards-empty">
+                <span className="wallet-empty-icon"><Gift size={22} /></span>
+                <h3>Log in to view rewards</h3>
+                <p>Access your exclusive healthcare rewards.</p>
+                <button type="button" className="wallet-primary-button" onClick={() => openLoginModal && openLoginModal()}>
                   Log In / Sign Up
                 </button>
               </div>
             ) : filteredOffers.length === 0 ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', background: '#FFFFFF', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                <Gift size={32} style={{ marginBottom: '8px', opacity: 0.5 }} />
-                <p style={{ margin: 0 }}>No reward offers available at the moment.</p>
+              <div className="wallet-empty-state compact rewards-empty">
+                <span className="wallet-empty-icon"><Gift size={22} /></span>
+                <h3>No rewards available</h3>
+                <p>New offers will appear here.</p>
               </div>
             ) : (
-              /* Scrollable Container for Reward Cards */
-              <div style={{
-                maxHeight: '560px',
-                overflowY: 'auto',
-                paddingRight: '6px',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))',
-                gap: '16px'
-              }} className="custom-scroller offers-grid">
-              {filteredOffers.map(offer => {
-                const isRedeemed = redeemedOffers.includes(offer.id);
-                return (
-                  <div
-                    key={offer.id}
-                    onClick={() => handleRedeem(offer)}
-                    className="hover-glow"
-                    style={{
-                      borderRadius: '16px',
-                      overflow: 'hidden',
-                      background: '#FFFFFF', // Clean White Card Background
-                      boxShadow: '0 4px 16px rgba(18, 51, 58, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04)',
-                      border: '1px solid var(--border)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      position: 'relative',
-                      cursor: isRedeemed ? 'default' : 'pointer',
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-                    }}
-                  >
-                    {/* Top Image Container */}
-                    <div style={{
-                      position: 'relative',
-                      height: '115px',
-                      width: '100%',
-                      background: '#F1F5F9',
-                      overflow: 'hidden'
-                    }}>
-                      <img 
-                        src={offer.image} 
-                        alt={offer.title}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
+              <div className="wallet-offers-list">
+                {filteredOffers.map((offer, index) => {
+                  const isRedeemed = redeemedOffers.includes(offer.id);
+                  const theme = offerThemes[index % offerThemes.length];
+                  const ThemeIcon = theme.icon;
+                  return (
+                    <button
+                      type="button"
+                      key={offer.id}
+                      className={`wallet-offer-card ${theme.className} ${isRedeemed ? "is-redeemed" : ""}`}
+                      onClick={() => !isRedeemed && handleRedeem(offer)}
+                      disabled={isRedeemed}
+                    >
+                      <span className="wallet-offer-media">
+                        <ThemeIcon size={20} />
+                      </span>
+                      <span className="wallet-offer-meta">
+                        <span className="wallet-points-chip"><Sparkles size={12} /> {offer.points} pts</span>
+                        <span className="wallet-validity"><Clock size={12} /> {offer.badge}</span>
+                      </span>
+                      <span className="wallet-offer-content">
+                        <strong>{offer.title}</strong>
+                        <small>{offer.subtitle}</small>
+                        <span className="wallet-offer-action">
+                          {isRedeemed ? <><Check size={14} /> Redeemed</> : <>Redeem <ChevronRight size={15} /></>}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
-                      {/* Top Right Duration / Usage Badge */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '8px',
-                        right: '8px',
-                        background: 'rgba(15, 23, 42, 0.75)',
-                        backdropFilter: 'blur(6px)',
-                        color: '#FFFFFF',
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        padding: '4px 10px',
-                        borderRadius: '99px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                      }}>
-                        {offer.badgeType === 'timer' ? <Clock size={12} /> : <Users size={12} />}
-                        <span>{offer.badge}</span>
-                      </div>
-
-                      {/* Bottom Left Points Overlay Tag */}
-                      <div style={{
-                        position: 'absolute',
-                        bottom: '8px',
-                        left: '8px',
-                        background: 'rgba(15, 23, 42, 0.85)',
-                        backdropFilter: 'blur(6px)',
-                        color: '#2DD4BF',
-                        fontSize: '11px',
-                        fontWeight: '700',
-                        padding: '4px 10px',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                      }}>
-                        <Sparkles size={11} color="#2DD4BF" />
-                        <span>+ {offer.points} pts</span>
-                      </div>
-
-                      {/* Redeemed Watermark Overlay if already redeemed */}
-                      {isRedeemed && (
-                        <div style={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: 'rgba(22, 101, 52, 0.88)',
-                          backdropFilter: 'blur(2px)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: '800',
-                          gap: '6px'
-                        }}>
-                          <Check size={16} /> Redeemed
-                        </div>
-                      )}
-                    </div>
-                    {/* White Content Area Background */}
-                    <div style={{ 
-                      background: '#FFFFFF', // Pure White Content Background
-                      padding: '14px 12px', 
-                      display: 'flex', 
-                      alignItems: 'center',
-                      flex: 1 
-                    }}>
-                      <b style={{
-                        fontSize: '14px',
-                        fontWeight: '800',
-                        color: 'var(--text-main)', // Dark charcoal text
-                        display: 'block',
-                        lineHeight: 1.3,
-                        letterSpacing: '-0.2px'
-                      }}>
-                        {offer.title}
-                      </b>
-                    </div>
-
-                  </div>
-                );
-              })}
+          <section className="wallet-panel wallet-history-panel">
+            <div className="wallet-panel-heading">
+              <div className="wallet-section-title">
+                <span className="wallet-section-icon"><History size={20} /></span>
+                <div>
+                  <h2>Transaction History</h2>
+                  <p>Your recent wallet activity</p>
+                </div>
+              </div>
+              {isLoggedIn && transactions.length > 0 && (
+                <span className="wallet-count-badge">All Transactions</span>
+              )}
             </div>
-          )}
 
-          </aside>
-
+            {!isLoggedIn ? (
+              <div className="wallet-empty-state">
+                <span className="wallet-empty-icon"><Lock size={22} /></span>
+                <h3>Log in to view transaction history</h3>
+                <p>Track every point you earn and redeem.</p>
+                <button type="button" className="wallet-primary-button" onClick={() => openLoginModal && openLoginModal()}>
+                  Log In / Sign Up
+                </button>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="wallet-empty-state compact">
+                <span className="wallet-empty-icon"><History size={22} /></span>
+                <h3>No transactions yet</h3>
+                <p>Your wallet activity will appear here.</p>
+              </div>
+            ) : (
+              <>
+                <div className="wallet-transaction-table">
+                  <div className="wallet-transaction-row wallet-transaction-head">
+                    <span>Date</span>
+                    <span>Description</span>
+                    <span>Points</span>
+                    <span>Type</span>
+                    <span>Status</span>
+                  </div>
+                  {transactions.map(tx => (
+                    <div className="wallet-transaction-row" key={tx.id}>
+                      <span className="wallet-transaction-date">
+                        <span className={`wallet-transaction-icon ${tx.type}`}>
+                          {tx.type === "credit" ? <ArrowDownLeft size={15} /> : <ArrowUpRight size={15} />}
+                        </span>
+                        {tx.date}
+                      </span>
+                      <span className="wallet-transaction-desc">{tx.title}</span>
+                      <span className={`wallet-transaction-points ${tx.type}`}>{tx.amount}</span>
+                      <span><span className={`wallet-transaction-badge ${tx.type}`}>{tx.type === "credit" ? "Earned" : "Redeemed"}</span></span>
+                      <span><span className="wallet-transaction-badge is-status">Completed</span></span>
+                    </div>
+                  ))}
+                </div>
+                <div className="wallet-transaction-end">
+                  <FileText size={20} />
+                  <b>That's all for now!</b>
+                  <span>Your future transactions will appear here.</span>
+                </div>
+              </>
+            )}
+          </section>
         </div>
       </div>
 
-      {/* Redemption Confirmation Modal */}
       {activeModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 9990,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            background: 'var(--bg-surface)',
-            borderRadius: '24px',
-            maxWidth: '440px',
-            width: '100%',
-            padding: '28px',
-            boxShadow: 'var(--shadow-xl)',
-            position: 'relative',
-            animation: 'fadeIn 0.2s ease-out'
-          }}>
-            <button 
-              onClick={() => setActiveModal(null)}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'var(--bg-app)',
-                border: 'none',
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'var(--text-muted)'
-              }}
-            >
+        <div className="wallet-modal-backdrop" role="presentation">
+          <section className="wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
+            <button type="button" className="wallet-modal-close" onClick={() => setActiveModal(null)} aria-label="Close reward details">
               <X size={18} />
             </button>
-
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                background: 'var(--accent-light)',
-                color: 'var(--accent)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px auto',
-                boxShadow: '0 8px 16px rgba(251, 145, 63, 0.2)'
-              }}>
-                <Gift size={32} />
-              </div>
-              <h3 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 4px 0' }}>
-                {activeModal.title}
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 12px 0', lineHeight: 1.4 }}>
-                {activeModal.subtitle}
-              </p>
-
-              {/* Validity & Reward Summary Pill */}
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '10px',
-                background: '#F0FDF4',
-                border: '1px solid #DCFCE7',
-                padding: '6px 14px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                color: '#166534',
-                fontWeight: '600'
-              }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Clock size={13} color="#166534" />
-                  {activeModal.validityDays ? `${activeModal.validityDays} Days Validity` : "30 Days Validity"}
-                </span>
-                <span>•</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Sparkles size={13} color="#166534" />
-                  +{activeModal.points} Points
-                </span>
-              </div>
+            <div className="wallet-modal-icon"><Gift size={29} /></div>
+            <h2 id="wallet-modal-title">{activeModal.title}</h2>
+            <p>{activeModal.subtitle}</p>
+            <div className="wallet-modal-summary">
+              <span><Clock size={14} /> {activeModal.validityDays || 30} days validity</span>
+              <span><Sparkles size={14} /> {activeModal.points} points</span>
             </div>
-
-            {/* Voucher Box */}
-            <div style={{
-              background: 'var(--bg-app)',
-              borderRadius: '16px',
-              padding: '16px',
-              border: '2px dashed var(--primary-soft)',
-              textAlign: 'center',
-              marginBottom: '20px'
-            }}>
-              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.5px' }}>
-                PLAN CODE / VOUCHER
-              </span>
-              <div style={{
-                fontSize: '22px',
-                fontWeight: '900',
-                color: 'var(--primary)',
-                letterSpacing: '2px',
-                margin: '8px 0',
-                fontFamily: 'monospace'
-              }}>
-                {activeModal.code}
-              </div>
-              <button
-                onClick={() => copyToClipboard(activeModal.code)}
-                style={{
-                  background: copiedCode ? '#DCFCE7' : 'var(--primary)',
-                  color: copiedCode ? '#166534' : 'white',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                {copiedCode ? <Check size={14} /> : <Copy size={14} />}
-                {copiedCode ? "Code Copied!" : "Copy Voucher Code"}
+            <div className="wallet-voucher-box">
+              <span>Plan code / voucher</span>
+              <strong>{activeModal.code}</strong>
+              <button type="button" onClick={() => copyToClipboard(activeModal.code)}>
+                {copiedCode ? <Check size={15} /> : <Copy size={15} />}
+                {copiedCode ? "Code Copied" : "Copy Voucher Code"}
               </button>
             </div>
-
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--text-muted)',
-              lineHeight: 1.5,
-              background: 'var(--bg-app)',
-              padding: '12px',
-              borderRadius: '10px',
-              marginBottom: '20px'
-            }}>
-              💡 Valid for {activeModal.validityDays || 30} days from issue date. Apply voucher code <strong>{activeModal.code}</strong> during checkout to claim your reward.
+            <div className="wallet-modal-note">
+              <ShieldCheck size={17} />
+              <span>Use <strong>{activeModal.code}</strong> during checkout within {activeModal.validityDays || 30} days.</span>
             </div>
-
-            <button
-              onClick={() => setActiveModal(null)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '12px',
-                background: 'var(--text-main)',
-                color: 'white',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: '700',
-                cursor: 'pointer'
-              }}
-            >
-              Done
-            </button>
-          </div>
+            <button type="button" className="wallet-modal-done" onClick={() => setActiveModal(null)}>Done</button>
+          </section>
         </div>
       )}
-
-      {/* Embedded Custom Scroller & Responsive Styles */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .custom-scroller::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scroller::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.03);
-          border-radius: 4px;
-        }
-        .custom-scroller::-webkit-scrollbar-thumb {
-          background: var(--primary-soft);
-          border-radius: 4px;
-        }
-        .custom-scroller::-webkit-scrollbar-thumb:hover {
-          background: var(--primary);
-        }
-        @media (max-width: 1024px) {
-          .wallet-layout {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .offers-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-      `}} />
     </main>
   );
 }

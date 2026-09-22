@@ -1,5 +1,5 @@
 import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2, Shield } from "lucide-react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { getLocations, getDoctors, getLabPackages } from "../../services/dataService";
@@ -57,6 +57,46 @@ export default function Header() {
   const { user, openLoginModal, logout } = useAuth();
   const { globalLocation, setGlobalLocation, setDoctor } = useBooking();
   const go = useNavigate();
+  const location = useLocation();
+
+  const headerRef = useRef(null);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const isCollapsibleRoute = location.pathname === "/pharmacy";
+
+  // Publish the header's live rendered height as a CSS var so pages (e.g. Pharmacy's
+  // sticky filter sidebar) can position themselves directly below it, including
+  // smoothly while it collapses/expands.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const publish = () => {
+      document.documentElement.style.setProperty("--app-header-height", `${el.offsetHeight}px`);
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // On the Pharmacy page only: collapse the top header row once the user scrolls
+  // past a small threshold, leaving just the secondary nav sticky at the top.
+  useEffect(() => {
+    if (!isCollapsibleRoute) {
+      setIsHeaderCollapsed(false);
+      return;
+    }
+    // Hysteresis: collapse and expand at different thresholds so scroll
+    // jitter right at the boundary can't flip the state back and forth.
+    const handleScroll = () => {
+      setIsHeaderCollapsed((prev) => {
+        if (prev) return window.scrollY > 8;
+        return window.scrollY > 32;
+      });
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isCollapsibleRoute]);
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const selectedCity = globalLocation ? (globalLocation.city || globalLocation.alt_name || globalLocation.name || "Unknown") : "Loading...";
@@ -342,7 +382,7 @@ export default function Header() {
   }, []);
 
   const displayName = getUserDisplayName(user);
-  const displayInitial = (displayName || "U").charAt(0).toUpperCase();
+  const displayInitial = (displayName || "U").replace(/^(mr\.|ms\.|mrs\.|dr\.)\s*/i, "").charAt(0).toUpperCase();
   const userPhone = getUserPhone(user);
 
 
@@ -440,18 +480,18 @@ export default function Header() {
   return (
     <>
       {/* ── Main Header ── */}
-      <header className="glass" style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
+      <header ref={headerRef} className={`glass${isHeaderCollapsed ? ' header-row-collapsed' : ''}`} style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
 
-        <div className="container flex justify-between items-center header-main-row" style={{ height: '56px', padding: '0 12px', gap: '12px', position: 'relative' }}>
+        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px', position: 'relative' }}>
 
           {/* Logo & Location Group */}
-          <div className="flex items-center gap-4" style={{ flexShrink: 0 }}>
+          <div className="flex items-center gap-4 header-brand-location" style={{ flexShrink: 0 }}>
             <Link to="/" className="flex items-center gap-2">
               <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
             </Link>
 
             {/* Location Picker */}
-            <div ref={locationPickerRef} className="header-location-wrapper" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', height: '40px', zIndex: 10 }}>
+            <div ref={locationPickerRef} className="header-location-wrapper" style={{ position: 'relative', height: '40px', zIndex: 10 }}>
               <div
                 className="header-location-picker flex items-center gap-1.5"
                 onClick={() => setIsLocationOpen(!isLocationOpen)}
@@ -540,8 +580,70 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Flex Spacer to push Auth CTA to the right */}
-          <div className="flex-1" />
+          {/* Promo Banner Pill (auto-width, hugs its own content at every breakpoint) */}
+          <div
+            className="header-promo-banner"
+            style={{
+              position: 'relative',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              overflow: 'visible',
+              flexShrink: 0
+            }}
+          >
+            {/* Pill background */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: '8px 0',
+                borderRadius: '32px',
+                background: 'linear-gradient(90deg, rgba(46,102,110,0.10) 0%, rgba(46,102,110,0.05) 55%, rgba(46,102,110,0.02) 100%)',
+                zIndex: 0
+              }}
+            />
+
+            {/* Doctor illustration */}
+            <img
+              src="/images/header-doctor-banner.png"
+              alt=""
+              aria-hidden="true"
+              className="header-promo-image"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: 'auto',
+                zIndex: 2,
+                pointerEvents: 'none',
+                userSelect: 'none'
+              }}
+            />
+
+            {/* Text */}
+            <div
+              className="header-promo-text"
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                height: '100%',
+                minWidth: 0
+              }}
+            >
+              <span className="header-promo-heading" style={{ fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                Your Health, Our Priority
+              </span>
+              <span className="header-promo-subtext" style={{ fontSize: '12.5px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Book appointments, order medicines, and more — all in one place.
+              </span>
+            </div>
+          </div>
+
+          {/* Flexible spacer — absorbs remaining space so location/gift/login stay pinned right */}
+          <div className="flex-1 header-flex-spacer" />
 
           {/* Right Auth CTA (Desktop & Mobile Icon) */}
           <div className="header-desktop-auth flex items-center gap-3" style={{ flexShrink: 0 }}>
@@ -580,7 +682,19 @@ export default function Header() {
                 >
                   <div className="flex flex-col items-end header-user-text">
                     <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>{displayName.split(" ")[0]}</span>
+                    <span style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      color: 'var(--text-main)',
+                      maxWidth: '120px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: 'inline-block',
+                      textAlign: 'right'
+                    }} title={displayName}>
+                      {displayName}
+                    </span>
                   </div>
                   <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px', overflow: 'hidden', position: 'relative' }}>
                     {headerAvatar ? (
@@ -716,7 +830,7 @@ export default function Header() {
 
         {/* ── Secondary Navigation ── */}
         <div className="header-secondary-nav" style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
-          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '42px', overflowX: 'auto', gap: '8px' }}>
+          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '48px', overflowX: 'auto', gap: '8px' }}>
             {navLinks.map(([label, path]) => (
               <NavLink
                 key={label}
@@ -887,6 +1001,43 @@ export default function Header() {
                   <ArrowRight size={16} style={{ opacity: 0.4 }} />
                 </NavLink>
               ))}
+
+              {user && (
+                <>
+                  <div style={{ margin: '16px 0', borderTop: '1px solid var(--border)' }} />
+
+                  <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>My Account</span>
+                  {[
+                    ["Notifications", "/notifications", Bell],
+                    ["My Appointments", "/my-appointments", User],
+                    ["My Prescriptions", "/prescriptions", User],
+                    ["My Orders", "/orders", User],
+                    ["Payments & Invoices", "/payments", User],
+                  ].map(([label, path, Icon]) => (
+                    <NavLink
+                      key={label}
+                      to={path}
+                      onClick={() => {
+                        setMobileDrawerOpen(false);
+                      }}
+                      style={({ isActive }) => ({
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: '15px',
+                        fontWeight: isActive ? '700' : '500',
+                        color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                        background: isActive ? 'var(--primary-light)' : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      })}
+                    >
+                      <Icon size={16} className="text-muted" />
+                      <span>{label}</span>
+                    </NavLink>
+                  ))}
+                </>
+              )}
 
               <div style={{ margin: '16px 0', borderTop: '1px solid var(--border)' }} />
 
@@ -1334,6 +1485,117 @@ export default function Header() {
         .mobile-hamburger-btn {
           display: none;
         }
+        .header-promo-banner {
+          order: 1;
+          flex-shrink: 0;
+          margin: 0 12px 0 110px;
+        }
+        .header-promo-image {
+          left: 20px;
+          height: 74px;
+        }
+        .header-promo-text {
+          padding-left: 158px;
+          padding-right: 18px;
+        }
+        .header-promo-heading {
+          font-size: 17px;
+        }
+        @media (max-width: 1180px) {
+          .header-promo-subtext {
+            display: none !important;
+          }
+        }
+        @media (max-width: 1024px) {
+          .header-promo-banner {
+            margin: 0 10px 0 28px !important;
+          }
+          .header-promo-image {
+            height: 54px !important;
+            left: 10px !important;
+          }
+          .header-promo-text {
+            padding-left: 96px !important;
+            padding-right: 12px !important;
+          }
+          .header-promo-heading {
+            font-size: 14px !important;
+          }
+          .header-location-dropdown {
+            left: auto !important;
+            right: 0 !important;
+          }
+        }
+        @media (max-width: 900px) {
+          .header-promo-banner {
+            margin: 0 8px 0 14px !important;
+          }
+          .header-promo-image {
+            height: 44px !important;
+            left: 8px !important;
+          }
+          .header-promo-text {
+            padding-left: 74px !important;
+            padding-right: 10px !important;
+          }
+          .header-promo-heading {
+            font-size: 12.5px !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .header-promo-banner {
+            margin: 0 6px 0 8px !important;
+          }
+          .header-promo-image {
+            height: 36px !important;
+            left: 6px !important;
+          }
+          .header-promo-text {
+            padding-left: 58px !important;
+            padding-right: 8px !important;
+          }
+          .header-promo-heading {
+            font-size: 11.5px !important;
+          }
+        }
+        @media (max-width: 740px) {
+          .header-promo-banner {
+            margin: 0 4px !important;
+            width: 56px !important;
+            min-width: 56px !important;
+          }
+          .header-promo-image {
+            height: 32px !important;
+            left: 4px !important;
+          }
+          .header-promo-text {
+            display: none !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .header-promo-banner {
+            display: none !important;
+          }
+        }
+        .header-brand-location {
+          display: contents;
+        }
+        .header-brand-location > a {
+          order: 0;
+          flex-shrink: 0;
+        }
+        .header-main-row > .flex-1 {
+          order: 1;
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+        .header-location-wrapper {
+          order: 2;
+          flex-shrink: 0;
+        }
+        .header-desktop-auth {
+          order: 3;
+        }
         @media (min-width: 427px) {
           .header-main-row {
             padding-left: 12px !important;
@@ -1362,11 +1624,12 @@ export default function Header() {
         @media (max-width: 520px) {
           .header-location-wrapper {
             display: flex !important;
-            position: absolute !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
+            position: relative !important;
+            left: auto !important;
+            transform: none !important;
             height: 34px !important;
             z-index: 10 !important;
+            order: 80 !important;
           }
           .header-location-picker {
             display: flex !important;
@@ -1392,13 +1655,22 @@ export default function Header() {
           .header-desktop-auth {
             margin-left: auto !important;
           }
+          .header-login-btn-text {
+            display: none !important;
+          }
+          .header-login-btn {
+            width: 36px !important;
+            height: 34px !important;
+            padding: 0 !important;
+            justify-content: center !important;
+          }
         }
         @media (max-width: 426px) {
           .header-secondary-nav {
             display: none !important;
           }
           .header-main-row {
-            height: 52px !important;
+            height: 60px !important;
             padding: 0 8px !important;
             gap: 4px !important;
           }
@@ -1407,9 +1679,9 @@ export default function Header() {
           }
           .header-location-wrapper {
             display: flex !important;
-            position: absolute !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
+            position: relative !important;
+            left: auto !important;
+            transform: none !important;
             height: 32px !important;
             z-index: 10 !important;
           }
@@ -1444,21 +1716,7 @@ export default function Header() {
             flex-shrink: 0 !important;
           }
           .header-profile-pill {
-            padding: 2px 5px 2px 2px !important;
-            border-radius: 30px !important;
-            gap: 3px !important;
-            border: 1px solid var(--border) !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06) !important;
-            background: var(--bg-surface) !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            cursor: pointer !important;
-          }
-          .header-profile-pill > div:nth-child(2) {
-            width: 30px !important;
-            height: 30px !important;
-            font-size: 14px !important;
-            border-radius: 50% !important;
+            display: none !important;
           }
           .header-gift-btn {
             width: 30px !important;
