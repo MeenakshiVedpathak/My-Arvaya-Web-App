@@ -304,7 +304,7 @@ export default function Login({ forceOpen = false }) {
       try {
         const local = localStorage.getItem("arvaya_user");
         if (local) storedUser = JSON.parse(local);
-      } catch (e) {}
+      } catch (e) { }
 
       const userObj = abhaVerifyData?.users?.[0] || abhaVerifyData?.data?.users?.[0] || abhaVerifyData?.user || {};
       const tokenVal = abhaVerifyData?.tokens?.token || abhaVerifyData?.token || abhaVerifyData?.accessToken || abhaVerifyData?.data?.token || "";
@@ -452,23 +452,23 @@ export default function Login({ forceOpen = false }) {
           <AbhaLeftPane step={abhaStep} isCreate={false} />
         ) : (
           <div className="login-modal-left" style={{
-            flex: '1', background: 'linear-gradient(150deg, var(--primary-light) 0%, #ffffff 60%)',
-            padding: '36px 32px', display: 'flex', flexDirection: 'column',
+            flex: '1', background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(/images/loginBG.png) no-repeat center center / cover',
+            padding: '28px 32px', display: 'flex', flexDirection: 'column',
             borderRight: '1px solid var(--border)',
             borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
           }}>
-            <img src="/logo.png" alt="Arvaya" style={{ height: '40px', mixBlendMode: 'multiply', marginBottom: '28px', width: 'fit-content' }} />
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.2', marginBottom: '12px', letterSpacing: '-0.02em' }}>
-              Your Health,<br /><span style={{ color: 'var(--primary)' }}>Simplified.</span>
+            <img src="/logo.png" alt="Arvaya" style={{ height: '36px', filter: 'brightness(0) invert(1)', marginBottom: '24px', width: 'fit-content' }} />
+            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', lineHeight: '1.2', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              Your Health,<span style={{ color: '#ffffff' }}>Simplified.</span>
             </h2>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '28px', lineHeight: '1.6' }}>
+            <p style={{ fontSize: '13.5px', color: 'rgba(255, 255, 255, 0.85)', marginBottom: '20px', lineHeight: '1.6' }}>
               Join India's most trusted healthcare platform. Experience hassle-free medical care.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {["Consult 10,000+ Top Doctors", "Book Lab Tests with Home Collection", "Manage Health Records Securely", "Connect with ABHA instantly"].map((text, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <CheckCircle2 size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
-                  <span style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--text-main)' }}>{text}</span>
+                  <CheckCircle2 size={16} style={{ color: '#ffffff', flexShrink: 0 }} />
+                  <span style={{ fontSize: '13.5px', fontWeight: '600', color: '#ffffff' }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -478,7 +478,7 @@ export default function Login({ forceOpen = false }) {
         {/* ── Right Pane ── */}
         <div className="login-modal-right" style={{
           flex: '1.1',
-          padding: screen === "choose_profile" ? '24px 24px 20px' : '24px 28px',
+          padding: screen === "choose_profile" ? '20px 20px 16px' : '20px 24px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: screen === "choose_profile" ? 'flex-start' : 'center',
@@ -505,14 +505,11 @@ function AbhaLeftPane({ step, isCreate = false }) {
   const title = isCreate ? "Create ABHA" : "Link ABHA Profile";
   return (
     <div className="login-modal-left" style={{
-      flex: '0.9', background: 'linear-gradient(145deg, #134e4a, #0f766e, #0d9488)',
+      flex: '0.9', background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(/images/AbhaloginBg.png) no-repeat center center / cover',
       padding: '24px 24px', display: 'flex', flexDirection: 'column',
       borderRight: '1px solid var(--border)', position: 'relative', overflow: 'hidden',
       borderTopLeftRadius: '24px', borderBottomLeftRadius: '24px'
     }}>
-      {/* Background decoration */}
-      <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
-      <div style={{ position: 'absolute', left: '-60px', bottom: '-60px', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
       {/* ABHA Logo area */}
       <div style={{ position: 'relative', zIndex: 2, marginBottom: '28px' }}>
@@ -589,15 +586,15 @@ function AbhaLeftPane({ step, isCreate = false }) {
    ═══════════════════════════════════════ */
 function Landing({ onAbha, onMobile }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.3s ease-in-out' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px', letterSpacing: '-0.02em' }}>Welcome Back</h3>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', animation: 'fadeIn 0.3s ease-in-out' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px', letterSpacing: '-0.02em' }}>Welcome Back</h3>
         <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Login or sign up to access your account</p>
       </div>
 
       <button onClick={onMobile} className="hover-glow" style={{
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'var(--primary)', color: '#fff', border: 'none', padding: '16px',
+        background: 'var(--primary)', color: '#fff', border: 'none', padding: '14px',
         borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer',
         boxShadow: '0 4px 12px rgba(46,102,110,0.28)', transition: 'all 0.25s'
       }}>
@@ -607,7 +604,7 @@ function Landing({ onAbha, onMobile }) {
         Continue with Mobile Number
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '8px 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
         <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OR</span>
         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
@@ -616,7 +613,7 @@ function Landing({ onAbha, onMobile }) {
       {/* ABHA Button */}
       <button onClick={onAbha} className="hover-glow" style={{
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#fff', color: 'var(--text-main)', border: '1.5px solid var(--border)', padding: '16px',
+        background: '#fff', color: 'var(--text-main)', border: '1.5px solid var(--border)', padding: '14px',
         borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.25s'
       }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'var(--primary-light)'; }}
@@ -632,7 +629,7 @@ function Landing({ onAbha, onMobile }) {
         </div>
       </button>
 
-      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px', lineHeight: '1.6' }}>
+      <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px', lineHeight: '1.6' }}>
         By continuing, you agree to our{' '}
         <a href="#" style={{ color: 'var(--primary)', fontWeight: '600' }}>Terms of Service</a> and{' '}
         <a href="#" style={{ color: 'var(--primary)', fontWeight: '600' }}>Privacy Policy</a>.

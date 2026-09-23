@@ -2,17 +2,8 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2, Zap, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getAmbulanceRequests, STATUS_FLOW, EMERGENCY_TYPES } from "../services/ambulanceService";
+import LiveAmbulanceTracker from "../components/ambulance/LiveAmbulanceTracker";
 import AmbulanceRequestModal from "../components/ambulance/AmbulanceRequestModal";
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 export default function AmbulancePage() {
   const go = useNavigate();
@@ -267,25 +258,22 @@ export default function AmbulancePage() {
                           </div>
                         )}
 
-                        {/* Live Map Tracking */}
-                        <div style={{ height: "200px", background: "var(--bg-app)", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
-                          {req.pickupLat && req.pickupLng ? (
-                            <MapContainer center={[req.pickupLat, req.pickupLng]} zoom={15} zoomControl={false} dragging={false} scrollWheelZoom={false} doubleClickZoom={false} style={{ height: "100%", width: "100%" }}>
-                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                              <Marker position={[req.pickupLat, req.pickupLng]} />
-                            </MapContainer>
-                          ) : (
-                            <>
-                              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.1, backgroundImage: "radial-gradient(var(--text-muted) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
-                              <div style={{ textAlign: "center", zIndex: 1 }}>
-                                <Navigation size={32} color="var(--primary)" style={{ margin: "0 auto 8px" }} />
-                                <b style={{ color: "var(--text-main)", fontSize: "14px", display: "block" }}>Live Tracking</b>
-                                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                                  {req.eta && Number(req.eta) > 0 ? `Ambulance is ${req.eta} mins away` : "Awaiting driver"}
-                                </span>
-                              </div>
-                            </>
-                          )}
+                        {/* Live Map Tracking — Google Maps with 10s polling */}
+                        <div style={{ height: "360px", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", overflow: "hidden" }}>
+                          <LiveAmbulanceTracker
+                            requestId={req.requestId || req.id}
+                            pickupLat={req.pickupLat}
+                            pickupLng={req.pickupLng}
+                            pickupAddress={req.pickupAddress}
+                            onTrackingData={(tracking) => {
+                              if (tracking) {
+                                req.eta = tracking.eta;
+                                req.ambulanceId = tracking.ambulanceNo || req.ambulanceId;
+                                req.driverName = tracking.driverName || req.driverName;
+                                req.driverPhone = tracking.driverPhone || req.driverPhone;
+                              }
+                            }}
+                          />
                         </div>
 
                         {/* Details grid */}

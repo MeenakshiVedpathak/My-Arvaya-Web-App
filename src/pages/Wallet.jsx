@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { 
   Gift, 
   Clock, 
@@ -443,11 +444,12 @@ export default function Wallet() {
 
   return (
     <main className="page wallet-page">
-      {toastMessage && (
+      {toastMessage && typeof document !== "undefined" && createPortal(
         <div className="wallet-toast" role="status">
           <Sparkles size={16} />
           {toastMessage}
-        </div>
+        </div>,
+        document.body
       )}
 
       <header style={{ padding: '16px 0 0' }}>
@@ -661,7 +663,7 @@ export default function Wallet() {
         </div>
       </div>
 
-      {activeModal && (
+      {activeModal && typeof document !== "undefined" && createPortal(
         <div className="wallet-modal-backdrop" role="presentation">
           <section className="wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">
             <button type="button" className="wallet-modal-close" onClick={() => setActiveModal(null)} aria-label="Close reward details">
@@ -688,7 +690,8 @@ export default function Wallet() {
             </div>
             <button type="button" className="wallet-modal-done" onClick={() => setActiveModal(null)}>Done</button>
           </section>
-        </div>
+        </div>,
+        document.body
       )}
     </main>
   );

@@ -1714,21 +1714,23 @@ input[type="radio"]:focus-visible {
   bottom: 88px;
   z-index: 9999;
   display: flex;
-  padding: 12px 17px;
+  padding: 14px 20px;
   align-items: center;
-  gap: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 13px;
-  color: #fff;
-  background: #123f42;
-  box-shadow: var(--shadow-lg);
-  font-size: 13px;
-  font-weight: 700;
-  animation: fadeIn 0.2s ease-out;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  color: #ffffff;
+  background: var(--primary);
+  box-shadow: 0 10px 25px rgba(8, 120, 125, 0.3);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 .wallet-toast svg {
-  color: #ffc38f;
+  color: #ffffff;
+  opacity: 0.9;
 }
 
 .wallet-modal-backdrop {

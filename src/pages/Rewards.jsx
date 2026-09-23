@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { 
   ChevronRight, 
   ChevronDown, 
@@ -393,11 +394,12 @@ export default function Rewards() {
 
   return (
     <main className="page rewards-page">
-      {toastMessage && (
+      {toastMessage && typeof document !== "undefined" && createPortal(
         <div className="wallet-toast" role="status">
           <Sparkles size={16} />
           {toastMessage}
-        </div>
+        </div>,
+        document.body
       )}
 
       <header style={{ padding: '16px 0 0' }}>
