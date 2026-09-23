@@ -201,7 +201,7 @@ async function reverseGeocode(lat, lng) {
   }
 }
 
-export const GOOGLE_MAPS_API_KEY = 'AIzaSyBDZKFmpD1YbT81JunH62YABa4GvGEfMBI';
+export const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyBDZKFmpD1YbT81JunH62YABa4GvGEfMBI';
 
 /**
  * Fetch live tracking data for a single ambulance request.
