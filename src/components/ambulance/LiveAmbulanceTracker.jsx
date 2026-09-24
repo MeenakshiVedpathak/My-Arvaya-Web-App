@@ -27,10 +27,6 @@ const STATUS_COLORS = {
 const DEFAULT_CENTER = [20.5937, 78.9629];
 const POLL_INTERVAL_MS = 10000;
 
-const AMBULANCE_ICON_URL = "data:image/svg+xml," + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="10" width="20" height="12" rx="2"/><path d="M6 10V6a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v4"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg>'
-);
-
 function useGoogleMapsScript(apiKey, libraries = []) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(null);
@@ -67,7 +63,7 @@ function useGoogleMapsScript(apiKey, libraries = []) {
   return { loaded, error };
 }
 
-export default function LiveAmbulanceTracker({ requestId, pickupLat, pickupLng, pickupAddress, onTrackingData }) {
+export default function LiveAmbulanceTracker({ requestId, pickupLat, pickupLng, pickupAddress, onTrackingData, live = true }) {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const polylineRef = useRef(null);
@@ -110,10 +106,6 @@ useEffect(() => {
         position: { lat, lng },
         map,
         title: "Ambulance",
-        icon: {
-          url: AMBULANCE_ICON_URL,
-          scaledSize: new window.google.maps.Size(32, 32),
-        },
       });
       markerRef.current = ambMarker;
 
@@ -298,7 +290,7 @@ useEffect(() => {
   const statusLabel = STATUS_LABELS[sc] || tracking?.status || "—";
 
   return (
-    <div className="live-tracker" style={{ height: "360px", borderRadius: "12px", border: "1px solid var(--border)", overflow: "hidden", position: "relative", background: "var(--bg-app)" }}>
+    <div className="live-tracker" style={{ height: "100%", minHeight: "300px", borderRadius: "12px", border: "1px solid var(--border)", overflow: "hidden", position: "relative", background: "var(--bg-app)" }}>
       {(!mapsLoaded && !error && !mapsError) ? (
         <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "10px", color: "var(--text-muted)" }}>
           <div style={{ width: "32px", height: "32px", border: "3px solid var(--border)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />

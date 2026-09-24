@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { ArrowLeft, Ambulance, Phone, MapPin, Clock, User, AlertTriangle, CheckCircle2, Truck, Navigation, Search, FileX2, Zap, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getAmbulanceRequests, STATUS_FLOW, EMERGENCY_TYPES } from "../services/ambulanceService";
@@ -12,6 +13,7 @@ export default function AmbulancePage() {
   const [requests, setRequests] = useState(defaultRequests);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [viewMapRequest, setViewMapRequest] = useState(null);
 
   const load = async () => {
     const data = await getAmbulanceRequests();
@@ -261,7 +263,7 @@ export default function AmbulancePage() {
                         {/* Live Map Tracking — Google Maps with 10s polling */}
                         <div style={{ height: "360px", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "24px", overflow: "hidden" }}>
                           <LiveAmbulanceTracker
-                            requestId={req.requestId || req.id}
+                            requestId={req.requestId || req.request_id}
                             pickupLat={req.pickupLat}
                             pickupLng={req.pickupLng}
                             pickupAddress={req.pickupAddress}
@@ -342,7 +344,7 @@ export default function AmbulancePage() {
                     <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "680px" }}>
                       <thead>
                         <tr style={{ background: "var(--bg-app)", borderBottom: "1px solid var(--border)" }}>
-                          {["Request ID", "Patient", "Emergency", "Address", "Date", "Status"].map(h => (
+                          {["Request ID", "Patient", "Emergency", "Address", "Date", "Status", "Map"].map(h => (
                             <th key={h} style={{ textAlign: "left", padding: "14px 16px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", minWidth: h === "Date" ? "170px" : h === "Address" ? "180px" : "auto", whiteSpace: h === "Date" ? "nowrap" : "normal" }}>{h}</th>
                           ))}
                         </tr>
@@ -357,6 +359,16 @@ export default function AmbulancePage() {
                             <td style={{ padding: "14px 16px", fontSize: "13px", color: "var(--text-muted)", minWidth: "170px", whiteSpace: "nowrap" }}>{formatTime(req.createdAt)}</td>
                             <td style={{ padding: "14px 16px" }}>
                               <span style={{ background: "var(--success-bg)", color: "var(--success)", padding: "4px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>Completed</span>
+                            </td>
+                            <td style={{ padding: "14px 16px" }}>
+                              <button
+                                onClick={() => setViewMapRequest(req)}
+                                style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-surface)", color: "var(--primary)", fontSize: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.2s" }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.background = "var(--primary-light)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-surface)"; }}
+                              >
+                                <MapPin size={14} /> View Map
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -549,6 +561,60 @@ export default function AmbulancePage() {
                   font-size: 6px !important;
                 }
               }
+
+              /* Responsive styles for View Map Modal */
+              @media (max-width: 768px) {
+                .ambulance-map-modal-content {
+                  max-height: 95vh !important;
+                  border-radius: 12px !important;
+                }
+                .ambulance-map-modal-map {
+                  height: 300px !important;
+                }
+                .ambulance-map-modal-header {
+                  padding: 12px 16px !important;
+                }
+                .ambulance-map-modal-header h3 {
+                  font-size: 14px !important;
+                }
+                .ambulance-map-modal-header p {
+                  font-size: 11px !important;
+                }
+                .ambulance-map-modal-footer {
+                  padding: 10px 16px !important;
+                  gap: 6px !important;
+                }
+                .ambulance-map-modal-footer div {
+                  font-size: 12px !important;
+                }
+              }
+
+              @media (max-width: 480px) {
+                .ambulance-map-modal-map {
+                  height: 260px !important;
+                }
+                .ambulance-map-modal-header {
+                  padding: 10px 12px !important;
+                }
+                .ambulance-map-modal-header h3 {
+                  font-size: 13px !important;
+                }
+                .ambulance-map-modal-header p {
+                  font-size: 10px !important;
+                }
+                .ambulance-map-modal-footer {
+                  padding: 8px 12px !important;
+                }
+                .ambulance-map-modal-footer div {
+                  font-size: 11px !important;
+                }
+              }
+
+              @media (max-width: 360px) {
+                .ambulance-map-modal-map {
+                  height: 220px !important;
+                }
+              }
             `}</style>
           </>
         )}
@@ -566,6 +632,59 @@ export default function AmbulancePage() {
       {showModal && (
         <AmbulanceRequestModal onClose={() => { setShowModal(false); load(); }} onSuccess={() => { }} />
       )}
+
+{/* ── Completed Request Map View Modal ── */}
+      {viewMapRequest && (() => {
+        const content = (
+          <div
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1050, padding: "16px" }}
+            onClick={() => setViewMapRequest(null)}
+          >
+<div
+  className="ambulance-map-modal-content"
+  style={{ background: "var(--bg-surface)", borderRadius: "16px", width: "100%", maxWidth: "90vw", maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}
+  onClick={e => e.stopPropagation()}
+>
+  <div className="ambulance-map-modal-header" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+    <div style={{ minWidth: 0 }}>
+      <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "700", color: "var(--text-main)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Request Map — {viewMapRequest.id}</h3>
+      <p style={{ margin: "2px 0 0", fontSize: "12px", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{viewMapRequest.patientName} · {getEmergencyLabel(viewMapRequest.emergencyType)}</p>
+    </div>
+    <button
+      onClick={() => setViewMapRequest(null)}
+      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "22px", lineHeight: 1, padding: "4px 8px", flexShrink: 0 }}
+      title="Close"
+    >
+      ✕
+    </button>
+  </div>
+  <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+    <div className="ambulance-map-modal-map" style={{ height: "360px", overflow: "hidden", width: "100%" }}>
+      <LiveAmbulanceTracker
+        requestId={viewMapRequest.requestId || viewMapRequest.request_id}
+        pickupLat={viewMapRequest.pickupLat}
+        pickupLng={viewMapRequest.pickupLng}
+        pickupAddress={viewMapRequest.pickupAddress}
+        live={false}
+      />
+    </div>
+    <div className="ambulance-map-modal-footer" style={{ padding: "12px 20px", background: "var(--bg-app)", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", fontSize: "13px", color: "var(--text-muted)", flexWrap: "wrap" }}>
+        <MapPin size={14} style={{ flexShrink: 0 }} />
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "calc(100% - 30px)" }}>{viewMapRequest.pickupAddress || "Pickup location"}</span>
+      </div>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", fontSize: "13px", color: "var(--text-muted)" }}>
+        <Clock size={14} />
+        <span>{formatTime(viewMapRequest.createdAt)}</span>
+      </div>
+    </div>
+  </div>
+            </div>
+          </div>
+        );
+        if (typeof window === "undefined") return content;
+        return ReactDOM.createPortal(content, document.body);
+      })()}
 
     </main>
   );
