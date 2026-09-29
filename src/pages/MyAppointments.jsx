@@ -17,7 +17,6 @@ const getLocalDateString = (dateObj) => {
 export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
 
   // Toast
   const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
@@ -41,18 +40,18 @@ export default function MyAppointments() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const data = await getAppointments({ date: selectedDate });
+      const data = await getAppointments();
       setAppointments(data);
       setLoading(false);
     }
     fetchData();
-  }, [selectedDate]);
+  }, []);
 
   const filteredAppointments = appointments;
 
   const fetchAppointments = async () => {
     setLoading(true);
-    const data = await getAppointments({ date: selectedDate });
+    const data = await getAppointments();
     setAppointments(data);
     setLoading(false);
   };
@@ -234,29 +233,7 @@ export default function MyAppointments() {
         </div>
       </div>
 
-      <div className="container" style={{ paddingTop: '32px', paddingBottom: '60px' }}>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderBottom: '1px solid var(--border)', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px' }}>
-          <label htmlFor="date-filter" style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-muted)' }}>Date:</label>
-          <input 
-            id="date-filter"
-            type="date" 
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              background: 'var(--bg-surface)',
-              color: 'var(--text-main)',
-              fontSize: '14px',
-              outline: 'none'
-            }}
-          />
-        </div>
-      </div>
+      <div className="container" style={{ paddingTop: '24px', paddingBottom: '60px' }}>
 
       {/* List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

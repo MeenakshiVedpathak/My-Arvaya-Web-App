@@ -50,8 +50,8 @@ export default function HospitalSelection() {
     >
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
         
-        {/* Scrollable Hospital List Content */}
-        <div className="styled-scrollbar" style={{ flex: '0 1 auto', minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
+        {/* Hospital List Content */}
+        <div className="styled-scrollbar" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '4px' }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
               <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -115,9 +115,9 @@ export default function HospitalSelection() {
                       position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '10px',
-                      padding: '14px 16px',
-                      borderRadius: '14px',
+                      gap: '8px',
+                      padding: '11px 13px',
+                      borderRadius: '12px',
                       cursor: 'pointer',
                       background: isSelected ? '#F2F8F8' : 'var(--bg-surface)',
                       border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)',
@@ -141,39 +141,39 @@ export default function HospitalSelection() {
                     }}
                   >
                     {/* Top Row: Icon, Title & Radio Selection */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                      <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: isSelected ? 'var(--primary)' : 'rgba(46, 102, 110, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isSelected ? '#fff' : 'var(--primary)', flexShrink: 0, transition: 'all 0.2s' }}>
-                        <Building2 size={20} />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: isSelected ? 'var(--primary)' : 'rgba(46, 102, 110, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isSelected ? '#fff' : 'var(--primary)', flexShrink: 0, transition: 'all 0.2s' }}>
+                        <Building2 size={18} />
                       </div>
                       
-                      <div style={{ flex: 1, paddingRight: '20px' }}>
+                      <div style={{ flex: 1, paddingRight: '16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
-                          <span style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--primary)', background: 'rgba(46, 102, 110, 0.1)', padding: '1px 6px', borderRadius: '10px' }}>
-                            <ShieldCheck size={10} style={{ display: 'inline', marginRight: '3px', verticalAlign: '-1px' }} />
+                          <span style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--primary)', background: 'rgba(46, 102, 110, 0.1)', padding: '1px 5px', borderRadius: '8px' }}>
+                            <ShieldCheck size={9} style={{ display: 'inline', marginRight: '2px', verticalAlign: '-1px' }} />
                             Verified Facility
                           </span>
                         </div>
-                        <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: isSelected ? 'var(--primary-dark)' : 'var(--text-main)', lineHeight: 1.25 }}>
+                        <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: isSelected ? 'var(--primary-dark)' : 'var(--text-main)', lineHeight: 1.25 }}>
                           {hospital.name}
                         </h4>
                       </div>
 
                       {/* Selection Radio Badge */}
-                      <div style={{ position: 'absolute', top: '14px', right: '14px' }}>
-                        <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: isSelected ? '5px solid var(--primary)' : '2px solid var(--border)', background: '#fff', transition: 'all 0.2s' }} />
+                      <div style={{ position: 'absolute', top: '11px', right: '11px' }}>
+                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: isSelected ? '4px solid var(--primary)' : '2px solid var(--border)', background: '#fff', transition: 'all 0.2s' }} />
                       </div>
                     </div>
 
                     {/* Bottom Metadata: Address & Phone */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px dashed var(--border)', paddingTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <MapPin size={13} color="var(--primary)" style={{ flexShrink: 0 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderTop: '1px dashed var(--border)', paddingTop: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <MapPin size={12} color="var(--primary)" style={{ flexShrink: 0 }} />
                         <span style={{ color: 'var(--text-main)', fontWeight: '500' }}>{addressText}</span>
                       </div>
                       
                       {phoneText && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Phone size={13} color="var(--primary)" style={{ flexShrink: 0 }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Phone size={12} color="var(--primary)" style={{ flexShrink: 0 }} />
                           <span>{phoneText}</span>
                         </div>
                       )}

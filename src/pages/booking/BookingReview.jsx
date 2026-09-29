@@ -293,7 +293,7 @@ export default function BookingReview() {
       subtitle="Please review your appointment details before confirming."
     >
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '12px' }}>
+        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
           {loadingData ? (
             <div style={{ padding: '60px', textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
               <div className="spinner" style={{ width: '40px', height: '40px', borderTopColor: 'var(--primary)', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>

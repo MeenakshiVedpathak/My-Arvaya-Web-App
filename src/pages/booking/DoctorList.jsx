@@ -103,8 +103,8 @@ export default function DoctorList() {
           </div>
         </div>
 
-        {/* Scrollable Doctor Cards List */}
-        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '16px' }}>
+        {/* Doctor Cards List */}
+        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
               <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>

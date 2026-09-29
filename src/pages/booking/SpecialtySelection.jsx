@@ -92,8 +92,8 @@ export default function SpecialtySelection() {
           </div>
         </div>
 
-        {/* Scrollable Specialties Content */}
-        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '12px' }}>
+        {/* Specialties Content */}
+        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
               <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -112,7 +112,7 @@ export default function SpecialtySelection() {
                     onMouseOver={e => { if(!isSelected) { e.currentTarget.style.background = '#F2F8F8'; e.currentTarget.style.borderColor = 'var(--primary)'; } }}
                     onMouseOut={e => { if(!isSelected) { e.currentTarget.style.background = 'var(--bg-surface)'; e.currentTarget.style.borderColor = 'var(--border)'; } }}
                   >
-                    <Stethoscope size={16} color={isSelected ? "#fff" : "var(--primary)"} />
+                    <Stethoscope size={14} color={isSelected ? "#fff" : "var(--primary)"} />
                     {spec}
                   </div>
                 );

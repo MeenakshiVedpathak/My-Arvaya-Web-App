@@ -34,9 +34,9 @@ export default function VisitTypeSelection() {
     >
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
         
-        {/* Scrollable Content */}
-        <div className="styled-scrollbar" style={{ flex: '0 1 auto', minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
-          <div className="booking-visittype-grid">
+        {/* Visit Type Content */}
+        <div className="styled-scrollbar" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '4px' }}>
+          <div className="booking-visittype-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px', marginBottom: '14px' }}>
             
             {/* Option 1: Initial */}
             <div 

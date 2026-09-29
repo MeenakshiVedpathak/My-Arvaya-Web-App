@@ -31,110 +31,109 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
     <main className="page booking-page-layout animate-fade-in-up">
       <div className="container booking-main-container">
 
-        {/* Top Fixed Section: Stepper, Summary & Title */}
-        <div style={{ flexShrink: 0, paddingBottom: '8px' }}>
-
-          {/* Booking Flow Hero Banner */}
-          <div className="booking-hero-banner">
-            <div className="booking-hero-left">
-              <div className="booking-hero-icon"><CalendarDays size={26} /></div>
-              <div className="booking-hero-copy">
-                <h1>Book Your Appointment</h1>
-                <p>Choose your preferred medical center and book in minutes.</p>
-                <div className="booking-hero-badges">
-                  <span><ShieldCheck size={13} color="#4ade80" /> Verified Hospitals</span>
-                  <span><Clock size={13} color="#67e8f9" /> Real-time Availability</span>
-                  <span><Heart size={13} color="#fb923c" /> Trusted Healthcare</span>
-                </div>
+        {/* Booking Flow Hero Banner */}
+        <div className="booking-hero-banner">
+          <div className="booking-hero-left">
+            <div className="booking-hero-icon"><CalendarDays size={24} /></div>
+            <div className="booking-hero-copy">
+              <h1>Book Your Appointment</h1>
+              <p>Choose your preferred medical center and book in minutes.</p>
+              <div className="booking-hero-badges">
+                <span><ShieldCheck size={12} color="#4ade80" /> Verified Hospitals</span>
+                <span><Clock size={12} color="#67e8f9" /> Real-time Availability</span>
+                <span><Heart size={12} color="#fb923c" /> Trusted Healthcare</span>
               </div>
             </div>
-            <img src="/images/consult-doctor.png" alt="" className="booking-hero-img" aria-hidden="true" />
           </div>
-
-          {/* Horizontal Progress Stepper */}
-          <div className="booking-stepper">
-            {/* Connecting Line */}
-            <div className="booking-stepper-line">
-              <div
-                className="booking-stepper-line-fill"
-                style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
-              />
-            </div>
-
-            {STEPS.map((step) => {
-              const isCompleted = currentStep > step.id;
-              const isCurrent = currentStep === step.id;
-              const Icon = step.icon;
-              const canClick = step.id < currentStep;
-
-              let iconBg = 'var(--bg-app)';
-              let iconColor = 'var(--text-muted)';
-              let iconBorder = '2px solid var(--border)';
-
-              if (isCompleted) {
-                iconBg = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
-                iconColor = '#fff';
-                iconBorder = '2px solid var(--primary)';
-              } else if (isCurrent) {
-                iconBg = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
-                iconColor = '#fff';
-                iconBorder = '2px solid var(--primary)';
-              }
-
-              return (
-                <div
-                  key={step.id}
-                  onClick={() => handleStepClick(step)}
-                  className={`booking-step-item${isCurrent ? ' is-current' : ''}`}
-                  style={{
-                    cursor: canClick ? 'pointer' : 'default',
-                    opacity: (isCompleted || isCurrent) ? 1 : 0.45
-                  }}
-                >
-                  <div className="booking-step-icon" style={{ background: iconBg, border: iconBorder, color: iconColor }}>
-                    {isCompleted ? <CheckCircle2 size={15} /> : <Icon size={16} />}
-                  </div>
-                  <div className="booking-step-title" style={{ fontWeight: isCurrent ? '700' : '600', color: isCurrent ? 'var(--primary-dark)' : 'var(--text-muted)' }}>
-                    {step.title}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Compact Summary Pill */}
-          {breadcrumbParts.length > 0 && currentStep < 5 && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-surface)', padding: '6px 18px', borderRadius: '32px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-main)', flexWrap: 'wrap' }}>
-                {breadcrumbParts.map((p, i) => (
-                  <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {i > 0 && <ChevronRight size={12} color="var(--text-muted)" />}
-                    <span style={{ fontWeight: p.bold ? '700' : '600', color: p.color || 'inherit' }}>{p.label}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Header Title & Subtitle */}
-          <div style={{ textAlign: 'center' }}>
-            <h1 className="booking-header-title">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="booking-header-subtitle">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          <img src="/images/consult-doctor.png" alt="" className="booking-hero-img" aria-hidden="true" />
         </div>
 
-        {/* Scrollable & Pinned Step Content Area */}
-        <div className="booking-content-area">
-          {children}
+        {/* Body Split: Left Vertical Stepper Sidebar & Right Content */}
+        <div className="booking-body-split">
+          {/* Left Sidebar: Vertical Stepper */}
+          <aside className="booking-sidebar">
+            <div className="booking-stepper-vertical">
+              {STEPS.map((step, index) => {
+                const isCompleted = currentStep > step.id;
+                const isCurrent = currentStep === step.id;
+                const Icon = step.icon;
+                const canClick = step.id < currentStep;
+                const hasLineBelow = index < STEPS.length - 1;
+                const isLineFilled = currentStep > step.id;
+
+                let iconBg = 'var(--bg-surface)';
+                let iconColor = 'var(--text-muted)';
+                let iconBorder = '2px solid var(--border)';
+
+                if (isCompleted || isCurrent) {
+                  iconBg = 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+                  iconColor = '#fff';
+                  iconBorder = '2px solid var(--primary)';
+                }
+
+                return (
+                  <div
+                    key={step.id}
+                    onClick={() => handleStepClick(step)}
+                    className={`booking-step-item-vertical${isCurrent ? ' is-current' : ''}${isCompleted ? ' is-completed' : ''}`}
+                    style={{
+                      cursor: canClick ? 'pointer' : 'default',
+                      opacity: (isCompleted || isCurrent) ? 1 : 0.45
+                    }}
+                  >
+                    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div className="booking-step-icon-vertical" style={{ background: iconBg, border: iconBorder, color: iconColor }}>
+                        {isCompleted ? <CheckCircle2 size={16} /> : <Icon size={16} />}
+                      </div>
+                      {hasLineBelow && (
+                        <div className="booking-step-connector">
+                          <div
+                            className="booking-step-connector-fill"
+                            style={{ height: isLineFilled ? '100%' : '0%' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="booking-step-text-vertical">
+                      <span className="booking-step-num">Step 0{step.id + 1}</span>
+                      <span className="booking-step-title-vertical" style={{ fontWeight: isCurrent ? '700' : '600', color: isCurrent ? 'var(--primary-dark)' : 'var(--text-main)' }}>
+                        {step.title}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
+
+          {/* Right Main Content */}
+          <div className="booking-main-content">
+            <div className="booking-content-header">
+              {breadcrumbParts.length > 0 && currentStep < 5 && (
+                <div style={{ display: 'flex', marginBottom: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg-app)', padding: '4px 12px', borderRadius: '20px', border: '1px solid var(--border)', fontSize: '11px', color: 'var(--text-main)', flexWrap: 'wrap' }}>
+                    {breadcrumbParts.map((p, i) => (
+                      <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {i > 0 && <ChevronRight size={10} color="var(--text-muted)" />}
+                        <span style={{ fontWeight: p.bold ? '700' : '600', color: p.color || 'inherit' }}>{p.label}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <h1 className="booking-header-title">{title}</h1>
+              {subtitle && <p className="booking-header-subtitle">{subtitle}</p>}
+            </div>
+
+            <div className="booking-content-area">
+              {children}
+            </div>
+          </div>
         </div>
 
       </div>
     </main>
   );
 }
+
