@@ -1,13 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export function Overlay({ children, onClose }) {
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(18, 51, 58, 0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 2000, padding: "16px", overflowY: "auto" }}
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, []);
+
+  const overlay = (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(18, 51, 58, 0.5)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 10000, padding: "16px", overflowY: "auto" }}
       onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", display: "flex", justifyContent: "center", margin: "auto 0", flexShrink: 0 }}>{children}</div>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxHeight: "100%", display: "flex", justifyContent: "center", margin: "auto 0", flexShrink: 0 }}>{children}</div>
     </div>
   );
+
+  return typeof document === "undefined" ? overlay : createPortal(overlay, document.body);
 }
 
 export function ModalShell({ title, subtitle, onClose, width = 420, children }) {

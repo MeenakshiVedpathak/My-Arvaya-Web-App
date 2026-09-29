@@ -148,7 +148,8 @@ export function SwitchProfileModal({ onClose }) {
       <div style={{
         background: "#fff", borderRadius: "24px", width: "100%", maxWidth: "520px",
         position: "relative", boxShadow: "0 30px 60px -12px rgba(0,0,0,0.4)",
-        animation: "modalIn 0.35s var(--ease-out) forwards", overflow: "hidden"
+        animation: "modalIn 0.35s var(--ease-out) forwards", overflow: "hidden",
+        maxHeight: "calc(100dvh - 32px)", display: "flex", flexDirection: "column"
       }}>
 
         {/* ── Header ── */}
@@ -183,7 +184,7 @@ export function SwitchProfileModal({ onClose }) {
         </div>
 
         {/* ── Body ── */}
-        <div style={{ padding: "28px" }}>
+        <div style={{ padding: "28px", overflowY: "auto", minHeight: 0 }}>
 
           {err && <ErrorBox msg={err} />}
 

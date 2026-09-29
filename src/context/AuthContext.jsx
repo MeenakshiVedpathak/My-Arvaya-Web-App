@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import * as authService from "../services/authService";
 import { getPatients } from "../services/dataService";
 import Toast from "../components/common/Toast";
@@ -28,7 +27,6 @@ function deleteCookie(name) {
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("arvaya_user");
     try {
@@ -44,6 +42,7 @@ export function AuthProvider({ children }) {
   const [pendingRedirect, setPendingRedirect] = useState(null);
   const [loginMethod, setLoginMethod] = useState(() => localStorage.getItem("arvaya_login_method") || "user_verify_otp");
   const [loginModalScreen, setLoginModalScreen] = useState("landing");
+  const [loginModalExtraState, setLoginModalExtraState] = useState({});
   const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
 
   const showToast = useCallback((message, type = "success") => {
@@ -118,8 +117,8 @@ export function AuthProvider({ children }) {
   function openLoginModal(redirectPath = null, screen = "landing", extraState = {}) {
     if (redirectPath) setPendingRedirect(redirectPath);
     setLoginModalScreen(screen);
+    setLoginModalExtraState(extraState);
     setLoginModalOpen(true);
-    navigate("/login", { state: { redirectPath, screen, ...extraState } });
   }
 
   function closeLoginModal() {
@@ -127,6 +126,7 @@ export function AuthProvider({ children }) {
     setTimeout(() => {
       setPendingRedirect(null);
       setLoginModalScreen("landing");
+      setLoginModalExtraState({});
     }, 300); // clear after animation
   }
 
@@ -251,7 +251,7 @@ export function AuthProvider({ children }) {
       user, token, loading, error, 
       login, register, logout, setError,
       isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal,
-      saveSession, loginMethod, setLoginMethod, loginModalScreen,
+      saveSession, loginMethod, setLoginMethod, loginModalScreen, loginModalExtraState,
       showToast
     }}>
       {children}

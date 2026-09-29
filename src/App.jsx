@@ -7,6 +7,7 @@ import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { useAuth } from "./context/AuthContext";
 import ChatBot from "./components/chatbot/ChatBot";
+import Login from "./pages/Login";
 
 export default function App() {
   const { user, openLoginModal } = useAuth();
@@ -30,6 +31,8 @@ export default function App() {
       </div>
       <Footer />
       <ChatBot />
+      {/* Kept outside the route tree so auth can open above any workspace page. */}
+      <Login modalHost />
       <nav className="mobile-tab-bar" aria-label="Primary navigation">
         {[
           { label: "Home", to: "/", icon: HomeIcon, end: true },

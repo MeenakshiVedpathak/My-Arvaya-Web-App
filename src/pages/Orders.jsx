@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, Receipt, CreditCard, ChevronLeft, FlaskConical, Loader2 } from "lucide-react";
+import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, CreditCard, ChevronLeft, FlaskConical, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getLabOrderHistory } from "../services/dataService";
 
@@ -293,9 +293,6 @@ export default function Orders() {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <b style={{ fontSize: '24px', color: 'var(--primary)', display: 'block' }}>₹{selectedOrder.amount}</b>
-                      <button className="btn btn-secondary mt-2" style={{ padding: '6px 12px', fontSize: '13px' }}>
-                        <Receipt size={14} style={{ marginRight: '6px' }} /> Invoice
-                      </button>
                     </div>
                   </div>
 

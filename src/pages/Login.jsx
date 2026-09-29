@@ -4,11 +4,12 @@ import { ArrowLeft, Phone, X, CheckCircle2, ChevronRight, ShieldCheck, User, Use
 import { sendOtp, verifyOtp, getCloudId, getDeviceId, selectProfile } from "../services/authService";
 import { abhaSendOtp, abhaVerifyOtp, abhaConfirmAddress, abhaVerifyUser, abhaSendCreationOtp, abhaCreateByAadhaar, abhaGetSuggestions } from "../services/abhaService";
 import { useNavigate, useLocation } from "react-router-dom";
+import { createPortal } from "react-dom";
 
 
 
-export default function Login({ forceOpen = false }) {
-  const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession, loginModalScreen, showToast } = useAuth();
+export default function Login({ forceOpen = false, modalHost = false }) {
+  const { isLoginModalOpen, closeLoginModal, pendingRedirect, saveSession, loginModalScreen, loginModalExtraState, showToast } = useAuth();
   const location = useLocation();
   const [screen, setScreen] = useState(location.state?.screen || loginModalScreen || "landing");
   const [phone, setPhone] = useState("");
@@ -38,6 +39,14 @@ export default function Login({ forceOpen = false }) {
   const [abhaVerifyData, setAbhaVerifyData] = useState(null);
 
   const go = useNavigate();
+  const isModalPresentation = (isLoginModalOpen || forceOpen) && location.pathname !== "/login";
+
+  useEffect(() => {
+    if (!isModalPresentation || typeof document === "undefined") return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [isModalPresentation]);
 
   const handleClose = () => {
     setScreen("landing");
@@ -56,19 +65,19 @@ export default function Login({ forceOpen = false }) {
     const target = location.state?.from || location.state?.redirectPath || pendingRedirect;
     if (target && target !== "/login") {
       go(target, { replace: true });
-    } else {
+    } else if (!isModalPresentation) {
       go("/", { replace: true });
     }
   };
 
   const handleAbhaMobileBack = () => {
-    const fromAbhaHub = location.state?.fromAbhaHub === true || (location.state?.redirectPath === "/abha" && location.state?.screen === "abha_mobile");
+    const fromAbhaHub = loginModalExtraState?.fromAbhaHub === true || location.state?.fromAbhaHub === true || (location.state?.redirectPath === "/abha" && location.state?.screen === "abha_mobile");
     const redirectPath = location.state?.redirectPath || location.state?.from || pendingRedirect;
 
     if (fromAbhaHub) {
       closeLoginModal();
       go("/abha", { replace: true });
-    } else if (redirectPath && redirectPath !== "/login" && location.state?.screen === "abha_mobile") {
+    } else if (redirectPath && redirectPath !== "/login" && (loginModalScreen === "abha_mobile" || location.state?.screen === "abha_mobile")) {
       closeLoginModal();
       go(redirectPath, { replace: true });
     } else {
@@ -416,15 +425,16 @@ export default function Login({ forceOpen = false }) {
   const abhaStep = screen === "abha_mobile" ? 1 : screen === "abha_otp" ? 2 : screen === "abha_address" ? 3 : 0;
   const abhaCreateStep = screen === "abha_create_1" ? 1 : screen === "abha_create_2" ? 2 : screen === "abha_create_3" ? 3 : screen === "abha_create_done" ? 4 : 0;
 
-  return (
-    <div style={{
-      minHeight: '70vh',
+  const loginCard = (
+    <div className={isModalPresentation ? "login-modal-stage" : "login-page-stage"} style={{
+      minHeight: isModalPresentation ? '100%' : '70vh',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '32px 16px', background: 'var(--bg-app)'
+      padding: isModalPresentation ? '24px' : '32px 16px',
+      background: isModalPresentation ? 'transparent' : 'var(--bg-app)'
     }}>
       <div className="login-modal-container" style={{
         background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '840px',
-        maxHeight: screen === "choose_profile" ? 'min(410px, 80vh)' : 'min(500px, 85vh)', display: 'flex', position: 'relative',
+        maxHeight: screen === "choose_profile" ? 'min(410px, calc(100dvh - 48px))' : 'min(680px, calc(100dvh - 48px))', display: 'flex', position: 'relative',
         boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05)',
         overflow: 'hidden'
       }}>
@@ -493,6 +503,22 @@ export default function Login({ forceOpen = false }) {
       </div>
     </div>
   );
+
+  if (isModalPresentation) {
+    return createPortal(
+      <div className="login-modal-overlay" role="presentation" onMouseDown={handleClose}>
+        <div role="dialog" aria-modal="true" aria-label="Sign in" onMouseDown={event => event.stopPropagation()}>
+          {loginCard}
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // This instance is mounted by App as a dialog host. The route instance is
+  // the only one that should render a standalone login page.
+  if (modalHost || location.pathname !== "/login") return null;
+  return loginCard;
 }
 
 /* ═══════════════════════════════════════

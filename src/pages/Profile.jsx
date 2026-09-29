@@ -990,11 +990,12 @@ export default function Profile() {
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
           background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 999999, padding: '16px', overflow: 'hidden'
+          zIndex: 10000, padding: '16px', overflowY: 'auto'
         }}>
           <div className="animate-scale-in" style={{
             background: 'var(--bg-surface, #ffffff)', borderRadius: '16px', width: '100%', maxWidth: '540px',
-            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.25)', overflow: 'hidden', border: '1px solid var(--border)'
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.25)', overflow: 'hidden', border: '1px solid var(--border)',
+            maxHeight: 'calc(100dvh - 32px)', display: 'flex', flexDirection: 'column', margin: 'auto 0'
           }}>
             {/* Modal Header */}
             <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-app)' }}>
@@ -1015,7 +1016,7 @@ export default function Profile() {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSaveMember} style={{ padding: '14px 18px' }}>
+            <form onSubmit={handleSaveMember} style={{ padding: '14px 18px', overflowY: 'auto', minHeight: 0 }}>
               
               {/* Profile Image Field */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px', padding: '6px 12px', background: 'var(--bg-app)', borderRadius: '10px', border: '1px solid var(--border)' }}>
