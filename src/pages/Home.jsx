@@ -41,7 +41,7 @@ import {
   getDiagnosticPackages,
   getPatientReviews,
 } from "../services/dataService";
-import { getImageUrl } from "../services/uploadService";
+import { getImageUrl, fetchImageBlob } from "../services/uploadService";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
@@ -234,16 +234,20 @@ export default function Home() {
         const res = await getBanners();
         const banners = res?.data || res || [];
         if (banners.length > 0) {
-          const newSlides = banners.map((b, i) => {
+          const newSlides = await Promise.all(banners.map(async (b, i) => {
             const baseSlide = heroSlides[i % heroSlides.length];
-            const fullImgUrl = b.img_url
-              ? getImageUrl(b.img_url, "bannerImages")
-              : "";
+            let fullImgUrl = "";
+            if (b.img_url) {
+              fullImgUrl = await fetchImageBlob(b.img_url, "bannerImages");
+              if (!fullImgUrl) {
+                fullImgUrl = getImageUrl(b.img_url, "bannerImages");
+              }
+            }
             return {
               ...baseSlide,
               bg: fullImgUrl || baseSlide.bg,
             };
-          });
+          }));
           setDynamicSlides(newSlides);
         }
       } catch (e) {
@@ -724,6 +728,15 @@ export default function Home() {
               //   end: "#087eb8",
               //   iconColor: "#087b9c",
               // },
+              {
+                title: "Care Journey",
+                sub: "Track your treatment progress and personalized care plans",
+                icon: <Activity size={29} strokeWidth={1.8} />,
+                link: "/care-journey",
+                start: "#10add5",
+                end: "#087eb8",
+                iconColor: "#087b9c",
+              },
               {
                 title: "Arvaya Rewards",
                 sub: "Earn points on every booking and redeem exclusive offers",

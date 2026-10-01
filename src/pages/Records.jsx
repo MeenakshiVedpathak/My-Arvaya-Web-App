@@ -356,7 +356,7 @@ export default function Records() {
       const pathStr = String(targetFile);
       const ext = pathStr.includes('.') ? pathStr.split('.').pop().split('?')[0] : 'pdf';
       const cleanTitle = (rec.title || "Health_Record").replace(/[^a-zA-Z0-9_-]/g, "_");
-      const downloadFileName = `${cleanTitle}.${ext}`;
+      const Name = `${cleanTitle}.${ext}`;
 
       const link = document.createElement('a');
       link.href = objectUrl;

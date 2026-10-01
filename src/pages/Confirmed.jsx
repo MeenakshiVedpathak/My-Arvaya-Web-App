@@ -157,14 +157,7 @@ export default function Confirmed() {
             <button className="btn btn-primary" onClick={() => go(bookingType === 'lab' ? "/orders" : "/my-appointments")} style={{ padding: '16px', justifyContent: 'center', fontSize: '16px', height: '56px' }}>
               {bookingType === 'lab' ? "My Orders" : "Go to My Appointments"}
             </button>
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleAddToCalendar}>
-                <CalendarDays size={16} /> Add to Calendar
-              </button>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleShareDetails}>
-                <Share2 size={16} /> Share Details
-              </button>
-            </div>
+           
           </div>
         </section>
       </div>

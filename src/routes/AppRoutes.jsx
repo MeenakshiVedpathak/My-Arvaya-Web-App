@@ -7,6 +7,7 @@ import DoctorProfile from "../pages/DoctorProfile";
 import SelectSlot from "../pages/SelectSlot";
 import Review from "../pages/Review";
 import Confirmed from "../pages/Confirmed";
+import CareJourney from "../pages/CareJourney";
 import ABHA from "../pages/abha/index";
 import Records from "../pages/Records";
 import Labs from "../pages/Labs";
@@ -65,6 +66,7 @@ export default function AppRoutes() {
       <Route path="/rewards" element={<Rewards />} />
       <Route path="/ambulance" element={<Ambulance />} />
       <Route path="/support" element={<Support />} />
+      <Route path="/care-journey" element={<CareJourney />} />
 
       {/* Doctors Public Flow */}
       <Route path="/doctors" element={<HospitalSelection />} />

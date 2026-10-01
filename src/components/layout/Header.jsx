@@ -473,10 +473,10 @@ export default function Header() {
   const navLinks = [
     ["Home", "/"],
     ["Consult Doctors", "/doctors"],
-    ["Pharmacy", "/pharmacy"],
+    // ["Pharmacy", "/pharmacy"],
     ["Lab Tests", "/labs"],
     // ["ABHA Hub", "/abha"],
-    ["Patient Portal", "/records"],
+    // ["Patient Portal", "/records"],
     ["Wallet", "/wallet"],
     ["Rewards", "/rewards"],
     // ["Refer & Earn", "/referrals"],

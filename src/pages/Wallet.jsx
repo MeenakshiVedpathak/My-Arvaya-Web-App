@@ -483,7 +483,7 @@ export default function Wallet() {
               </div>
               <div>
                 <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', color: '#fff', letterSpacing: '-0.02em' }}>Arvaya Wallet</h1>
-                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Track reward points and redeem healthcare benefits.</p>
+                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Track your rewards and redeem benefits.</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {[
                     { icon: Star, label: 'Reward Points', color: '#fbbf24' },
@@ -510,9 +510,8 @@ export default function Wallet() {
               <div className="wallet-balance-head">
                 <div>
                   <span className="wallet-eyebrow"><span className="wallet-eyebrow-badge"><Star size={13} /></span> Available reward balance</span>
-                  <div className="wallet-balance-value" aria-label={`${rewardPoints} reward points`}>
-                    {loading ? <Loader2 size={34} className="animate-spin" /> : rewardPoints.toLocaleString()}
-                    {!loading && <small>points</small>}
+                  <div className="wallet-balance-value" aria-label={`₹${rewardPoints} balance`}>
+                    {loading ? <Loader2 size={34} className="animate-spin" /> : `₹${rewardPoints.toLocaleString()}`}
                   </div>
                 </div>
                 <div className="wallet-balance-art">
@@ -525,7 +524,6 @@ export default function Wallet() {
               </div>
               <div className="wallet-balance-foot">
                 <span><Ticket size={17} /> Redeem on your next booking</span>
-                <span className="wallet-value-chip"><ShieldCheck size={15} /> 1 point = ₹1</span>
               </div>
             </article>
 
@@ -543,7 +541,6 @@ export default function Wallet() {
               {isLoggedIn && filteredOffers.length > 0 && (
                 <div className="wallet-panel-heading-actions">
                   <span className="wallet-count-badge">{filteredOffers.length} offers</span>
-                  <a href="#your-rewards" className="wallet-view-all-link">View All <ArrowUpRight size={14} /></a>
                 </div>
               )}
             </div>
@@ -576,20 +573,41 @@ export default function Wallet() {
                       className={`wallet-offer-card ${theme.className} ${isRedeemed ? "is-redeemed" : ""}`}
                       onClick={() => !isRedeemed && handleRedeem(offer)}
                       disabled={isRedeemed}
+                      style={{ position: 'relative' }}
                     >
+                      {!isRedeemed && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '12px',
+                          right: '12px',
+                          backgroundColor: '#10b981',
+                          color: '#fff',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          letterSpacing: '0.5px',
+                          zIndex: 2
+                        }}>
+                          Active
+                        </div>
+                      )}
                       <span className="wallet-offer-media">
                         <ThemeIcon size={20} />
                       </span>
                       <span className="wallet-offer-meta">
-                        <span className="wallet-points-chip"><Sparkles size={12} /> {offer.points} pts</span>
-                        <span className="wallet-validity"><Clock size={12} /> {offer.badge}</span>
+                        <span className="wallet-points-chip">
+                          <Sparkles size={12} />{" "}
+                          {offer.rewardType?.toLowerCase() === "flat"
+                            ? `₹${offer.points}`
+                            : offer.rewardType?.toLowerCase() === "percentage"
+                            ? `${offer.points}%`
+                            : `${offer.points} pts`}
+                        </span>
                       </span>
                       <span className="wallet-offer-content">
                         <strong>{offer.title}</strong>
-                        <small>{offer.subtitle}</small>
-                        <span className="wallet-offer-action">
-                          {isRedeemed ? <><Check size={14} /> Redeemed</> : <>Redeem <ChevronRight size={15} /></>}
-                        </span>
+                        {/* <small>{offer.subtitle}</small> */}
                       </span>
                     </button>
                   );
@@ -651,11 +669,6 @@ export default function Wallet() {
                       <span><span className="wallet-transaction-badge is-status">Completed</span></span>
                     </div>
                   ))}
-                </div>
-                <div className="wallet-transaction-end">
-                  <FileText size={20} />
-                  <b>That's all for now!</b>
-                  <span>Your future transactions will appear here.</span>
                 </div>
               </>
             )}

@@ -433,7 +433,7 @@ export default function Rewards() {
               </div>
               <div>
                 <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '0 0 4px', color: '#fff', letterSpacing: '-0.02em' }}>Rewards & Loyalty</h1>
-                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Earn points on eligible health services and track your activity.</p>
+                <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'rgba(255,255,255,0.82)' }}>Earn points on every transaction and redeem rewards.</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {[
                     { icon: Star, label: 'Earn Rewards', color: '#fbbf24' },
@@ -460,7 +460,6 @@ export default function Rewards() {
               <div className="rewards-balance-left">
                 <span className="wallet-eyebrow">Available loyalty points</span>
                 <div className="rewards-balance-row">
-                  <span className="rewards-balance-icon-square"><IndianRupee size={32} strokeWidth={2.5} /></span>
                   <div className="rewards-points-value" aria-label={`${points} available points`}>
                     {loadingPoints ? <Loader2 size={32} className="animate-spin" /> : points.toLocaleString()}
                     {!loadingPoints && <small>points</small>}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, CreditCard, ChevronLeft, FlaskConical, Loader2 } from "lucide-react";
+import { Package, Truck, CheckCircle2, ChevronRight, FileText, MapPin, CreditCard, ChevronLeft, FlaskConical, Loader2, CalendarCheck, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getLabOrderHistory } from "../services/dataService";
 
@@ -186,188 +186,78 @@ export default function Orders() {
         ) : allOrders.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>No orders found.</div>
         ) : (
-          <div className="orders-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '32px', alignItems: 'stretch', height: 'calc(100vh - 210px)', minHeight: '600px' }}>
-            
-            {/* ── LEFT: Order List Pane ── */}
-            <aside 
-              className={`order-list-pane ${mobileView === 'detail' ? 'hide-on-mobile' : ''}`} 
-              onScroll={handleScroll}
-              style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '12px', 
-                height: '100%', 
-                maxHeight: '100%', 
-                overflowY: 'auto', 
-                paddingRight: '8px' 
-              }} 
-              id="order-list-sidebar"
-            >
-              {allOrders.map(order => {
-                const isSelected = selectedOrder?.id === order.id;
-                return (
-                  <div 
-                    key={order.id} 
-                    onClick={() => { setSelectedOrder(order); setMobileView('detail'); }}
-                    className="card hover-glow cursor-pointer" 
-                    style={{ 
-                      padding: '16px', 
-                      border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)',
-                      background: isSelected ? 'var(--primary-light)' : 'var(--bg-surface)',
-                      transition: 'all 0.2s',
-                      position: 'relative',
-                      borderRadius: '16px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <b style={{ fontSize: '15px', color: isSelected ? 'var(--primary-dark)' : 'var(--text-main)' }}>{order.id}</b>
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)' }}>₹{order.amount}</span>
-                    </div>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {order.items}
-                    </p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '500' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>{order.date}</span>
-                        {order.time && <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{order.time}</span>}
-                      </div>
-                      <span style={{ 
-                        color: order.status === 'Delivered' || order.status === 'Completed' || order.status === 'Ready' ? '#16a34a' : '#d97706',
-                        background: order.status === 'Delivered' || order.status === 'Completed' || order.status === 'Ready' ? '#dcfce7' : '#fef3c7',
-                        padding: '4px 8px', borderRadius: '12px'
-                      }}>
-                        {order.status}
-                      </span>
-                    </div>
-                    <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <FlaskConical size={12} />
-                      <span>{order.type}</span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {loadingMore && (
-                <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
-                  <Loader2 size={16} className="animate-spin" /> Loading more orders...
-                </div>
-              )}
-            </aside>
-
-            {/* ── RIGHT: Order Detail Pane ── */}
-            <section 
-              className={`order-detail-pane card-elevated ${mobileView === 'list' ? 'hide-on-mobile' : ''}`} 
-              style={{ 
-                padding: '32px', 
-                borderRadius: '24px', 
-                height: '100%', 
-                maxHeight: '100%', 
-                overflowY: 'auto', 
-                boxSizing: 'border-box' 
-              }}
-            >
-              <button 
-                className="btn btn-secondary mobile-only mb-4" 
-                onClick={() => setMobileView('list')}
-                style={{ padding: '8px 12px', fontSize: '13px' }}
+          <div 
+            className="orders-grid" 
+            style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
+              gap: '24px', 
+              alignItems: 'start'
+            }}
+          >
+            {allOrders.map(order => (
+              <div 
+                key={order.id} 
+                className="card hover-glow" 
+                style={{ 
+                  background: 'var(--bg-app)', 
+                  borderRadius: '20px', 
+                  padding: '24px', 
+                  border: '1px solid var(--border)', 
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '20px',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
               >
-                <ChevronLeft size={16} /> Back to Orders
-              </button>
-              
-              {selectedOrder && (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border)', paddingBottom: '24px', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <FlaskConical size={24} />
+                    </div>
                     <div>
-                      <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px' }}>
-                        Lab Order {selectedOrder.id}
+                      <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 6px 0', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {order.items}
                       </h2>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-                        <span>Booked on {selectedOrder.date}</span>
-                        {selectedOrder.time && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <CalendarCheck size={14} /> <span>{order.date}</span>
+                        </div>
+                        {order.time && (
                           <>
-                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)' }}></span>
-                            <span>at {selectedOrder.time}</span>
+                            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--border)' }}></span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Clock size={14} /> <span>{order.time}</span>
+                            </div>
                           </>
                         )}
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <b style={{ fontSize: '24px', color: 'var(--primary)', display: 'block' }}>₹{selectedOrder.amount}</b>
-                    </div>
                   </div>
+                </div>
 
-                  <div style={{ background: 'var(--bg-app)', padding: '32px 24px', borderRadius: '16px', marginBottom: '32px', border: '1px solid var(--border)' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '32px', color: 'var(--text-main)' }}>Order Status</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', padding: '0 20px' }}>
-                      <div style={{ position: 'absolute', top: '16px', left: '36px', right: '36px', height: '2px', background: 'var(--border)', zIndex: 0 }}></div>
-                      <div style={{ position: 'absolute', top: '16px', left: '36px', width: selectedOrder.tracking === 1 ? '0%' : selectedOrder.tracking === 2 ? 'calc(50% - 36px)' : 'calc(100% - 72px)', height: '2px', background: 'var(--primary)', zIndex: 0, transition: 'width 0.5s ease-in-out' }}></div>
-                      
-                      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', flex: 1 }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: selectedOrder.tracking >= 1 ? 'var(--primary)' : 'var(--bg-surface)', border: selectedOrder.tracking >= 1 ? 'none' : '2px solid var(--border)', color: selectedOrder.tracking >= 1 ? 'white' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 4px var(--bg-app)', transition: 'all 0.3s' }}><FileText size={16} /></div>
-                        <span style={{ fontSize: '12px', color: selectedOrder.tracking >= 1 ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: '600', textAlign: 'center' }}>Confirmed</span>
-                      </div>
-                      
-                      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', flex: 1 }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: selectedOrder.tracking >= 2 ? 'var(--primary)' : 'var(--bg-surface)', border: selectedOrder.tracking >= 2 ? 'none' : '2px solid var(--border)', color: selectedOrder.tracking >= 2 ? 'white' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 4px var(--bg-app)', transition: 'all 0.3s' }}><FlaskConical size={16} /></div>
-                        <span style={{ fontSize: '12px', color: selectedOrder.tracking >= 2 ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: '600', textAlign: 'center' }}>Processing</span>
-                      </div>
-                      
-                      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', flex: 1 }}>
-                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: selectedOrder.tracking >= 3 ? '#16a34a' : 'var(--bg-surface)', border: selectedOrder.tracking >= 3 ? 'none' : '2px solid var(--border)', color: selectedOrder.tracking >= 3 ? 'white' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 4px var(--bg-app)', transition: 'all 0.3s' }}><CheckCircle2 size={16} /></div>
-                        <span style={{ fontSize: '12px', color: selectedOrder.tracking >= 3 ? 'var(--text-main)' : 'var(--text-muted)', fontWeight: '600', textAlign: 'center' }}>Report Ready</span>
-                      </div>
-                    </div>
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px dashed var(--border)' }}>
+                  <span style={{ 
+                    color: order.status === 'Delivered' || order.status === 'Completed' || order.status === 'Ready' ? '#16a34a' : '#d97706',
+                    background: order.status === 'Delivered' || order.status === 'Completed' || order.status === 'Ready' ? '#dcfce7' : '#fef3c7',
+                    padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: '700'
+                  }}>
+                    {order.status}
+                  </span>
+                  <b style={{ fontSize: '24px', color: 'var(--primary)' }}>₹{order.amount}</b>
+                </div>
+              </div>
+            ))}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
-                    <div>
-                      <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <FlaskConical size={14} /> Tests
-                      </h3>
-                      <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                        {selectedOrder.items.split(', ').map((itm, i) => <span key={i} style={{ display: 'block' }}>• {itm}</span>)}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MapPin size={14} /> Lab / Center
-                      </h3>
-                      <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                        {selectedOrder.address}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <CreditCard size={14} /> Payment
-                      </h3>
-                      <p style={{ fontSize: '14px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-                        Paid via Arvaya Wallet<br/>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Txn: TXN-098231</span>
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </section>
-
+            {loadingMore && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '16px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px', fontWeight: '600' }}>
+                <Loader2 size={18} className="animate-spin" /> Loading more orders...
+              </div>
+            )}
           </div>
         )}
       </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 900px) {
-          .orders-layout { grid-template-columns: 1fr !important; height: auto !important; }
-          .hide-on-mobile { display: none !important; }
-          .mobile-only { display: inline-flex !important; }
-        }
-        @media (min-width: 901px) {
-          .mobile-only { display: none !important; }
-        }
-        #order-list-sidebar::-webkit-scrollbar { width: 4px; }
-        #order-list-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-      `}} />
     </main>
   );
 }

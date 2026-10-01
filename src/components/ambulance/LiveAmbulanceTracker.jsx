@@ -216,20 +216,6 @@ useEffect(() => {
         },
       });
     }
-
-    if (polylineRef.current) {
-      const pickupPoint =
-        (pickupLat != null && pickupLng != null)
-          ? { lat: Number(pickupLat), lng: Number(pickupLng) }
-          : null;
-      const path = [];
-      if (pickupPoint) path.push(pickupPoint);
-      historyPath.forEach(p => path.push(p));
-      if (tracking?.latitude && tracking?.longitude) {
-        path.push({ lat: tracking.latitude, lng: tracking.longitude });
-      }
-      polylineRef.current.setPath(path);
-    }
   }, [tracking, mapsLoaded, pickupLat, pickupLng]);
 
   useEffect(() => {
@@ -245,8 +231,8 @@ useEffect(() => {
     const directionsService = new window.google.maps.DirectionsService();
     directionsService.route(
       {
-        origin: pickup,
-        destination: current,
+        origin: current,
+        destination: pickup,
         travelMode: window.google.maps.TravelMode.DRIVING,
       },
       (result, status) => {

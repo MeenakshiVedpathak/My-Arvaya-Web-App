@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import { getPatients, getFamilyDetails, upsertFamilyDetails, addFamilyMember, updateAppUser, getLocations } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
+import Toast from "../components/common/Toast";
 
 function formatGender(g) {
   if (!g) return "Male";
@@ -35,14 +36,17 @@ export default function Profile() {
   const [uploadingUserImage, setUploadingUserImage] = useState(false);
   const [userDisplayImage, setUserDisplayImage] = useState("");
 
+  const [toast, setToast] = useState({ isOpen: false, message: "", type: "error" });
+  const showToast = (message, type = "error") => setToast({ isOpen: true, message, type });
+
   // Add Member Modal State
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [memberForm, setMemberForm] = useState({
     name: "",
-    relation: "Spouse",
+    relation: "",
     dob: "",
-    bloodGroup: "B+",
-    gender: "Male",
+    bloodGroup: "",
+    gender: "",
     mobile: "",
     weight: "",
     height: "",
@@ -109,10 +113,10 @@ export default function Profile() {
     setEditingMemberId(null);
     setMemberForm({
       name: "",
-      relation: "Spouse",
+      relation: "",
       dob: "",
-      bloodGroup: "B+",
-      gender: "Male",
+      bloodGroup: "",
+      gender: "",
       mobile: "",
       weight: "",
       height: "",
@@ -212,7 +216,34 @@ export default function Profile() {
 
   const handleSaveMember = async (e) => {
     e.preventDefault();
-    if (!memberForm.name.trim()) return;
+    if (!memberForm.title) {
+      showToast("Please select a title.", "error");
+      return;
+    }
+    if (!memberForm.name.trim()) {
+      showToast("Please enter the name.", "error");
+      return;
+    }
+    if (!memberForm.relation) {
+      showToast("Please select a relation.", "error");
+      return;
+    }
+    if (!memberForm.dob) {
+      showToast("Please select date of birth.", "error");
+      return;
+    }
+    if (!memberForm.gender) {
+      showToast("Please select gender.", "error");
+      return;
+    }
+    if (!memberForm.bloodGroup) {
+      showToast("Please select blood group.", "error");
+      return;
+    }
+    if (!memberForm.entitylocation) {
+      showToast("Please select an entity location.", "error");
+      return;
+    }
 
     setSavingMember(true);
     try {
@@ -285,14 +316,16 @@ export default function Profile() {
       // Refresh list from API (hitting /api/familyDetails/get after add or edit)
       await fetchFamilyMembers();
 
+      showToast("Family member saved successfully", "success");
+
       setIsMemberModalOpen(false);
       setEditingMemberId(null);
       setMemberForm({
         name: "",
-        relation: "Spouse",
+        relation: "",
         dob: "",
-        bloodGroup: "B+",
-        gender: "Male",
+        bloodGroup: "",
+        gender: "",
         mobile: "",
         weight: "",
         height: "",
@@ -304,6 +337,7 @@ export default function Profile() {
       });
     } catch (err) {
       console.error("Failed to save family member:", err);
+      showToast("Failed to save family member. Please try again.", "error");
     } finally {
       setSavingMember(false);
     }
@@ -1060,7 +1094,7 @@ export default function Profile() {
                 {/* Row 1: Title, Name, Relation */}
                 <div className="modal-form-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Title</label>
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Title *</label>
                     <select name="title" value={memberForm.title} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
                       <option value="">None</option>
                       <option value="Mr">Mr</option>
@@ -1074,12 +1108,13 @@ export default function Profile() {
 
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Name *</label>
-                    <input required name="name" value={memberForm.name} onChange={handleMemberFormChange} placeholder="Full Name" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
+                    <input name="name" value={memberForm.name} onChange={handleMemberFormChange} placeholder="Full Name" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
                   </div>
 
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Relation *</label>
                     <select name="relation" value={memberForm.relation} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
+                      <option value="">None</option>
                       <option value="Spouse">Spouse</option>
                       <option value="Son">Son</option>
                       <option value="Daughter">Daughter</option>
@@ -1095,13 +1130,14 @@ export default function Profile() {
                 {/* Row 2: Date of Birth, Gender, Blood Group */}
                 <div className="modal-form-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Date of Birth</label>
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Date of Birth *</label>
                     <input type="date" name="dob" value={memberForm.dob} max={new Date().toISOString().split('T')[0]} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
                   </div>
 
                   <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Gender</label>
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Gender *</label>
                     <select name="gender" value={memberForm.gender} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
+                      <option value="">None</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
@@ -1109,8 +1145,9 @@ export default function Profile() {
                   </div>
 
                   <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Blood Group</label>
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Blood Group *</label>
                     <select name="bloodGroup" value={memberForm.bloodGroup} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
+                      <option value="">None</option>
                       <option value="B+">B+</option>
                       <option value="A+">A+</option>
                       <option value="O+">O+</option>
@@ -1125,7 +1162,7 @@ export default function Profile() {
 
                   {/* Row 5: Entity Location */}
                   <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Entity Location</label>
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Entity Location *</label>
                     <div ref={locationDropdownRef} style={{ position: 'relative' }}>
                       <div
                         onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
@@ -1417,6 +1454,12 @@ export default function Profile() {
           }
         }
       `}} />
+      <Toast 
+        isOpen={toast.isOpen} 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={() => setToast({ ...toast, isOpen: false })} 
+      />
     </main>
   );
 }

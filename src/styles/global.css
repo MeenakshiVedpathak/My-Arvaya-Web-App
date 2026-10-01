@@ -4571,6 +4571,12 @@ header.glass .header-secondary-nav .container {
   justify-content: space-between !important;
 }
 
+/* header.glass .header-secondary-nav .container {
+    height: 38px !important;
+    padding-inline: 90px;
+    justify-content: space-around;
+} */
+
 header.glass .header-secondary-nav a:focus {
   outline: none;
 }

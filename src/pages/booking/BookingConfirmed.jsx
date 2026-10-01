@@ -142,14 +142,7 @@ export default function BookingConfirmed() {
             <button className="btn btn-primary" onClick={() => navigate("/my-appointments")} style={{ padding: '14px', justifyContent: 'center', fontSize: '15px', borderRadius: '12px', width: '100%' }}>
               View My Appointments
             </button>
-            <div className="booking-confirmed-sub-actions">
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '12px', borderRadius: '12px', fontSize: '13px' }} onClick={handleAddToCalendar}>
-                <CalendarDays size={16} /> Add to Calendar
-              </button>
-              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center', padding: '12px', borderRadius: '12px', fontSize: '13px' }} onClick={handleShareDetails}>
-                <Share2 size={16} /> Share Details
-              </button>
-            </div>
+          
           </div>
         </section>
       </div>

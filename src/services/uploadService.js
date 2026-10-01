@@ -2,6 +2,12 @@ import { api } from "./api";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://p8rhkmb7-8867.inc1.devtunnels.ms/";
 
+const normalizeBaseUrl = (url) => url ? String(url).trim().replace(/\/+$/, '').toLowerCase() : '';
+
+export const IS_PORTAL_BACKEND = 
+  (normalizeBaseUrl(BASE_URL) === normalizeBaseUrl('https://portalbackend.arvayahealth.com/')) || 
+  (normalizeBaseUrl(BASE_URL) === normalizeBaseUrl('https://6mcr9zjh-8867.inc1.devtunnels.ms/'));
+
 function getCookie(name) {
   if (typeof document === "undefined") return "";
   const value = `; ${document.cookie}`;
@@ -56,39 +62,63 @@ export async function fetchImageBlob(imagePath, folderName = 'familyProfileImage
     headers["authorization"] = token;
   }
 
-  const targetUrl = (pathStr.startsWith("http://") || pathStr.startsWith("https://"))
-    ? pathStr
-    : `${cleanBase}/static/${folderName}/${fileName}`;
+  const targetUrl = IS_PORTAL_BACKEND
+    ? `${cleanBase}/downloadFile`
+    : (pathStr.startsWith("http://") || pathStr.startsWith("https://"))
+      ? pathStr
+      : `${cleanBase}/static/${folderName}/${fileName}`;
+
+  const fetchOptions = {
+    headers: { ...headers },
+    redirect: 'manual'
+  };
+
+  if (IS_PORTAL_BACKEND && targetUrl === `${cleanBase}/downloadFile`) {
+    fetchOptions.method = 'POST';
+    fetchOptions.headers['Content-Type'] = 'application/json';
+    fetchOptions.body = JSON.stringify({
+      filename: fileName,
+      folderName: folderName,
+      created_by: 1
+    });
+  }
 
   try {
-    const res = await fetch(targetUrl, {
-      headers,
-      redirect: 'manual'
-    });
+    const res = await fetch(targetUrl, fetchOptions);
     if (!res.ok || res.status === 404) {
       return null;
     }
     if (res.ok && (res.status === 200 || res.status === 0)) {
+      const contentType = res.headers.get("content-type");
+      
+      const ext = fileName.split('.').pop().split('?')[0].toLowerCase();
+      const mimeMap = {
+        pdf: 'application/pdf',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        webp: 'image/webp',
+        gif: 'image/gif',
+        svg: 'image/svg+xml',
+        bmp: 'image/bmp',
+        tiff: 'image/tiff',
+        tif: 'image/tiff',
+        txt: 'text/plain',
+        html: 'text/html'
+      };
+
+      if (contentType && contentType.includes("application/json")) {
+        const jsonRes = await res.json();
+        if (jsonRes && jsonRes.code === 200 && jsonRes.data) {
+          const mimeType = mimeMap[ext] || 'image/png';
+          return `data:${mimeType};base64,${jsonRes.data}`;
+        }
+        return null;
+      }
+
       const blob = await res.blob();
       if (blob && blob.size > 0) {
         let finalBlob = blob;
-        const ext = fileName.split('.').pop().split('?')[0].toLowerCase();
-
-        // Define explicit MIME mapping for all common images & document types
-        const mimeMap = {
-          pdf: 'application/pdf',
-          jpg: 'image/jpeg',
-          jpeg: 'image/jpeg',
-          png: 'image/png',
-          webp: 'image/webp',
-          gif: 'image/gif',
-          svg: 'image/svg+xml',
-          bmp: 'image/bmp',
-          tiff: 'image/tiff',
-          tif: 'image/tiff',
-          txt: 'text/plain',
-          html: 'text/html'
-        };
 
         if (mimeMap[ext] && blob.type !== mimeMap[ext]) {
           finalBlob = new Blob([blob], { type: mimeMap[ext] });
@@ -123,7 +153,9 @@ export function getImageUrl(imagePath, folderName = 'familyProfileImage') {
     fileName = fileName.split('/').pop();
   }
 
-  return `${cleanBase}/static/${folderName}/${fileName}`;
+  return IS_PORTAL_BACKEND
+    ? `${cleanBase}/api/downloadFile?fileName=${fileName}&folderName=${folderName}`
+    : `${cleanBase}/static/${folderName}/${fileName}`;
 }
 
 export async function fetchHealthRecordBlob(recordPath) {
