@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Edit2, Check, Shield, Camera, Plus, Trash2, ChevronRight, User, HeartPulse, FileText, Users, Loader2, X, Upload, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-import { getPatients, getFamilyDetails, upsertFamilyDetails, updateAppUser, getLocations } from "../services/dataService";
+import { getPatients, getFamilyDetails, upsertFamilyDetails, addFamilyMember, updateAppUser, getLocations } from "../services/dataService";
 import { uploadImage, getImageUrl, fetchImageBlob } from "../services/uploadService";
 
 function formatGender(g) {
@@ -239,32 +239,48 @@ export default function Profile() {
       else if (lowerG.startsWith("o")) genderCode = "O";
 
       const appUserId = user?.user_id || user?.id || user?.app_user_id || user?.userKey || 1;
-      const payload = {
-        app_user_id:  memberForm.app_user_id ?? appUserId,
-        primaryAccountId: memberForm.app_user_id ?? appUserId,
-        name: memberForm.name.trim(),
-        relation: memberForm.relation,
-        dob: memberForm.dob,
-        blood_group: memberForm.bloodGroup,
-        gender: genderCode,
-        mobile_number: memberForm.mobile,
-        is_active: 1,
-        weight: memberForm.weight,
-        height: memberForm.height,
-        profile_image: finalImageUrl,
-        abha_number: memberForm.abhaNumber,
-        entitylocation: memberForm.entitylocation,
-        entity_location: memberForm.entitylocation,
-        client_id: user?.client_id || 1,
-        title: memberForm.title
-      };
+      const loggedInMobile = user?.phone || user?.mobile_number || user?.mobile || "";
 
       if (editingMemberId) {
-        payload.family_detail_id = editingMemberId;
-        payload.id = editingMemberId;
+        const payload = {
+          app_user_id: memberForm.app_user_id ?? appUserId,
+          primaryAccountId: memberForm.app_user_id ?? appUserId,
+          name: memberForm.name.trim(),
+          relation: memberForm.relation,
+          dob: memberForm.dob,
+          blood_group: memberForm.bloodGroup,
+          gender: genderCode,
+          mobile_number: memberForm.mobile,
+          is_active: 1,
+          weight: memberForm.weight,
+          height: memberForm.height,
+          profile_image: finalImageUrl,
+          abha_number: memberForm.abhaNumber,
+          entitylocation: memberForm.entitylocation,
+          entity_location: memberForm.entitylocation,
+          client_id: user?.client_id || 1,
+          title: memberForm.title,
+          family_detail_id: editingMemberId,
+          id: editingMemberId
+        };
+        await upsertFamilyDetails(payload);
+      } else {
+        const payload = {
+          name: memberForm.name.trim(),
+          mobile_number: loggedInMobile,
+          gender: genderCode,
+          date_of_birth: memberForm.dob,
+          blood_group: memberForm.bloodGroup,
+          title: memberForm.title,
+          relation: memberForm.relation,
+          profile_image: finalImageUrl,
+          client_id: user?.client_id || 1,
+          entitylocation: memberForm.entitylocation,
+          entitykey: "secure-hospitals",
+          primaryAccountId: appUserId
+        };
+        await addFamilyMember(payload);
       }
-
-      await upsertFamilyDetails(payload);
 
       // Refresh list from API (hitting /api/familyDetails/get after add or edit)
       await fetchFamilyMembers();
@@ -1041,8 +1057,21 @@ export default function Profile() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 
-                {/* Row 1: Name & Relation */}
-                <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {/* Row 1: Title, Name, Relation */}
+                <div className="modal-form-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '10px' }}>
+                  <div className="flex flex-col gap-0.5">
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Title</label>
+                    <select name="title" value={memberForm.title} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
+                      <option value="">None</option>
+                      <option value="Mr">Mr</option>
+                      <option value="Mrs">Mrs</option>
+                      <option value="Ms">Ms</option>
+                      <option value="Miss">Miss</option>
+                      <option value="Baby">Baby</option>
+                      <option value="Dr">Dr</option>
+                    </select>
+                  </div>
+
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Name *</label>
                     <input required name="name" value={memberForm.name} onChange={handleMemberFormChange} placeholder="Full Name" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
@@ -1061,24 +1090,10 @@ export default function Profile() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                 </div>
+                </div>
 
-                 {/* Row 1.5: Title */}
-                 <div className="flex flex-col gap-0.5">
-                   <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Title</label>
-                   <select name="title" value={memberForm.title} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
-                     <option value="">None</option>
-                     <option value="Mr">Mr</option>
-                     <option value="Mrs">Mrs</option>
-                     <option value="Ms">Ms</option>
-                     <option value="Miss">Miss</option>
-                     <option value="Baby">Baby</option>
-                     <option value="Dr">Dr</option>
-                   </select>
-                 </div>
-
-                 {/* Row 2: Date of Birth & Gender */}
-                <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {/* Row 2: Date of Birth, Gender, Blood Group */}
+                <div className="modal-form-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Date of Birth</label>
                     <input type="date" name="dob" value={memberForm.dob} max={new Date().toISOString().split('T')[0]} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
@@ -1092,10 +1107,7 @@ export default function Profile() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                </div>
 
-                {/* Row 3: Blood Group, Height, Weight (in one row) */}
-                <div className="modal-form-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   <div className="flex flex-col gap-0.5">
                     <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Blood Group</label>
                     <select name="bloodGroup" value={memberForm.bloodGroup} onChange={handleMemberFormChange} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }}>
@@ -1109,29 +1121,6 @@ export default function Profile() {
                       <option value="AB-">AB-</option>
                     </select>
                   </div>
-
-                  <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Height (cm)</label>
-                    <input type="number" name="height" value={memberForm.height} onChange={handleMemberFormChange} placeholder="E.g., 170" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
-                  </div>
-
-                  <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Weight (kg)</label>
-                    <input type="number" name="weight" value={memberForm.weight} onChange={handleMemberFormChange} placeholder="E.g., 65" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
-                  </div>
-                </div>
-
-                {/* Row 4: Mobile Number & ABHA Number (in one row) */}
-                <div className="modal-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>Mobile Number</label>
-                    <input type="tel" name="mobile" value={memberForm.mobile} onChange={handleMemberFormChange} placeholder="10-digit mobile" maxLength={10} className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
-                  </div>
-
-                  <div className="flex flex-col gap-0.5">
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-main)' }}>ABHA Number / Address</label>
-                    <input name="abhaNumber" value={memberForm.abhaNumber} onChange={handleMemberFormChange} placeholder="E.g., 919876543210@sbx" className="input-field" style={{ padding: '6px 10px', fontSize: '13px' }} />
-                   </div>
                  </div>
 
                   {/* Row 5: Entity Location */}

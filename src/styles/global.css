@@ -4511,30 +4511,22 @@ main.page:not(.home-page) > div:first-of-type {
 
 header.glass {
   top: 0 !important;
-  padding: 10px 0 0;
+  padding: 4px 0 0;
   background: rgba(245, 250, 249, 0.86);
   border-bottom: 0;
   box-shadow: 0 1px 0 rgba(5, 73, 78, 0.06);
   transition: padding-top 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-  /* Prevent Chrome's scroll-anchoring from "compensating" for the header's own
-     height change as it collapses/expands — without this, the layout shift
-     nudges window.scrollY across the collapse threshold, which re-triggers the
-     collapse in the opposite direction, causing a rapid flicker loop. */
   overflow-anchor: none;
 }
 
 header.glass .header-main-row {
-  height: 70px !important;
-  padding: 0 18px !important;
+  height: 62px !important;
+  padding: 0 16px !important;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(8, 120, 125, 0.11);
-  border-radius: 22px 22px 0 0;
-  box-shadow: 0 8px 30px rgba(5, 73, 78, 0.07);
-  max-height: 90px;
-  /* No overflow:hidden here — the location/profile dropdowns are absolutely
-     positioned descendants that need to render below this row. It's only
-     applied while actively collapsing (see .header-row-collapsed below),
-     since dropdown triggers are invisible/non-interactive at that point anyway. */
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 4px 20px rgba(5, 73, 78, 0.05);
+  max-height: 75px;
   transition:
     max-height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.24s ease,
@@ -4574,8 +4566,9 @@ header.glass .header-secondary-nav {
 }
 
 header.glass .header-secondary-nav .container {
-  height: 50px !important;
+  height: 38px !important;
   padding-inline: 18px;
+  justify-content: space-between !important;
 }
 
 header.glass .header-secondary-nav a:focus {

@@ -163,6 +163,27 @@ export async function upsertFamilyDetails(payload) {
   }
 }
 
+export async function addFamilyMember(payload) {
+  try {
+    let genderCode = payload.gender || "M";
+    const lower = String(genderCode).trim().toLowerCase();
+    if (lower.startsWith("f")) genderCode = "F";
+    else if (lower.startsWith("m")) genderCode = "M";
+    else if (lower.startsWith("o")) genderCode = "O";
+
+    const formattedPayload = {
+      ...payload,
+      gender: genderCode
+    };
+
+    const res = await api.post("/api/familyDetails/addFamilyMember", formattedPayload);
+    return res?.data || res?.result || res;
+  } catch (err) {
+    console.error("addFamilyMember error:", err);
+    throw err;
+  }
+}
+
 
 
 function getUserId() {

@@ -1,4 +1,4 @@
-import { Search, MapPin, ChevronDown, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2, Shield } from "lucide-react";
+import { Search, MapPin, ChevronDown, ChevronRight, ChevronLeft, Users, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2, Shield } from "lucide-react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -54,7 +54,7 @@ function getUserPhone(user) {
   return `+91 ${cleanPhone}`;
 }
 export default function Header() {
-  const { user, openLoginModal, logout } = useAuth();
+  const { user, openLoginModal, logout, linkedProfiles, switchProfile } = useAuth();
   const { globalLocation, setGlobalLocation, setDoctor } = useBooking();
   const go = useNavigate();
   const location = useLocation();
@@ -99,6 +99,8 @@ export default function Header() {
   }, [isCollapsibleRoute]);
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [profileMenuTab, setProfileMenuTab] = useState("main");
+  const [mobileDrawerTab, setMobileDrawerTab] = useState("main");
   const selectedCity = globalLocation ? (globalLocation.city || globalLocation.alt_name || globalLocation.name || "Unknown") : "Loading...";
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [locSearch, setLocSearch] = useState("");
@@ -384,6 +386,10 @@ export default function Header() {
   const displayName = getUserDisplayName(user);
   const displayInitial = (displayName || "U").replace(/^(mr\.|ms\.|mrs\.|dr\.)\s*/i, "").charAt(0).toUpperCase();
   const userPhone = getUserPhone(user);
+  const currentUserId = user?.id || user?.user_id || user?.app_user_id;
+  const otherProfiles = (linkedProfiles || []).filter(
+    (p) => String(p.id) !== String(currentUserId)
+  );
 
 
 
@@ -398,6 +404,7 @@ export default function Header() {
       }
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setIsProfileMenuOpen(false);
+        setProfileMenuTab("main");
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -468,13 +475,13 @@ export default function Header() {
     ["Consult Doctors", "/doctors"],
     ["Pharmacy", "/pharmacy"],
     ["Lab Tests", "/labs"],
-    ["ABHA Hub", "/abha"],
+    // ["ABHA Hub", "/abha"],
     ["Patient Portal", "/records"],
     ["Wallet", "/wallet"],
     ["Rewards", "/rewards"],
     // ["Refer & Earn", "/referrals"],
     ["Ambulance", "/ambulance"],
-    ["Support", "/support"]
+    // ["Support", "/support"]
   ];
 
   return (
@@ -482,12 +489,12 @@ export default function Header() {
       {/* ── Main Header ── */}
       <header ref={headerRef} className={`glass${isHeaderCollapsed ? ' header-row-collapsed' : ''}`} style={{ position: 'sticky', top: '0px', zIndex: 100 }}>
 
-        <div className="container flex justify-between items-center header-main-row" style={{ height: '76px', padding: '0 12px', gap: '16px', position: 'relative' }}>
+        <div className="container flex justify-between items-center header-main-row" style={{ height: '62px', padding: '0 14px', gap: '14px', position: 'relative' }}>
 
           {/* Logo & Location Group */}
           <div className="flex items-center gap-4 header-brand-location" style={{ flexShrink: 0 }}>
-            <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Arvaya Logo" style={{ height: '36px', width: 'auto' }} />
+            <Link to="/" className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center' }}>
+              <img src="/logo.png" alt="Arvaya Logo" className="header-logo-img" style={{ height: '48px', width: 'auto', objectFit: 'contain', display: 'block' }} />
             </Link>
 
             {/* Location Picker */}
@@ -636,8 +643,11 @@ export default function Header() {
               <span className="header-promo-heading" style={{ fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
                 Your Health, Our Priority
               </span>
-              <span className="header-promo-subtext" style={{ fontSize: '12.5px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {/* <span className="header-promo-subtext" style={{ fontSize: '12.5px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 Book appointments, order medicines, and more — all in one place.
+              </span> */}
+              <span className="header-promo-subtext" style={{ fontSize: '12.5px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Book appointments, Lab Tests and More — all in one place.
               </span>
             </div>
           </div>
@@ -714,11 +724,176 @@ export default function Header() {
 
                 {/* Profile Dropdown */}
                 {isProfileMenuOpen && (
-                  <div className="header-profile-dropdown" style={{ position: 'absolute', top: '56px', right: 0, width: '220px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
-                    <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)', marginBottom: '8px' }}>
-                      <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{displayName}</b>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{userPhone || '+91 XXXXX XXXXX'}</span>
-                    </div>
+                  <div className="header-profile-dropdown" style={{ position: 'absolute', top: '56px', right: 0, width: '260px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease', overflow: 'hidden' }}>
+                    {profileMenuTab === "switch" ? (
+                      <div style={{ animation: 'fadeIn 0.2s ease' }}>
+                        {/* Header bar with Back button */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 14px 10px', borderBottom: '1px solid var(--border)' }}>
+                          <button
+                            type="button"
+                            onClick={() => setProfileMenuTab("main")}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#1b6b72',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '700',
+                              padding: '2px 6px',
+                              borderRadius: '6px',
+                            }}
+                            onMouseOver={e => e.currentTarget.style.background = 'rgba(27, 107, 114, 0.08)'}
+                            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <ChevronLeft size={16} /> Back
+                          </button>
+                          {/* <span style={{ fontSize: '13.5px', fontWeight: '800', color: 'var(--text-main)' }}>
+                            Switch Account
+                          </span> */}
+                          <span style={{ width: '48px' }} />
+                        </div>
+
+                        {/* Switch Account section header matching user reference image */}
+                        <div style={{
+                          padding: '10px 16px 6px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          color: 'var(--text-muted)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <span>SWITCH ACCOUNT</span>
+                          <span style={{ fontSize: '10px', background: 'rgba(27, 107, 114, 0.1)', color: '#1b6b72', padding: '1px 7px', borderRadius: '10px', fontWeight: '700' }}>
+                            {otherProfiles.length} AVAILABLE
+                          </span>
+                        </div>
+
+                        {/* Profiles List */}
+                        <div style={{ maxHeight: '280px', overflowY: 'auto' }} className="no-scrollbar">
+                          {otherProfiles.map((p) => {
+                            const isPPrimary = p.isPrimary || (!p.relation && (!p.parent_account_id || p.parent_account_id === p.id));
+                            const pClean = (p.name || "U").replace(/^(mr\.|ms\.|mrs\.|dr\.)\s*/i, "").trim().split(/\s+/).filter(Boolean);
+                            const pInitials = pClean.length >= 2 ? (pClean[0][0] + pClean[pClean.length - 1][0]).toUpperCase() : (pClean[0] ? pClean[0][0] : "U").toUpperCase();
+                            return (
+                              <div
+                                key={p.id}
+                                onClick={async () => {
+                                  setIsProfileMenuOpen(false);
+                                  setProfileMenuTab("main");
+                                  await switchProfile(p);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  padding: '8px 16px',
+                                  cursor: 'pointer',
+                                  transition: 'background 0.15s ease'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                              >
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  background: isPPrimary ? '#1b6b72' : '#ea580c',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  flexShrink: 0
+                                }}>
+                                  {pInitials}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{
+                                    fontSize: '13.5px',
+                                    fontWeight: '700',
+                                    color: 'var(--text-main)',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}>
+                                    {p.name}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ padding: '8px 16px 10px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                            <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block', maxWidth: '170px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</b>
+                            <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '1px 6px', borderRadius: '10px' }}>Active</span>
+                          </div>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{userPhone || '+91 XXXXX XXXXX'}</span>
+                        </div>
+
+                        {/* Switch Account (Single Button that switches view inside this menu) */}
+                        {otherProfiles.length > 0 && (
+                          <div
+                            onClick={() => setProfileMenuTab("switch")}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '10px 16px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid var(--border)',
+                              background: 'rgba(27, 107, 114, 0.04)',
+                              transition: 'background 0.2s ease',
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(27, 107, 114, 0.08)')}
+                            onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(27, 107, 114, 0.04)')}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div
+                                style={{
+                                  width: '26px',
+                                  height: '26px',
+                                  borderRadius: '50%',
+                                  background: '#1b6b72',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Users size={14} />
+                              </div>
+                              <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--text-main)' }}>
+                                Switch Account
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span
+                                style={{
+                                  fontSize: '10.5px',
+                                  fontWeight: '700',
+                                  background: '#1b6b72',
+                                  color: '#ffffff',
+                                  padding: '1px 7px',
+                                  borderRadius: '10px',
+                                }}
+                              >
+                                {otherProfiles.length}
+                              </span>
+                              <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+                            </div>
+                          </div>
+                        )}
 
                     <div
                       className="flex items-center gap-3 cursor-pointer"
@@ -750,7 +925,7 @@ export default function Header() {
                       <User size={16} className="text-muted" /> My Appointments
                     </div>
 
-                    <div
+                    {/* <div
                       className="flex items-center gap-3 cursor-pointer"
                       onClick={() => { setIsProfileMenuOpen(false); go("/prescriptions"); }}
                       style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
@@ -758,7 +933,7 @@ export default function Header() {
                       onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <User size={16} className="text-muted" /> My Prescriptions
-                    </div>
+                    </div> */}
 
                     <div
                       className="flex items-center gap-3 cursor-pointer"
@@ -770,7 +945,7 @@ export default function Header() {
                       <User size={16} className="text-muted" /> My Orders
                     </div>
 
-                    <div
+                    {/* <div
                       className="flex items-center gap-3 cursor-pointer"
                       onClick={() => { setIsProfileMenuOpen(false); go("/payments"); }}
                       style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
@@ -778,9 +953,9 @@ export default function Header() {
                       onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <User size={16} className="text-muted" /> Payments & Invoices
-                    </div>
+                    </div> */}
 
-                    <div
+                    {/* <div
                       className="flex items-center gap-3 cursor-pointer"
                       onClick={() => { setIsProfileMenuOpen(false); go("/settings"); }}
                       style={{ padding: '10px 16px', fontSize: '14px', color: 'var(--text-main)', transition: 'background 0.2s' }}
@@ -788,7 +963,7 @@ export default function Header() {
                       onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <Settings size={16} className="text-muted" /> App Settings
-                    </div>
+                    </div> */}
 
                     <div
                       className="flex items-center gap-3 cursor-pointer"
@@ -803,7 +978,9 @@ export default function Header() {
                     >
                       <LogOut size={16} /> Logout
                     </div>
-                  </div>
+                  </>
+                )}
+              </div>
                 )}
               </div>
             ) : (
@@ -830,7 +1007,7 @@ export default function Header() {
 
         {/* ── Secondary Navigation ── */}
         <div className="header-secondary-nav" style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
-          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '48px', overflowX: 'auto', gap: '8px' }}>
+          <div className="container flex items-center justify-between no-scrollbar" style={{ height: '38px', overflowX: 'auto', gap: '8px' }}>
             {navLinks.map(([label, path]) => (
               <NavLink
                 key={label}
@@ -859,197 +1036,396 @@ export default function Header() {
       {/* ── Mobile Navigation Drawer ── */}
       {mobileDrawerOpen && (
         <>
-          <div className="mobile-nav-backdrop" onClick={() => setMobileDrawerOpen(false)} />
+          <div className="mobile-nav-backdrop" onClick={() => { setMobileDrawerOpen(false); setMobileDrawerTab("main"); }} />
           <aside className="mobile-nav-drawer">
-            {/* Drawer Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-app)' }}>
-              <img src="/logo.png" alt="Arvaya" style={{ height: '32px' }} />
-              <button
-                onClick={() => setMobileDrawerOpen(false)}
-                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+            {mobileDrawerTab === "switch" ? (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'fadeIn 0.2s ease' }}>
+                {/* Drawer Header with Back Button */}
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-app)', flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => setMobileDrawerTab("main")}
+                    style={{
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '16px',
+                      padding: '4px 10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: 'var(--primary)',
+                      fontSize: '12.5px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ChevronLeft size={15} /> Back
+                  </button>
 
-            {/* User Profile / Auth CTA */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg, rgba(46, 102, 110, 0.06) 0%, rgba(46, 102, 110, 0.12) 100%)' }}>
-              {user ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', background: 'var(--bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(18,51,58,0.06)' }}>
-                  
-                  {/* Top row: Avatar + Name + Shield badge */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{
-                      width: '46px', height: '46px', borderRadius: '50%',
-                      background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
-                      color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '700', fontSize: '18px', boxShadow: '0 4px 12px rgba(46,102,110,0.25)',
-                      overflow: 'hidden', position: 'relative', border: '2px solid white', flexShrink: 0
-                    }}>
-                      {headerAvatar ? (
-                        <img
-                          src={headerAvatar}
-                          alt={displayName}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : null}
-                      {displayInitial}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileDrawerOpen(false);
+                      setMobileDrawerTab("main");
+                    }}
+                    style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Body Content */}
+                <div style={{ padding: '12px 14px', overflowY: 'auto', flex: 1 }} className="no-scrollbar">
+                  {/* Current Active Account */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ fontSize: '10.5px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                      Current Active Account
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Logged in as</span>
-                      <b style={{ display: 'block', fontSize: '15px', fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</b>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(34, 197, 94, 0.1)', color: '#15803d', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', marginTop: '2px' }}>
-                        <Shield size={10} /> Verified Patient
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '8px 10px',
+                      borderRadius: '12px',
+                      background: 'rgba(27, 107, 114, 0.05)',
+                      border: '1.5px solid #1b6b72',
+                    }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: '#1b6b72',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        flexShrink: 0
+                      }}>
+                        {displayInitial}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {displayName}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '1px' }}>
+                          <span style={{ fontSize: '9.5px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '1px 5px', borderRadius: '6px' }}>Active</span>
+                          <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{userPhone}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Buttons row: 2 main action buttons (Profile & Settings) + Logout button */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      <button
-                        className="btn btn-primary"
-                        style={{
-                          padding: '9px 12px', fontSize: '13px', fontWeight: '700', borderRadius: '12px',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                          boxShadow: '0 2px 8px rgba(46,102,110,0.2)'
-                        }}
-                        onClick={() => {
-                          setMobileDrawerOpen(false);
-                          go("/profile");
-                        }}
-                      >
-                        <User size={14} /> Profile
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        style={{
-                          padding: '9px 12px', fontSize: '13px', fontWeight: '600', borderRadius: '12px',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                          background: 'var(--bg-app)', border: '1px solid var(--border)', color: 'var(--text-main)'
-                        }}
-                        onClick={() => {
-                          setMobileDrawerOpen(false);
-                          go("/settings");
-                        }}
-                      >
-                        <Settings size={14} /> Settings
-                      </button>
+                  {/* Switch Account section */}
+                  <div>
+                    <div style={{ fontSize: '10.5px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Switch Account</span>
+                      <span style={{ fontSize: '9.5px', background: 'rgba(27, 107, 114, 0.1)', color: '#1b6b72', padding: '1px 5px', borderRadius: '8px', fontWeight: '700' }}>
+                        {otherProfiles.length} available
+                      </span>
                     </div>
-                    
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileDrawerOpen(false);
-                        go("/");
-                      }}
-                      style={{
-                        width: '100%', padding: '8px 12px', fontSize: '12px', fontWeight: '700',
-                        borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: '6px', color: '#dc2626', background: 'rgba(220, 38, 38, 0.06)',
-                        border: '1px solid rgba(220, 38, 38, 0.18)', transition: 'all 0.2s'
-                      }}
-                    >
-                      <LogOut size={13} /> Logout
-                    </button>
-                  </div>
 
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {otherProfiles.map(p => {
+                        const isPPrimary = p.isPrimary || (!p.relation && (!p.parent_account_id || p.parent_account_id === p.id));
+                        const pClean = (p.name || "U").replace(/^(mr\.|ms\.|mrs\.|dr\.)\s*/i, "").trim().split(/\s+/).filter(Boolean);
+                        const pInitials = pClean.length >= 2 ? (pClean[0][0] + pClean[pClean.length - 1][0]).toUpperCase() : (pClean[0] ? pClean[0][0] : "U").toUpperCase();
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={async () => {
+                              setMobileDrawerOpen(false);
+                              setMobileDrawerTab("main");
+                              await switchProfile(p);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '8px 10px',
+                              borderRadius: '10px',
+                              border: '1px solid var(--border)',
+                              background: 'var(--bg-surface)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <div style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              background: isPPrimary ? '#1b6b72' : '#ea580c',
+                              color: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '11.5px',
+                              fontWeight: '700',
+                              flexShrink: 0
+                            }}>
+                              {pInitials}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {p.name}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div style={{ background: 'var(--bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                  <b style={{ display: 'block', fontSize: '15px', color: 'var(--primary-dark)', marginBottom: '8px' }}>Welcome to Arvaya</b>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                {/* Drawer Header */}
+                <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-app)', flexShrink: 0 }}>
+                  <img src="/logo.png" alt="Arvaya" style={{ height: '26px' }} />
                   <button
-                    className="btn btn-primary w-full flex items-center justify-center gap-2"
                     onClick={() => {
                       setMobileDrawerOpen(false);
-                      openLoginModal();
+                      setMobileDrawerTab("main");
                     }}
-                    style={{ fontSize: '14px', padding: '10px 16px', borderRadius: '12px' }}
+                    style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
                   >
-                    <User size={16} /> Login / Sign Up
+                    <X size={16} />
                   </button>
                 </div>
-              )}
-            </div>
 
-            {/* Navigation Links */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>Navigation</span>
-              {navLinks.map(([label, path]) => (
-                <NavLink
-                  key={label}
-                  to={path}
-                  onClick={() => {
-                    setMobileDrawerOpen(false);
-                  }}
-                  style={({ isActive }) => ({
-                    padding: '12px 16px',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '15px',
-                    fontWeight: isActive ? '700' : '500',
-                    color: isActive ? 'var(--primary)' : 'var(--text-main)',
-                    background: isActive ? 'var(--primary-light)' : 'transparent',
-                    display: 'flex',
-                    justify: 'space-between',
-                    alignItems: 'center'
-                  })}
-                >
-                  <span>{label}</span>
-                  <ArrowRight size={16} style={{ opacity: 0.4 }} />
-                </NavLink>
-              ))}
+                {/* Entire Scrollable Drawer Content */}
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="no-scrollbar">
+                  {/* User Profile / Auth CTA */}
+                  <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg, rgba(46, 102, 110, 0.04) 0%, rgba(46, 102, 110, 0.08) 100%)' }}>
+                    {user ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 2px 8px rgba(18,51,58,0.04)' }}>
+                        
+                        {/* Top row: Avatar + Name + Shield badge */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '36px', height: '36px', borderRadius: '50%',
+                            background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: '700', fontSize: '15px', boxShadow: '0 2px 6px rgba(46,102,110,0.2)',
+                            overflow: 'hidden', position: 'relative', border: '1.5px solid white', flexShrink: 0
+                          }}>
+                            {headerAvatar ? (
+                              <img
+                                src={headerAvatar}
+                                alt={displayName}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            ) : null}
+                            {displayInitial}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Logged in as</span>
+                            <b style={{ display: 'block', fontSize: '14px', fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>{displayName}</b>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: 'rgba(34, 197, 94, 0.1)', color: '#15803d', fontSize: '9.5px', fontWeight: '700', padding: '1px 6px', borderRadius: '8px', marginTop: '2px' }}>
+                              <Shield size={9} /> Verified Patient
+                            </div>
+                          </div>
+                        </div>
 
-              {user && (
-                <>
-                  <div style={{ margin: '16px 0', borderTop: '1px solid var(--border)' }} />
+                        {/* Single Switch Account Button in Mobile Drawer */}
+                        {otherProfiles.length > 0 && (
+                          <div style={{ paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
+                            <button
+                              type="button"
+                              onClick={() => setMobileDrawerTab("switch")}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                background: 'rgba(27, 107, 114, 0.05)',
+                                border: '1px solid rgba(27, 107, 114, 0.14)',
+                                color: 'var(--text-main)',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(27, 107, 114, 0.1)')}
+                              onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(27, 107, 114, 0.05)')}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '50%',
+                                    background: '#1b6b72',
+                                    color: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <Users size={12} />
+                                </div>
+                                <div style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
+                                    Switch Account
+                                  </span>
+                                  <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                                    ({otherProfiles.length} available)
+                                  </span>
+                                </div>
+                              </div>
+                              <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+                            </button>
+                          </div>
+                        )}
 
-                  <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>My Account</span>
-                  {[
-                    ["Notifications", "/notifications", Bell],
-                    ["My Appointments", "/my-appointments", User],
-                    ["My Prescriptions", "/prescriptions", User],
-                    ["My Orders", "/orders", User],
-                    ["Payments & Invoices", "/payments", User],
-                  ].map(([label, path, Icon]) => (
-                    <NavLink
-                      key={label}
-                      to={path}
-                      onClick={() => {
-                        setMobileDrawerOpen(false);
-                      }}
-                      style={({ isActive }) => ({
-                        padding: '12px 16px',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '15px',
-                        fontWeight: isActive ? '700' : '500',
-                        color: isActive ? 'var(--primary)' : 'var(--text-main)',
-                        background: isActive ? 'var(--primary-light)' : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                      })}
-                    >
-                      <Icon size={16} className="text-muted" />
-                      <span>{label}</span>
-                    </NavLink>
-                  ))}
-                </>
-              )}
+                        {/* Action buttons: Profile, Settings, Logout in a single compact row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '6px', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
+                          <button
+                            className="btn btn-primary"
+                            style={{
+                              padding: '6px 8px', fontSize: '12px', fontWeight: '700', borderRadius: '8px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                              boxShadow: 'none'
+                            }}
+                            onClick={() => {
+                              setMobileDrawerOpen(false);
+                              go("/profile");
+                            }}
+                          >
+                            <User size={13} /> Profile
+                          </button>
+                          <button
+                            className="btn btn-secondary"
+                            style={{
+                              padding: '6px 8px', fontSize: '12px', fontWeight: '600', borderRadius: '8px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                              background: 'var(--bg-app)', border: '1px solid var(--border)', color: 'var(--text-main)'
+                            }}
+                            onClick={() => {
+                              setMobileDrawerOpen(false);
+                              go("/settings");
+                            }}
+                          >
+                            <Settings size={13} /> Settings
+                          </button>
+                          <button
+                            onClick={() => {
+                              logout();
+                              setMobileDrawerOpen(false);
+                              go("/");
+                            }}
+                            style={{
+                              padding: '6px 10px', fontSize: '12px', fontWeight: '700',
+                              borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              gap: '4px', color: '#dc2626', background: 'rgba(220, 38, 38, 0.06)',
+                              border: '1px solid rgba(220, 38, 38, 0.18)', cursor: 'pointer'
+                            }}
+                            title="Logout"
+                          >
+                            <LogOut size={13} /> Logout
+                          </button>
+                        </div>
 
-              <div style={{ margin: '16px 0', borderTop: '1px solid var(--border)' }} />
+                      </div>
+                    ) : (
+                      <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                        <b style={{ display: 'block', fontSize: '13.5px', color: 'var(--primary-dark)', marginBottom: '6px' }}>Welcome to Arvaya</b>
+                        <button
+                          className="btn btn-primary w-full flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setMobileDrawerOpen(false);
+                            openLoginModal();
+                          }}
+                          style={{ fontSize: '13px', padding: '8px 12px', borderRadius: '10px' }}
+                        >
+                          <User size={14} /> Login / Sign Up
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
-              <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>More Services</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', color: 'var(--text-muted)', paddingLeft: '8px' }}>
-                <span className="flex items-center gap-2 cursor-pointer"><Smartphone size={16} /> Download Mobile App</span>
-                <span className="flex items-center gap-2 cursor-pointer"><HelpCircle size={16} /> Help & Support</span>
-                <span>For Healthcare Providers</span>
-                <span>Corporate Wellness</span>
+                  {/* Navigation Links */}
+                  <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '3px', paddingLeft: '4px' }}>Navigation</span>
+                    {navLinks.map(([label, path]) => (
+                      <NavLink
+                        key={label}
+                        to={path}
+                        onClick={() => {
+                          setMobileDrawerOpen(false);
+                        }}
+                        style={({ isActive }) => ({
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: isActive ? '700' : '500',
+                          color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                          background: isActive ? 'var(--primary-light)' : 'transparent',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        })}
+                      >
+                        <span>{label}</span>
+                        <ArrowRight size={13} style={{ opacity: 0.35 }} />
+                      </NavLink>
+                    ))}
+
+                    {user && (
+                      <>
+                        <div style={{ margin: '8px 0 4px', borderTop: '1px solid var(--border)' }} />
+
+                        <span style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '3px', paddingLeft: '4px' }}>My Account</span>
+                        {[
+                          ["Notifications", "/notifications", Bell],
+                          ["My Appointments", "/my-appointments", User],
+                          ["My Prescriptions", "/prescriptions", User],
+                          ["My Orders", "/orders", User],
+                          ["Payments & Invoices", "/payments", User],
+                        ].map(([label, path, Icon]) => (
+                          <NavLink
+                            key={label}
+                            to={path}
+                            onClick={() => {
+                              setMobileDrawerOpen(false);
+                            }}
+                            style={({ isActive }) => ({
+                              padding: '7px 10px',
+                              borderRadius: '8px',
+                              fontSize: '13px',
+                              fontWeight: isActive ? '700' : '500',
+                              color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                              background: isActive ? 'var(--primary-light)' : 'transparent',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            })}
+                          >
+                            <Icon size={13} className="text-muted" />
+                            <span>{label}</span>
+                          </NavLink>
+                        ))}
+                      </>
+                    )}
+
+                    <div style={{ margin: '8px 0 4px', borderTop: '1px solid var(--border)' }} />
+
+                    <span style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '3px', paddingLeft: '4px' }}>More Services</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', color: 'var(--text-muted)', paddingLeft: '6px', paddingBottom: '16px' }}>
+                      <span className="flex items-center gap-2 cursor-pointer"><Smartphone size={13} /> Download Mobile App</span>
+                      <span className="flex items-center gap-2 cursor-pointer"><HelpCircle size={13} /> Help & Support</span>
+                      <span>For Healthcare Providers</span>
+                      <span>Corporate Wellness</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-
+            )}
           </aside>
         </>
       )}
@@ -1675,7 +2051,7 @@ export default function Header() {
             gap: 4px !important;
           }
           .header-main-row img {
-            height: 26px !important;
+            height: 34px !important;
           }
           .header-location-wrapper {
             display: flex !important;

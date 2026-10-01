@@ -556,12 +556,12 @@ export default function Records() {
             >
               My Uploads & Hospital Records
             </button>
-            <button
+            {/* <button
               className={`vault-tab-btn ${activeTab === 'abha' ? 'active' : ''}`}
               onClick={() => setActiveTab('abha')}
             >
               <Fingerprint size={18} /> ABHA Network
-            </button>
+            </button> */}
           </div>
 
           {/* Upload Button + Top Search Bar */}

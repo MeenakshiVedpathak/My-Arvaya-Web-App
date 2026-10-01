@@ -123,17 +123,41 @@ export async function verifyOtp(otp, mobile, options = {}) {
     rawUser = {};
   }
 
-  let derivedName = rawUser?.name || rawUser?.full_name || rawUser?.fullName || rawUser?.user_name || rawUser?.userName;
+  const firstProfile =
+    Array.isArray(rawUser?.profiles) && rawUser.profiles.length > 0
+      ? rawUser.profiles[0]
+      : null;
+
+  let derivedName =
+    rawUser?.name ||
+    rawUser?.full_name ||
+    rawUser?.fullName ||
+    rawUser?.user_name ||
+    rawUser?.userName ||
+    firstProfile?.name ||
+    firstProfile?.full_name;
+
   if (!derivedName || derivedName === "User" || derivedName.startsWith("User (")) {
-    const firstName = rawUser?.first_name || rawUser?.firstName || "";
-    const lastName = rawUser?.last_name || rawUser?.lastName || "";
+    const firstName =
+      rawUser?.first_name ||
+      rawUser?.firstName ||
+      firstProfile?.first_name ||
+      firstProfile?.firstName ||
+      "";
+    const lastName =
+      rawUser?.last_name ||
+      rawUser?.lastName ||
+      firstProfile?.last_name ||
+      firstProfile?.lastName ||
+      "";
     if (firstName || lastName) {
-      const title = rawUser?.title ? rawUser.title.trim() + " " : "";
+      const rawTitle = rawUser?.title || firstProfile?.title || "";
+      const title = rawTitle ? rawTitle.trim() + " " : "";
       derivedName = `${title}${firstName} ${lastName}`.trim();
     }
   }
-  if (!derivedName) {
-    derivedName = mobile ? `User (${mobile})` : "User";
+  if (!derivedName || derivedName.startsWith("User (")) {
+    derivedName = "User";
   }
   derivedName = derivedName.replace(/\.\./g, ".");
 

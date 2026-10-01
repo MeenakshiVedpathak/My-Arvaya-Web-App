@@ -715,15 +715,15 @@ export default function Home() {
 
           <div className="ecosystem-grid">
             {[
-              {
-                title: "ABHA Hub",
-                sub: "Create & link your ABHA ID for seamless health data access",
-                icon: <CreditCard size={29} strokeWidth={1.8} />,
-                link: "/abha",
-                start: "#10add5",
-                end: "#087eb8",
-                iconColor: "#087b9c",
-              },
+              // {
+              //   title: "ABHA Hub",
+              //   sub: "Create & link your ABHA ID for seamless health data access",
+              //   icon: <CreditCard size={29} strokeWidth={1.8} />,
+              //   link: "/abha",
+              //   start: "#10add5",
+              //   end: "#087eb8",
+              //   iconColor: "#087b9c",
+              // },
               {
                 title: "Arvaya Rewards",
                 sub: "Earn points on every booking and redeem exclusive offers",
