@@ -279,24 +279,24 @@ export default function Wallet() {
 
             let amountStr = "";
             if (t.amount !== undefined && t.amount !== null) {
-              const s = String(t.amount);
+              const s = String(t.amount).replace(/pts?/g, '').trim();
               if (s.startsWith('+') || s.startsWith('-')) {
-                amountStr = s.includes('pt') || s.includes('₹') ? s : `${s} pts`;
+                amountStr = s.includes('₹') ? s : `${s.charAt(0)}₹${s.slice(1).trim()}`;
               } else {
-                amountStr = `${type === 'debit' ? '-' : '+'}${s} pts`;
+                amountStr = `${type === 'debit' ? '-' : '+'}₹${s}`;
               }
             } else if (t.points !== undefined && t.points !== null) {
-              const s = String(t.points);
+              const s = String(t.points).replace(/pts?/g, '').trim();
               if (s.startsWith('+') || s.startsWith('-')) {
-                amountStr = s;
+                amountStr = s.includes('₹') ? s : `${s.charAt(0)}₹${s.slice(1).trim()}`;
               } else {
-                amountStr = `${type === 'debit' ? '-' : '+'}${s} pts`;
+                amountStr = `${type === 'debit' ? '-' : '+'}₹${s}`;
               }
             } else if (t.fee || t.consultation_fee || t.price || t.total_amount) {
               const feeVal = t.fee || t.consultation_fee || t.price || t.total_amount;
-              amountStr = `${type === 'debit' ? '-' : '+'}${feeVal} pts`;
+              amountStr = `${type === 'debit' ? '-' : '+'}₹${feeVal}`;
             } else {
-              amountStr = type === 'debit' ? '-100 pts' : '+100 pts';
+              amountStr = type === 'debit' ? '-₹100' : '+₹100';
             }
 
             return {
@@ -414,7 +414,7 @@ export default function Wallet() {
       id: Date.now(),
       title: `Redeemed: ${offer.title}`,
       date: "Just now",
-      amount: `-${offer.points} pts`,
+      amount: `-₹${offer.points}`,
       type: "debit"
     };
     
@@ -435,7 +435,7 @@ export default function Wallet() {
       id: Date.now(),
       title: "Bonus Reward Points",
       date: "Just now",
-      amount: `+${pts} pts`,
+      amount: `+₹${pts}`,
       type: "credit"
     };
     setTransactions(prev => [newTx, ...prev]);
@@ -511,7 +511,7 @@ export default function Wallet() {
                 <div>
                   <span className="wallet-eyebrow"><span className="wallet-eyebrow-badge"><Star size={13} /></span> Available reward balance</span>
                   <div className="wallet-balance-value" aria-label={`₹${rewardPoints} balance`}>
-                    {loading ? <Loader2 size={34} className="animate-spin" /> : `₹${rewardPoints.toLocaleString()}`}
+                    {loading ? <Loader2 size={34} className="animate-spin" /> : `₹ ${rewardPoints.toLocaleString()}`}
                   </div>
                 </div>
                 <div className="wallet-balance-art">
@@ -571,7 +571,7 @@ export default function Wallet() {
                       type="button"
                       key={offer.id}
                       className={`wallet-offer-card ${theme.className} ${isRedeemed ? "is-redeemed" : ""}`}
-                      onClick={() => !isRedeemed && handleRedeem(offer)}
+                      // onClick={() => !isRedeemed && handleRedeem(offer)}
                       disabled={isRedeemed}
                       style={{ position: 'relative' }}
                     >
@@ -651,7 +651,7 @@ export default function Wallet() {
                   <div className="wallet-transaction-row wallet-transaction-head">
                     <span>Date</span>
                     <span>Description</span>
-                    <span>Points</span>
+                    <span>Amount</span>
                     <span>Type</span>
                     <span>Status</span>
                   </div>

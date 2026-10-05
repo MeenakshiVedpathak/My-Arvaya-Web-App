@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronUp,
   Link as LinkIcon,
+  Ticket,
 } from "lucide-react";
 import {
   sendOtp,
@@ -59,7 +60,6 @@ export default function Login({ forceOpen = false, modalHost = false }) {
   const [isAbhaFlow, setIsAbhaFlow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-
   // Multiple Profiles state
   const [profilesData, setProfilesData] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState(null);
@@ -224,7 +224,7 @@ export default function Login({ forceOpen = false, modalHost = false }) {
       const isNewUserOne =
         rawNewUser === 1 || rawNewUser === "1" || rawNewUser === true;
 
-      // If is_new_user is 1, open registration form
+      // If is_new_user is 1, open registration form (same as previous flow)
       if (isNewUserOne) {
         setScreen("landing");
         setPhone("");
@@ -298,15 +298,12 @@ export default function Login({ forceOpen = false, modalHost = false }) {
           ? [...res.profiles]
           : [];
 
-      // If profiles array wasn't provided or was empty, but single user data exists, treat userData as the single profile so UHID is ALWAYS asked
-      if (
-        rawProfiles.length === 0 &&
-        (userData || res?.user || res?.data || rawNewUser === 0 || !isNewUserOne)
-      ) {
+      // Ensure at least one profile exists for single user, new user, or any user
+      if (rawProfiles.length === 0) {
         const u =
           userData && typeof userData === "object" && Object.keys(userData).length > 0
             ? userData
-            : res?.data || res?.user || {};
+            : res?.data || res?.user || { id: res?.id || res?.user_id || 1, name: "Patient Profile", mobile_number: phone, external_id: res?.external_id || "" };
         rawProfiles = [u];
       }
 
@@ -315,7 +312,7 @@ export default function Login({ forceOpen = false, modalHost = false }) {
         const realName =
           extractRealProfileName(p, userData) ||
           extractRealProfileName(p, res?.user) ||
-          "Patient Profile";
+          (isNewUserOne ? "New Patient" : "Patient Profile");
 
         return {
           ...p,
@@ -331,27 +328,18 @@ export default function Login({ forceOpen = false, modalHost = false }) {
         };
       });
 
-      // Check if any profile has an external_id / UHID
-      const hasAnyExternalId = profilesList.some(
-        (p) => Boolean(p.external_id && String(p.external_id).trim())
-      );
+      // Verify UHID is COMPULSORY for all types of users (single user, new user, multiple profiles)
+      setVerifyOtpRawRes(res);
+      setProfilesData(profilesList);
+      setSelectedProfileId(profilesList.length === 1 ? profilesList[0].id : null);
 
-      // If single profile (or new user) without external_id, do NOT ask for UHID -> login directly
-      if (profilesList.length <= 1 && !hasAnyExternalId) {
-        // Fall through to direct login below
-      } else if (profilesList.length > 0) {
-        setVerifyOtpRawRes(res);
-        setProfilesData(profilesList);
-        setSelectedProfileId(profilesList.length === 1 ? profilesList[0].id : null);
-
-        const initialUhids = {};
-        profilesList.forEach((p) => {
-          initialUhids[p.id] = "";
-        });
-        setUhidInputs(initialUhids);
-        setScreen("choose_profile");
-        return;
-      }
+      const initialUhids = {};
+      profilesList.forEach((p) => {
+        initialUhids[p.id] = "";
+      });
+      setUhidInputs(initialUhids);
+      setScreen("choose_profile");
+      return;
 
       // If user does not have external_id or single profile, login directly
       const token =
@@ -777,6 +765,7 @@ export default function Login({ forceOpen = false, modalHost = false }) {
             setErr("");
             setScreen("mobile");
           }}
+          showToast={showToast}
         />
       );
       break;
@@ -1329,7 +1318,12 @@ function AbhaLeftPane({ step, isCreate = false }) {
 /* ═══════════════════════════════════════
    LANDING
    ═══════════════════════════════════════ */
-function Landing({ onAbha, onMobile }) {
+function Landing({ onAbha, onMobile, showToast }) {
+  const [showReferralInput, setShowReferralInput] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [isCheckingReferral, setIsCheckingReferral] = useState(false);
+  const [isReferralApplied, setIsReferralApplied] = useState(false);
+
   return (
     <div
       style={{
@@ -1388,6 +1382,121 @@ function Landing({ onAbha, onMobile }) {
         </div>
         Continue with Mobile Number
       </button>
+
+      {/* Referral Code Option */}
+      {!isReferralApplied ? (
+        !showReferralInput ? (
+          <button 
+          onClick={() => setShowReferralInput(true)}
+          style={{
+            marginTop: '16px',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            background: 'transparent',
+            border: '1.5px dashed var(--primary)',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            transition: 'all 0.25s',
+            textAlign: 'left'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--primary-light)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ background: 'var(--primary-light)', width: '36px', height: '36px', borderRadius: '8px', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Ticket size={20} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--primary)' }}>
+                Have a referral code?
+              </span>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>
+                Tap to apply and unlock offers
+              </span>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--text-muted)" />
+        </button>
+      ) : (
+        <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+          <input
+            type="text"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value)}
+            placeholder="Enter referral code"
+            style={{
+              flex: 1,
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: '1px solid var(--border)',
+              background: '#f8f9fa',
+              fontSize: '15px',
+              outline: 'none',
+              color: 'var(--text-main)',
+            }}
+            autoFocus
+          />
+          <button
+            onClick={async () => {
+              if (referralCode.trim()) {
+                setIsCheckingReferral(true);
+                try {
+                  const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://p8rhkmb7-8867.inc1.devtunnels.ms/";
+                  const cleanBase = BASE_URL.endsWith('/') ? BASE_URL : `${BASE_URL}/`;
+                  const response = await fetch(`${cleanBase}check-referral-code`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'apikey': 'JP76Ol1r5lMvzljKmeaTdP9EthTYzKFH',
+                      'applicationkey': 'Xkit6MeT1Et4ZA2N'
+                    },
+                    body: JSON.stringify({
+                      referral_code: referralCode.trim(),
+                    }),
+                  });
+                  const data = await response.json();
+                  if (response.ok && data?.status !== false && data?.status !== 'error' && !data?.error) {
+                    localStorage.setItem("referral_code", referralCode.trim());
+                    if (showToast) showToast(data?.message || "Referral code applied successfully", "success");
+                    setShowReferralInput(false);
+                    setIsReferralApplied(true);
+                  } else {
+                    if (showToast) showToast(data?.message || data?.error || "Invalid referral code", "error");
+                  }
+                } catch (e) {
+                  console.error("Referral check failed:", e);
+                  if (showToast) showToast("Failed to verify referral code", "error");
+                } finally {
+                  setIsCheckingReferral(false);
+                }
+              } else {
+                setShowReferralInput(false);
+              }
+            }}
+            disabled={isCheckingReferral}
+            style={{
+              padding: '0 24px',
+              background: isCheckingReferral ? 'var(--primary-light)' : 'var(--primary)',
+              color: isCheckingReferral ? 'var(--primary)' : '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: isCheckingReferral ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isCheckingReferral ? 'Applying...' : 'Apply'}
+          </button>
+        </div>
+      )
+      ) : null}
 
       {/* <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
         <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
@@ -4189,6 +4298,7 @@ function ChooseProfile({
   const [chooseStep, setChooseStep] = useState("verify"); // "verify" | "select_primary"
   const [selectedProfileIds, setSelectedProfileIds] = useState([]);
   const [primaryLoginId, setPrimaryLoginId] = useState(null);
+  const { showToast } = useAuth();
 
   const getInitials = (name) => {
     if (!name) return "U";
@@ -4212,6 +4322,7 @@ function ChooseProfile({
 
   const handleUhidInputChange = (profile, val) => {
     onUhidChange(profile.id, val);
+    const hasLowercase = /[a-z]/.test(val || "");
     const entered = (val || "").trim().toUpperCase();
     const expected = (
       profile.external_id ||
@@ -4220,7 +4331,7 @@ function ChooseProfile({
       ""
     ).trim().toUpperCase();
     const isMatch = Boolean(
-      entered && (expected ? entered === expected : entered.length >= 3)
+      !hasLowercase && entered && (expected ? entered === expected : entered.length >= 3)
     );
     if (isMatch) {
       setSelectedProfileIds((prev) =>
@@ -4232,6 +4343,21 @@ function ChooseProfile({
   };
 
   const handleProceedToPrimary = () => {
+    // Check if any entered UHID contains lowercase letters
+    const hasLowercase = selectedProfileIds.some((id) => {
+      const val = uhidInputs[id] || "";
+      return /[a-z]/.test(val);
+    });
+    
+    if (hasLowercase) {
+      if (showToast) {
+        showToast("UHID must be in uppercase format (e.g., KOL-1022)", "error");
+      } else {
+        alert("UHID must be in uppercase format (e.g., KOL-1022)");
+      }
+      return;
+    }
+
     const verifiedSelected = profiles.filter((p) =>
       selectedProfileIds.includes(p.id)
     );
@@ -4523,11 +4649,8 @@ function ChooseProfile({
         }}
       >
         {profiles.map((p) => {
-          const hasExternalId = Boolean(
-            p.external_id && String(p.external_id).trim()
-          );
           const isAccordionOpen =
-            hasExternalId && (p.id === selectedProfileId || profiles.length === 1);
+            p.id === selectedProfileId || profiles.length === 1;
           const isPrimary =
             !p.relation &&
             (!p.parent_account_id || p.parent_account_id === p.id);
@@ -4549,6 +4672,7 @@ function ChooseProfile({
           const initials = getInitials(displayName);
           const currentUhid =
             uhidInputs[p.id] !== undefined ? uhidInputs[p.id] : "";
+          const hasLowercase = /[a-z]/.test(currentUhid);
           const enteredClean = currentUhid.trim().toUpperCase();
           const expectedClean = (
             p.external_id ||
@@ -4557,8 +4681,7 @@ function ChooseProfile({
             ""
           ).trim().toUpperCase();
           const isVerified = Boolean(
-            hasExternalId &&
-              enteredClean &&
+            !hasLowercase && enteredClean &&
               (expectedClean ? enteredClean === expectedClean : enteredClean.length >= 3)
           );
           const isChecked = selectedProfileIds.includes(p.id);
@@ -4581,14 +4704,10 @@ function ChooseProfile({
                   : "none",
               }}
             >
-              {/* Card Top Row - Clickable to expand/collapse if has UHID, or select directly */}
+              {/* Card Top Row - Clickable to expand/collapse */}
               <div
                 onClick={() => {
-                  if (hasExternalId) {
-                    onSelectProfile(isAccordionOpen ? null : p.id);
-                  } else {
-                    handleCheckboxToggle(p.id, !isChecked);
-                  }
+                  onSelectProfile(isAccordionOpen ? null : p.id);
                 }}
                 style={{
                   display: "flex",
@@ -4638,7 +4757,7 @@ function ChooseProfile({
                       {displayName}
                     </div>
 
-                    {/* Only show verified below name when user enters external id */}
+                    {/* Only show verified below name when user enters valid UHID */}
                     {isVerified && (
                       <div style={{ marginTop: "4px" }}>
                         <span
@@ -4665,10 +4784,10 @@ function ChooseProfile({
                 <div
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (!hasExternalId || isVerified) {
+                    if (isVerified) {
                       handleCheckboxToggle(p.id, !isChecked);
                     } else {
-                      onSelectProfile(isAccordionOpen ? null : p.id);
+                      onSelectProfile(p.id);
                     }
                   }}
                   style={{
@@ -4682,22 +4801,18 @@ function ChooseProfile({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    cursor: "pointer",
+                    cursor: isVerified ? "pointer" : "not-allowed",
                     transition: "all 0.15s ease",
                     flexShrink: 0,
                     boxSizing: "border-box",
                     alignSelf: "flex-start",
                   }}
                   title={
-                    !hasExternalId
+                    isVerified
                       ? isChecked
                         ? "Selected"
                         : "Click to select"
-                      : isVerified
-                        ? isChecked
-                          ? "Selected"
-                          : "Click to select"
-                        : "Enter UHID to verify"
+                      : "Enter UHID to verify"
                   }
                 >
                   {isChecked && (
@@ -4706,8 +4821,8 @@ function ChooseProfile({
                 </div>
               </div>
 
-              {/* Card Expanded Content - Only ask for UHID if user has external_id */}
-              {isAccordionOpen && hasExternalId && (
+              {/* Card Expanded Content - UHID verification is compulsory for all users */}
+              {isAccordionOpen && (
                 <div
                   style={{
                     marginTop: "16px",
@@ -4726,7 +4841,7 @@ function ChooseProfile({
                       textTransform: "uppercase",
                     }}
                   >
-                    UHID
+                    UHID <span style={{ color: "#ef4444" }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -4776,7 +4891,29 @@ function ChooseProfile({
                         gap: "6px",
                       }}
                     >
-                      <span>UHID does not match records</span>
+                      <span>
+                        {expectedClean
+                          ? "UHID does not match records"
+                          : "Please enter a valid UHID (min 3 characters)"}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* If verified successfully, show success badge */}
+                  {isVerified && (
+                    <div
+                      style={{
+                        color: "#15803d",
+                        fontSize: "12.5px",
+                        marginTop: "8px",
+                        fontWeight: "600",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>UHID verified successfully</span>
                     </div>
                   )}
                 </div>
@@ -4787,14 +4924,14 @@ function ChooseProfile({
       </div>
 
       {/* Continue Button once at least one account is verified & checked */}
-      {selectedProfileIds.length > 0 && (
+      {selectedProfileIds.length > 0 ? (
         <button
           type="button"
           onClick={handleProceedToPrimary}
           style={{
             width: "100%",
             marginTop: "14px",
-            background: "linear-gradient(135deg, #f97316, #ea580c)",
+            background: "linear-gradient(135deg, #1b6b72, #144e53)",
             color: "#ffffff",
             border: "none",
             padding: "14px",
@@ -4802,7 +4939,7 @@ function ChooseProfile({
             fontSize: "15px",
             fontWeight: "700",
             cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(249, 115, 22, 0.35)",
+            boxShadow: "0 4px 14px rgba(27, 107, 114, 0.35)",
             transition: "all 0.25s ease",
             display: "flex",
             alignItems: "center",
@@ -4811,9 +4948,34 @@ function ChooseProfile({
           }}
         >
           <span>
-            Continue ({selectedProfileIds.length} account
-            {selectedProfileIds.length > 1 ? "s" : ""} selected)
+            {profiles.length === 1
+              ? "Verify & Continue"
+              : `Continue (${selectedProfileIds.length} account${selectedProfileIds.length > 1 ? "s" : ""} selected)`}
           </span>
+          <ChevronRight size={18} />
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={true}
+          style={{
+            width: "100%",
+            marginTop: "14px",
+            background: "#e2e8f0",
+            color: "#94a3b8",
+            border: "none",
+            padding: "14px",
+            borderRadius: "12px",
+            fontSize: "15px",
+            fontWeight: "700",
+            cursor: "not-allowed",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
+        >
+          <span>Enter UHID to Verify & Continue</span>
           <ChevronRight size={18} />
         </button>
       )}

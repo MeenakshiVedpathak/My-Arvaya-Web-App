@@ -249,6 +249,16 @@ function parseLocation(raw) {
  * @returns {Array<{lat:number,lng:number,timestamp:string}>}
  */
 function parseLocationHistory(history) {
+  if (typeof history === "string") {
+    try {
+      const parsed = JSON.parse(history);
+      if (Array.isArray(parsed)) {
+        history = parsed;
+      }
+    } catch (e) {
+      // Might not be JSON, keep as is
+    }
+  }
   if (!Array.isArray(history) || history.length === 0) return [];
   return history.map(h => {
     if (typeof h === "string") {

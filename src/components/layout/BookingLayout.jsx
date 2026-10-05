@@ -1,6 +1,7 @@
 import { Building2, Stethoscope, User, FileText, CalendarDays, CheckCircle2, ClipboardCheck, ChevronRight, ShieldCheck, Clock, Heart } from "lucide-react";
 import { useBooking } from "../../context/BookingContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
 
 const STEPS = [
   { id: 0, title: "Hospital", icon: Building2, path: "/doctors" },
@@ -14,9 +15,21 @@ const STEPS = [
 export default function BookingLayout({ currentStep, title, subtitle, children }) {
   const { bookingHospital, bookingSpecialty, doctor, date, slot } = useBooking();
   const navigate = useNavigate();
+  const location = useLocation();
+  const bodySplitRef = useRef(null);
 
-  const handleStepClick = (step) => {
-    if (step.id < currentStep) {
+  // Scroll the booking body area into view whenever the step changes
+  // so the user doesn't get thrown to the top of the page
+  useEffect(() => {
+    if (bodySplitRef.current) {
+      bodySplitRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentStep]);
+
+  const handleStepClick = (e, step) => {
+    e.preventDefault();
+    // Only navigate if it's a completed (earlier) step AND we're not already there
+    if (step.id < currentStep && location.pathname !== step.path) {
       navigate(step.path);
     }
   };
@@ -49,7 +62,7 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
         </div>
 
         {/* Body Split: Left Vertical Stepper Sidebar & Right Content */}
-        <div className="booking-body-split">
+        <div className="booking-body-split" ref={bodySplitRef}>
           {/* Left Sidebar: Vertical Stepper */}
           <aside className="booking-sidebar">
             <div className="booking-stepper-vertical">
@@ -74,7 +87,7 @@ export default function BookingLayout({ currentStep, title, subtitle, children }
                 return (
                   <div
                     key={step.id}
-                    onClick={() => handleStepClick(step)}
+                    onClick={(e) => handleStepClick(e, step)}
                     className={`booking-step-item-vertical${isCurrent ? ' is-current' : ''}${isCompleted ? ' is-completed' : ''}`}
                     style={{
                       cursor: canClick ? 'pointer' : 'default',

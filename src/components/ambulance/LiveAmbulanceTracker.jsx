@@ -67,6 +67,7 @@ export default function LiveAmbulanceTracker({ requestId, pickupLat, pickupLng, 
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const polylineRef = useRef(null);
+  const historyPolylineRef = useRef(null);
   const pickupMarkerRef = useRef(null);
   const lastLocationMarkerRef = useRef(null);
   const infoWindowRef = useRef(null);
@@ -121,6 +122,14 @@ useEffect(() => {
           scale: 4,
           strokeColor: "#dc2626",
         }],
+      });
+
+      historyPolylineRef.current = new window.google.maps.Polyline({
+        map,
+        path: [],
+        strokeColor: "#2563eb",
+        strokeOpacity: 0.8,
+        strokeWeight: 4,
       });
 
       infoWindowRef.current = new window.google.maps.InfoWindow();
@@ -198,6 +207,10 @@ useEffect(() => {
     const historyPath = history
       .filter(h => h.lat != null && h.lng != null)
       .map(h => ({ lat: h.lat, lng: h.lng }));
+
+    if (historyPolylineRef.current) {
+      historyPolylineRef.current.setPath(historyPath);
+    }
 
     const lastHistory = historyPath.length > 0 ? historyPath[historyPath.length - 1] : null;
 

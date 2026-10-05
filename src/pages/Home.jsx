@@ -48,6 +48,9 @@ export default function Home() {
   const go = useNavigate();
   const { user } = useAuth();
   const reviewsScrollRef = useRef(null);
+  const PLAY_STORE_URL =
+    "https://play.google.com/store/apps/details?id=com.arvaya";
+  const APP_STORE_URL = "https://apps.apple.com/in/app/myarvaya/id6803788368";
 
   const scrollReviews = (dir) => {
     if (reviewsScrollRef.current) {
@@ -755,15 +758,15 @@ export default function Home() {
                 end: "#087f74",
                 iconColor: "#087b73",
               },
-              {
-                title: "Health Records",
-                sub: "Your complete medical history, encrypted and always accessible",
-                icon: <FileText size={29} strokeWidth={1.8} />,
-                link: "/records",
-                start: "#ff9d42",
-                end: "#ef701b",
-                iconColor: "#d95f10",
-              },
+              // {
+              //   title: "Health Records",
+              //   sub: "Your complete medical history, encrypted and always accessible",
+              //   icon: <FileText size={29} strokeWidth={1.8} />,
+              //   link: "/records",
+              //   start: "#ff9d42",
+              //   end: "#ef701b",
+              //   iconColor: "#d95f10",
+              // },
             ].map((item, idx) => (
               <article
                 key={item.title}
@@ -1416,6 +1419,9 @@ export default function Home() {
                     alignItems: "center",
                     gap: "10px",
                   }}
+                   onClick={() =>
+                    window.open(APP_STORE_URL, "_blank", "noopener,noreferrer")
+                  } 
                 >
                   <span
                     style={{
@@ -1451,6 +1457,9 @@ export default function Home() {
                     alignItems: "center",
                     gap: "10px",
                   }}
+                  onClick={() =>
+                    window.open(PLAY_STORE_URL, "_blank", "noopener,noreferrer")
+                  }
                 >
                   <span
                     style={{

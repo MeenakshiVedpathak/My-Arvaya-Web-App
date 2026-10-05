@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function Calendar({ selectedDate, onSelectDate, minDate }) {
+export default function Calendar({ selectedDate, onSelectDate, minDate, compact = false, borderless = false }) {
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate || new Date()));
 
   const today = new Date();
@@ -35,14 +35,22 @@ export default function Calendar({ selectedDate, onSelectDate, minDate }) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   return (
-    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '14px 16px', width: '100%', maxWidth: '320px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-        <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
-          <ChevronLeft size={18} color="var(--text-main)" />
+    <div style={{ 
+      background: 'var(--bg-surface)', 
+      border: borderless ? 'none' : '1px solid var(--border)', 
+      borderRadius: '14px', 
+      padding: compact ? '6px 8px' : '14px 16px', 
+      width: '100%', 
+      maxWidth: compact ? '290px' : '320px', 
+      boxShadow: borderless ? 'none' : '0 2px 8px rgba(0,0,0,0.02)' 
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: compact ? '6px' : '10px' }}>
+        <button onClick={prevMonth} type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 5px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
+          <ChevronLeft size={compact ? 16 : 18} color="var(--text-main)" />
         </button>
-        <b style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '700' }}>{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</b>
-        <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
-          <ChevronRight size={18} color="var(--text-main)" />
+        <b style={{ color: 'var(--text-main)', fontSize: compact ? '13px' : '14px', fontWeight: '700' }}>{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</b>
+        <button onClick={nextMonth} type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px 5px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
+          <ChevronRight size={compact ? 16 : 18} color="var(--text-main)" />
         </button>
       </div>
 
@@ -63,22 +71,28 @@ export default function Calendar({ selectedDate, onSelectDate, minDate }) {
           return (
             <button
               key={i}
+              type="button"
               disabled={isPast}
               onClick={() => onSelectDate(date)}
               style={{
                 width: '100%',
-                height: '32px',
+                height: compact ? '26px' : '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 border: 'none',
-                background: isSelected ? 'var(--primary)' : (isToday ? 'var(--primary-light)' : 'transparent'),
-                color: isSelected ? '#fff' : (isPast ? 'var(--border)' : (isToday ? 'var(--primary-dark)' : 'var(--text-main)')),
-                borderRadius: '8px',
+                background: isSelected 
+                  ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)' 
+                  : (isToday ? 'rgba(46, 102, 110, 0.1)' : 'transparent'),
+                color: isSelected 
+                  ? '#ffffff' 
+                  : (isPast ? 'var(--border)' : (isToday ? 'var(--primary-dark)' : 'var(--text-main)')),
+                borderRadius: '7px',
                 cursor: isPast ? 'not-allowed' : 'pointer',
-                fontWeight: isSelected || isToday ? '600' : '400',
-                fontSize: '13px',
-                transition: '0.15s ease'
+                fontWeight: isSelected ? '700' : (isToday ? '600' : '500'),
+                fontSize: compact ? '11.5px' : '12.5px',
+                boxShadow: isSelected ? '0 2px 8px rgba(46, 102, 110, 0.3)' : 'none',
+                transition: 'all 0.15s ease'
               }}
             >
               {date.getDate()}

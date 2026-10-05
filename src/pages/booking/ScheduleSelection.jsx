@@ -1,17 +1,55 @@
-import { useState, useEffect } from "react";
-import { CheckCircle2, Sun, Sunrise, Sunset, Check } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { 
+  CheckCircle2, 
+  Sun, 
+  Sunrise, 
+  Sunset, 
+  Check, 
+  CalendarDays, 
+  Clock, 
+  Calendar as CalendarIcon, 
+  ArrowRight,
+  Search,
+  X 
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
 import BookingLayout from "../../components/layout/BookingLayout";
 import Calendar from "../../components/common/Calendar";
 import { getDoctorSlots } from "../../services/dataService";
 import { useAuth } from "../../context/AuthContext";
+import Toast from "../../components/common/Toast";
+
+/**
+ * Sanitizes search input to prevent SQL Injection attempts and malicious payload evaluation.
+ * Strips SQL meta-characters, SQL command keywords, and boolean injection tautologies.
+ */
+export function sanitizeSearchQuery(input = "") {
+  if (typeof input !== "string") return "";
+  let clean = input.slice(0, 60);
+  // Strip dangerous SQL syntax characters: quotes, backticks, semicolons, comments, backslashes, HTML/script tags
+  clean = clean.replace(/['"`\\;#<>{}]/g, "");
+  clean = clean.replace(/--+/g, "");
+  clean = clean.replace(/\/\*[\s\S]*?\*\//g, "");
+  // Strip dangerous SQL command keywords (case-insensitive)
+  const sqlKeywords =
+    /\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|TRUNCATE|DECLARE|CAST|CONVERT|WHERE|FROM|XP_)\b/gi;
+  clean = clean.replace(sqlKeywords, "");
+  // Strip SQL boolean bypass tautologies (e.g. OR 1=1, AND '1'='1')
+  clean = clean.replace(/\b(OR|AND)\s+['"\w\d]+\s*=\s*['"\w\d]+/gi, "");
+  // Only allow valid search characters: alphanumeric, spaces, hyphens, commas, ampersands, slashes, periods
+  clean = clean.replace(/[^a-zA-Z0-9\s,\-&/.]/g, "");
+  return clean;
+}
 
 export default function ScheduleSelection() {
   const navigate = useNavigate();
-  const { doctor, bookingVisitType, date, setDate, slot, setSlot } = useBooking();
+  const { doctor, bookingHospital, date, setDate, slot, setSlot } = useBooking();
   const { user, openLoginModal } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState("all"); // 'all' | 'morning' | 'afternoon' | 'evening'
+  const [searchQ, setSearchQ] = useState("");
+  const [toast, setToast] = useState({ isOpen: false, message: "", type: "error" });
 
   const [availableSlots, setAvailableSlots] = useState({ morning: [], afternoon: [], evening: [] });
 
@@ -63,7 +101,7 @@ export default function ScheduleSelection() {
       setAvailableSlots({ morning, afternoon, evening });
       setLoading(false);
     }).catch(err => {
-      console.error(err);
+      console.error("Error loading doctor slots:", err);
       setLoading(false);
     });
   }, [date, doctor, setSlot]);
@@ -81,236 +119,427 @@ export default function ScheduleSelection() {
     return str;
   };
 
+  const handleSearchChange = (e) => {
+    const sanitized = sanitizeSearchQuery(e.target.value);
+    setSearchQ(sanitized);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQ("");
+  };
+
+  const filteredSlots = useMemo(() => {
+    const q = sanitizeSearchQuery(searchQ).trim().toLowerCase();
+    if (!q) return availableSlots;
+
+    const filterArr = (arr) => arr.filter(s => {
+      const str = formatSlot(s).toLowerCase();
+      return str.includes(q);
+    });
+
+    return {
+      morning: filterArr(availableSlots.morning),
+      afternoon: filterArr(availableSlots.afternoon),
+      evening: filterArr(availableSlots.evening)
+    };
+  }, [availableSlots, searchQ]);
+
   const handleConfirm = () => {
-    if (slot && date && doctor) {
-      if (!user) {
-        openLoginModal("/doctors/review");
-      } else {
-        navigate("/doctors/review");
-      }
+    if (!slot) {
+      setToast({
+        isOpen: true,
+        message: "Please select an available appointment time slot to proceed.",
+        type: "error"
+      });
+      return;
+    }
+    if (!date) {
+      setToast({
+        isOpen: true,
+        message: "Please select an appointment date to proceed.",
+        type: "error"
+      });
+      return;
+    }
+    if (!doctor) {
+      setToast({
+        isOpen: true,
+        message: "Please select a doctor first.",
+        type: "error"
+      });
+      return;
+    }
+
+    if (!user) {
+      openLoginModal("/doctors/review");
+    } else {
+      navigate("/doctors/review");
     }
   };
 
-  const renderSlotText = (slotStr) => {
-    return <span>{slotStr}</span>;
-  };
+  // Quick next-days shortcuts for high-convenience booking
+  const quickDates = useMemo(() => {
+    const today = new Date();
+    const list = [];
+    for (let i = 1; i <= 4; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      d.setHours(0, 0, 0, 0);
+      list.push({
+        label: i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+        shortLabel: i === 1 ? "Tomorrow" : d.toLocaleDateString("en-US", { weekday: "short", day: "numeric" }),
+        date: d
+      });
+    }
+    return list;
+  }, []);
+
+  const totalSlotsCount = availableSlots.morning.length + availableSlots.afternoon.length + availableSlots.evening.length;
 
   if (!doctor) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <p>No doctor selected. Redirecting...</p>
-        <button onClick={() => navigate("/doctors/list")} className="btn btn-primary">Go back</button>
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '14px' }}>
+          No doctor selected. Please select a doctor first.
+        </p>
+        <button onClick={() => navigate("/doctors/list")} className="btn btn-primary">
+          Back to Doctors
+        </button>
       </div>
     );
   }
 
   return (
+    <>
     <BookingLayout 
       currentStep={4} 
       title="Date & Time" 
       subtitle="Select a convenient slot for your appointment."
     >
-      {/* Scoped Styling for Time Slots Selection */}
-      <style>{`
-        .time-slots-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-          gap: 12px;
-        }
-
-        .slot-chip {
-          padding: 10px 14px;
-          border: 1.5px solid var(--border, #e2e8f0);
-          border-radius: 12px;
-          background: #ffffff;
-          color: #1e293b;
-          font-size: 13.5px;
-          font-weight: 600;
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-          user-select: none;
-          outline: none;
-          white-space: nowrap;
-        }
-
-        .slot-chip:hover:not(.selected):not(.active) {
-          border-color: var(--primary, #2e666e);
-          background: var(--primary-light, #e4eeef);
-          color: var(--primary-dark, #12333a);
-          box-shadow: 0 4px 12px rgba(46, 102, 110, 0.12);
-          transform: translateY(-2px);
-        }
-
-        .slot-chip.selected,
-        .slot-chip.active {
-          background: linear-gradient(135deg, var(--primary, #2e666e) 0%, var(--primary-dark, #12333a) 100%) !important;
-          color: #ffffff !important;
-          border-color: var(--primary-dark, #12333a) !important;
-          font-weight: 700 !important;
-          box-shadow: 0 6px 18px rgba(46, 102, 110, 0.35) !important;
-          transform: translateY(-2px) scale(1.02) !important;
-        }
-
-        .slot-chip:active {
-          transform: scale(0.97);
-        }
-      `}</style>
-
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      <div className="schedule-selection-wrapper">
         
-        {/* Calendar & Time Slot area */}
+        {/* Calendar & Time Slots 2-Column Responsive Layout */}
         <div className="booking-schedule-grid">
           
-          {/* Calendar Area - Full Display on Screen */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 10px 0', alignSelf: 'flex-start' }}>Select a Date</h3>
-            {(() => {
-              const tomorrow = new Date();
-              tomorrow.setDate(tomorrow.getDate() + 1);
-              return (
-                <Calendar 
-                  selectedDate={date}
-                  onSelectDate={(d) => setDate(d)}
-                  minDate={tomorrow}
-                />
-              );
-            })()}
+          {/* Left Panel: Appointment Date Picker & Quick Days */}
+          <div className="schedule-calendar-card">
+            <div className="schedule-card-header">
+              <h3 className="schedule-card-title">
+                <CalendarDays size={16} /> Select Date
+              </h3>
+              {date && (
+                <span className="hospital-location-tag" style={{ fontSize: '11px', padding: '2.5px 7px' }}>
+                  {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </span>
+              )}
+            </div>
+
+            {/* Quick Next Days Filter Bar */}
+            {/* <div className="schedule-quick-dates">
+              {quickDates.map((q) => {
+                const isActive = date && date.toDateString() === q.date.toDateString();
+                return (
+                  <button
+                    key={q.label}
+                    type="button"
+                    className={`quick-date-chip ${isActive ? "active" : ""}`}
+                    onClick={() => setDate(q.date)}
+                  >
+                    {q.shortLabel}
+                  </button>
+                );
+              })}
+            </div> */}
+
+            {/* Standard Calendar Widget */}
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+              {(() => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return (
+                  <Calendar 
+                    selectedDate={date}
+                    onSelectDate={(d) => setDate(d)}
+                    minDate={tomorrow}
+                    compact={true}
+                    borderless={true}
+                  />
+                );
+              })()}
+            </div>
           </div>
 
-          {/* Time Slots Area */}
-          <div className="styled-scrollbar" style={{ display: 'flex', flexDirection: 'column', maxHeight: '100%', overflowY: 'auto', paddingRight: '4px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 10px 0' }}>Available Time Slots</h3>
+          {/* Right Panel: Available Time Slots Container (Feasible for Large Slot Datasets) */}
+          <div className="schedule-slots-panel">
             
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0', flex: 1 }}>
-                <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            {/* Header: Title, Slot Counter & Period Filters */}
+            <div className="schedule-slots-header">
+              <div className="schedule-slots-title-group">
+                <h3 className="schedule-slots-title">
+                  <Clock size={16} color="var(--primary)" /> Available Slots
+                </h3>
+                <span className="hospital-count-badge">
+                  {totalSlotsCount} {totalSlotsCount === 1 ? "slot" : "slots"}
+                </span>
               </div>
-            ) : (
-              <div style={{ flex: 1 }}>
-                
-                {/* Morning */}
-                {availableSlots.morning.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>
-                      <Sunrise size={16} color="#eab308" /> Morning
-                    </div>
-                    <div className="time-slots-grid">
-                      {availableSlots.morning.map(s => {
-                        const slotStr = formatSlot(s);
-                        const isSel = slot === slotStr;
-                        return (
-                          <button
-                            key={slotStr}
-                            onClick={() => setSlot(slotStr)}
-                            className={`slot-chip ${isSel ? 'selected active' : ''}`}
-                          >
-                            {isSel && <Check size={14} strokeWidth={2.5} />}
-                            {renderSlotText(slotStr)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
-                {/* Afternoon */}
-                {availableSlots.afternoon.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>
-                      <Sun size={16} color="#f97316" /> Afternoon
-                    </div>
-                    <div className="time-slots-grid">
-                      {availableSlots.afternoon.map(s => {
-                        const slotStr = formatSlot(s);
-                        const isSel = slot === slotStr;
-                        return (
-                          <button
-                            key={slotStr}
-                            onClick={() => setSlot(slotStr)}
-                            className={`slot-chip ${isSel ? 'selected active' : ''}`}
-                          >
-                            {isSel && <Check size={14} strokeWidth={2.5} />}
-                            {renderSlotText(slotStr)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+              {/* Period Filters: All / Morning / Afternoon / Evening */}
+              {totalSlotsCount > 0 && (
+                <div className="schedule-period-filters">
+                  <button
+                    type="button"
+                    className={`period-filter-pill ${periodFilter === "all" ? "active" : ""}`}
+                    onClick={() => setPeriodFilter("all")}
+                  >
+                    All ({totalSlotsCount})
+                  </button>
+                  {availableSlots.morning.length > 0 && (
+                    <button
+                      type="button"
+                      className={`period-filter-pill ${periodFilter === "morning" ? "active" : ""}`}
+                      onClick={() => setPeriodFilter("morning")}
+                    >
+                      <Sunrise size={13} color="#eab308" /> Morning ({availableSlots.morning.length})
+                    </button>
+                  )}
+                  {availableSlots.afternoon.length > 0 && (
+                    <button
+                      type="button"
+                      className={`period-filter-pill ${periodFilter === "afternoon" ? "active" : ""}`}
+                      onClick={() => setPeriodFilter("afternoon")}
+                    >
+                      <Sun size={13} color="#f97316" /> Afternoon ({availableSlots.afternoon.length})
+                    </button>
+                  )}
+                  {availableSlots.evening.length > 0 && (
+                    <button
+                      type="button"
+                      className={`period-filter-pill ${periodFilter === "evening" ? "active" : ""}`}
+                      onClick={() => setPeriodFilter("evening")}
+                    >
+                      <Sunset size={13} color="#8b5cf6" /> Evening ({availableSlots.evening.length})
+                    </button>
+                  )}
+                </div>
+              )}
+              {/* SQL Protected Search for Available Slots */}
+              {totalSlotsCount > 3 && (
+                <div className="hospital-search-box" style={{ maxWidth: '175px', height: '32px', minHeight: '32px', maxHeight: '32px', padding: '0 8px', borderRadius: '8px' }}>
+                  <Search size={13} color="var(--primary)" style={{ flexShrink: 0 }} />
+                  <input
+                    type="text"
+                    className="hospital-search-input"
+                    placeholder="Search time..."
+                    value={searchQ}
+                    onChange={handleSearchChange}
+                    maxLength={30}
+                    autoComplete="off"
+                    aria-label="Search slots"
+                    style={{ fontSize: '11px', lineHeight: '30px' }}
+                  />
+                  {searchQ && (
+                    <button
+                      type="button"
+                      className="hospital-search-clear"
+                      onClick={handleClearSearch}
+                      title="Clear slot search"
+                      aria-label="Clear slot search"
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
-                {/* Evening */}
-                {availableSlots.evening.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: 'var(--text-main)', fontSize: '13px', fontWeight: '600' }}>
-                      <Sunset size={16} color="#8b5cf6" /> Evening
-                    </div>
-                    <div className="time-slots-grid">
-                      {availableSlots.evening.map(s => {
-                        const slotStr = formatSlot(s);
-                        const isSel = slot === slotStr;
-                        return (
-                          <button
-                            key={slotStr}
-                            onClick={() => setSlot(slotStr)}
-                            className={`slot-chip ${isSel ? 'selected active' : ''}`}
-                          >
-                            {isSel && <Check size={14} strokeWidth={2.5} />}
-                            {renderSlotText(slotStr)}
-                          </button>
-                        );
-                      })}
-                    </div>
+            {/* Slots Scroll Container */}
+            <div className="schedule-slots-scroll-area styled-scrollbar">
+              {loading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: '12px' }}>
+                  <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: '36px', height: '36px', border: '3px solid rgba(46, 102, 110, 0.15)', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }}></div>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Loading available slots for {date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'selected date'}...
+                  </span>
+                </div>
+              ) : totalSlotsCount === 0 ? (
+                <div className="hospital-empty-state" style={{ padding: '36px 16px' }}>
+                  <div className="hospital-empty-icon-wrap" style={{ width: '56px', height: '56px' }}>
+                    <CalendarIcon size={28} />
                   </div>
-                )}
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', margin: '4px 0 2px' }}>
+                    No Slots Available
+                  </h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '13px', maxWidth: '320px', margin: '0 auto', lineHeight: 1.4 }}>
+                    No appointment slots available for {date?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}. Please select another date.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Empty state when search yields no slots */}
+                  {searchQ && filteredSlots.morning.length === 0 && filteredSlots.afternoon.length === 0 && filteredSlots.evening.length === 0 && (
+                    <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                      No slots matching "{searchQ}". <button type="button" onClick={handleClearSearch} style={{ color: 'var(--primary)', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}>Clear search</button>
+                    </div>
+                  )}
 
-                {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && availableSlots.evening.length === 0 && (
-                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No slots available for the selected date. Please choose another date.
-                  </div>
-                )}
+                  {/* Morning Slots */}
+                  {filteredSlots.morning.length > 0 && (periodFilter === "all" || periodFilter === "morning") && (
+                    <div className="slot-section-group">
+                      <div className="slot-section-header">
+                        <Sunrise size={15} color="#eab308" />
+                        <span>Morning</span>
+                        <span className="slot-section-tag morning">
+                          {filteredSlots.morning.length} slots
+                        </span>
+                      </div>
+                      <div className="time-slots-grid">
+                        {filteredSlots.morning.map(s => {
+                          const slotStr = formatSlot(s);
+                          const isSel = slot === slotStr;
+                          return (
+                            <button
+                              key={slotStr}
+                              type="button"
+                              onClick={() => setSlot(slotStr)}
+                              className={`slot-chip ${isSel ? 'selected' : ''}`}
+                              aria-selected={isSel}
+                            >
+                              <Clock size={11} className="slot-clock-icon" />
+                              <span>{slotStr}</span>
+                              {isSel && <Check size={11} strokeWidth={3} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-              </div>
-            )}
+                  {/* Afternoon Slots */}
+                  {filteredSlots.afternoon.length > 0 && (periodFilter === "all" || periodFilter === "afternoon") && (
+                    <div className="slot-section-group">
+                      <div className="slot-section-header">
+                        <Sun size={15} color="#f97316" />
+                        <span>Afternoon</span>
+                        <span className="slot-section-tag afternoon">
+                          {filteredSlots.afternoon.length} slots
+                        </span>
+                      </div>
+                      <div className="time-slots-grid">
+                        {filteredSlots.afternoon.map(s => {
+                          const slotStr = formatSlot(s);
+                          const isSel = slot === slotStr;
+                          return (
+                            <button
+                              key={slotStr}
+                              type="button"
+                              onClick={() => setSlot(slotStr)}
+                              className={`slot-chip ${isSel ? 'selected' : ''}`}
+                              aria-selected={isSel}
+                            >
+                              <Clock size={11} className="slot-clock-icon" />
+                              <span>{slotStr}</span>
+                              {isSel && <Check size={11} strokeWidth={3} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Evening Slots */}
+                  {filteredSlots.evening.length > 0 && (periodFilter === "all" || periodFilter === "evening") && (
+                    <div className="slot-section-group">
+                      <div className="slot-section-header">
+                        <Sunset size={15} color="#8b5cf6" />
+                        <span>Evening</span>
+                        <span className="slot-section-tag evening">
+                          {filteredSlots.evening.length} slots
+                        </span>
+                      </div>
+                      <div className="time-slots-grid">
+                        {filteredSlots.evening.map(s => {
+                          const slotStr = formatSlot(s);
+                          const isSel = slot === slotStr;
+                          return (
+                            <button
+                              key={slotStr}
+                              type="button"
+                              onClick={() => setSlot(slotStr)}
+                              className={`slot-chip ${isSel ? 'selected' : ''}`}
+                              aria-selected={isSel}
+                            >
+                              <Clock size={11} className="slot-clock-icon" />
+                              <span>{slotStr}</span>
+                              {isSel && <Check size={11} strokeWidth={3} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Pinned Bottom Action Bar */}
+        {/* Pinned Bottom Action Bar (Matching HospitalSelection style) */}
         <div className="booking-action-bar">
           <div>
-            {slot ? (
-              <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Selected Slot: <strong style={{ color: 'var(--primary-dark)' }}>{slot}</strong> on <strong>{date?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>
+            {slot && date ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-main)', minWidth: 0 }}>
+                <CheckCircle2 size={17} color="var(--primary)" style={{ flexShrink: 0 }} />
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
+                  <span>Selected: <strong style={{ color: 'var(--primary-dark)', fontWeight: '750' }}>{slot}</strong> on <strong style={{ color: 'var(--primary-dark)', fontWeight: '750' }}>{date?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong></span>
+                  {doctor?.name && (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '11px', background: 'rgba(0,0,0,0.04)', padding: '1.5px 6px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                      Dr. {doctor.name}
+                    </span>
+                  )}
+                  {bookingHospital?.name && (
+                    <span style={{ color: 'var(--primary-dark)', fontSize: '11px', background: 'rgba(46, 102, 110, 0.08)', padding: '1.5px 6px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                      {bookingHospital.name}
+                    </span>
+                  )}
+                </span>
+              </div>
             ) : (
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Select a date and time slot to proceed</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                Select a date and an available time slot above to proceed
+              </span>
             )}
           </div>
 
           <button 
+            type="button"
             className="btn btn-primary"
-            disabled={!slot}
             onClick={handleConfirm}
             style={{ 
-              padding: '12px 28px', 
-              fontSize: '15px', 
-              fontWeight: '600',
+              padding: '11px 26px', 
+              fontSize: '14.5px', 
+              fontWeight: '650',
               borderRadius: '12px', 
               display: 'flex', 
               alignItems: 'center', 
               gap: '8px', 
-              opacity: slot ? 1 : 0.5,
-              cursor: slot ? 'pointer' : 'not-allowed',
-              boxShadow: slot ? '0 4px 14px rgba(46, 102, 110, 0.25)' : 'none'
+              opacity: slot ? 1 : 0.65,
+              cursor: 'pointer',
+              boxShadow: slot ? '0 4px 14px rgba(46, 102, 110, 0.25)' : 'none',
+              transition: 'all 0.2s ease'
             }}
           >
-            Review Details <CheckCircle2 size={18} />
+            Review Details <ArrowRight size={17} />
           </button>
         </div>
 
       </div>
     </BookingLayout>
+    <Toast 
+      isOpen={toast.isOpen} 
+      message={toast.message} 
+      type={toast.type} 
+      onClose={() => setToast({ ...toast, isOpen: false })} 
+    />
+    </>
   );
 }

@@ -107,6 +107,7 @@ export default function Header() {
   const [q, setQ] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isPillHovered, setIsPillHovered] = useState(false);
   const [headerAvatar, setHeaderAvatar] = useState("");
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -596,7 +597,8 @@ export default function Header() {
               display: 'flex',
               alignItems: 'center',
               overflow: 'visible',
-              flexShrink: 0
+              flexShrink: 1,
+              minWidth: 0
             }}
           >
             {/* Pill background */}
@@ -656,7 +658,7 @@ export default function Header() {
           <div className="flex-1 header-flex-spacer" />
 
           {/* Right Auth CTA (Desktop & Mobile Icon) */}
-          <div className="header-desktop-auth flex items-center gap-3" style={{ flexShrink: 0 }}>
+          <div className="header-desktop-auth flex items-center gap-2.5" style={{ flexShrink: 0 }}>
             {/* Refer & Earn Icon Button (Icon only, left of profile tab) */}
             <button
               onClick={() => setIsReferralModalOpen(true)}
@@ -680,15 +682,21 @@ export default function Header() {
               className="hover:scale-105 header-gift-btn"
             >
               <Gift size={18} color="var(--primary)" />
-            </button>
+            </button> &nbsp;
             {user ? (
-              <div className="flex items-center gap-4" ref={profileMenuRef} style={{ position: 'relative' }}>
+              <div className="flex items-center gap-2.5" ref={profileMenuRef} style={{ position: 'relative' }}>
                 <div
                   className="flex items-center gap-3 cursor-pointer header-profile-pill"
-                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  style={{ padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '30px', background: 'var(--bg-surface)', transition: 'background 0.2s' }}
+                  onClick={() => {
+                    setIsProfileMenuOpen(!isProfileMenuOpen);
+                    setIsPillHovered(false);
+                  }}
+                  onMouseEnter={() => setIsPillHovered(true)}
+                  onMouseLeave={() => setIsPillHovered(false)}
+                  style={{ padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '30px', background: 'var(--bg-surface)', transition: 'background 0.2s', position: 'relative' }}
                   onMouseOver={e => e.currentTarget.style.background = 'var(--bg-app)'}
                   onMouseOut={e => e.currentTarget.style.background = 'var(--bg-surface)'}
+                  title={displayName}
                 >
                   <div className="flex flex-col items-end header-user-text">
                     <span className="text-muted" style={{ fontSize: '11px', lineHeight: '1' }}>Welcome,</span>
@@ -702,7 +710,7 @@ export default function Header() {
                       textOverflow: 'ellipsis',
                       display: 'inline-block',
                       textAlign: 'right'
-                    }} title={displayName}>
+                    }}>
                       {displayName}
                     </span>
                   </div>
@@ -722,9 +730,50 @@ export default function Header() {
                   <ChevronDown size={16} className="text-muted header-user-chevron" style={{ transform: isProfileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                 </div>
 
+                {/* Name Hover Tooltip */}
+                {isPillHovered && !isProfileMenuOpen && displayName && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 8px)',
+                      right: '4px',
+                      maxWidth: 'calc(100vw - 32px)',
+                      background: 'rgba(18, 51, 58, 0.96)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 6px 18px rgba(0,0,0,0.22)',
+                      pointerEvents: 'none',
+                      zIndex: 150,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      animation: 'fadeIn 0.15s ease'
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-4px',
+                        right: '26px',
+                        width: '8px',
+                        height: '8px',
+                        background: 'rgba(18, 51, 58, 0.96)',
+                        transform: 'rotate(45deg)',
+                      }}
+                    />
+                    <User size={12} style={{ opacity: 0.85, flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+                  </div>
+                )}
+
                 {/* Profile Dropdown */}
                 {isProfileMenuOpen && (
-                  <div className="header-profile-dropdown" style={{ position: 'absolute', top: '56px', right: 0, width: '260px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease', overflow: 'hidden' }}>
+                  <div className="header-profile-dropdown" style={{ position: 'absolute', top: '56px', right: 0, width: '260px', maxWidth: 'calc(100vw - 20px)', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0 12px 32px rgba(18,51,58,0.18)', zIndex: 120, padding: '8px 0', animation: 'fadeIn 0.2s ease', overflow: 'hidden' }}>
                     {profileMenuTab === "switch" ? (
                       <div style={{ animation: 'fadeIn 0.2s ease' }}>
                         {/* Header bar with Back button */}
@@ -822,7 +871,7 @@ export default function Header() {
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis'
-                                  }}>
+                                  }} title={p.name}>
                                     {p.name}
                                   </div>
                                 </div>
@@ -833,12 +882,30 @@ export default function Header() {
                       </div>
                     ) : (
                       <>
-                        <div style={{ padding: '8px 16px 10px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                            <b style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block', maxWidth: '170px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</b>
-                            <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '1px 6px', borderRadius: '10px' }}>Active</span>
+                        <div style={{ padding: '8px 14px 10px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <b
+                                style={{
+                                  fontSize: '13.5px',
+                                  fontWeight: '700',
+                                  color: 'var(--text-main)',
+                                  display: 'block',
+                                  lineHeight: '1.35',
+                                  wordBreak: 'break-word'
+                                }}
+                                title={displayName}
+                              >
+                                {displayName}
+                              </b>
+                              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                                {userPhone || '+91 XXXXX XXXXX'}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '2px 6px', borderRadius: '10px', flexShrink: 0, marginTop: '1px' }}>
+                              Active
+                            </span>
                           </div>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{userPhone || '+91 XXXXX XXXXX'}</span>
                         </div>
 
                         {/* Switch Account (Single Button that switches view inside this menu) */}
@@ -1106,7 +1173,7 @@ export default function Header() {
                         {displayInitial}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.3', wordBreak: 'break-word' }} title={displayName}>
                           {displayName}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '1px' }}>
@@ -1224,7 +1291,7 @@ export default function Header() {
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ fontSize: '10px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Logged in as</span>
-                            <b style={{ display: 'block', fontSize: '14px', fontWeight: '800', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.2' }}>{displayName}</b>
+                            <b style={{ display: 'block', fontSize: '14px', fontWeight: '800', color: 'var(--text-main)', lineHeight: '1.3', wordBreak: 'break-word' }} title={displayName}>{displayName}</b>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: 'rgba(34, 197, 94, 0.1)', color: '#15803d', fontSize: '9.5px', fontWeight: '700', padding: '1px 6px', borderRadius: '8px', marginTop: '2px' }}>
                               <Shield size={9} /> Verified Patient
                             </div>
@@ -1863,8 +1930,9 @@ export default function Header() {
         }
         .header-promo-banner {
           order: 1;
-          flex-shrink: 0;
-          margin: 0 12px 0 110px;
+          flex-shrink: 1;
+          min-width: 0;
+          margin: 0 12px 0 clamp(8px, 2.5vw, 40px);
         }
         .header-promo-image {
           left: 20px;

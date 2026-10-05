@@ -1,5 +1,21 @@
 import { useState, useEffect } from "react";
-import { CheckCircle2, User, Calendar, Clock, Stethoscope, Briefcase, Wallet, XCircle, FileText, Smartphone } from "lucide-react";
+import { 
+  CheckCircle2, 
+  User, 
+  Calendar, 
+  Clock, 
+  Stethoscope, 
+  Briefcase, 
+  Wallet, 
+  Smartphone, 
+  Mail, 
+  Building2, 
+  MapPin, 
+  ShieldCheck, 
+  CreditCard, 
+  ChevronLeft, 
+  Check 
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
 import { useAuth } from "../../context/AuthContext";
@@ -8,7 +24,7 @@ import BookingLayout from "../../components/layout/BookingLayout";
 import Toast from "../../components/common/Toast";
 
 export default function BookingReview() {
-  const { doctor, date, slot, setBookingId } = useBooking();
+  const { doctor, date, slot, setBookingId, bookingHospital, bookingSpecialty, bookingVisitType } = useBooking();
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +45,7 @@ export default function BookingReview() {
         setLoadingData(false);
         return;
       }
-       try {
+      try {
         const toLocalDate = (d) => {
           if (typeof d === 'string') return d;
           if (d instanceof Date) {
@@ -126,11 +142,11 @@ export default function BookingReview() {
     if (val < 0) val = 0;
     setWalletAppliedAmount(val);
   };
+
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
         resolve(true);
-        return;
       }
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -192,7 +208,17 @@ export default function BookingReview() {
       const amountToPay = consultationFee - (applyWallet ? walletAppliedAmount : 0);
 
       if (amountToPay <= 0) {
-        setBookingId(result.order_id || result.bookingId || "APMNT" + Date.now().toString().slice(-8));
+        const orderRef = (
+          result.order_id || 
+          result.booking_id || 
+          result.bookingId || 
+          result.appointment_id || 
+          result.appointmentId || 
+          result.id || 
+          ("APMNT" + Math.floor(10000000 + Math.random() * 90000000))
+        );
+        setBookingId(orderRef);
+        try { sessionStorage.setItem("arvaya_booking_id", orderRef); } catch(e) {}
         navigate("/doctors/confirmed");
         return;
       }
@@ -219,7 +245,18 @@ export default function BookingReview() {
               razorpay_signature: response.razorpay_signature,
               ...payload
             });
-            setBookingId(result.razorpay_order_id || result.bookingId || "APMNT" + Date.now().toString().slice(-8));
+            const orderRef = (
+              result.order_id || 
+              result.booking_id || 
+              result.bookingId || 
+              result.appointment_id || 
+              result.appointmentId || 
+              result.id || 
+              response.razorpay_order_id || 
+              ("APMNT" + Math.floor(10000000 + Math.random() * 90000000))
+            );
+            setBookingId(orderRef);
+            try { sessionStorage.setItem("arvaya_booking_id", orderRef); } catch(e) {}
             navigate("/doctors/confirmed");
           } catch (err) {
             console.error("Payment verification failed", err);
@@ -254,9 +291,34 @@ export default function BookingReview() {
       setSubmitting(false);
     }
   };
+
+  const getDoctorInitials = (name) => {
+    if (!name) return "DR";
+    const clean = name.replace(/^Dr\.?\s+/i, '').trim();
+    if (!clean) return "DR";
+    const parts = clean.split(/\s+/);
+    if (parts.length >= 2 && parts[parts.length - 1].length > 0) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return clean.substring(0, 2).toUpperCase();
+  };
+
   const formattedDate = date && date instanceof Date
-    ? date.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' })
+    ? date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
     : String(date);
+
+  const formattedVisitType = (visitType || bookingVisitType || "Consultation")
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, c => c.toUpperCase());
+
+  const hospitalName = bookingHospital?.name || doctor?.locations?.[0]?.name || doctor?.hospital || "Arvaya Healthcare Center";
+  const hospitalAddress = bookingHospital?.address || bookingHospital?.address_line_1 || bookingHospital?.address1 || doctor?.locations?.[0]?.address || bookingHospital?.city || "";
+
+  const patient_id = user?.id || user?.user_id || user?.patient_id || 20546;
+  const patientName = user?.name || "Guest Patient";
+  const patientPhone = user?.mobile || user?.phone || "N/A";
+  const patientEmail = user?.email || "";
 
   if (!doctor || !date || !slot) {
     return (
@@ -288,219 +350,287 @@ export default function BookingReview() {
   return (
     <>
       <BookingLayout 
-      currentStep={5} 
-      title="Confirm Booking" 
-      subtitle="Please review your appointment details before confirming."
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-        <div className="styled-scrollbar" style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '8px' }}>
-          {loadingData ? (
-            <div style={{ padding: '60px', textAlign: 'center', display: 'flex', justifyContent: 'center' }}>
-              <div className="spinner" style={{ width: '40px', height: '40px', borderTopColor: 'var(--primary)', border: '3px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-            </div>
-          ) : (
-            <div className="booking-review-grid">
-              
-              {/* Left Column: Details */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        currentStep={5} 
+        title="Confirm Booking" 
+        subtitle="Please review your appointment details before confirming."
+      >
+        <div className="booking-review-container">
+          <div className="booking-review-scroll styled-scrollbar">
+            {loadingData ? (
+              <div style={{ padding: '60px 0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
+                <div className="spinner" style={{ width: '36px', height: '36px', borderTopColor: 'var(--primary)', border: '3px solid rgba(46, 102, 110, 0.15)', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }}></div>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>Fetching appointment summary & wallet balance...</span>
+              </div>
+            ) : (
+              <div className="booking-review-grid">
                 
-                {/* Appointment Information Card */}
-                <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                    <div style={{ background: '#f0f9ff', color: '#0284c7', padding: '8px', borderRadius: '10px' }}>
-                      <Calendar size={20} />
-                    </div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>Appointment Information</h3>
-                  </div>
+                {/* Left Column: Appointment & Patient Details */}
+                <div className="review-col-main">
                   
-                  <div className="booking-details-grid">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                        <Calendar size={14} /> <span>Date</span>
+                  {/* Appointment Information Card */}
+                  <section className="review-card">
+                    <div className="review-card-header">
+                      <div className="review-header-left">
+                        <div className="review-header-avatar" aria-hidden="true">
+                          <Calendar size={18} />
+                        </div>
+                        <div>
+                          <h3 className="review-card-title">Appointment Information</h3>
+                          <p className="review-card-subtitle">Review scheduled consultation details</p>
+                        </div>
                       </div>
-                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{formattedDate}</b>
+                      <span className="hospital-status-pill">
+                        <span className="hospital-pulse-dot" /> Verified Slot
+                      </span>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                        <Clock size={14} /> <span>Time</span>
+                    {/* Medical Center / Hospital Info */}
+                    {hospitalName && (
+                      <div className="review-facility-box">
+                        <Building2 size={17} className="review-facility-icon" />
+                        <div className="review-facility-info">
+                          <span className="review-facility-name">{hospitalName}</span>
+                          {hospitalAddress && (
+                            <span className="review-facility-address">
+                              <MapPin size={11} style={{ flexShrink: 0 }} /> {hospitalAddress}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{slot}</b>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                        <User size={14} /> <span>Doctor name</span>
-                      </div>
-                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{doctor.name}</b>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                        <Stethoscope size={14} /> <span>Department</span>
-                      </div>
-                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{doctor.specialty || "General"}</b>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                        <Briefcase size={14} /> <span>Consultation type</span>
-                      </div>
-                      <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{visitType}</b>
-                    </div>
-                  </div>
-                </div>
-
-            {/* Patient Information Card */}
-            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '8px', borderRadius: '10px' }}>
-                  <User size={20} />
-                </div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>Patient Information</h3>
-              </div>
-
-              <div className="booking-details-grid">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <User size={14} /> <span>Patient Name</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{user?.name || "Guest"}</b>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    <Smartphone size={14} /> <span>Mobile</span>
-                  </div>
-                  <b style={{ color: 'var(--text-main)', fontSize: '14px' }}>{user?.mobile || user?.phone || "N/A"}</b>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Right Column: Wallet & Payment Summary */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
-            
-            {/* Wallet Balance Card */}
-            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '50%' }}>
-                    <Wallet size={20} />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>Wallet Balance</h3>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Available to redeem</span>
-                  </div>
-                </div>
-                <b style={{ color: '#16a34a', fontSize: '18px' }}>₹{walletBalance}</b>
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                <span style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '500' }}>Apply wallet balance</span>
-                <div 
-                  onClick={() => { if(walletBalance > 0) setApplyWallet(!applyWallet) }}
-                  style={{
-                    width: '40px',
-                    height: '22px',
-                    borderRadius: '11px',
-                    background: applyWallet ? '#114c54' : '#e5e7eb',
-                    position: 'relative',
-                    cursor: walletBalance > 0 ? 'pointer' : 'not-allowed',
-                    opacity: walletBalance > 0 ? 1 : 0.5,
-                    transition: 'background 0.3s'
-                  }}
-                >
-                  <div style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    position: 'absolute',
-                    top: '2px',
-                    left: applyWallet ? '20px' : '2px',
-                    transition: 'left 0.3s',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                  }} />
-                </div>
-              </div>
-
-              {applyWallet && (
-                <div style={{ marginTop: '12px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: '600' }}>
-                    <span>₹</span>
-                    <input 
-                      type="number" 
-                      value={walletAppliedAmount} 
-                      onChange={handleWalletInputChange}
-                      style={{ background: 'transparent', border: 'none', outline: 'none', width: '80px', fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}
-                    />
-                  </div>
-                  <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>Max ₹{maxWalletApplicable}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Payment Summary */}
-            <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '700', color: 'var(--text-main)' }}>Payment Summary</h3>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '14px' }}>
-                <span>Consultation Fee</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: '500' }}>₹{consultationFee}</span>
-              </div>
-              
-              {applyWallet && walletAppliedAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', color: '#16a34a', fontSize: '14px' }}>
-                  <span>Wallet Applied</span>
-                  <span style={{ fontWeight: '500' }}>- ₹{walletAppliedAmount}</span>
-                </div>
-              )}
-
-              <div style={{ marginTop: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0 20px', borderTop: '2px dashed var(--border)', paddingTop: '16px' }}>
-                  <span style={{ fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Total Amount</span>
-                  <b style={{ fontSize: '24px', color: 'var(--text-main)' }}>₹{finalAmountToPay}</b>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    onClick={() => navigate(-1)}
-                    style={{ flex: 1, padding: '12px 0', borderRadius: '10px', border: '1px solid var(--border)', background: '#fff', color: 'var(--text-main)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => e.target.style.background = '#f9fafb'}
-                    onMouseLeave={(e) => e.target.style.background = '#fff'}
-                  >
-                    Back
-                  </button>
-                  <button 
-                    onClick={confirm}
-                    disabled={submitting}
-                    style={{ flex: 2, padding: '12px 0', borderRadius: '10px', border: 'none', background: '#114c54', color: '#fff', fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: submitting ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { if(!submitting) e.target.style.background = '#0e3d43' }}
-                    onMouseLeave={(e) => { if(!submitting) e.target.style.background = '#114c54' }}
-                  >
-                    {submitting ? (
-                      <div className="spinner" style={{ width: '16px', height: '16px', borderTopColor: '#fff', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                    ) : (
-                      <>
-                        Confirm & Pay
-                      </>
                     )}
-                  </button>
-                </div>
-                <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '12px', fontSize: '11px', marginBottom: 0 }}>
-                  By confirming, you agree to our terms and conditions.
-                </p>
-              </div>
-            </div>
 
+                    {/* Doctor Details Row */}
+                    <div className="review-doctor-box">
+                      <div className="review-doc-avatar" aria-hidden="true">
+                        {getDoctorInitials(doctor?.name)}
+                      </div>
+                      <div className="review-doc-details">
+                        <span className="review-doc-name">{doctor?.name || "Specialist Doctor"}</span>
+                        {doctor?.qualification && (
+                          <span className="review-doc-qual">{doctor.qualification}</span>
+                        )}
+                        <div className="review-doc-badge-row">
+                          <span className="review-spec-pill">
+                            <Stethoscope size={11} /> {doctor?.specialty || bookingSpecialty || "General Medicine"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Appointment Timing & Consultation Grid */}
+                    <div className="review-info-grid">
+                      <div className="review-info-item">
+                        <span className="review-info-label">
+                          <Calendar size={11} /> Date
+                        </span>
+                        <span className="review-info-value" style={{ whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible' }} title={formattedDate}>{formattedDate}</span>
+                      </div>
+
+                      <div className="review-info-item">
+                        <span className="review-info-label">
+                          <Clock size={11} /> Time Slot
+                        </span>
+                        <span className="review-info-value review-slot-pill" style={{ whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible' }} title={slot}>{slot}</span>
+                      </div>
+
+                      <div className="review-info-item">
+                        <span className="review-info-label">
+                          <Briefcase size={11} /> Type
+                        </span>
+                        <span className="review-info-value review-type-pill" style={{ whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible' }} title={formattedVisitType}>{formattedVisitType}</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Patient Information Card */}
+                  <section className="review-card">
+                    <div className="review-card-header">
+                      <div className="review-header-left">
+                        <div className="review-header-avatar avatar-slate" aria-hidden="true">
+                          <User size={18} />
+                        </div>
+                        <div>
+                          <h3 className="review-card-title">Patient Information</h3>
+                          <p className="review-card-subtitle">Appointment booked for</p>
+                        </div>
+                      </div>
+                      <span className="review-uhid-badge">ID: #{patient_id}</span>
+                    </div>
+
+                    <div className="review-patient-grid">
+                      <div className="review-patient-item">
+                        <span className="review-patient-label">
+                          <User size={12} /> Patient Name
+                        </span>
+                        <span className="review-patient-value">{patientName}</span>
+                      </div>
+
+                      <div className="review-patient-item">
+                        <span className="review-patient-label">
+                          <Smartphone size={12} /> Contact Number
+                        </span>
+                        <span className="review-patient-value">{patientPhone}</span>
+                      </div>
+
+                      {patientEmail && (
+                        <div className="review-patient-item" style={{ gridColumn: 'span 2' }}>
+                          <span className="review-patient-label">
+                            <Mail size={12} /> Email Address
+                          </span>
+                          <span className="review-patient-value" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {patientEmail}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                </div>
+
+                {/* Right Column: Wallet & Payment Breakdown */}
+                <div className="review-col-side">
+                  
+                  {/* Arvaya Wallet Card */}
+                  <section className="review-card">
+                    <div className="review-wallet-balance-row">
+                      <div className="review-header-left">
+                        <div className="review-header-avatar avatar-green" aria-hidden="true">
+                          <Wallet size={18} />
+                        </div>
+                        <div>
+                          <h3 className="review-card-title" style={{ fontSize: '14.5px' }}>Wallet Balance</h3>
+                          <p className="review-card-subtitle">Available to redeem</p>
+                        </div>
+                      </div>
+                      <span className="wallet-balance-display">₹{walletBalance}</span>
+                    </div>
+
+                    <div className="wallet-toggle-row">
+                      <span className="wallet-toggle-label">Apply wallet balance</span>
+                      <div 
+                        role="switch"
+                        aria-checked={applyWallet}
+                        tabIndex={walletBalance > 0 ? 0 : -1}
+                        onClick={() => { if (walletBalance > 0) setApplyWallet(!applyWallet); }}
+                        onKeyDown={(e) => {
+                          if ((e.key === "Enter" || e.key === " ") && walletBalance > 0) {
+                            e.preventDefault();
+                            setApplyWallet(!applyWallet);
+                          }
+                        }}
+                        className={`wallet-switch-track ${applyWallet ? "active" : ""} ${walletBalance <= 0 ? "disabled" : ""}`}
+                        title={walletBalance <= 0 ? "Zero balance in wallet" : "Toggle wallet balance"}
+                      >
+                        <div className="wallet-switch-thumb" />
+                      </div>
+                    </div>
+
+                    {applyWallet && (
+                      <div className="wallet-deduction-box">
+                        <div className="wallet-input-row">
+                          <div className="wallet-input-wrapper">
+                            <span>₹</span>
+                            <input 
+                              type="number"
+                              className="wallet-amount-input"
+                              value={walletAppliedAmount} 
+                              onChange={handleWalletInputChange}
+                              min="0"
+                              max={maxWalletApplicable}
+                              aria-label="Wallet amount to apply"
+                            />
+                          </div>
+                          <span className="wallet-max-chip">Max ₹{maxWalletApplicable}</span>
+                        </div>
+                        <span className="wallet-deduction-hint">
+                          <Check size={12} /> ₹{walletAppliedAmount} will be deducted from total payable
+                        </span>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Payment Summary & Checkout Card */}
+                  <section className="review-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div className="review-card-header">
+                      <div className="review-header-left">
+                        <div className="review-header-avatar avatar-teal" aria-hidden="true">
+                          <CreditCard size={18} />
+                        </div>
+                        <div>
+                          <h3 className="review-card-title">Payment Summary</h3>
+                          <p className="review-card-subtitle">Transparent fee breakdown</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="review-payment-breakdown">
+                      <div className="payment-line-item">
+                        <span>Consultation Fee</span>
+                        <span className="payment-line-value">₹{consultationFee}</span>
+                      </div>
+
+                      {applyWallet && walletAppliedAmount > 0 && (
+                        <div className="payment-line-item discount">
+                          <span>Wallet Deduction</span>
+                          <span className="payment-line-value">- ₹{walletAppliedAmount}</span>
+                        </div>
+                      )}
+
+                      <div className="payment-line-item">
+                        <span>Convenience Fee</span>
+                        <span className="payment-free-badge">FREE</span>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 'auto' }}>
+                      <div className="payment-total-box">
+                        <span className="payment-total-label">Total Payable</span>
+                        <span className="payment-total-amount">₹{finalAmountToPay}</span>
+                      </div>
+
+                      <div className="review-actions-row">
+                        <button 
+                          type="button"
+                          onClick={() => navigate(-1)}
+                          className="btn-review-back"
+                        >
+                          <ChevronLeft size={16} /> Back
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={confirm}
+                          disabled={submitting}
+                          className="btn-review-confirm"
+                        >
+                          {submitting ? (
+                            <>
+                              <div className="spinner" style={{ width: '15px', height: '15px', borderTopColor: '#fff', border: '2px solid rgba(255,255,255,0.25)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+                              <span>Processing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 size={16} /> Confirm & Pay
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="review-trust-note">
+                        <ShieldCheck size={13} /> 256-Bit SSL Encrypted & Secure Checkout
+                      </div>
+                      <p className="review-terms-note">
+                        By confirming, you agree to our booking terms & cancellation policy.
+                      </p>
+                    </div>
+                  </section>
+
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
-      </div>
-      </div>
       </BookingLayout>
+
       <Toast
         isOpen={toast.isOpen}
         message={toast.message}
