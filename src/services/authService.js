@@ -73,6 +73,7 @@ export async function register(data) {
     client_id: data.client_id || getClientId(),
     entitylocation: data.entitylocation,
     entitykey: 'secure-hospitals',
+    referred_by_code: data.referred_by_code || getReferredByCode(),
   };
 
   const res = await api.post("/appUser/register", payload);

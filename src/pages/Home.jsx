@@ -223,8 +223,6 @@ export default function Home() {
         "Sample collection at your doorstep with guaranteed digital reports within 24 hours.",
       primaryBtn: "Book Lab Package",
       primaryAction: () => go("/labs"),
-      secondaryBtn: "View Health Vault",
-      secondaryAction: () => go("/records"),
       bg: "/banner_healthcare_3.png",
     },
   ];
@@ -707,17 +705,15 @@ export default function Home() {
       >
         <section className="container" style={{ padding: "0 24px" }}>
           <style>{`
-          .ecosystem-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; align-items: start; }
-          @media (max-width: 900px) { .ecosystem-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-          @media (max-width: 600px) { .ecosystem-grid { grid-template-columns: 1fr; } }
+          .ecosystem-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; align-items: stretch; }
+          .ecosystem-grid > * { flex: 1; min-width: 250px; max-width: 320px; }
+          @media (max-width: 900px) { .ecosystem-grid { justify-content: center; } }
         `}</style>
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-h2">Your Health Ecosystem</h2>
-              <p className="text-muted mt-2">
-                Manage everything from one place
-              </p>
-            </div>
+          <div className="flex flex-col items-center text-center mb-8 w-full">
+            <h2 className="text-h2">Your Health Ecosystem</h2>
+            <p className="text-muted mt-2">
+              Manage everything from one place
+            </p>
           </div>
 
           <div className="ecosystem-grid">
@@ -809,7 +805,7 @@ export default function Home() {
       {/* ── How It Works ── */}
       <section className="home-how-section">
         <div className="container home-how-panel">
-          <div className="home-how-heading">
+          <div className="home-how-heading text-center flex flex-col items-center">
             <h2 className="text-h2">How It Works</h2>
             <p className="text-muted mt-2">
               Book a doctor appointment in 3 simple steps
@@ -883,8 +879,8 @@ export default function Home() {
           @media (max-width: 900px) { .specialties-grid { grid-template-columns: repeat(3, 1fr); } }
           @media (max-width: 600px) { .specialties-grid { grid-template-columns: repeat(2, 1fr); } }
         `}</style>
-        <div className="flex justify-between items-center mb-8">
-          <div>
+        <div className="mb-8 w-full" style={{ position: 'relative' }}>
+          <div className="flex flex-col items-center text-center">
             <h2 className="text-h2">Consult Top Specialties</h2>
             <p className="text-muted mt-2">
               Consult with India's best specialists
@@ -893,6 +889,7 @@ export default function Home() {
           <button
             className="btn btn-view-all flex items-center gap-2"
             onClick={() => go("/doctors")}
+            style={{ position: 'absolute', right: 0, top: '5px' }}
           >
             View All <ArrowRight size={16} />
           </button>
@@ -955,7 +952,6 @@ export default function Home() {
             >
               <div className="specialty-icon">{spec.icon}</div>
               <b className="specialty-title">{spec.name}</b>
-              <span className="specialty-count">{spec.consults} Consults</span>
             </div>
           ))}
         </div>
@@ -1069,8 +1065,8 @@ export default function Home() {
               transform: scale(1.05);
             }
           `}</style>
-          <div className="flex justify-between items-center mb-8">
-            <div>
+          <div className="mb-8 w-full" style={{ position: 'relative' }}>
+            <div className="flex flex-col items-center text-center">
               <h2 className="text-h2">Featured Health Packages</h2>
               <p className="text-muted mt-2">
                 Comprehensive checkups with home sample collection
@@ -1079,6 +1075,7 @@ export default function Home() {
             <button
               className="btn btn-view-all flex items-center gap-2"
               onClick={() => go("/labs")}
+              style={{ position: 'absolute', right: 0, top: '5px' }}
             >
               View All <ArrowRight size={16} />
             </button>

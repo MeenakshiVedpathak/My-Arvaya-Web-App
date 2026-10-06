@@ -33,20 +33,7 @@ export default function App() {
       <ChatBot />
       {/* Kept outside the route tree so auth can open above any workspace page. */}
       <Login modalHost />
-      <nav className="mobile-tab-bar" aria-label="Primary navigation">
-        {[
-          { label: "Home", to: "/", icon: HomeIcon, end: true },
-          { label: "Records", to: "/records", icon: FileHeart },
-          { label: "ABHA", to: "/abha", icon: BadgeIndianRupee },
-          { label: "Lab Tests", to: "/labs", icon: FlaskConical },
-          { label: "Profile", to: "/profile", icon: UserRound },
-        ].map(({ label, to, icon: Icon, end }) => (
-          <NavLink key={to} to={to} end={end} className={({ isActive }) => `mobile-tab-item${isActive ? " active" : ""}`}>
-            <span className="mobile-tab-icon"><Icon size={21} strokeWidth={1.8} /></span>
-            <span>{label}</span>
-          </NavLink>
-        ))}
-      </nav>
+
     </div>
   );
 }

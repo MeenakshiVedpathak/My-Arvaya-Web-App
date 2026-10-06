@@ -4576,7 +4576,7 @@ header.glass .header-secondary-nav {
 
 header.glass .header-secondary-nav .container {
     height: 38px !important;
-    padding-inline: 150px;
+    padding-inline:50px;
     justify-content: space-around;
 }
 

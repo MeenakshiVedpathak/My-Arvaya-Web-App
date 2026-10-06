@@ -1,4 +1,4 @@
-import { Search, MapPin, ChevronDown, ChevronRight, ChevronLeft, Users, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2, Shield } from "lucide-react";
+import { Search, MapPin, ChevronDown, ChevronRight, ChevronLeft, Users, User, LogOut, Smartphone, HelpCircle, Menu, X, ArrowRight, Check, Stethoscope, FlaskConical, Building2, Settings, Bell, Gift, Send, Mail, Copy, Share2, Shield, Home, Wallet, Truck } from "lucide-react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -472,16 +472,16 @@ export default function Header() {
   };
 
   const navLinks = [
-    ["Home", "/"],
-    ["Consult Doctors", "/doctors"],
+    ["Home", "/", Home],
+    ["Consult Doctors", "/doctors", User],
     // ["Pharmacy", "/pharmacy"],
-    ["Lab Tests", "/labs"],
+    ["Lab Tests", "/labs", FlaskConical],
     // ["ABHA Hub", "/abha"],
     // ["Patient Portal", "/records"],
-    ["Wallet", "/wallet"],
-    ["Rewards", "/rewards"],
+    ["Wallet", "/wallet", Wallet],
+    ["Rewards", "/rewards", Gift],
     // ["Refer & Earn", "/referrals"],
-    ["Ambulance", "/ambulance"],
+    ["Ambulance", "/ambulance", Truck],
     // ["Support", "/support"]
   ];
 
@@ -1075,25 +1075,56 @@ export default function Header() {
         {/* ── Secondary Navigation ── */}
         <div className="header-secondary-nav" style={{ borderTop: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.3)' }}>
           <div className="container flex items-center justify-between no-scrollbar" style={{ height: '38px', overflowX: 'auto', gap: '8px' }}>
-            {navLinks.map(([label, path]) => (
-              <NavLink
-                key={label}
-                to={path}
-                style={({ isActive }) => ({
-                  color: isActive ? 'var(--primary)' : 'var(--text-main)',
-                  fontWeight: isActive ? '600' : '500',
-                  fontSize: '14px',
-                  borderBottom: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '0 4px',
-                  transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                  whiteSpace: 'nowrap'
-                })}
-              >
-                {label}
-              </NavLink>
+            {navLinks.map(([label, path, Icon], index) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <NavLink
+                  to={path}
+                  style={({ isActive }) => ({
+                    position: 'relative',
+                    color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                    fontWeight: isActive ? '700' : '500',
+                    fontSize: '13.5px',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 12px',
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap'
+                  })}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '6px 0',
+                        transition: 'all 0.25s ease'
+                      }}>
+                        {Icon && <Icon size={16} />}
+                        <span>{label}</span>
+                      </div>
+                      {isActive && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: '100%',
+                          height: '3px',
+                          background: 'var(--primary)',
+                          borderTopLeftRadius: '4px',
+                          borderTopRightRadius: '4px'
+                        }} />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+                {index < navLinks.length - 1 && (
+                  <div style={{ height: '16px', width: '1px', background: 'var(--border)', margin: '0 8px' }} />
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -1419,7 +1450,7 @@ export default function Header() {
                   {/* Navigation Links */}
                   <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <span style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '3px', paddingLeft: '4px' }}>Navigation</span>
-                    {navLinks.map(([label, path]) => (
+                    {navLinks.map(([label, path, Icon]) => (
                       <NavLink
                         key={label}
                         to={path}
@@ -1438,7 +1469,10 @@ export default function Header() {
                           alignItems: 'center'
                         })}
                       >
-                        <span>{label}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {Icon && <Icon size={16} style={{ opacity: 0.8 }} />}
+                          <span>{label}</span>
+                        </div>
                         <ArrowRight size={13} style={{ opacity: 0.35 }} />
                       </NavLink>
                     ))}
@@ -2109,7 +2143,7 @@ export default function Header() {
             justify-content: center !important;
           }
         }
-        @media (max-width: 426px) {
+        @media (max-width: 768px) {
           .header-secondary-nav {
             display: none !important;
           }
