@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { 
-  CheckCircle2, 
-  User, 
-  Calendar, 
-  Clock, 
-  Stethoscope, 
-  Briefcase, 
-  Wallet, 
-  Smartphone, 
-  Mail, 
-  Building2, 
-  MapPin, 
-  CreditCard, 
-  ChevronLeft, 
+import {
+  CheckCircle2,
+  User,
+  Calendar,
+  Clock,
+  Stethoscope,
+  Briefcase,
+  Wallet,
+  Smartphone,
+  Mail,
+  Building2,
+  MapPin,
+  CreditCard,
+  ChevronLeft,
   Check,
   Timer,
   Loader2
@@ -44,7 +44,7 @@ function getHoldExpiry() {
 }
 
 function clearHoldExpiry() {
-  try { sessionStorage.removeItem(SLOT_HOLD_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(SLOT_HOLD_KEY); } catch (e) { }
 }
 
 // Razorpay locks page scroll by setting overflow/contain on both <html> and <body>.
@@ -62,7 +62,7 @@ function getScrollLockStyles() {
 // and undo the scroll lock it applied.
 function forceCloseRazorpay(rzp, savedStyles) {
   if (rzp) {
-    try { rzp.close(); } catch (e) {}
+    try { rzp.close(); } catch (e) { }
   }
   document.querySelectorAll('.razorpay-container, .razorpay-backdrop').forEach(el => el.remove());
 
@@ -131,14 +131,14 @@ export default function BookingReview() {
   const navigate = useNavigate();
   const { user, openLoginModal } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  
+
   const [loadingData, setLoadingData] = useState(true);
   const [walletBalance, setWalletBalance] = useState(0);
   const [visitType, setVisitType] = useState("Initial");
   const [consultationFee, setConsultationFee] = useState(0);
   const [slotConflict, setSlotConflict] = useState(false);
   const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
-  
+
   const [applyWallet, setApplyWallet] = useState(false);
   const [walletAppliedAmount, setWalletAppliedAmount] = useState(0);
 
@@ -221,7 +221,7 @@ export default function BookingReview() {
             console.error("checkVisitType error:", err);
           }
         }
-       
+
       } catch (err) {
         console.error("Error loading review data", err);
       } finally {
@@ -303,7 +303,7 @@ export default function BookingReview() {
     const onPageHide = () => {
       if (holdReleasedRef.current) return;
       const payload = buildReleasePayloadRef.current();
-      if (payload) releaseSlot(payload, { keepalive: true }).catch(() => {});
+      if (payload) releaseSlot(payload, { keepalive: true }).catch(() => { });
     };
     window.addEventListener("pagehide", onPageHide);
     return () => window.removeEventListener("pagehide", onPageHide);
@@ -338,7 +338,7 @@ export default function BookingReview() {
 
 
   const maxWalletApplicable = Math.min(walletBalance, consultationFee);
-  
+
   useEffect(() => {
     if (applyWallet) {
       setWalletAppliedAmount(maxWalletApplicable);
@@ -380,11 +380,11 @@ export default function BookingReview() {
     setSubmitting(true);
     try {
       const patient_id = user?.id || user?.user_id || user?.patient_id || "";
-      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ? 
-        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` 
+      const dStrRaw = typeof date === 'string' ? date : (date instanceof Date ?
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
         : "");
       const dStr = dStrRaw.replace(/-/g, '');
-      
+
       let start = slot;
       let end = slot;
       let sessionVal = "";
@@ -429,16 +429,16 @@ export default function BookingReview() {
 
       if (amountToPay <= 0) {
         const orderRef = (
-          result.order_id || 
-          result.booking_id || 
-          result.bookingId || 
-          result.appointment_id || 
-          result.appointmentId || 
-          result.id || 
+          result.order_id ||
+          result.booking_id ||
+          result.bookingId ||
+          result.appointment_id ||
+          result.appointmentId ||
+          result.id ||
           ("APMNT" + Math.floor(10000000 + Math.random() * 90000000))
         );
         setBookingId(orderRef);
-        try { sessionStorage.setItem("arvaya_booking_id", orderRef); } catch(e) {}
+        try { sessionStorage.setItem("arvaya_booking_id", orderRef); } catch (e) { }
         holdReleasedRef.current = true;
         clearHoldExpiry();
         navigate("/doctors/confirmed");
@@ -477,22 +477,32 @@ export default function BookingReview() {
               ...verifyPayload
             });
             const orderRef = (
-              result.order_id || 
-              result.booking_id || 
-              result.bookingId || 
-              result.appointment_id || 
-              result.appointmentId || 
-              result.id || 
-              response.razorpay_order_id || 
+              result.order_id ||
+              result.booking_id ||
+              result.bookingId ||
+              result.appointment_id ||
+              result.appointmentId ||
+              result.id ||
+              response.razorpay_order_id ||
               ("APMNT" + Math.floor(10000000 + Math.random() * 90000000))
             );
             setBookingId(orderRef);
-            try { sessionStorage.setItem("arvaya_booking_id", orderRef); } catch(e) {}
+            try { sessionStorage.setItem("arvaya_booking_id", orderRef); } catch (e) { }
             clearHoldExpiry();
             navigate("/doctors/confirmed");
+
           } catch (err) {
-            console.error("Payment verification failed", err);
-            alert("Payment verification failed. Please contact support.");
+            if (err?.status === 409 || err?.response?.status === 409 || err?.response?.statusCode === 409) {
+              setToast({
+                isOpen: true,
+                message: "Slot is not available. Your payment will be refunded automatically.",
+                type: "error"
+              });
+
+            } else {
+              alert("Payment verification failed. Please contact support.");
+            }
+
             setSubmitting(false);
           }
         },
@@ -504,7 +514,7 @@ export default function BookingReview() {
           color: "#2e666e",
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             razorpayRef.current = null;
             setPaymentOpen(false);
             setSubmitting(false);
@@ -587,9 +597,9 @@ export default function BookingReview() {
 
   return (
     <>
-      <BookingLayout 
-        currentStep={5} 
-        title="Confirm Booking" 
+      <BookingLayout
+        currentStep={5}
+        title="Confirm Booking"
         subtitle="Please review your appointment details before confirming."
       >
         <div className="booking-review-container">
@@ -602,10 +612,10 @@ export default function BookingReview() {
               </div>
             ) : (
               <div className="booking-review-grid">
-                
+
                 {/* Left Column: Appointment & Patient Details */}
                 <div className="review-col-main">
-                  
+
                   {/* Appointment Information Card */}
                   <section className="review-card">
                     <div className="review-card-header">
@@ -727,7 +737,7 @@ export default function BookingReview() {
 
                 {/* Right Column: Wallet & Payment Breakdown */}
                 <div className="review-col-side">
-                  
+
                   {/* Arvaya Wallet Card */}
                   <section className="review-card">
                     <div className="review-wallet-balance-row">
@@ -745,7 +755,7 @@ export default function BookingReview() {
 
                     <div className="wallet-toggle-row">
                       <span className="wallet-toggle-label">Apply wallet balance</span>
-                      <div 
+                      <div
                         role="switch"
                         aria-checked={applyWallet}
                         aria-disabled={submitting || walletBalance <= 0}
@@ -770,10 +780,10 @@ export default function BookingReview() {
                         <div className="wallet-input-row">
                           <div className="wallet-input-wrapper">
                             <span>₹</span>
-                            <input 
+                            <input
                               type="number"
                               className="wallet-amount-input"
-                              value={walletAppliedAmount} 
+                              value={walletAppliedAmount}
                               onChange={handleWalletInputChange}
                               disabled={submitting}
                               min="0"
@@ -825,7 +835,7 @@ export default function BookingReview() {
                       </div>
 
                       <div className="review-actions-row">
-                        <button 
+                        <button
                           type="button"
                           onClick={handleBack}
                           disabled={submitting}
@@ -834,7 +844,7 @@ export default function BookingReview() {
                         >
                           <ChevronLeft size={16} /> Back
                         </button>
-                        <button 
+                        <button
                           type="button"
                           onClick={confirm}
                           disabled={submitting}
