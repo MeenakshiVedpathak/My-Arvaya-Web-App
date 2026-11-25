@@ -160,7 +160,7 @@ export default function Rewards() {
 
         if (!isMounted) return;
 
-        // Process Patient Loyalty total_amount & max_redeem_points
+        // Process Patient Loyalty redeemable_amount & max_redeem_points
         if (loyaltyRes) {
           let lData = Array.isArray(loyaltyRes) ? loyaltyRes[0] : loyaltyRes;
           let totalAmt = 0;
@@ -169,16 +169,7 @@ export default function Rewards() {
           if (typeof lData === 'number' || typeof lData === 'string') {
             totalAmt = parseFloat(lData) || 0;
           } else if (lData && typeof lData === 'object') {
-            const val = lData.total_amount ??
-                        lData.totalAmount ??
-                        lData.total_points ??
-                        lData.total ??
-                        lData.points ??
-                        lData.reward_points ??
-                        lData.balance ??
-                        lData.wallet_amount ??
-                        lData.amount ??
-                        (typeof lData.data === 'number' ? lData.data : (lData.data?.total_amount ?? 0));
+            const val = lData.redeemable_amount ?? lData.data?.redeemable_amount;
             totalAmt = parseFloat(val) || 0;
 
             const maxVal = lData.max_redeem_points ??
@@ -369,7 +360,7 @@ export default function Rewards() {
         if (freshLoyalty) {
           let lData = Array.isArray(freshLoyalty) ? freshLoyalty[0] : freshLoyalty;
           if (lData && typeof lData === 'object') {
-            const val = lData.total_amount ?? lData.totalAmount ?? lData.total_points ?? lData.points ?? lData.balance;
+            const val = lData.redeemable_amount ?? lData.data?.redeemable_amount;
             if (val !== undefined && val !== null) {
               const parsedVal = parseFloat(val);
               if (!isNaN(parsedVal)) setPoints(parsedVal);

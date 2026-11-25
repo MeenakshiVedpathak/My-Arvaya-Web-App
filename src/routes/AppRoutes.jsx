@@ -14,6 +14,7 @@ import Records from "../pages/Records";
 import Labs from "../pages/Labs";
 import AllLabTests from "../pages/AllLabTests";
 import AllHealthPackages from "../pages/AllHealthPackages";
+import LabCart from "../pages/LabCart";
 import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
 import Ambulance from "../pages/Ambulance";
@@ -52,6 +53,8 @@ const PAGE_TITLES = {
   "/labs/all-tests": "All Lab Tests",
   "/labs/all-packages": "Health Packages",
   "/labs/package-details": "Package Details",
+  "/labs/cart": "Lab Tests Cart",
+  "/lab-cart": "Lab Tests Cart",
   "/abha": "ABHA Health ID",
   "/records": "Health Records",
   "/wallet": "Wallet",
@@ -118,6 +121,8 @@ export default function AppRoutes() {
       <Route path="/labs/all-packages" element={<AllHealthPackages />} />
       <Route path="/labs/package-details" element={<PackageDetails />} />
       <Route path="/labs/package-details/:id" element={<PackageDetails />} />
+      <Route path="/labs/cart" element={<LabCart />} />
+      <Route path="/lab-cart" element={<Navigate to="/labs/cart" replace />} />
       <Route path="/abha" element={<ABHA />} />
       <Route path="/records" element={<Records />} />
       <Route path="/wallet" element={<Wallet />} />

@@ -451,7 +451,7 @@ export default function Home() {
     },
     {
       icon: Building2,
-      text: "24/7 Emergency Services now active in Bangalore, Mumbai, and Delhi",
+      text: "24/7 Emergency Services now active in Karnataka, Maharashtra",
     },
     {
       icon: Star,

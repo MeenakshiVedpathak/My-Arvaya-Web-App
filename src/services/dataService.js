@@ -575,6 +575,12 @@ export async function verifyLabPayment(payload) {
   return res.data || res;
 }
 
+export async function getLabSlots(slotDate, fetchOptions = {}) {
+  const payload = { slot_date: slotDate };
+  const res = await api.post("/api/labSlots/getLabSlots", payload, {}, fetchOptions);
+  return res?.data || res?.slots || res;
+}
+
 export async function getPatientReviews(filters = {}) {
   try {
     const payload = {
@@ -910,6 +916,8 @@ export async function getAppointments(filters = {}) {
         patientName: apt.patient_name || "",
         patientMobile: apt.patient_mobile || "",
         image: apt.image || apt.doctor_image || "https://i.pravatar.cc/150",
+        payment_mode: apt.payment_mode || apt.paymentMode || "",
+        payment_status: apt.payment_status || apt.paymentStatus || "",
         raw: apt
       };
     }) : [];

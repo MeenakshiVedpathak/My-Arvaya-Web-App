@@ -12,10 +12,12 @@ import {
   Building2,
   MapPin,
   CreditCard,
+  Banknote,
   ChevronLeft,
   Check,
   Timer,
-  Loader2
+  Loader2,
+  Info
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -136,11 +138,16 @@ export default function BookingReview() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [visitType, setVisitType] = useState("Initial");
   const [consultationFee, setConsultationFee] = useState(0);
+  const [followUpHint, setFollowUpHint] = useState(null);
+  const hasFollowUpHint = Boolean(followUpHint?.message || (typeof followUpHint === "string" && followUpHint));
   const [slotConflict, setSlotConflict] = useState(false);
   const [toast, setToast] = useState({ isOpen: false, message: "", type: "success" });
 
   const [applyWallet, setApplyWallet] = useState(false);
   const [walletAppliedAmount, setWalletAppliedAmount] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState("online");
+  const isCash = paymentMethod === "cash";
+  const isCOD = isCash;
 
   const [holdExpiry] = useState(getHoldExpiry);
   const [secondsLeft, setSecondsLeft] = useState(() => Math.max(0, Math.ceil((holdExpiry - Date.now()) / 1000)));
@@ -150,6 +157,7 @@ export default function BookingReview() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   // Synchronous guard so a fast double-click can't fire two bookings
   const submitLockRef = useRef(false);
+  const redirectTimerRef = useRef(null);
 
   useEffect(() => {
     async function loadData() {
@@ -206,12 +214,24 @@ export default function BookingReview() {
           const cFee = parseFloat(vData?.fee || vData?.amount || vData?.Consultation_Fee || doctor.fee || 0);
           setVisitType(vType);
           setConsultationFee(isNaN(cFee) ? 0 : cFee);
+          setFollowUpHint(vData?.follow_up_hint || null);
         } catch (err) {
-          if (err.status === 409) {
+          setFollowUpHint(null);
+          const serverMsg =
+            err?.response?.message ||
+            err?.response?.data?.message ||
+            err?.data?.message ||
+            (typeof err?.response === "string" ? err.response : null) ||
+            (err?.message && err.message !== "Request failed" ? err.message : null);
+
+          const errorText = serverMsg || "You cannot book a follow-up appointment before your initial appointment.";
+
+          if (Number(err?.status) === 409 || Number(err?.response?.status) === 409 || Number(err?.statusCode) === 409 || Number(err?.response?.statusCode) === 409) {
             setToast({
               isOpen: true,
               message: "This slot is currently being booked by another user. Please try again in a few minutes or select another slot.",
-              type: "error"
+              type: "error",
+              duration: 4000
             });
             // Slot is held by someone else — nothing of ours to release
             holdReleasedRef.current = true;
@@ -219,6 +239,17 @@ export default function BookingReview() {
             setSlotConflict(true);
           } else {
             console.error("checkVisitType error:", err);
+            setToast({
+              isOpen: true,
+              message: errorText,
+              type: "error",
+              duration: 4000
+            });
+            holdReleasedRef.current = true;
+            clearHoldExpiry();
+            setTimeout(() => {
+              navigate("/doctors/schedule");
+            }, 3500);
           }
         }
 
@@ -288,6 +319,9 @@ export default function BookingReview() {
   useEffect(() => {
     clearTimeout(pendingUnmountReleaseRef.current);
     return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
       // Never leave an open checkout behind on another page
       if (razorpayRef.current) {
         forceCloseRazorpay(razorpayRef.current, scrollStylesRef.current);
@@ -311,6 +345,10 @@ export default function BookingReview() {
 
   const handleBack = () => {
     if (submitting) return;
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+      redirectTimerRef.current = null;
+    }
     releaseHeldSlot();
     navigate(-1);
   };
@@ -419,6 +457,7 @@ export default function BookingReview() {
         email: user?.email || "",
         amount: consultationFee,
         wallet_amount_used: applyWallet ? walletAppliedAmount : 0,
+        payment_mode: isCash ? 'cash' : 'online',
         drname: doctor?.name ? (doctor.name.startsWith("Dr") ? doctor.name : `Dr.${doctor.name}`) : "",
         patient_name: stripTitle(user?.name) || "Guest"
       };
@@ -427,7 +466,7 @@ export default function BookingReview() {
 
       const amountToPay = consultationFee - (applyWallet ? walletAppliedAmount : 0);
 
-      if (amountToPay <= 0) {
+      if (isCash || amountToPay <= 0) {
         const orderRef = (
           result.order_id ||
           result.booking_id ||
@@ -447,8 +486,13 @@ export default function BookingReview() {
 
       const res = await loadRazorpayScript();
       if (!res) {
-        alert("Razorpay SDK failed to load. Are you offline?");
+        setToast({
+          isOpen: true,
+          message: "Razorpay SDK failed to load. Are you offline?",
+          type: "error"
+        });
         setSubmitting(false);
+        submitLockRef.current = false;
         return;
       }
 
@@ -500,7 +544,11 @@ export default function BookingReview() {
               });
 
             } else {
-              alert("Payment verification failed. Please contact support.");
+              setToast({
+                isOpen: true,
+                message: "Payment verification failed. Please contact support.",
+                type: "error"
+              });
             }
 
             setSubmitting(false);
@@ -518,6 +566,7 @@ export default function BookingReview() {
             razorpayRef.current = null;
             setPaymentOpen(false);
             setSubmitting(false);
+            submitLockRef.current = false;
           }
         }
       };
@@ -529,15 +578,37 @@ export default function BookingReview() {
       setPaymentOpen(true);
 
     } catch (err) {
-      console.error(err);
-      if (err.status === 409) {
-        alert(err.message || "Slot already booked");
+      console.error("bookAppointment error:", err);
+      const isConflict =
+        Number(err?.status) === 409 ||
+        Number(err?.response?.status) === 409 ||
+        Number(err?.statusCode) === 409 ||
+        Number(err?.response?.statusCode) === 409 ||
+        (typeof err?.message === "string" && err.message.includes("409"));
+
+      if (isConflict) {
+        holdReleasedRef.current = true;
+        clearHoldExpiry();
+        setToast({
+          isOpen: true,
+          message: "This slot is no longer available. Please choose another slot.",
+          type: "error"
+        });
+        if (redirectTimerRef.current) {
+          clearTimeout(redirectTimerRef.current);
+        }
+        redirectTimerRef.current = setTimeout(() => {
+          navigate("/doctors/schedule");
+        }, 2500);
       } else {
-        alert("Booking failed. Please try again.");
+        setToast({
+          isOpen: true,
+          message: err?.message || "Booking failed. Please try again.",
+          type: "error"
+        });
+        submitLockRef.current = false;
       }
       setSubmitting(false);
-    } finally {
-      submitLockRef.current = false;
     }
   };
 
@@ -587,6 +658,7 @@ export default function BookingReview() {
           isOpen={toast.isOpen}
           message={toast.message}
           type={toast.type}
+          duration={toast.duration || 4000}
           onClose={() => setToast({ ...toast, isOpen: false })}
         />
       </>
@@ -611,7 +683,7 @@ export default function BookingReview() {
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '500' }}>Fetching appointment summary & wallet balance...</span>
               </div>
             ) : (
-              <div className="booking-review-grid">
+              <div className={`booking-review-grid ${hasFollowUpHint ? "has-followup-hint" : ""}`}>
 
                 {/* Left Column: Appointment & Patient Details */}
                 <div className="review-col-main">
@@ -689,6 +761,17 @@ export default function BookingReview() {
                         <span className="review-info-value review-type-pill" style={{ whiteSpace: 'normal', wordBreak: 'break-word', overflow: 'visible' }} title={formattedVisitType}>{formattedVisitType}</span>
                       </div>
                     </div>
+
+                    {/* Follow-up Guidance Hint Note */}
+                    {(followUpHint?.message || (typeof followUpHint === "string" && followUpHint)) && (
+                      <div className="review-followup-hint-box" role="note" aria-label="Follow-up Hint">
+                        <Info size={15} className="review-followup-hint-icon" />
+                        <div className="review-followup-hint-text">
+                          <span className="review-followup-hint-bold">Note: </span>
+                          {typeof followUpHint === "string" ? followUpHint : followUpHint.message}
+                        </div>
+                      </div>
+                    )}
                   </section>
 
                   {/* Patient Information Card */}
@@ -736,17 +819,17 @@ export default function BookingReview() {
                 </div>
 
                 {/* Right Column: Wallet & Payment Breakdown */}
-                <div className="review-col-side">
+                <div className={`review-col-side ${hasFollowUpHint ? "with-hint" : ""}`}>
 
                   {/* Arvaya Wallet Card */}
                   <section className="review-card">
                     <div className="review-wallet-balance-row">
                       <div className="review-header-left">
                         <div className="review-header-avatar avatar-green" aria-hidden="true">
-                          <Wallet size={18} />
+                          <Wallet size={17} />
                         </div>
                         <div>
-                          <h3 className="review-card-title" style={{ fontSize: '14.5px' }}>Wallet Balance</h3>
+                          <h3 className="review-card-title" style={{ fontSize: '13.6px' }}>Wallet Balance</h3>
                           <p className="review-card-subtitle">Available to redeem</p>
                         </div>
                       </div>
@@ -800,15 +883,65 @@ export default function BookingReview() {
                     )}
                   </section>
 
+                  {/* Payment Method Card */}
+                  <section className="review-card">
+                    <h3 className="review-card-title" style={{ fontSize: '13.6px', marginBottom: '8px' }}>Payment Method</h3>
+                    <div className="payment-method-list" role="radiogroup" aria-label="Payment Method">
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={!isCash}
+                        disabled={submitting}
+                        onClick={() => setPaymentMethod("online")}
+                        className={`payment-method-option ${!isCash ? "selected" : ""}`}
+                      >
+                        <div className="payment-method-left">
+                          <div className="payment-method-icon" aria-hidden="true">
+                            <CreditCard size={17} />
+                          </div>
+                          <div className="payment-method-info">
+                            <span className="payment-method-title">Pay Online</span>
+                            <span className="payment-method-subtitle">UPI, Cards, Net Banking</span>
+                          </div>
+                        </div>
+                        <span className="payment-method-radio" aria-hidden="true">
+                          {!isCash && <span className="payment-method-radio-dot" />}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={isCash}
+                        disabled={submitting}
+                        onClick={() => setPaymentMethod("cash")}
+                        className={`payment-method-option ${isCash ? "selected" : ""}`}
+                      >
+                        <div className="payment-method-left">
+                          <div className="payment-method-icon" aria-hidden="true">
+                            <Banknote size={17} />
+                          </div>
+                          <div className="payment-method-info">
+                            <span className="payment-method-title">Hospital Payment</span>
+                            <span className="payment-method-subtitle">Pay at the time of consultation</span>
+                          </div>
+                        </div>
+                        <span className="payment-method-radio" aria-hidden="true">
+                          {isCash && <span className="payment-method-radio-dot" />}
+                        </span>
+                      </button>
+                    </div>
+                  </section>
+
                   {/* Payment Summary & Checkout Card */}
-                  <section className="review-card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <section className="review-card" style={{ display: 'flex', flexDirection: 'column' }}>
                     <div className="review-card-header">
                       <div className="review-header-left">
                         <div className="review-header-avatar avatar-teal" aria-hidden="true">
-                          <CreditCard size={18} />
+                          <CreditCard size={17} />
                         </div>
                         <div>
-                          <h3 className="review-card-title">Payment Summary</h3>
+                          <h3 className="review-card-title" style={{ fontSize: '13.6px' }}>Payment Summary</h3>
                           <p className="review-card-subtitle">Transparent fee breakdown</p>
                         </div>
                       </div>
@@ -859,7 +992,7 @@ export default function BookingReview() {
                             </>
                           ) : (
                             <>
-                              <CheckCircle2 size={16} /> Confirm & Pay
+                              <CheckCircle2 size={16} /> {isCash || finalAmountToPay <= 0 ? "Confirm Booking" : "Confirm & Pay"}
                             </>
                           )}
                         </button>
@@ -882,6 +1015,7 @@ export default function BookingReview() {
         isOpen={toast.isOpen}
         message={toast.message}
         type={toast.type}
+        duration={toast.duration || 4000}
         onClose={() => setToast({ ...toast, isOpen: false })}
       />
 

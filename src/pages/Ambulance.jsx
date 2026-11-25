@@ -6,6 +6,7 @@ import {
   Phone,
   MapPin,
   Clock,
+  Calendar,
   User,
   AlertTriangle,
   CheckCircle2,
@@ -204,6 +205,10 @@ export default function AmbulancePage() {
       ambulanceId: "N/A",
       driverName: "Unassigned",
       driverPhone: "",
+      booked_for: submitted.booked_for || submitted.bookedFor || created.booked_for || created.bookedFor || "",
+      booking_type: submitted.booking_type || submitted.bookingType || created.booking_type || created.bookingType || "",
+      scheduled_date: submitted.scheduled_date || submitted.scheduledDate || created.scheduled_date || created.scheduledDate || "",
+      scheduled_time: submitted.scheduled_time || submitted.scheduledTime || created.scheduled_time || created.scheduledTime || "",
       isOptimistic: true,
     };
 
@@ -422,6 +427,134 @@ export default function AmbulancePage() {
       return "";
     }
     return "";
+  };
+
+  const getRequestDetails = (req) => {
+    if (!req) return { bookedFor: "", bookingType: "", scheduledDate: "", scheduledTime: "" };
+    const rawBookedFor = req.booked_for || req.bookedFor || req.raw?.booked_for || req.raw?.bookedFor || "";
+    const bookedFor = typeof rawBookedFor === "object" && rawBookedFor !== null
+      ? (rawBookedFor.name || rawBookedFor.relation || rawBookedFor.label || "")
+      : String(rawBookedFor || "").trim();
+
+    const rawBookingType = req.booking_type || req.bookingType || req.raw?.booking_type || req.raw?.bookingType || "";
+    const bookingType = typeof rawBookingType === "object" && rawBookingType !== null
+      ? (rawBookingType.name || rawBookingType.label || "")
+      : String(rawBookingType || "").trim();
+
+    const scheduledDate = req.scheduled_date || req.scheduledDate || req.raw?.scheduled_date || req.raw?.scheduledDate || "";
+    const scheduledTime = req.scheduled_time || req.scheduledTime || req.raw?.scheduled_time || req.raw?.scheduledTime || "";
+
+    return { bookedFor, bookingType, scheduledDate, scheduledTime };
+  };
+
+  const formatScheduledDate = (val) => {
+    if (!val || val === "null" || val === "undefined") return "";
+    try {
+      const s = String(val).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const [y, m, d] = s.split("-");
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthName = months[parseInt(m, 10) - 1] || m;
+        return `${d} ${monthName} ${y}`;
+      }
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        const day = String(d.getDate()).padStart(2, "0");
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+      return s;
+    } catch {
+      return String(val);
+    }
+  };
+
+  const formatScheduledTime = (val) => {
+    if (!val || val === "null" || val === "undefined") return "";
+    try {
+      const s = String(val).trim();
+      if (/am|pm/i.test(s)) return s;
+      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(s)) {
+        const parts = s.split(":");
+        let h = parseInt(parts[0], 10);
+        const m = parts[1];
+        const ampm = h >= 12 ? "PM" : "AM";
+        h = h % 12 || 12;
+        return `${String(h).padStart(2, "0")}:${m} ${ampm}`;
+      }
+      return s;
+    } catch {
+      return String(val);
+    }
+  };
+
+  const renderBookedForBadge = (val) => {
+    if (!val) return null;
+    const str = String(val).trim().replace(/_/g, " ").toLowerCase();
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "1.5px 7px",
+          borderRadius: "5px",
+          background: "#ecfdf5",
+          border: "1px solid #a7f3d0",
+          color: "#047857",
+          fontSize: "11px",
+          fontWeight: "700",
+          letterSpacing: "0.025em",
+          lineHeight: 1.35,
+          verticalAlign: "middle",
+        }}
+      >
+        {str}
+      </span>
+    );
+  };
+
+  const renderBookingTypeBadge = (val) => {
+    if (!val) return null;
+    const str = String(val).trim();
+    const sLower = str.toLowerCase();
+    const isInstant =
+      sLower.includes("instant") ||
+      sLower.includes("now") ||
+      sLower.includes("immediate") ||
+      sLower.includes("emergency");
+    const isScheduled =
+      sLower.includes("sched") ||
+      sLower.includes("advance") ||
+      sLower.includes("later");
+
+    const bg = isInstant ? "#fffbeb" : isScheduled ? "#eef2ff" : "#f0fdfa";
+    const border = isInstant
+      ? "#fde68a"
+      : isScheduled
+        ? "#c7d2fe"
+        : "rgba(46, 102, 110, 0.22)";
+    const color = isInstant ? "#b45309" : isScheduled ? "#4338ca" : "#115e59";
+
+    const displayType = str.replace(/_/g, " ").toLowerCase();
+
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "1.5px 7px",
+          borderRadius: "5px",
+          background: bg,
+          border: `1px solid ${border}`,
+          color: color,
+          fontSize: "11px",
+          fontWeight: "700",
+          letterSpacing: "0.03em",
+          lineHeight: 1.35,
+          verticalAlign: "middle",
+        }}
+      >
+        {displayType}
+      </span>
+    );
   };
 
   const getPaginationItems = (currentPage, totalPages) => {
@@ -1355,7 +1488,7 @@ export default function AmbulancePage() {
                   className="ambulance-master-detail-card"
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "340px 1fr",
+                    gridTemplateColumns: "340px minmax(0, 1fr)",
                     background: "var(--bg-surface)",
                     borderRadius: "22px",
                     border: "1px solid var(--border)",
@@ -1403,6 +1536,7 @@ export default function AmbulancePage() {
                       style={{ flex: 1, overflowY: "auto", minHeight: 0 }}
                     >
                       {queueRequests.map((req) => {
+                        if (!req) return null;
                         const isSelected = selectedRequest
                           ? isRequestMatch(req, selectedRequest.id) ||
                           isRequestMatch(req, selectedRequest.requestId)
@@ -1432,6 +1566,12 @@ export default function AmbulancePage() {
                           nameParts.length > 1
                             ? `${nameParts[0]} ${nameParts[1][0]}.`
                             : nameParts[0];
+                        const {
+                          bookedFor: qBookedFor,
+                          bookingType: qBookingType,
+                          scheduledDate: qScheduledDate,
+                          scheduledTime: qScheduledTime,
+                        } = getRequestDetails(req);
 
                         return (
                           <div
@@ -1512,7 +1652,10 @@ export default function AmbulancePage() {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {shortName} · {formatTime(req.createdAt || req.created_at)}
+                                {shortName}
+                                {qBookedFor ? ` (${qBookedFor.replace(/_/g, " ").toLowerCase()})` : ""}
+                                {qBookingType ? ` · ${qBookingType.replace(/_/g, " ").toLowerCase()}` : ""}
+                                · {formatTime(req.createdAt || req.created_at)}
                               </span>
                               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
                                 <span
@@ -1588,6 +1731,9 @@ export default function AmbulancePage() {
                         background: "#ffffff",
                         display: "flex",
                         flexDirection: "column",
+                        minWidth: 0,
+                        width: "100%",
+                        boxSizing: "border-box",
                       }}
                     >
                       {(() => {
@@ -1637,6 +1783,12 @@ export default function AmbulancePage() {
                         const driverPhone =
                           activeTracking?.driverPhone ||
                           selectedRequest.driverPhone;
+                        const {
+                          bookedFor: selectedBookedFor,
+                          bookingType: selectedBookingType,
+                          scheduledDate: selectedScheduledDate,
+                          scheduledTime: selectedScheduledTime,
+                        } = getRequestDetails(selectedRequest);
                         const currentIdx = getStatusIndex(
                           selectedRequest.status,
                         );
@@ -1649,13 +1801,12 @@ export default function AmbulancePage() {
                               style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                alignItems: "center",
+                                alignItems: "flex-start",
                                 marginBottom: "16px",
-                                flexWrap: "wrap",
-                                gap: "12px",
+                                gap: "16px",
                               }}
                             >
-                              <div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
                                 <div
                                   style={{
                                     fontSize: "20px",
@@ -1669,42 +1820,94 @@ export default function AmbulancePage() {
                                 </div>
                                 <div
                                   style={{
-                                    fontSize: "13.5px",
+                                    fontSize: "12.5px",
                                     color: "#64748b",
-                                    marginTop: "2px",
+                                    marginTop: "5px",
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: "8px",
                                     flexWrap: "wrap",
+                                    gap: "8px",
+                                    rowGap: "6px",
                                   }}
                                 >
-                                  <span>
-                                    Patient:{" "}
-                                    <span
-                                      style={{
-                                        fontWeight: "600",
-                                        color: "#334155",
-                                      }}
-                                    >
+                                  <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
+                                    <span style={{ color: "#64748b" }}>Patient:</span>
+                                    <strong style={{ color: "#0f172a", fontWeight: "700" }}>
                                       {selectedRequest.patientName}
-                                    </span>
+                                    </strong>
                                   </span>
-                                  {selectedRequest.createdAt && (
-                                    <>
-                                      <span>·</span>
+
+                                  {selectedBookedFor && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                                      <span style={{ color: "#cbd5e1" }}>·</span>
+                                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                                        <span style={{ color: "#64748b" }}>Booked for:</span>
+                                        {renderBookedForBadge(selectedBookedFor)}
+                                      </span>
+                                    </span>
+                                  )}
+
+                                  {selectedBookingType && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                                      <span style={{ color: "#cbd5e1" }}>·</span>
+                                      <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                                        <span style={{ color: "#64748b" }}>Type:</span>
+                                        {renderBookingTypeBadge(selectedBookingType)}
+                                      </span>
+                                    </span>
+                                  )}
+
+                                  {(selectedScheduledDate || selectedScheduledTime) && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                                      <span style={{ color: "#cbd5e1" }}>·</span>
+                                      <span
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "5px",
+                                        }}
+                                      >
+                                        <span style={{ color: "#64748b" }}>Scheduled:</span>
+                                        <span
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "4px",
+                                            padding: "1.5px 7px",
+                                            borderRadius: "5px",
+                                            background: "#eff6ff",
+                                            border: "1px solid #bfdbfe",
+                                            color: "#1e40af",
+                                            fontSize: "11px",
+                                            fontWeight: "700",
+                                          }}
+                                        >
+                                          <Calendar size={11} strokeWidth={2} style={{ flexShrink: 0 }} />
+                                          <span>
+                                            {[formatScheduledDate(selectedScheduledDate), formatScheduledTime(selectedScheduledTime)].filter(Boolean).join(", ")}
+                                          </span>
+                                        </span>
+                                      </span>
+                                    </span>
+                                  )}
+
+                                  {/* {selectedRequest.createdAt && (
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                                      <span style={{ color: "#cbd5e1" }}>·</span>
                                       <span
                                         style={{
                                           display: "inline-flex",
                                           alignItems: "center",
                                           gap: "4px",
                                           color: "#64748b",
+                                          fontSize: "12px",
                                         }}
                                       >
-                                        <Clock size={13.5} color="#64748b" />
+                                        <Clock size={12.5} color="#64748b" style={{ flexShrink: 0 }} />
                                         <span>{formatTime(selectedRequest.createdAt)}</span>
                                       </span>
-                                    </>
-                                  )}
+                                    </span>
+                                  )} */}
                                 </div>
                               </div>
                               <div
@@ -1712,7 +1915,8 @@ export default function AmbulancePage() {
                                   display: "flex",
                                   alignItems: "center",
                                   gap: "10px",
-                                  flexWrap: "wrap",
+                                  flexShrink: 0,
+                                  paddingTop: "2px",
                                 }}
                               >
                                 {isDispatched && (
@@ -2078,6 +2282,8 @@ export default function AmbulancePage() {
                                       transition: "all 0.15s ease",
                                       boxShadow:
                                         "0 2px 8px rgba(220,38,38,0.22)",
+                                      flexShrink: 0,
+                                      whiteSpace: "nowrap",
                                     }}
                                     onMouseEnter={(e) =>
                                     (e.currentTarget.style.background =
@@ -2522,6 +2728,7 @@ export default function AmbulancePage() {
                     })()
                   ) : (
                     paginatedPastRequests.map((req, idx) => {
+                      if (!req) return null;
                       const rawStatus = req.status
                         ? String(req.status).trim()
                         : "Completed";
@@ -2539,6 +2746,12 @@ export default function AmbulancePage() {
                         .replace(/\b\w/g, (c) => c.toUpperCase());
                       const emergencyLabel =
                         getEmergencyLabel(req.emergencyType) || "Emergency";
+                      const {
+                        bookedFor: hBookedFor,
+                        bookingType: hBookingType,
+                        scheduledDate: hScheduledDate,
+                        scheduledTime: hScheduledTime,
+                      } = getRequestDetails(req);
                       const rawId = String(
                         req.id || req.requestId || "",
                       ).replace(/^AMB-/, "");
@@ -2630,15 +2843,83 @@ export default function AmbulancePage() {
                               <div
                                 className="ambulance-history-subtitle"
                                 style={{
-                                  fontSize: "13px",
+                                  fontSize: "12.5px",
                                   color: "var(--text-muted)",
-                                  marginTop: "2px",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
+                                  marginTop: "4px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
                                   whiteSpace: "nowrap",
+                                  overflowX: "auto",
+                                  scrollbarWidth: "none",
                                 }}
                               >
-                                {req.patientName} · {formatTime(req.createdAt)}
+                                <span style={{ fontWeight: "700", color: "#0f172a" }}>
+                                  {req.patientName}
+                                </span>
+
+                                {hBookedFor && (
+                                  <>
+                                    <span style={{ color: "#cbd5e1" }}>·</span>
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                                      <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>Booked for:</span>
+                                      {renderBookedForBadge(hBookedFor)}
+                                    </span>
+                                  </>
+                                )}
+
+                                {hBookingType && (
+                                  <>
+                                    <span style={{ color: "#cbd5e1" }}>·</span>
+                                    <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                                      <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>Type:</span>
+                                      {renderBookingTypeBadge(hBookingType)}
+                                    </span>
+                                  </>
+                                )}
+
+                                {(hScheduledDate || hScheduledTime) && (
+                                  <>
+                                    <span style={{ color: "#cbd5e1" }}>·</span>
+                                    <span
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                        padding: "2px 8px",
+                                        borderRadius: "6px",
+                                        background: "#eff6ff",
+                                        border: "1px solid #bfdbfe",
+                                        color: "#1e40af",
+                                        fontSize: "11px",
+                                        fontWeight: "700",
+                                      }}
+                                    >
+                                      <Calendar size={11} strokeWidth={2} style={{ flexShrink: 0 }} />
+                                      <span>
+                                        {[formatScheduledDate(hScheduledDate), formatScheduledTime(hScheduledTime)].filter(Boolean).join(", ")}
+                                      </span>
+                                    </span>
+                                  </>
+                                )}
+
+                                {req.createdAt && (
+                                  <>
+                                    <span style={{ color: "#cbd5e1" }}>·</span>
+                                    <span
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                        color: "var(--text-muted)",
+                                        fontSize: "12px",
+                                      }}
+                                    >
+                                      <Clock size={12.5} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                                      <span>{formatTime(req.createdAt)}</span>
+                                    </span>
+                                  </>
+                                )}
                               </div>
                               {req.pickupAddress && (
                                 <div
@@ -3072,7 +3353,12 @@ export default function AmbulancePage() {
             <style>{`
               .ambulance-master-detail-card {
                 display: grid;
-                grid-template-columns: 340px 1fr;
+                grid-template-columns: 340px minmax(0, 1fr);
+              }
+              .ambulance-detail-panel {
+                min-width: 0;
+                width: 100%;
+                box-sizing: border-box;
               }
               .ambulance-queue-list::-webkit-scrollbar {
                 width: 5px;

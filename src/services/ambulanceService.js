@@ -48,7 +48,12 @@ async function requestAmbulance(data) {
     pickup_lat: data.pickup_lat ?? data.lat ?? null,
     pickup_lng: data.pickup_lng ?? data.lng ?? null,
     pickup_address: data.pickup_address ?? data.pickupAddress ?? "",
-    location_key: data.location_key ?? data.locationKey ?? ""
+    location_key: data.location_key ?? data.locationKey ?? "",
+    booked_for: (data.booked_for || data.bookedFor || "self").toLowerCase() === "other" ? "other" : "self",
+    booking_type: data.booking_type || data.booked_type || data.bookingType || "INSTANT",
+    booked_type: data.booked_type || data.booking_type || data.bookingType || "INSTANT",
+    scheduled_date: data.scheduled_date ?? data.scheduledDate ?? null,
+    scheduled_time: data.scheduled_time ?? data.scheduledTime ?? null
   };
 
   let apiRes = null;
@@ -151,6 +156,10 @@ async function getAmbulanceRequests(currentUser, pageSize, pageIndex = 1) {
       ambulanceId: item.ambulance_number || item.ambulance_no || item.ambulance_num || item.ambulance_id || item.ambulanceId || item.vehicle_number || item.vehicle_no || item.vehicle_num || item.vehicleId || "N/A",
       driverName: item.driver_name || item.driverName || item.driver || "Unassigned",
       driverPhone: item.driver_mobile_no || item.driver_phone || item.driverPhone || item.driver_mobile || "",
+      booked_for: item.booked_for ?? item.bookedFor ?? item.booked_for_name ?? "",
+      booking_type: item.booking_type ?? item.bookingType ?? "",
+      scheduled_date: item.scheduled_date ?? item.scheduledDate ?? "",
+      scheduled_time: item.scheduled_time ?? item.scheduledTime ?? "",
       raw: item
     };
   }
