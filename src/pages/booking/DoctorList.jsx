@@ -574,7 +574,7 @@ export default function DoctorList() {
                             <Building2 size={11} /> {hospitalDisplayName}
                           </span>
 
-                          {feeText && (
+                          {/* {feeText && (
                             <span
                               className="doctor-fee-chip"
                               title="Consultation Fee"
@@ -592,7 +592,7 @@ export default function DoctorList() {
                                 Fee
                               </span>
                             </span>
-                          )}
+                          )} */}
                         </div>
                       </article>
                     );

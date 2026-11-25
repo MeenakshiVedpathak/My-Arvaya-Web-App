@@ -2391,7 +2391,7 @@ input[type="radio"]:focus-visible {
   line-height: 1.25;
 }
 
-.wallet-guest-copy > p {
+.wallet-guest-copy>p {
   max-width: 440px;
   margin: 0 0 18px;
   color: var(--text-muted);
@@ -2418,7 +2418,7 @@ input[type="radio"]:focus-visible {
   background: #f7fcfb;
 }
 
-.wallet-guest-list li > span:last-child {
+.wallet-guest-list li>span:last-child {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -2446,8 +2446,15 @@ input[type="radio"]:focus-visible {
   background: #e3f4f1;
 }
 
-.wallet-guest-list-icon.gift { color: #ea580c; background: #ffedd5; }
-.wallet-guest-list-icon.ticket { color: #7c3aed; background: #ede9fe; }
+.wallet-guest-list-icon.gift {
+  color: #ea580c;
+  background: #ffedd5;
+}
+
+.wallet-guest-list-icon.ticket {
+  color: #7c3aed;
+  background: #ede9fe;
+}
 
 .wallet-guest-actions {
   display: flex;
@@ -2476,8 +2483,13 @@ input[type="radio"]:focus-visible {
   box-shadow: 0 14px 26px -8px rgba(8, 123, 115, 0.65);
 }
 
-.wallet-guest-btn svg { transition: transform 0.2s ease; }
-.wallet-guest-btn:hover svg { transform: translateX(3px); }
+.wallet-guest-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.wallet-guest-btn:hover svg {
+  transform: translateX(3px);
+}
 
 .wallet-guest-note {
   display: inline-flex;
@@ -2487,7 +2499,9 @@ input[type="radio"]:focus-visible {
   font-size: 12px;
 }
 
-.wallet-guest-note svg { color: #087b73; }
+.wallet-guest-note svg {
+  color: #087b73;
+}
 
 .wallet-guest-visual {
   position: relative;
@@ -2523,7 +2537,9 @@ input[type="radio"]:focus-visible {
   opacity: 0.95;
 }
 
-.wallet-guest-card-top svg { color: #fbbf24; }
+.wallet-guest-card-top svg {
+  color: #fbbf24;
+}
 
 .wallet-guest-card small {
   display: block;
@@ -2552,8 +2568,13 @@ input[type="radio"]:focus-visible {
   background: rgba(255, 255, 255, 0.22);
 }
 
-.wallet-guest-card-bars span:first-child { width: 70%; }
-.wallet-guest-card-bars span:last-child { width: 45%; }
+.wallet-guest-card-bars span:first-child {
+  width: 70%;
+}
+
+.wallet-guest-card-bars span:last-child {
+  width: 45%;
+}
 
 .wallet-guest-coin {
   position: absolute;
@@ -2566,8 +2587,22 @@ input[type="radio"]:focus-visible {
   font-weight: 900;
 }
 
-.wallet-guest-coin.c1 { right: 18px; bottom: 16px; width: 30px; height: 30px; font-size: 14px; }
-.wallet-guest-coin.c2 { right: 54px; bottom: 30px; width: 20px; height: 20px; font-size: 10px; opacity: 0.85; }
+.wallet-guest-coin.c1 {
+  right: 18px;
+  bottom: 16px;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+}
+
+.wallet-guest-coin.c2 {
+  right: 54px;
+  bottom: 30px;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  opacity: 0.85;
+}
 
 .wallet-guest-lock {
   position: absolute;
@@ -2604,32 +2639,82 @@ input[type="radio"]:focus-visible {
 }
 
 @keyframes walletGuestFloat {
-  0%, 100% { transform: rotate(-4deg) translateY(0); }
-  50% { transform: rotate(-4deg) translateY(-6px); }
+
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(-4deg) translateY(-6px);
+  }
 }
 
 @keyframes walletGuestPulse {
-  0% { transform: scale(1); opacity: 0.9; }
-  100% { transform: scale(1.4); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
 }
 
 @media (max-width: 900px) {
-  .wallet-guest { grid-template-columns: 1fr; padding: 26px 22px; gap: 8px; }
-  .wallet-guest-visual { order: -1; min-height: 170px; }
-  .wallet-guest-card { width: min(100%, 250px); padding: 16px 18px; }
+  .wallet-guest {
+    grid-template-columns: 1fr;
+    padding: 26px 22px;
+    gap: 8px;
+  }
+
+  .wallet-guest-visual {
+    order: -1;
+    min-height: 170px;
+  }
+
+  .wallet-guest-card {
+    width: min(100%, 250px);
+    padding: 16px 18px;
+  }
 }
 
 @media (max-width: 640px) {
-  .wallet-guest { padding: 22px 16px; text-align: center; }
-  .wallet-guest-copy > p { margin-inline: auto; }
-  .wallet-guest-list { grid-template-columns: 1fr; text-align: left; }
-  .wallet-guest-actions { flex-direction: column; }
-  .wallet-guest-btn { width: 100%; justify-content: center; }
-  .wallet-guest-gift { width: 60px; }
+  .wallet-guest {
+    padding: 22px 16px;
+    text-align: center;
+  }
+
+  .wallet-guest-copy>p {
+    margin-inline: auto;
+  }
+
+  .wallet-guest-list {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .wallet-guest-actions {
+    flex-direction: column;
+  }
+
+  .wallet-guest-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wallet-guest-gift {
+    width: 60px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wallet-guest-card, .wallet-guest-lock::after { animation: none; }
+
+  .wallet-guest-card,
+  .wallet-guest-lock::after {
+    animation: none;
+  }
 }
 
 .wallet-primary-button {
@@ -3939,7 +4024,7 @@ input[type="radio"]:focus-visible {
   font-weight: 800;
 }
 
-.wallet-tx-group + .wallet-tx-group {
+.wallet-tx-group+.wallet-tx-group {
   margin-top: 18px;
 }
 
@@ -4098,6 +4183,7 @@ input[type="radio"]:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .wallet-tx-item,
   .wallet-tx-item:hover {
     transition: none;
@@ -6325,18 +6411,39 @@ html.scroll-locked body {
 }
 
 @keyframes bookingHeroSheen {
-  0%, 55% { left: -40%; }
-  100% { left: 130%; }
+
+  0%,
+  55% {
+    left: -40%;
+  }
+
+  100% {
+    left: 130%;
+  }
 }
 
 @keyframes bookingHeroFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes bookingHeroIconFloat {
-  0%, 100% { transform: rotate(-6deg) translateY(0); }
-  50% { transform: rotate(-3deg) translateY(-4px); }
+
+  0%,
+  100% {
+    transform: rotate(-6deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(-3deg) translateY(-4px);
+  }
 }
 
 .booking-hero-left {
@@ -6496,6 +6603,7 @@ html.scroll-locked body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .booking-hero-banner::after,
   .booking-hero-icon,
   .booking-hero-img {
@@ -8064,11 +8172,9 @@ header.glass .header-secondary-nav a:focus-visible {
   height: 64px;
   margin-bottom: 16px;
   color: var(--specialty-accent);
-  background: linear-gradient(
-    145deg,
-    #fff 0%,
-    color-mix(in srgb, var(--specialty-accent) 8%, #fff) 100%
-  );
+  background: linear-gradient(145deg,
+      #fff 0%,
+      color-mix(in srgb, var(--specialty-accent) 8%, #fff) 100%);
   border: 1px solid color-mix(in srgb, var(--specialty-accent) 22%, transparent);
   border-radius: 20px;
   box-shadow:
@@ -8080,11 +8186,9 @@ header.glass .header-secondary-nav a:focus-visible {
 
 .home-spec-card:hover .home-spec-icon {
   color: #fff;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--specialty-accent) 80%, #fff) 0%,
-    var(--specialty-accent) 100%
-  );
+  background: linear-gradient(145deg,
+      color-mix(in srgb, var(--specialty-accent) 80%, #fff) 0%,
+      var(--specialty-accent) 100%);
   transform: rotate(-6deg) scale(1.06);
   box-shadow:
     0 0 0 8px color-mix(in srgb, var(--specialty-accent) 12%, transparent),
@@ -8436,7 +8540,7 @@ header.glass .header-secondary-nav a:focus-visible {
   pointer-events: none;
 }
 
-.home-review-card > * {
+.home-review-card>* {
   position: relative;
   z-index: 1;
 }
@@ -8459,11 +8563,11 @@ header.glass .header-secondary-nav a:focus-visible {
   outline: none;
 }
 
-.home-review-card:hover > .home-review-quote {
+.home-review-card:hover>.home-review-quote {
   opacity: 0.3;
 }
 
-.home-review-card > .home-review-quote {
+.home-review-card>.home-review-quote {
   position: absolute;
   top: 14px;
   right: 18px;
@@ -8690,7 +8794,7 @@ header.glass .header-secondary-nav a:focus-visible {
   background: color-mix(in srgb, var(--review-accent) 12%, transparent);
 }
 
-.review-modal-body > * {
+.review-modal-body>* {
   position: relative;
   z-index: 1;
 }
@@ -8776,13 +8880,25 @@ header.glass .header-secondary-nav a:focus-visible {
 }
 
 @keyframes reviewModalFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes reviewModalPop {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -13649,7 +13765,7 @@ schedule-calendar-card {
   align-items: start;
 }
 
-.reschedule-grid > * {
+.reschedule-grid>* {
   min-width: 0;
 }
 
@@ -14039,15 +14155,310 @@ schedule-calendar-card {
 
 
 .review-col-side {
-
   display: flex;
-
   flex-direction: column;
-
-  gap: 16px;
-
+  gap: 12px;
   min-width: 0;
+}
 
+/* Balanced right-column cards to match left-column height */
+.review-col-side .review-card {
+  padding: 14px 18px;
+  border-radius: 13px;
+}
+
+.review-col-side .review-card-header {
+  padding-bottom: 9px;
+  margin-bottom: 9px;
+}
+
+.review-col-side .review-header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.review-col-side .review-card-title {
+  font-size: 14px;
+}
+
+.review-col-side .review-card-subtitle {
+  font-size: 11.5px;
+}
+
+/* Wallet Card */
+.review-col-side .review-wallet-balance-row {
+  margin-bottom: 9px;
+}
+
+.review-col-side .wallet-balance-display {
+  font-size: 18.5px;
+}
+
+.review-col-side .wallet-toggle-row {
+  padding-top: 9px;
+}
+
+.review-col-side .wallet-toggle-label {
+  font-size: 12.5px;
+}
+
+.review-col-side .wallet-switch-track {
+  width: 38px;
+  height: 21px;
+  border-radius: 11px;
+}
+
+.review-col-side .wallet-switch-thumb {
+  width: 17px;
+  height: 17px;
+}
+
+.review-col-side .wallet-switch-track.active .wallet-switch-thumb {
+  transform: translateX(17px);
+}
+
+.review-col-side .wallet-deduction-box {
+  margin-top: 8px;
+  padding: 8px 11px;
+  gap: 6px;
+}
+
+/* Payment Method Selector */
+.review-col-side .payment-method-list {
+  gap: 8px;
+}
+
+.review-col-side .payment-method-option {
+  padding: 9px 12px;
+  border-radius: 10px;
+  gap: 11px;
+}
+
+.review-col-side .payment-method-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.review-col-side .payment-method-title {
+  font-size: 13.5px;
+}
+
+.review-col-side .payment-method-subtitle {
+  font-size: 11.5px;
+  line-height: 1.3;
+}
+
+.review-col-side .payment-method-radio {
+  width: 18px;
+  height: 18px;
+}
+
+.review-col-side .payment-method-radio-dot {
+  width: 9px;
+  height: 9px;
+}
+
+/* Payment Summary */
+.review-col-side .review-payment-breakdown {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.review-col-side .payment-line-item {
+  font-size: 13px;
+}
+
+.review-col-side .payment-total-box {
+  padding-top: 10px;
+  margin-top: 5px;
+  margin-bottom: 11px;
+}
+
+.review-col-side .payment-total-label {
+  font-size: 14px;
+}
+
+.review-col-side .payment-total-amount {
+  font-size: 21px;
+}
+
+.review-col-side .review-actions-row {
+  gap: 9px;
+}
+
+.review-col-side .btn-review-back,
+.review-col-side .btn-review-confirm {
+  padding: 10px 16px;
+  font-size: 13.5px;
+  border-radius: 8px;
+}
+
+.review-col-side .review-terms-note {
+  margin-top: 9px;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* Enhanced right section sizing when follow-up hint note is active */
+@media (min-width: 992px) {
+  .booking-review-grid.has-followup-hint {
+    align-items: stretch;
+  }
+
+  .review-col-side.with-hint {
+    height: 100%;
+  }
+
+  .review-col-side.with-hint .review-card:last-of-type {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.review-col-side.with-hint {
+  gap: 14px;
+}
+
+.review-col-side.with-hint .review-card {
+  padding: 16px 18px;
+  border-radius: 14px;
+}
+
+.review-col-side.with-hint .review-card-header {
+  padding-bottom: 11px;
+  margin-bottom: 11px;
+}
+
+.review-col-side.with-hint .review-header-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.review-col-side.with-hint .review-card-title {
+  font-size: 14.5px;
+}
+
+.review-col-side.with-hint .review-card-subtitle {
+  font-size: 11.5px;
+}
+
+/* Wallet Card with hint */
+.review-col-side.with-hint .review-wallet-balance-row {
+  margin-bottom: 11px;
+}
+
+.review-col-side.with-hint .wallet-balance-display {
+  font-size: 19.5px;
+}
+
+.review-col-side.with-hint .wallet-toggle-row {
+  padding-top: 11px;
+}
+
+.review-col-side.with-hint .wallet-toggle-label {
+  font-size: 13px;
+}
+
+.review-col-side.with-hint .wallet-switch-track {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+}
+
+.review-col-side.with-hint .wallet-switch-thumb {
+  width: 18px;
+  height: 18px;
+}
+
+.review-col-side.with-hint .wallet-switch-track.active .wallet-switch-thumb {
+  transform: translateX(18px);
+}
+
+.review-col-side.with-hint .wallet-deduction-box {
+  margin-top: 10px;
+  padding: 9px 12px;
+  gap: 6px;
+}
+
+/* Payment Method Selector with hint */
+.review-col-side.with-hint .payment-method-list {
+  gap: 9px;
+}
+
+.review-col-side.with-hint .payment-method-option {
+  padding: 11px 13px;
+  border-radius: 11px;
+  gap: 12px;
+}
+
+.review-col-side.with-hint .payment-method-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.review-col-side.with-hint .payment-method-title {
+  font-size: 14px;
+}
+
+.review-col-side.with-hint .payment-method-subtitle {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.review-col-side.with-hint .payment-method-radio {
+  width: 19px;
+  height: 19px;
+}
+
+.review-col-side.with-hint .payment-method-radio-dot {
+  width: 10px;
+  height: 10px;
+}
+
+/* Payment Summary with hint */
+.review-col-side.with-hint .review-payment-breakdown {
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+.review-col-side.with-hint .payment-line-item {
+  font-size: 13.5px;
+}
+
+.review-col-side.with-hint .payment-total-box {
+  padding-top: 12px;
+  margin-top: 6px;
+  margin-bottom: 13px;
+}
+
+.review-col-side.with-hint .payment-total-label {
+  font-size: 14.5px;
+}
+
+.review-col-side.with-hint .payment-total-amount {
+  font-size: 22px;
+}
+
+.review-col-side.with-hint .review-actions-row {
+  gap: 10px;
+}
+
+.review-col-side.with-hint .btn-review-back,
+.review-col-side.with-hint .btn-review-confirm {
+  padding: 11px 17px;
+  font-size: 13.5px;
+  border-radius: 8px;
+}
+
+.review-col-side.with-hint .review-terms-note {
+  margin-top: 11px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 
@@ -14528,13 +14939,44 @@ schedule-calendar-card {
 
 
 .review-type-pill {
-
   display: inline-block;
-
   color: var(--text-main);
-
   font-weight: 650;
+}
 
+/* Follow-up Guidance Hint Note in Appointment Info Card */
+.review-followup-hint-box {
+  margin-top: 12px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-left: 3.5px solid #D97706;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.05);
+}
+
+.review-followup-hint-icon {
+  color: #D97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.review-followup-hint-text {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #92400E;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.review-followup-hint-bold {
+  font-weight: 700;
+  color: #78350F;
 }
 
 
@@ -15006,6 +15448,112 @@ schedule-calendar-card {
 }
 
 
+
+/* Payment Method Selector */
+.payment-method-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-method-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.payment-method-option:hover:not(:disabled) {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.payment-method-option.selected {
+  border-color: var(--primary, #2e666e);
+  background: #f0f7f7;
+}
+
+.payment-method-option:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.payment-method-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.payment-method-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.payment-method-option.selected .payment-method-icon {
+  background: #e2f1f2;
+  color: var(--primary-dark, #1e4d54);
+}
+
+.payment-method-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.payment-method-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+  line-height: 1.3;
+}
+
+.payment-method-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  line-height: 1.35;
+}
+
+.payment-method-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.18s ease;
+}
+
+.payment-method-option.selected .payment-method-radio {
+  border-color: var(--primary, #2e666e);
+}
+
+.payment-method-radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary, #2e666e);
+}
 
 /* Payment Action Buttons */
 
@@ -16217,6 +16765,7 @@ schedule-calendar-card {
   text-transform: none;
   letter-spacing: normal;
 }
+
 /* ── Header profile pill ─────────────────────────────── */
 .header-profile-pill {
   position: relative;
@@ -16229,11 +16778,13 @@ schedule-calendar-card {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   user-select: none;
 }
+
 .header-profile-pill:hover,
 .header-profile-pill.is-open {
   border-color: rgba(8, 120, 125, 0.35);
   box-shadow: 0 6px 18px rgba(18, 51, 58, 0.12);
 }
+
 .header-profile-pill:active {
   transform: scale(0.98);
 }
@@ -16247,6 +16798,7 @@ schedule-calendar-card {
   background: linear-gradient(135deg, var(--primary, #2E666E), #5fb3a8);
   flex-shrink: 0;
 }
+
 .header-profile-avatar-inner {
   position: relative;
   width: 100%;
@@ -16263,6 +16815,7 @@ schedule-calendar-card {
   font-size: 14px;
   letter-spacing: 0.02em;
 }
+
 .header-profile-avatar-inner img {
   position: absolute;
   inset: 0;
@@ -16271,6 +16824,7 @@ schedule-calendar-card {
   object-fit: cover;
   z-index: 1;
 }
+
 .header-profile-status {
   position: absolute;
   right: 0;
@@ -16287,11 +16841,13 @@ schedule-calendar-card {
   line-height: 1.15;
   min-width: 0;
 }
+
 .header-user-greeting {
   font-size: 10px;
   font-weight: 500;
   color: var(--text-muted);
 }
+
 .header-user-name {
   font-size: 14px;
   font-weight: 700;
@@ -16314,9 +16870,11 @@ schedule-calendar-card {
   transition: background 0.2s ease, transform 0.25s ease;
   flex-shrink: 0;
 }
+
 .header-profile-pill:hover .header-user-chevron {
   background: rgba(8, 120, 125, 0.16);
 }
+
 .header-profile-pill.is-open .header-user-chevron {
   transform: rotate(180deg);
   background: var(--primary, #2E666E);
@@ -16330,11 +16888,13 @@ schedule-calendar-card {
   box-shadow: 0 1px 2px rgba(18, 51, 58, 0.06);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
+
 .header-location-picker:hover,
 .header-location-picker.is-open {
   border-color: rgba(8, 120, 125, 0.35);
   box-shadow: 0 6px 18px rgba(18, 51, 58, 0.12);
 }
+
 .header-location-picker:active {
   transform: scale(0.98);
 }
@@ -16353,15 +16913,18 @@ schedule-calendar-card {
   transition: background 0.2s ease, color 0.2s ease, transform 0.25s ease;
   flex-shrink: 0;
 }
+
 .header-location-picker:hover .header-location-chevron {
   background: rgba(8, 120, 125, 0.16);
 }
+
 .header-location-picker.is-open .header-location-chevron,
 .header-location-chevron.is-open {
   transform: rotate(180deg);
   background: var(--primary, #2E666E);
   color: #fff;
 }
+
 .header-location-city {
   flex: 1 1 auto;
   min-width: 0;
@@ -16379,6 +16942,7 @@ schedule-calendar-card {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary, #2E666E) 100%);
   color: #fff;
 }
+
 .profile-menu-hero-avatar {
   position: relative;
   width: 44px;
@@ -16395,6 +16959,7 @@ schedule-calendar-card {
   font-weight: 700;
   font-size: 17px;
 }
+
 .profile-menu-hero-avatar img {
   position: absolute;
   inset: 0;
@@ -16403,6 +16968,7 @@ schedule-calendar-card {
   object-fit: cover;
   z-index: 1;
 }
+
 .profile-menu-hero-name {
   display: block;
   font-size: 14.5px;
@@ -16413,6 +16979,7 @@ schedule-calendar-card {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .profile-menu-hero-phone {
   display: flex;
   align-items: center;
@@ -16421,6 +16988,7 @@ schedule-calendar-card {
   font-size: 11.5px;
   color: rgba(255, 255, 255, 0.78);
 }
+
 .profile-menu-hero-badge {
   display: inline-flex;
   align-items: center;
@@ -16435,6 +17003,7 @@ schedule-calendar-card {
   border: 1px solid rgba(255, 255, 255, 0.25);
   flex-shrink: 0;
 }
+
 .profile-menu-hero-badge-dot {
   width: 6px;
   height: 6px;
@@ -16446,6 +17015,7 @@ schedule-calendar-card {
 .profile-menu-list {
   padding: 8px;
 }
+
 .profile-menu-item,
 .profile-menu-switch {
   display: flex;
@@ -16457,15 +17027,18 @@ schedule-calendar-card {
   color: var(--text-main);
   transition: background 0.18s ease, color 0.18s ease;
 }
+
 .profile-menu-switch {
   margin: 8px 8px 0;
   background: rgba(8, 120, 125, 0.06);
   border: 1px dashed rgba(8, 120, 125, 0.25);
 }
+
 .profile-menu-item:hover,
 .profile-menu-switch:hover {
   background: rgba(8, 120, 125, 0.08);
 }
+
 .profile-menu-icon {
   width: 32px;
   height: 32px;
@@ -16478,16 +17051,19 @@ schedule-calendar-card {
   background: var(--primary-light);
   transition: background 0.18s ease, color 0.18s ease;
 }
+
 .profile-menu-item:hover .profile-menu-icon,
 .profile-menu-switch:hover .profile-menu-icon {
   background: var(--primary, #2E666E);
   color: #fff;
 }
+
 .profile-menu-label {
   flex: 1;
   font-size: 13.5px;
   font-weight: 600;
 }
+
 .profile-menu-count {
   min-width: 20px;
   padding: 1px 7px;
@@ -16498,16 +17074,19 @@ schedule-calendar-card {
   color: #fff;
   background: var(--primary, #2E666E);
 }
+
 .profile-menu-arrow {
   color: var(--text-muted);
   opacity: 0;
   transform: translateX(-4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
+
 .profile-menu-switch .profile-menu-arrow {
   opacity: 1;
   transform: none;
 }
+
 .profile-menu-item:hover .profile-menu-arrow {
   opacity: 1;
   transform: translateX(0);
@@ -16517,16 +17096,20 @@ schedule-calendar-card {
   padding: 8px;
   border-top: 1px solid var(--border);
 }
+
 .profile-menu-logout {
   color: #dc2626;
 }
+
 .profile-menu-logout .profile-menu-icon {
   color: #dc2626;
   background: rgba(220, 38, 38, 0.08);
 }
+
 .profile-menu-logout:hover {
   background: rgba(220, 38, 38, 0.07);
 }
+
 .profile-menu-logout:hover .profile-menu-icon {
   background: #dc2626;
   color: #fff;
@@ -16574,7 +17157,7 @@ schedule-calendar-card {
   pointer-events: none;
 }
 
-.about-hero > *:not(.about-hero-glow) {
+.about-hero>*:not(.about-hero-glow) {
   position: relative;
 }
 
@@ -16863,6 +17446,7 @@ schedule-calendar-card {
 }
 
 @media (max-width: 560px) {
+
   .about-vision,
   .about-commitment {
     flex-direction: column;
@@ -17230,7 +17814,7 @@ schedule-calendar-card {
     padding: 0;
   }
 
-  .cj-modal-overlay > div {
+  .cj-modal-overlay>div {
     height: 100dvh !important;
     max-height: 100dvh;
     border-radius: 0 !important;
@@ -17370,42 +17954,94 @@ schedule-calendar-card {
   animation: cjLoaderDots 1.2s ease-in-out infinite;
 }
 
-.cj-loader-dots i:nth-child(2) { animation-delay: 0.2s; }
-.cj-loader-dots i:nth-child(3) { animation-delay: 0.4s; }
+.cj-loader-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.cj-loader-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 @keyframes cjLoaderIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes cjLoaderSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes cjLoaderBeat {
-  0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.1); }
-  30% { transform: scale(0.97); }
-  45% { transform: scale(1.06); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  15% {
+    transform: scale(1.1);
+  }
+
+  30% {
+    transform: scale(0.97);
+  }
+
+  45% {
+    transform: scale(1.06);
+  }
 }
 
 @keyframes cjLoaderEcg {
-  0% { stroke-dashoffset: 300; opacity: 1; }
-  70% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
+  0% {
+    stroke-dashoffset: 300;
+    opacity: 1;
+  }
+
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
 }
 
 @keyframes cjLoaderDots {
-  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
-  40% { opacity: 1; transform: translateY(-3px); }
+
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .cj-loader *,
   .cj-loader *::before {
     animation-duration: 3s !important;
   }
-  .cj-loader-core { animation: none; }
+
+  .cj-loader-core {
+    animation: none;
+  }
 }
 
 /* Mandatory field marker — use <span className="required-star">*</span> on every required label */
@@ -17414,4 +18050,1400 @@ schedule-calendar-card {
   font-style: normal;
   font-weight: 700;
   margin-left: 2px;
+}
+
+/* LAB SLOT PICKER & BOOKING STEP 1 STYLES (COMPACT / NO-SCROLL) */
+
+/* Step 1: Compact Lab Details Modal */
+.lab-details-modal-compact {
+  max-width: 580px !important;
+}
+
+.lab-details-modal-compact .modal-header {
+  padding: 12px 18px !important;
+  border-bottom: 1px solid var(--border, #e2e8f0) !important;
+}
+
+.lab-details-modal-compact .modal-header h3 {
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
+}
+
+.lab-details-modal-compact .modal-close-btn {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.lab-details-modal-body-compact {
+  padding: 14px 18px !important;
+  overflow-y: auto !important;
+}
+
+/* Step 1 Compact Modal Footer Actions */
+.lab-modal-footer-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lab-modal-footer-amount-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.lab-modal-footer-amount-label {
+  font-size: 10px;
+  color: var(--text-muted, #64748b);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 1px;
+}
+
+.lab-modal-footer-amount-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary, #2e666e);
+  line-height: 1.1;
+}
+
+.lab-modal-footer-btns-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* State 1: Add to Cart pill button (solid teal) */
+.lab-modal-add-cart-btn {
+  background: var(--primary, #2e666e);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 7.5px 18px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(46, 102, 110, 0.2);
+}
+
+.lab-modal-add-cart-btn:hover {
+  background: var(--primary-dark, #234f55);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(46, 102, 110, 0.3);
+}
+
+/* Select Slot pill button (white outline) */
+.lab-modal-select-slot-btn {
+  background: #ffffff;
+  color: var(--primary, #2e666e);
+  border: 1.5px solid var(--primary, #2e666e);
+  border-radius: 9999px;
+  padding: 6.5px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.lab-modal-select-slot-btn:hover {
+  background: rgba(46, 102, 110, 0.06);
+  transform: translateY(-1px);
+}
+
+/* State 2: Quantity Stepper Pill (Mint background) */
+.lab-cart-qty-stepper {
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 9999px;
+  padding: 3.5px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  user-select: none;
+}
+
+.lab-cart-qty-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.lab-cart-qty-btn:hover {
+  background: #bbf7d0;
+  transform: scale(1.08);
+}
+
+.lab-cart-qty-btn:active {
+  transform: scale(0.95);
+}
+
+.lab-cart-qty-number {
+  font-size: 13px;
+  font-weight: 800;
+  color: #166534;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* State 2: Trash Remove Button */
+.lab-cart-trash-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.lab-cart-trash-btn:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* State 2: Divider */
+.lab-cart-divider {
+  width: 1px;
+  height: 20px;
+  background: #cbd5e1;
+  margin: 0 2px;
+}
+
+/* State 2: View Cart button (solid teal) */
+.lab-modal-view-cart-btn {
+  background: var(--primary, #2e666e);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 6.5px 15px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(46, 102, 110, 0.2);
+}
+
+.lab-modal-view-cart-btn:hover {
+  background: var(--primary-dark, #234f55);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(46, 102, 110, 0.3);
+}
+
+/* Floating Lab Cart CTA on Labs pages */
+.lab-floating-cart-btn {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  background: var(--primary, #2e666e);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 20px rgba(46, 102, 110, 0.35);
+  cursor: pointer;
+  z-index: 999;
+  transition: all 0.2s ease;
+  animation: labCartPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lab-floating-cart-btn:hover {
+  background: var(--primary-dark, #234f55);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(46, 102, 110, 0.45);
+}
+
+@keyframes labCartPopIn {
+  from {
+    transform: scale(0.8) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Warning Popover for Clear All Lab Cart */
+.lab-clear-cart-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 14px 35px -4px rgba(15, 23, 42, 0.16), 0 4px 14px rgba(239, 68, 68, 0.08);
+  z-index: 100;
+  animation: labPopoverFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.lab-clear-cart-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 22px;
+  width: 11px;
+  height: 11px;
+  background: #ffffff;
+  border-left: 1px solid #fecaca;
+  border-top: 1px solid #fecaca;
+  transform: rotate(45deg);
+}
+
+@keyframes labPopoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Step 3: Compact Lab Payment Modal (Balanced Height, No Outer Scroller) */
+.lab-payment-modal-compact {
+  max-width: 800px !important;
+  max-height: 90vh !important;
+}
+
+.lab-payment-modal-compact .modal-header {
+  padding: 10px 18px !important;
+  border-bottom: 1px solid var(--border, #e2e8f0) !important;
+}
+
+.lab-payment-modal-compact .modal-header h3 {
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
+}
+
+.lab-payment-modal-compact .modal-close-btn {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.lab-payment-modal-body-compact {
+  padding: 12px 16px !important;
+  overflow: hidden !important;
+  /* NO outer scroller */
+}
+
+@media (max-height: 560px) {
+  .lab-payment-modal-body-compact {
+    overflow-y: auto !important;
+    /* Fallback for very short screens */
+  }
+}
+
+/* Lab Booking Step 3 - Balanced 2-Column Card Design */
+.lab-review-grid {
+  display: grid;
+  grid-template-columns: 1.32fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.lab-review-grid .review-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lab-review-grid .review-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.lab-review-grid .review-card {
+  padding: 12px 15px !important;
+  border-radius: 11px !important;
+  border: 1.5px solid #e2e8f0 !important;
+}
+
+.lab-review-grid .review-card-header {
+  padding-bottom: 6px !important;
+  margin-bottom: 7px !important;
+}
+
+.lab-review-grid .review-header-avatar {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+}
+
+.lab-review-grid .review-header-avatar svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.lab-review-grid .review-card-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+}
+
+.lab-review-grid .review-card-subtitle {
+  font-size: 10.5px !important;
+  margin: 1px 0 0 0 !important;
+}
+
+.lab-review-grid .hospital-status-pill {
+  font-size: 10px !important;
+  padding: 2px 7px !important;
+}
+
+.lab-review-grid .review-doctor-box {
+  padding: 8px 11px !important;
+  margin-bottom: 8px !important;
+  border-radius: 8px !important;
+}
+
+.lab-review-grid .review-doc-name {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+}
+
+.lab-review-grid .review-spec-pill {
+  font-size: 10px !important;
+  padding: 2px 7px !important;
+}
+
+.lab-review-grid .review-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.lab-review-grid .review-info-item {
+  padding: 6px 9px !important;
+  border-radius: 8px !important;
+}
+
+.lab-review-grid .review-info-label {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  margin-bottom: 2px !important;
+}
+
+.lab-review-grid .review-info-value {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+}
+
+.lab-review-grid .review-patient-grid {
+  gap: 8px !important;
+}
+
+.lab-review-grid .review-patient-item {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+}
+
+.lab-review-grid .review-patient-label {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  margin-bottom: 2px !important;
+}
+
+.lab-review-grid .review-patient-value {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.lab-review-grid .review-wallet-balance-row {
+  margin-bottom: 6px !important;
+}
+
+.lab-review-grid .wallet-balance-display {
+  font-size: 16.5px !important;
+  font-weight: 800 !important;
+}
+
+.lab-review-grid .wallet-toggle-row {
+  padding-top: 6px !important;
+}
+
+.lab-review-grid .wallet-toggle-label {
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+}
+
+.lab-review-grid .wallet-switch-track {
+  width: 34px !important;
+  height: 18px !important;
+  border-radius: 9px !important;
+}
+
+.lab-review-grid .wallet-switch-thumb {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.lab-review-grid .wallet-switch-track.active .wallet-switch-thumb {
+  transform: translateX(16px) !important;
+}
+
+.lab-review-grid .wallet-deduction-box {
+  margin-top: 6px !important;
+  padding: 5px 8px !important;
+  gap: 3px !important;
+  border-radius: 8px !important;
+}
+
+.lab-review-grid .wallet-input-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.lab-review-grid .wallet-input-wrapper {
+  padding: 2px 7px !important;
+  height: 25px !important;
+  min-height: 25px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid #86EFAC !important;
+}
+
+.lab-review-grid .wallet-amount-input {
+  height: 22px !important;
+  line-height: 22px !important;
+  font-size: 12px !important;
+  width: 55px !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+}
+
+.lab-review-grid .wallet-max-chip {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  height: 20px !important;
+  line-height: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.lab-review-grid .wallet-deduction-hint {
+  font-size: 10px !important;
+  color: #16a34a !important;
+  margin-top: 3px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.lab-review-grid .review-payment-breakdown {
+  gap: 5px !important;
+  margin-bottom: 5px !important;
+}
+
+.lab-review-grid .payment-line-item {
+  font-size: 11.5px !important;
+}
+
+.lab-review-grid .payment-total-box {
+  padding-top: 6px !important;
+  margin-top: 3px !important;
+  margin-bottom: 7px !important;
+}
+
+.lab-review-grid .payment-total-label {
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+}
+
+.lab-review-grid .payment-total-amount {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+}
+
+.lab-review-grid .review-actions-row {
+  gap: 7px !important;
+}
+
+.lab-review-grid .btn-review-back,
+.lab-review-grid .btn-review-confirm {
+  padding: 7px 14px !important;
+  font-size: 12px !important;
+  border-radius: 7px !important;
+  font-weight: 700 !important;
+}
+
+.lab-review-grid .review-payment-summary-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (max-width: 820px) {
+  .lab-review-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .lab-payment-modal-body-compact {
+    overflow-y: auto !important;
+  }
+}
+
+.lab-slot-modal-compact {
+  max-width: 860px !important;
+  max-height: 90vh !important;
+}
+
+.lab-slot-modal-compact .modal-header {
+  padding: 8px 16px !important;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.lab-slot-modal-compact .modal-header h3 {
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+}
+
+.lab-slot-modal-compact .modal-close-btn {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.lab-slot-modal-body-compact {
+  padding: 8px 14px 6px 14px !important;
+  overflow: hidden !important;
+  /* NO outer scroller on the modal */
+}
+
+@media (max-width: 859px) {
+  .lab-slot-modal-body-compact {
+    overflow-y: auto !important;
+    /* Fallback for small screens */
+  }
+}
+
+.lab-slot-picker-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.lab-slot-picker-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 860px) {
+  .lab-slot-picker-layout {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+/* Card titles */
+.lab-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.lab-card-title-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lab-card-title-text {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.lab-date-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #134e4a;
+  background: #ccfbf1;
+  border: 1px solid #99f6e4;
+  border-radius: 999px;
+}
+
+/* Calendar Card - Compact */
+.lab-calendar-card {
+  background: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 6px 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  width: 100%;
+}
+
+@media (min-width: 860px) {
+  .lab-calendar-card {
+    width: 260px;
+    flex-shrink: 0;
+  }
+}
+
+.lab-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.lab-cal-month-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.lab-cal-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main, #0f172a);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.lab-cal-nav-btn:hover:not(:disabled) {
+  background: var(--bg-app, #f8fafc);
+  border-color: #cbd5e1;
+}
+
+.lab-cal-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.lab-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.lab-cal-weekday {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  padding: 0;
+}
+
+.lab-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.lab-cal-empty-day {
+  height: 25px;
+}
+
+.lab-cal-day-btn {
+  width: 100%;
+  height: 27px !important;
+  min-height: 27px !important;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-main, #0f172a);
+  font-size: 11.5px !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  padding: 0;
+}
+
+.lab-cal-day-btn:hover:not(:disabled):not(.selected):not(.today) {
+  background: var(--primary-light, #f0fdfa);
+  color: var(--primary, #245d65);
+}
+
+/* Today date: Grey rounded square as in design reference */
+.lab-cal-day-btn.today,
+.lab-cal-day-btn.today:disabled,
+.lab-cal-day-btn.today.past-disabled {
+  background: #e6ebec !important;
+  color: #a4b5b7 !important;
+  font-weight: 650 !important;
+  border-radius: 8px !important;
+  border: 1px solid transparent !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+}
+
+/* Selected Date: Dark teal square with soft shadow */
+.lab-cal-day-btn.selected {
+  background: #115e59 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 6px -1px rgba(17, 94, 89, 0.4) !important;
+}
+
+/* Other past disabled dates: Faint and transparent */
+.lab-cal-day-btn.past-disabled:not(.today),
+.lab-cal-day-btn:disabled:not(.today) {
+  color: #cbd5e1 !important;
+  cursor: not-allowed !important;
+  opacity: 0.45 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  text-decoration: none;
+  pointer-events: none;
+}
+
+.lab-cal-day-btn:focus-visible {
+  outline: 2px solid var(--primary, #245d65);
+  outline-offset: 1px;
+}
+
+/* Slots Card - Compact with internal scroll */
+.lab-slots-card {
+  background: #ffffff;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 6px 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden !important;
+}
+
+.lab-slots-card-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.lab-slots-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lab-slots-count-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+/* Filter Chips */
+.lab-filter-chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.lab-filter-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.lab-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border: 1px solid var(--border, #e2e8f0);
+  background: #ffffff;
+  color: var(--text-main, #334155);
+  cursor: pointer;
+  transition: all 0.14s ease;
+  min-height: 22px;
+  height: 22px;
+}
+
+.lab-filter-chip:hover:not(.active) {
+  background: var(--bg-app, #f8fafc);
+  border-color: #cbd5e1;
+}
+
+.lab-filter-chip.active {
+  background: #115e59;
+  border-color: #115e59;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(17, 94, 89, 0.2);
+}
+
+.lab-filter-chip.active .chip-icon {
+  color: #ffffff !important;
+}
+
+.chip-icon.morning {
+  color: #d97706;
+}
+
+.chip-icon.afternoon {
+  color: #ea580c;
+}
+
+.chip-icon.evening {
+  color: #7c3aed;
+}
+
+/* Search Wrap */
+.lab-slot-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.lab-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--text-muted, #94a3b8);
+  pointer-events: none;
+}
+
+.lab-slot-search-input {
+  width: 100%;
+  padding: 2px 24px 2px 26px;
+  height: 25px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  font-size: 11px;
+  color: var(--text-main, #0f172a);
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.lab-slot-search-input:focus {
+  background: #ffffff;
+  border-color: var(--primary, #245d65);
+  box-shadow: 0 0 0 2px rgba(36, 93, 101, 0.1);
+}
+
+.lab-search-clear-btn {
+  position: absolute;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  cursor: pointer;
+  padding: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lab-search-clear-btn:hover {
+  color: var(--text-main, #0f172a);
+}
+
+.lab-slots-divider {
+  height: 1px;
+  border-top: 1px dashed var(--border, #e2e8f0);
+  margin-bottom: 4px;
+}
+
+/* Slots Content Area - internal scroller inside the slot container! */
+.lab-slots-content-area {
+  flex: 1;
+  max-height: 185px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 4px !important;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.lab-slots-content-area::-webkit-scrollbar {
+  width: 5px !important;
+  display: block !important;
+}
+
+.lab-slots-content-area::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.lab-slots-content-area::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.lab-slots-content-area::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Empty States */
+.lab-slots-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px 8px;
+  margin: auto 0;
+  width: 100%;
+}
+
+.lab-empty-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f0fdfa;
+  color: var(--primary, #245d65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.lab-empty-icon-wrap.muted {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.lab-empty-heading {
+  margin: 0 0 3px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.lab-empty-text {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+  max-width: 260px;
+  line-height: 1.35;
+}
+
+.lab-clear-filters-btn {
+  margin-top: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 5px;
+}
+
+/* Error State */
+.lab-slots-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px 8px;
+  margin: auto 0;
+  width: 100%;
+}
+
+.lab-error-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.lab-error-heading {
+  margin: 0 0 3px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.lab-error-text {
+  margin: 0;
+  font-size: 11px;
+  color: #7f1d1d;
+  max-width: 260px;
+  line-height: 1.35;
+}
+
+.lab-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 5px;
+}
+
+/* Loading State (Skeleton) */
+.lab-slots-loading-state {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.lab-skeleton-period-title {
+  height: 12px;
+  width: 90px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  animation: labPulse 1.5s infinite ease-in-out;
+}
+
+.lab-slot-skeleton-pill {
+  height: 26px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  animation: labPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes labPulse {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Period Sections */
+.lab-period-section {
+  margin-bottom: 6px;
+}
+
+.lab-period-section:last-child {
+  margin-bottom: 2px;
+}
+
+.lab-period-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.lab-period-header-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lab-period-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.lab-period-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.lab-period-badge.morning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.lab-period-badge.afternoon {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.lab-period-badge.evening {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+/* Slots Grid */
+.lab-slots-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+@media (min-width: 480px) {
+  .lab-slots-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 720px) {
+  .lab-slots-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Slot Pill Button */
+.lab-slot-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 2px 5px !important;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: #ffffff;
+  color: var(--text-main, #1e293b);
+  font-size: 10.5px !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  text-align: center;
+}
+
+.lab-slot-pill:hover:not(:disabled):not(.selected) {
+  border-color: var(--primary, #245d65);
+  background: #f0fdfa;
+  color: var(--primary, #245d65);
+}
+
+.lab-slot-pill.selected {
+  background: #115e59 !important;
+  border-color: #115e59 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 5px -1px rgba(17, 94, 89, 0.35);
+}
+
+.lab-slot-pill.selected .lab-slot-pill-clock {
+  color: #ffffff !important;
+}
+
+.lab-slot-pill.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+}
+
+.lab-slot-pill-clock {
+  color: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.lab-slot-pill-label {
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.lab-slot-check {
+  margin-left: 2px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.lab-slot-pill:focus-visible {
+  outline: 2px solid var(--primary, #245d65);
+  outline-offset: 1px;
+}
+
+/* Sticky Footer Bar */
+.lab-slot-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 14px !important;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.lab-slot-footer-summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+}
+
+.lab-slot-footer-icon {
+  color: var(--primary, #245d65);
+  flex-shrink: 0;
+}
+
+.lab-slot-proceed-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 16px !important;
+  font-size: 12.5px !important;
+  font-weight: 700;
+  border-radius: 7px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  background: #115e59;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.lab-slot-proceed-btn:hover:not(:disabled) {
+  background: #0f766e;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(17, 94, 89, 0.25);
+}
+
+.lab-slot-proceed-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Step 2 Back & Selected Slot Summary Card */
+.lab-step2-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px !important;
+}
+
+.lab-step2-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px !important;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: #ffffff;
+  color: var(--text-main, #334155);
+  font-size: 11.5px !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lab-step2-back-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--primary, #245d65);
+}
+
+.lab-step2-slot-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.lab-step2-slot-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lab-step2-slot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: #134e4a;
+}
+
+.lab-step2-slot-pill b {
+  font-weight: 700;
+}
+
+.lab-step2-change-btn {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--primary, #245d65);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 1px 4px;
+}
+
+.lab-step2-change-btn:hover {
+  color: #115e59;
 }

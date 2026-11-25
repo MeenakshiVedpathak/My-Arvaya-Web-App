@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Calendar as CalendarIcon, Clock, MapPin, Video, User, CheckCircle, XCircle, AlertCircle, ChevronRight, ChevronLeft, Sunrise, Sun, Sunset, Check, Stethoscope, FileText, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, Video, User, CheckCircle, XCircle, AlertCircle, ChevronRight, ChevronLeft, Sunrise, Sun, Sunset, Check, Stethoscope, FileText, Loader2, Banknote, CreditCard, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAppointments, cancelAppointment, rescheduleAppointment, getStoredUserId, getDoctorSlots } from "../services/dataService";
 import { toDisplayTime } from "../utils/formatTime";
@@ -133,6 +133,13 @@ export default function MyAppointments() {
   };
 
   const openCancelModal = (apt) => {
+    const pMode = String(apt?.payment_mode || apt?.raw?.payment_mode || apt?.paymentMode || apt?.raw?.paymentMode || "").toLowerCase().trim();
+    const pStatus = String(apt?.payment_status || apt?.raw?.payment_status || apt?.paymentStatus || apt?.raw?.paymentStatus || "").toLowerCase().trim();
+    const isPaidCash = (pMode === "cash" || pMode === "cod") && pStatus === "paid";
+    if (isPaidCash) {
+      showToast("Payment is already collected at the hospital counter. Please contact the hospital for cancellation.", "info");
+      return;
+    }
     setAppointmentToCancel(apt);
     setCancelReason("");
     setCancelReasonError("");
@@ -315,6 +322,94 @@ export default function MyAppointments() {
     if (!m) return time;
     const h = Number(m[1]);
     return `${h % 12 || 12}:${m[2]} ${h < 12 ? "AM" : "PM"}`;
+  };
+
+  const getPaymentStatusDetails = (apt) => {
+    const pMode = String(
+      apt?.payment_mode ||
+      apt?.raw?.payment_mode ||
+      apt?.paymentMode ||
+      apt?.raw?.paymentMode ||
+      ""
+    ).toLowerCase().trim();
+
+    const pStatus = String(
+      apt?.payment_status ||
+      apt?.raw?.payment_status ||
+      apt?.paymentStatus ||
+      apt?.raw?.paymentStatus ||
+      ""
+    ).toLowerCase().trim();
+
+    const isCash = pMode === "cash" || pMode === "cod";
+
+    // 1. Paid / Completed
+    if (pStatus === "paid" || pStatus === "completed" || pStatus === "success") {
+      return {
+        key: "paid",
+        text: isCash ? "Paid at hospital desk • Cash" : "Paid online",
+        icon: <CheckCircle size={12} strokeWidth={2.4} />,
+        className: "is-paid",
+        title: isCash ? "Payment collected at the hospital counter" : "Payment verified and completed online"
+      };
+    }
+
+    // 2. Pending Cash / Pay at Hospital Counter (Matches "pending_cash")
+    if (
+      pStatus === "pending_cash" ||
+      pStatus === "cash_pending" ||
+      (isCash && (!pStatus || pStatus === "pending" || pStatus === "unpaid"))
+    ) {
+      return {
+        key: "pending-cash",
+        text: "Pay at hospital desk • Cash",
+        icon: <Clock size={12} strokeWidth={2.4} />,
+        className: "is-pending-cash",
+        title: "Cash payment due on arrival at the hospital reception/desk"
+      };
+    }
+
+    // 3. Online Payment Pending / Unpaid
+    if (pStatus === "pending" || pStatus === "unpaid" || pStatus === "created") {
+      return {
+        key: "pending-online",
+        text: "Payment pending • Online",
+        icon: <AlertCircle size={12} strokeWidth={2.4} />,
+        className: "is-pending",
+        title: "Online payment not completed yet"
+      };
+    }
+
+    // 4. Refunded
+    if (pStatus === "refunded") {
+      return {
+        key: "refunded",
+        text: "Refunded to account",
+        icon: <RotateCcw size={12} strokeWidth={2.4} />,
+        className: "is-refunded",
+        title: "Fee has been refunded to the original payment source"
+      };
+    }
+
+    // 5. Failed
+    if (pStatus === "failed") {
+      return {
+        key: "failed",
+        text: "Payment incomplete",
+        icon: <XCircle size={12} strokeWidth={2.4} />,
+        className: "is-failed",
+        title: "Payment transaction was not successful"
+      };
+    }
+
+    // Default fallback
+    return {
+      key: isCash ? "pending-cash" : "paid",
+      text: isCash ? "Pay at hospital desk • Cash" : "Paid online",
+      icon: isCash ? <Clock size={12} strokeWidth={2.4} /> : <CheckCircle size={12} strokeWidth={2.4} />,
+      className: isCash ? "is-pending-cash" : "is-paid",
+      title: isCash ? "Pay in cash at the hospital counter" : "Payment verified"
+    };
   };
 
   const formatVisitType = (type) => {
@@ -510,13 +605,19 @@ export default function MyAppointments() {
           </section>
         ) : (
           filteredAppointments.map(apt => {
-            const isPast = isPastDate(apt.date);
             const visitType = formatVisitType(apt.type);
             const location = apt.raw?.hospital_address || apt.raw?.location_name;
             const patientMeta = apt.raw?.patient_age && apt.raw?.patient_gender
               ? `Age ${apt.raw.patient_age} • ${apt.raw.patient_gender}`
               : apt.patientMobile;
-            const showFooter = apt.status === "upcoming" || apt.status === "completed";
+            const isUpcoming = apt.status === "upcoming" || apt.status === "confirmed";
+            const showFooter = isUpcoming || apt.status === "completed";
+            const paymentMode = String(apt.payment_mode || apt.raw?.payment_mode || apt.paymentMode || apt.raw?.paymentMode || "").toLowerCase().trim();
+            const paymentStatus = String(apt.payment_status || apt.raw?.payment_status || apt.paymentStatus || apt.raw?.paymentStatus || "").toLowerCase().trim();
+            const isCash = paymentMode === "cash" || paymentMode === "cod";
+            const isPaid = paymentStatus === "paid";
+            const isPaidCash = isCash && isPaid;
+            const paymentInfo = getPaymentStatusDetails(apt);
 
             return (
             <div key={apt.id} className="appointment-card">
@@ -570,6 +671,13 @@ export default function MyAppointments() {
                   <div style={{ minWidth: 0 }}>
                     <span className="appointment-detail-label">Fee</span>
                     <span className="appointment-detail-value">₹ {apt.amount}</span>
+                    <div
+                      className={`appointment-payment-status ${paymentInfo.className}`}
+                      title={paymentInfo.title}
+                    >
+                      {paymentInfo.icon}
+                      <span>{paymentInfo.text}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -585,19 +693,18 @@ export default function MyAppointments() {
                 </div>
               </div>
 
-              {/* Bottom Row: Past-date note / Actions */}
+              {/* Bottom Row: Actions */}
               {showFooter && (
               <div className="appointment-footer-row">
                 <div className="appointment-footer-note">
-                  {apt.status === "upcoming" && isPast && (
-                    <>
-                      <AlertCircle size={14} />
-                      <span>This appointment date has passed and can no longer be changed.</span>
-                    </>
+                  {isUpcoming && isPaidCash && (
+                    <span className="appointment-cash-note">
+                      *Note: Payment is already collected at the hospital counter. Please contact the hospital for cancellation.
+                    </span>
                   )}
                 </div>
 
-                {apt.status === "upcoming" && !isPast && (
+                {isUpcoming && (
                   <div className="appointment-btn-group">
                     <button
                       type="button"
@@ -608,14 +715,16 @@ export default function MyAppointments() {
                       <span>Reschedule</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => openCancelModal(apt)}
-                      className="appointment-btn appointment-btn-cancel"
-                    >
-                      <XCircle size={14} />
-                      <span>Cancel</span>
-                    </button>
+                    {!isPaidCash && (
+                      <button
+                        type="button"
+                        onClick={() => openCancelModal(apt)}
+                        className="appointment-btn appointment-btn-cancel"
+                      >
+                        <XCircle size={14} />
+                        <span>Cancel</span>
+                      </button>
+                    )}
 
                     {apt.type === "Video Consult" && (
                       <button type="button" className="appointment-btn appointment-btn-primary">
@@ -1281,6 +1390,51 @@ export default function MyAppointments() {
           white-space: nowrap;
         }
 
+        .appointment-fee-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .appointment-payment-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 4.5px;
+          font-size: 11.5px;
+          font-weight: 600;
+          line-height: 1.35;
+          margin-top: 1px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          letter-spacing: -0.01em;
+        }
+
+        .appointment-payment-status.is-paid {
+          color: #15803d;
+        }
+
+        .appointment-payment-status.is-pending-cash {
+          color: #b45309;
+        }
+
+        .appointment-payment-status.is-pending {
+          color: #c2410c;
+        }
+
+        .appointment-payment-status.is-refunded {
+          color: #0369a1;
+        }
+
+        .appointment-payment-status.is-failed {
+          color: #dc2626;
+        }
+
+        .appointment-payment-status svg {
+          flex-shrink: 0;
+        }
+
         /* ── Footer ── */
         .appointment-footer-row {
           display: flex;
@@ -1298,6 +1452,15 @@ export default function MyAppointments() {
           gap: 6px;
           font-size: 12px;
           color: #94a3b8;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .appointment-cash-note {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+          line-height: 1.4;
         }
 
         .appointment-btn-group {
@@ -1306,6 +1469,7 @@ export default function MyAppointments() {
           align-items: center;
           flex-wrap: wrap;
           margin-left: auto;
+          flex-shrink: 0;
         }
 
         .appointment-btn {

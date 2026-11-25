@@ -8,7 +8,18 @@ import useScrollLock from "../../hooks/useScrollLock";
 const ModalFooterContext = createContext(null);
 export const useModalFooter = () => useContext(ModalFooterContext);
 
-export default function Modal({ isOpen, onClose, title, children, maxWidth = "600px", hideHeader = false }) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = "600px",
+  hideHeader = false,
+  className = "",
+  bodyClassName = "",
+  contentStyle = {},
+  bodyStyle = {}
+}) {
   const [footerEl, setFooterEl] = useState(null);
 
   useScrollLock(isOpen);
@@ -18,9 +29,9 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "60
   const content = (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-content"
+        className={`modal-content ${className}`.trim()}
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth }}
+        style={{ maxWidth, ...contentStyle }}
       >
         {!hideHeader && (
           <div className="modal-header">
@@ -31,7 +42,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "60
           </div>
         )}
         <ModalFooterContext.Provider value={footerEl}>
-          <div className="modal-body">
+          <div className={`modal-body ${bodyClassName}`.trim()} style={bodyStyle}>
             {children}
           </div>
         </ModalFooterContext.Provider>

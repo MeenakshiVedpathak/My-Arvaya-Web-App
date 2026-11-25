@@ -1,16 +1,19 @@
-import { 
-  Search, ChevronLeft, ChevronRight, ArrowLeft, FlaskConical, Clock, Heart, ShieldCheck, 
-   Droplets, Beaker, Stethoscope, TestTube, MapPin, ArrowRight, X, Filter, Wallet, Home, User
+import {
+  Search, ChevronLeft, ChevronRight, ArrowLeft, FlaskConical, Clock, Heart, ShieldCheck,
+  Droplets, Beaker, Stethoscope, TestTube, MapPin, ArrowRight, X, Filter, Wallet, Home, User,
+  CalendarDays, CheckCircle2, Calendar, Building2, Smartphone, Mail, Check, CreditCard,
+  ShoppingCart, Trash2, Plus, Minus
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { getDiagnosticTests, getWalletAmount, createLabOrder, verifyLabPayment, loadRazorpayScript } from "../services/dataService";
 import { useBooking } from "../context/BookingContext";
 import { useAuth } from "../context/AuthContext";
-import SelectSlotUI from "../components/doctors/SelectSlotUI";
 import Modal from "../components/common/Modal";
 import LabItemIcon from "../components/labs/LabItemIcon";
+import LabSlotPicker from "../components/labs/LabSlotPicker";
 import { fallbackLabTests } from "../utils/labTests";
+import { useLabCart, getLabItemKey } from "../utils/labCart";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -51,6 +54,9 @@ export default function AllLabTests() {
   const [q, setQ] = useState("");
   const [appliedQuery, setAppliedQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
+  const [labBookingStep, setLabBookingStep] = useState(1);
+  const [labSelectedDate, setLabSelectedDate] = useState(null);
+  const [labSelectedSlot, setLabSelectedSlot] = useState(null);
   const [visitType, setVisitType] = useState("home");
   const [walletBalance, setWalletBalance] = useState(0);
   const [applyWallet, setApplyWallet] = useState(false);
@@ -59,6 +65,21 @@ export default function AllLabTests() {
   const [submitting, setSubmitting] = useState(false);
   // Synchronous lock so a fast double-click can't create two lab orders.
   const submitLockRef = useRef(false);
+
+  // Lab Cart integration
+  const {
+    cart: labCart,
+    addToCart: addLabCartItem,
+    updateQty: updateLabCartQty,
+    removeFromCart: removeLabCartItem,
+    assignSlot: assignLabSlot,
+    totalCount: labCartCount,
+  } = useLabCart();
+
+  const selectedItemCartEntry = selectedItem
+    ? labCart.find((c) => getLabItemKey(c) === getLabItemKey(selectedItem))
+    : null;
+  const inCartQty = selectedItemCartEntry ? selectedItemCartEntry.qty : 0;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(null);
   const isInitialMount = useRef(true);
@@ -163,53 +184,72 @@ export default function AllLabTests() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleOpenBookingModal = (item) => {
+    setLabBookingStep(1);
+    setLabSelectedDate(null);
+    setLabSelectedSlot(null);
+    setApplyWallet(false);
+    setWalletAppliedAmount(0);
+    setSelectedItem(item);
+  };
+
+  const handleCloseBookingModal = () => {
+    if (submitting) return;
+    setSelectedItem(null);
+    setLabBookingStep(1);
+    setLabSelectedDate(null);
+    setLabSelectedSlot(null);
+    setApplyWallet(false);
+    setWalletAppliedAmount(0);
+  };
+
   // Close the booking modal and open login; after login the user stays on this same page
   const handleLoginToBook = () => {
-    setSelectedItem(null);
+    handleCloseBookingModal();
     openLoginModal(location.pathname);
   };
 
-   useEffect(() => {
-     if (!selectedItem || !user) return;
-     setLoadingWallet(true);
-     setApplyWallet(false);
-     setWalletAppliedAmount(0);
-     const patientId = user?.id || user?.user_id || user?.patient_id || "";
-     getWalletAmount(patientId)
-       .then((res) => {
-         let wData = Array.isArray(res) ? res[0] : res;
-         if (typeof wData === 'number' || typeof wData === 'string') {
-           setWalletBalance(parseFloat(wData) || 0);
-         } else if (wData && typeof wData === 'object') {
-           setWalletBalance(parseFloat(wData.total_amount || wData.balance || wData.amount || wData.wallet_balance || wData.wallet_amount || wData.walletBalance || wData.total || 0));
-         }
-       })
-       .catch((err) => {
-         console.error("Failed to fetch wallet balance:", err);
-         setWalletBalance(0);
-       })
-       .finally(() => {
-         setLoadingWallet(false);
-       });
-   }, [selectedItem, user]);
+  useEffect(() => {
+    if (!selectedItem || !user) return;
+    setLoadingWallet(true);
+    setApplyWallet(false);
+    setWalletAppliedAmount(0);
+    const patientId = user?.id || user?.user_id || user?.patient_id || "";
+    getWalletAmount(patientId)
+      .then((res) => {
+        let wData = Array.isArray(res) ? res[0] : res;
+        if (typeof wData === 'number' || typeof wData === 'string') {
+          setWalletBalance(parseFloat(wData) || 0);
+        } else if (wData && typeof wData === 'object') {
+          setWalletBalance(parseFloat(wData.total_amount || wData.balance || wData.amount || wData.wallet_balance || wData.wallet_amount || wData.walletBalance || wData.total || 0));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch wallet balance:", err);
+        setWalletBalance(0);
+      })
+      .finally(() => {
+        setLoadingWallet(false);
+      });
+  }, [selectedItem, user]);
 
-   const maxWalletApplicable = Math.min(walletBalance, selectedItem?.price || 0);
+  const maxWalletApplicable = Math.min(walletBalance, selectedItem?.price || 0);
 
-   useEffect(() => {
-     if (applyWallet) {
-       setWalletAppliedAmount(maxWalletApplicable);
-     } else {
-       setWalletAppliedAmount(0);
-     }
-   }, [applyWallet, maxWalletApplicable]);
+  useEffect(() => {
+    if (applyWallet) {
+      setWalletAppliedAmount(maxWalletApplicable);
+    } else {
+      setWalletAppliedAmount(0);
+    }
+  }, [applyWallet, maxWalletApplicable]);
 
-   const handleWalletInputChange = (e) => {
-     let val = parseFloat(e.target.value);
-     if (isNaN(val)) val = 0;
-     if (val > maxWalletApplicable) val = maxWalletApplicable;
-     if (val < 0) val = 0;
-     setWalletAppliedAmount(val);
-   };
+  const handleWalletInputChange = (e) => {
+    let val = parseFloat(e.target.value);
+    if (isNaN(val)) val = 0;
+    if (val > maxWalletApplicable) val = maxWalletApplicable;
+    if (val < 0) val = 0;
+    setWalletAppliedAmount(val);
+  };
 
   const confirmBooking = async (slotData) => {
     if (!user) {
@@ -247,10 +287,14 @@ export default function AllLabTests() {
         });
       }
 
+      const activeSlot = slotData || labSelectedSlot;
+      const slot_id = activeSlot?.slot_id ?? activeSlot?.id ?? activeSlot?.slot?.id ?? null;
+
       const payload = {
         entitykey: "secure-hospitals",
         entitylocation: entitylocation,
         patient_id: patient_id,
+        slot_id: slot_id,
         wallet_amount_used: applyWallet ? walletAppliedAmount : 0,
         patientInfo: {
           patientName: user?.name || "Guest",
@@ -270,8 +314,10 @@ export default function AllLabTests() {
       setBookingType("lab");
       setLabPackage(selectedItem);
       setLabVisitType(visitType);
-      setDate(new Date(slotData.date));
-      setSlot(slotData.time);
+      const chosenDate = labSelectedDate || (slotData?.date ? new Date(slotData.date) : new Date());
+      const chosenTime = labSelectedSlot?.label || labSelectedSlot?.time || slotData?.time || "10:00 AM";
+      setDate(chosenDate);
+      setSlot(chosenTime);
       setApplyWallet(false);
       setWalletAppliedAmount(0);
 
@@ -281,6 +327,9 @@ export default function AllLabTests() {
       if (amountToPay <= 0) {
         const bookingId = result.order_id || result.bookingId || result.razorpay_order_id || "LAB" + Math.floor(Math.random() * 100000000);
         setBookingId(bookingId);
+        setLabBookingStep(1);
+        setLabSelectedDate(null);
+        setLabSelectedSlot(null);
         go("/confirmed");
         return;
       }
@@ -310,6 +359,9 @@ export default function AllLabTests() {
             });
             const bookingId = result.razorpay_order_id || result.bookingId || result.order_id || "LAB" + Math.floor(Math.random() * 100000000);
             setBookingId(bookingId);
+            setLabBookingStep(1);
+            setLabSelectedDate(null);
+            setLabSelectedSlot(null);
             go("/confirmed");
           } catch (err) {
             console.error("Payment verification failed", err);
@@ -326,7 +378,7 @@ export default function AllLabTests() {
           color: "#2e666e",
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             submitLockRef.current = false;
             setSubmitting(false);
           }
@@ -350,7 +402,7 @@ export default function AllLabTests() {
 
   return (
     <main className="page page-enter" style={{ padding: 0, background: 'var(--bg-app)', color: 'var(--text-main)', minHeight: '100vh' }}>
-      
+
       {/* Styles */}
       <style>{`
         .all-tests-hero {
@@ -1053,21 +1105,21 @@ export default function AllLabTests() {
 
           {/* Search Bar & Profile Filters */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '14px' }}>
-            <div style={{ 
-              background: '#ffffff', 
-              border: '1.5px solid var(--border)', 
-              borderRadius: '16px', 
-              padding: '6px 16px', 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              background: '#ffffff',
+              border: '1.5px solid var(--border)',
+              borderRadius: '16px',
+              padding: '6px 16px',
+              display: 'flex',
+              alignItems: 'center',
               boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
             }}>
               <Search size={20} color="var(--text-muted)" style={{ marginRight: '12px', flexShrink: 0 }} />
-              <form 
-                onSubmit={(e) => { 
-                  e.preventDefault(); 
-                  fetchTestsFromApi(q.trim()); 
-                }} 
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  fetchTestsFromApi(q.trim());
+                }}
                 style={{ flex: 1, display: 'flex', alignItems: 'center' }}
               >
                 <input
@@ -1080,24 +1132,24 @@ export default function AllLabTests() {
                       fetchTestsFromApi(q.trim());
                     }
                   }}
-                  style={{ 
-                    border: 'none', 
-                    background: 'transparent', 
-                    outline: 'none', 
-                    width: '100%', 
-                    fontSize: '14.5px', 
-                    color: 'var(--text-main)', 
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    width: '100%',
+                    fontSize: '14.5px',
+                    color: 'var(--text-main)',
                     padding: '10px 0',
                     fontWeight: '500'
                   }}
                 />
               </form>
               {q && (
-                <button 
+                <button
                   onClick={() => {
                     setQ("");
                     fetchTestsFromApi("");
-                  }} 
+                  }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
                 >
                   <X size={18} />
@@ -1149,7 +1201,7 @@ export default function AllLabTests() {
                   <div className="all-tests-card-title">{test.title}</div>
                   <div className="all-tests-card-sub">{toTitleCase(test.category)}</div>
                   <div className="all-tests-card-footer">
-                    <button className="all-tests-card-btn" onClick={() => setSelectedItem(test)}>
+                    <button className="all-tests-card-btn" onClick={() => handleOpenBookingModal(test)}>
                       More Details <ArrowRight size={13} />
                     </button>
                   </div>
@@ -1211,285 +1263,600 @@ export default function AllLabTests() {
 
       </div>
 
-      {/* Booking Modal */}
+      {/* ── BOOKING / DETAILS MODAL ── */}
       <Modal
         isOpen={!!selectedItem}
-        onClose={() => { if (submitting) return; setSelectedItem(null); setApplyWallet(false); setWalletAppliedAmount(0); }}
-        title="Schedule Lab Test"
-        maxWidth="680px"
+        onClose={handleCloseBookingModal}
+        title={
+          labBookingStep === 1
+            ? (selectedItem?.tests ? "Health Package Details" : "Lab Test Details")
+            : labBookingStep === 2
+              ? (selectedItem?.tests ? "Schedule Health Package" : "Schedule Lab Test")
+              : (selectedItem?.tests ? "Confirm & Pay — Package" : "Confirm & Pay — Lab Test")
+        }
+        maxWidth={
+          labBookingStep === 2
+            ? "860px"
+            : labBookingStep === 1
+              ? "480px"
+              : "800px"
+        }
+        className={
+          labBookingStep === 2
+            ? "lab-slot-modal-compact"
+            : labBookingStep === 1
+              ? "lab-details-modal-compact"
+              : "lab-payment-modal-compact"
+        }
+        bodyClassName={
+          labBookingStep === 2
+            ? "lab-slot-modal-body-compact"
+            : labBookingStep === 1
+              ? "lab-details-modal-body-compact"
+              : "lab-payment-modal-body-compact"
+        }
       >
-        {selectedItem && (
-          <div style={{ marginBottom: "24px", padding: '18px', background: 'var(--bg-app)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>{selectedItem.title}</h3>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{selectedItem.category}</span>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--primary)' }}>₹{selectedItem.price.toLocaleString()}</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '16px', marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed var(--border)', flexWrap: 'wrap' }}>
-              <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
-                <Clock size={14} color="var(--primary)" /> <b>Report Delivery:</b> {selectedItem.reportTime || "24 Hours"}
-              </div>
-              <div style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
-                <ShieldCheck size={14} color="#16a34a" /> <b>Fasting:</b> {selectedItem.fasting || "No Fasting Required"}
-              </div>
-            </div>
-          </div>
-         )}
-
-         {!loadingWallet && walletBalance > 0 && (
-           <div style={{ marginBottom: "24px", background: '#ffffff', borderRadius: '16px', border: '1px solid var(--border)', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                 <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '50%' }}>
-                   <Wallet size={20} />
-                 </div>
-                 <div>
-                   <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>Wallet Balance</h3>
-                   <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Available to redeem</span>
-                 </div>
-               </div>
-               <b style={{ color: '#16a34a', fontSize: '18px' }}>₹{walletBalance}</b>
-             </div>
-
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-               <span style={{ color: 'var(--text-main)', fontSize: '14px', fontWeight: '500' }}>Apply wallet balance</span>
-               <div 
-                 onClick={() => { if(walletBalance > 0 && !submitting) setApplyWallet(!applyWallet) }}
-                 style={{
-                   width: '40px',
-                   height: '22px',
-                   borderRadius: '11px',
-                   background: applyWallet ? '#114c54' : '#e5e7eb',
-                   position: 'relative',
-                   cursor: walletBalance > 0 ? 'pointer' : 'not-allowed',
-                   opacity: walletBalance > 0 ? 1 : 0.5,
-                   transition: 'background 0.3s'
-                 }}
-               >
-                 <div style={{
-                   width: '18px',
-                   height: '18px',
-                   borderRadius: '50%',
-                   background: '#fff',
-                   position: 'absolute',
-                   top: '2px',
-                   left: applyWallet ? '20px' : '2px',
-                   transition: 'left 0.3s',
-                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                 }} />
-               </div>
-             </div>
-
-             {applyWallet && (
-               <div style={{ marginTop: '12px', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: '600' }}>
-                   <span>₹</span>
-                   <input 
-                     type="number" 
-                     value={walletAppliedAmount} 
-                     onChange={handleWalletInputChange}
-                     style={{ background: 'transparent', border: 'none', outline: 'none', width: '80px', fontSize: '15px', fontWeight: '600', color: 'var(--text-main)' }}
-                   />
-                 </div>
-                 <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>Max ₹{maxWalletApplicable}</span>
-               </div>
-             )}
-           </div>
-         )}
-
-         {loadingWallet && (
-           <div style={{ marginBottom: "24px", textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-             <div className="spinner" style={{ width: '20px', height: '20px', borderTopColor: 'var(--primary)', border: '2px solid rgba(0,0,0,0.1)', borderRadius: '50%', animation: 'spin 1s linear infinite', display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}></div>
-             Loading wallet balance...
-           </div>
-         )}
-
-        {!user ? (
-          <div className="lab-guest">
-            <style>{`
-              .lab-guest {
-                padding: 24px 22px 20px;
-                text-align: center;
-                background: radial-gradient(circle at 50% 0%, rgba(46, 102, 110, 0.12), transparent 65%), #ffffff;
-                border: 1px solid var(--border);
-                border-radius: 18px;
-                box-shadow: 0 8px 24px -14px rgba(5, 73, 78, 0.25);
-              }
-              .lab-guest-art {
-                position: relative;
-                width: 64px;
-                height: 64px;
-                margin: 0 auto 12px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--primary);
-                background: var(--primary-light);
-              }
-              .lab-guest-art::after {
-                content: "";
-                position: absolute;
-                inset: 0;
-                border-radius: 50%;
-                border: 2px solid rgba(46, 102, 110, 0.3);
-                animation: labGuestPulse 2.4s ease-out infinite;
-              }
-              .lab-guest-title {
-                margin: 0 0 6px;
-                font-size: 17px;
-                font-weight: 800;
-                letter-spacing: -0.015em;
-                color: var(--text-main);
-              }
-              .lab-guest-text {
-                margin: 0 auto 16px;
-                max-width: 380px;
-                font-size: 13px;
-                line-height: 1.55;
-                color: var(--text-muted);
-              }
-              .lab-guest-perks {
-                display: flex;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin: 0 auto 18px;
-              }
-              .lab-guest-perk {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 6px 11px;
-                border-radius: 999px;
-                font-size: 11.5px;
-                font-weight: 650;
-                color: var(--text-main);
-                background: #f7fbfa;
-                border: 1px solid var(--border);
-              }
-              .lab-guest-perk svg { color: var(--primary); }
-              .lab-guest-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                padding: 11px 24px;
-                border: none;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 700;
-                color: #fff;
-                cursor: pointer;
-                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-                box-shadow: 0 6px 16px -6px rgba(46, 102, 110, 0.6);
-                transition: transform 0.2s ease, filter 0.2s ease;
-              }
-              .lab-guest-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
-              .lab-guest-btn svg:last-child { transition: transform 0.2s ease; }
-              .lab-guest-btn:hover svg:last-child { transform: translateX(3px); }
-              .lab-guest-foot {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                margin-top: 12px;
-                font-size: 11.5px;
-                color: var(--text-muted);
-              }
-              @keyframes labGuestPulse {
-                0% { transform: scale(1); opacity: 0.9; }
-                100% { transform: scale(1.35); opacity: 0; }
-              }
-              @media (max-width: 560px) {
-                .lab-guest { padding: 20px 14px 18px; }
-                .lab-guest-btn { width: 100%; }
-              }
-              @media (prefers-reduced-motion: reduce) {
-                .lab-guest-art::after { animation: none; }
-              }
-            `}</style>
-
-            <div className="lab-guest-art" aria-hidden="true">
-              <FlaskConical size={28} />
-            </div>
-            <h3 className="lab-guest-title">
-              You're one step away from booking this {selectedItem?.tests ? "package" : "test"}
-            </h3>
-            <p className="lab-guest-text">
-              Sign in to your account to continue with your booking.
-            </p>
-
-            <div className="lab-guest-perks">
-              <span className="lab-guest-perk"><Home size={13} /> Home sample collection</span>
-              <span className="lab-guest-perk"><Clock size={13} /> Reports in {selectedItem?.reportTime || "24 Hours"}</span>
-            </div>
-
-            <button type="button" className="lab-guest-btn" onClick={handleLoginToBook}>
-              <User size={16} /> Sign in to Continue <ArrowRight size={16} />
-            </button>
-
-            <div className="lab-guest-foot">
-              <ShieldCheck size={13} color="var(--primary)" /> Takes less than a minute. Your details stay private.
-            </div>
-          </div>
-        ) : (
-        <>
-        {/* Collection Preference — hidden for now (defaults to "home" visit). To re-enable, remove this comment wrapper.
-         <div style={{ marginBottom: "24px" }}>
-          <label style={{ display: "block", fontSize: "14px", fontWeight: "700", color: "var(--text-main)", marginBottom: "12px" }}>
-            Select Collection Preference
-          </label>
-          <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-            <label style={{ 
-              background: visitType === 'home' ? 'var(--primary-light)' : '#ffffff', 
-              padding: '16px', 
-              borderRadius: '16px', 
-              border: visitType === 'home' ? '2px solid var(--primary)' : '1px solid var(--border)', 
-              flex: 1, 
-              minWidth: '200px', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s' 
+        {/* STEP 1: SHOW DETAILS OF LAB TEST */}
+        {labBookingStep === 1 && selectedItem && (
+          <div className="lab-test-details-step">
+            {/* Header Hero Card */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 14px',
+              background: 'linear-gradient(135deg, rgba(46, 102, 110, 0.08) 0%, rgba(46, 102, 110, 0.02) 100%)',
+              borderRadius: '12px',
+              border: '1px solid var(--border)',
+              marginBottom: '10px'
             }}>
-              <input type="radio" name="labVisitType" value="home" checked={visitType === 'home'} onChange={() => setVisitType('home')} style={{ display: 'none' }} />
-              <div>
-                <b style={{ display: 'block', color: visitType === 'home' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>
-                  🏡 Home Sample Collection
-                </b>
-                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>A certified phlebotomist visits your doorstep.</small>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                background: '#ffffff',
+                border: '1px solid var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px -1px rgba(0,0,0,0.06)'
+              }}>
+                <LabItemIcon item={selectedItem} size={22} />
               </div>
-            </label>
-            <label style={{ 
-              background: visitType === 'lab' ? 'var(--primary-light)' : '#ffffff', 
-              padding: '16px', 
-              borderRadius: '16px', 
-              border: visitType === 'lab' ? '2px solid var(--primary)' : '1px solid var(--border)', 
-              flex: 1, 
-              minWidth: '200px', 
-              cursor: 'pointer', 
-              transition: 'all 0.2s' 
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '3px' }}>
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: 'var(--primary)',
+                    background: 'rgba(46, 102, 110, 0.1)',
+                    padding: '1px 6px',
+                    borderRadius: '4px'
+                  }}>
+                    {selectedItem.category || "Diagnostic Care"}
+                  </span>
+                  <span style={{
+                    fontSize: '10.5px',
+                    fontWeight: '600',
+                    color: '#16a34a',
+                    background: '#dcfce7',
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}>
+                    <ShieldCheck size={11} /> Certified Lab
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '15.5px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 3px 0', lineHeight: 1.25 }}>
+                  {selectedItem.title}
+                </h3>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span style={{ fontSize: '18px', fontWeight: '800', color: 'var(--primary)' }}>
+                    ₹{selectedItem.price?.toLocaleString()}
+                  </span>
+                  {selectedItem.oldPrice && selectedItem.oldPrice > selectedItem.price && (
+                    <span style={{ fontSize: '12px', textDecoration: 'line-through', color: 'var(--text-muted)' }}>
+                      ₹{selectedItem.oldPrice?.toLocaleString()}
+                    </span>
+                  )}
+                  {selectedItem.discount && (
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#16a34a' }}>
+                      {selectedItem.discount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '8px',
+              marginBottom: '12px'
             }}>
-              <input type="radio" name="labVisitType" value="lab" checked={visitType === 'lab'} onChange={() => setVisitType('lab')} style={{ display: 'none' }} />
-              <div>
-                <b style={{ display: 'block', color: visitType === 'lab' ? 'var(--primary-dark)' : 'var(--text-main)', marginBottom: '4px', fontSize: '14px' }}>
-                  🏥 Diagnostic Center Visit
-                </b>
-                <small className="text-muted" style={{ fontSize: '12px', lineHeight: 1.4, display: 'block' }}>Walk-in to your nearest accredited partner lab.</small>
+              <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--primary)', fontSize: '10.5px', fontWeight: '600', marginBottom: '1px' }}>
+                  <ShieldCheck size={13} /> Fasting
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
+                  {selectedItem.fasting || "No Fasting Required"}
+                </div>
               </div>
-            </label>
+
+              <div style={{ padding: '8px 10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--primary)', fontSize: '10.5px', fontWeight: '600', marginBottom: '1px' }}>
+                  <Clock size={13} /> Report Time
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
+                  {selectedItem.reportTime || "Within 24 Hours"}
+                </div>
+              </div>
+            </div>
+
+            {/* Subitems / Tests Included (if package) */}
+            {selectedItem.subitems && selectedItem.subitems.length > 0 && (
+              <div style={{ marginBottom: '12px' }}>
+                <h4 style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--text-muted)', margin: '0 0 6px 0' }}>
+                  Tests Included ({selectedItem.subitems.length})
+                </h4>
+                <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '5px', paddingRight: '4px' }}>
+                  {selectedItem.subitems.map((sub, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: 'var(--text-main)', padding: '5px 8px', background: '#f8fafc', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                      <CheckCircle2 size={12} color="#16a34a" style={{ flexShrink: 0 }} />
+                      <span>{sub.service_name || sub.name || sub.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Proceed to Select Slots CTA */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+              <div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL AMOUNT</div>
+                <div style={{ fontSize: '17px', fontWeight: '800', color: 'var(--primary)' }}>₹{selectedItem.price?.toLocaleString()}</div>
+              </div>
+
+              {/* Direct Confirm Schedule button with Razorpay payment */}
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={submitting}
+                style={{
+                  padding: '10px 22px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: submitting ? 'default' : 'pointer'
+                }}
+                onClick={() => {
+                  if (!user) {
+                    handleLoginToBook();
+                    return;
+                  }
+                  confirmBooking();
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <div className="spinner" style={{ width: '15px', height: '15px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Calendar size={18} />
+                    <span>Confirm Schedule</span>
+                  </>
+                )}
+              </button>
+
+              {/* COMMENTED: Slot Selection CTA (kept for future use) */}
+              {/*
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ padding: '8px 18px', fontSize: '13px', fontWeight: '700', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => setLabBookingStep(2)}
+              >
+                <span>Select Slot</span>
+                <ArrowRight size={15} />
+              </button>
+              */}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* STEP 2: SHOW SLOTS */}
+        {/* COMMENTED: Lab slot selection & Add to Cart (kept for future use)
+        {labBookingStep === 2 && (
+          <div>
+            <div className="lab-step2-header-row" style={{ marginBottom: '6px' }}>
+              <button
+                type="button"
+                className="lab-step2-back-btn"
+                onClick={() => setLabBookingStep(1)}
+              >
+                <ChevronLeft size={15} /> Back to Test Details
+              </button>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)' }}>
+                {selectedItem?.title} · ₹{selectedItem?.price?.toLocaleString()}
+              </span>
+            </div>
+
+            <LabSlotPicker
+              onProceed={(slotInfo) => {
+                setLabSelectedDate(slotInfo.date);
+                setLabSelectedSlot(slotInfo);
+                setLabBookingStep(3);
+              }}
+              onClose={handleCloseBookingModal}
+              initialDate={labSelectedDate}
+              initialSlot={labSelectedSlot}
+              testTitle={selectedItem?.title}
+              showAddToCart={true}
+              inCartQty={inCartQty}
+              onAddToCart={(slotInfo) => {
+                setLabSelectedDate(slotInfo.date);
+                setLabSelectedSlot(slotInfo);
+                const itemWithSlot = {
+                  ...selectedItem,
+                  slotDate: slotInfo.date,
+                  slotTime: slotInfo.time || slotInfo.label,
+                  slotLabel: slotInfo.label || slotInfo.time,
+                  slotId: slotInfo.id || slotInfo.slot_id || null,
+                };
+                addLabCartItem(itemWithSlot, 1);
+              }}
+              onUpdateCartQty={(delta) => updateLabCartQty(getLabItemKey(selectedItem), delta)}
+              onRemoveFromCart={() => removeLabCartItem(getLabItemKey(selectedItem))}
+              onViewCart={() => {
+                handleCloseBookingModal();
+                go("/labs/cart");
+              }}
+              onSlotChange={(slotInfo) => {
+                setLabSelectedDate(slotInfo.date);
+                setLabSelectedSlot(slotInfo);
+                if (inCartQty > 0) {
+                  assignLabSlot(getLabItemKey(selectedItem), slotInfo);
+                }
+              }}
+            />
+          </div>
+        )}
         */}
 
-        <SelectSlotUI onConfirm={confirmBooking} type="lab" submitting={submitting} />
-        </>
+        {/* STEP 3: CONFIRM & PAY - 2-COLUMN REVIEW DESIGN */}
+        {labBookingStep === 3 && (
+          <div className="lab-review-grid">
+            {/* Left Column: Lab Test & Patient Details */}
+            <div className="review-col-main">
+              {/* Lab Test Information Card */}
+              <section className="review-card">
+                <div className="review-card-header">
+                  <div className="review-header-left">
+                    <div className="review-header-avatar" aria-hidden="true" style={{ background: 'rgba(46, 102, 110, 0.1)', color: 'var(--primary)' }}>
+                      <FlaskConical size={18} />
+                    </div>
+                    <div>
+                      <h3 className="review-card-title">
+                        {selectedItem?.tests ? "Health Package Information" : "Lab Test Information"}
+                      </h3>
+                      <p className="review-card-subtitle">Review scheduled test & sample details</p>
+                    </div>
+                  </div>
+                  <span className="hospital-status-pill">
+                    <span className="hospital-pulse-dot" /> Verified Test
+                  </span>
+                </div>
+
+                {/* Test Details Row */}
+                <div className="review-doctor-box">
+                  <div className="review-doc-details">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <span className="review-doc-name">{selectedItem?.title}</span>
+                      <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--primary)' }}>
+                        ₹{selectedItem?.price?.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="review-doc-badge-row" style={{ marginTop: '3px' }}>
+                      <span className="review-spec-pill">
+                        <FlaskConical size={11} /> {selectedItem?.category || (selectedItem?.tests ? "Health Package" : "Diagnostic Care")}
+                      </span>
+                      <span className="review-spec-pill" style={{ background: '#f0fdf4', color: '#16a34a', borderColor: '#bbf7d0' }}>
+                        <Clock size={11} /> Reports in {selectedItem?.reportTime || "24 Hours"}
+                      </span>
+                      {selectedItem?.fasting && (
+                        <span className="review-spec-pill" style={{ background: '#eff6ff', color: '#2563eb', borderColor: '#bfdbfe' }}>
+                          <ShieldCheck size={11} /> {selectedItem.fasting}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Appointment Timing & Consultation Grid */}
+                <div className="review-info-grid">
+                  <div className="review-info-item">
+                    <span className="review-info-label">
+                      <Calendar size={11} /> Date
+                    </span>
+                    <span
+                      className="review-info-value"
+                      title={labSelectedDate instanceof Date
+                        ? labSelectedDate.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
+                        : String(labSelectedDate || "—")}
+                    >
+                      {labSelectedDate instanceof Date
+                        ? labSelectedDate.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
+                        : String(labSelectedDate || "—")}
+                    </span>
+                  </div>
+
+                  <div className="review-info-item">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span className="review-info-label">
+                        <Clock size={11} /> Time Slot
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setLabBookingStep(2)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          color: 'var(--primary)',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                        title="Change selected slot"
+                      >
+                        Change
+                      </button>
+                    </div>
+                    <span
+                      className="review-info-value review-slot-pill"
+                      title={labSelectedSlot?.label || labSelectedSlot?.time || labSelectedSlot?.time_range || "Selected Slot"}
+                    >
+                      {labSelectedSlot?.label || labSelectedSlot?.time || labSelectedSlot?.time_range || "Selected Slot"}
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+              {/* Patient Information Card */}
+              <section className="review-card">
+                <div className="review-card-header">
+                  <div className="review-header-left">
+                    <div className="review-header-avatar avatar-slate" aria-hidden="true">
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <h3 className="review-card-title">Patient Information</h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="review-patient-grid">
+                  <div className="review-patient-item">
+                    <span className="review-patient-label">
+                      <User size={12} /> Patient Name
+                    </span>
+                    <span className="review-patient-value">
+                      {user?.name || (user ? "Valued Patient" : "Guest Patient")}
+                    </span>
+                  </div>
+
+                  <div className="review-patient-item">
+                    <span className="review-patient-label">
+                      <Smartphone size={12} /> Contact Number
+                    </span>
+                    <span className="review-patient-value">
+                      {user?.mobile_number || user?.mobile || user?.phone || (user ? "Not Provided" : "Please sign in")}
+                    </span>
+                  </div>
+
+                  {user?.email && (
+                    <div className="review-patient-item" style={{ gridColumn: 'span 2' }}>
+                      <span className="review-patient-label">
+                        <Mail size={12} /> Email Address
+                      </span>
+                      <span className="review-patient-value" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {user.email}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            {/* Right Column: Wallet & Payment Breakdown */}
+            <div className="review-col-side">
+              {/* Wallet Balance Card */}
+              <section className="review-card">
+                <div className="review-wallet-balance-row">
+                  <div className="review-header-left">
+                    <div className="review-header-avatar avatar-green" aria-hidden="true">
+                      <Wallet size={17} />
+                    </div>
+                    <div>
+                      <h3 className="review-card-title" style={{ fontSize: '13.6px' }}>Wallet Balance</h3>
+                      <p className="review-card-subtitle">Available to redeem</p>
+                    </div>
+                  </div>
+                  <span className="wallet-balance-display">
+                    {loadingWallet ? "..." : `₹${walletBalance}`}
+                  </span>
+                </div>
+
+                <div className="wallet-toggle-row">
+                  <span className="wallet-toggle-label">Apply wallet balance</span>
+                  <div
+                    role="switch"
+                    aria-checked={applyWallet}
+                    aria-disabled={submitting || walletBalance <= 0}
+                    tabIndex={walletBalance > 0 && !submitting ? 0 : -1}
+                    onClick={() => { if (walletBalance > 0 && !submitting) setApplyWallet(!applyWallet); }}
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === " ") && walletBalance > 0 && !submitting) {
+                        e.preventDefault();
+                        setApplyWallet(!applyWallet);
+                      }
+                    }}
+                    className={`wallet-switch-track ${applyWallet ? "active" : ""} ${walletBalance <= 0 ? "disabled" : ""}`}
+                    style={submitting ? { opacity: 0.6, cursor: 'default' } : undefined}
+                    title={walletBalance <= 0 ? "Zero balance in wallet" : "Toggle wallet balance"}
+                  >
+                    <div className="wallet-switch-thumb" />
+                  </div>
+                </div>
+
+                {applyWallet && (
+                  <div className="wallet-deduction-box">
+                    <div className="wallet-input-row">
+                      <div className="wallet-input-wrapper">
+                        <span>₹</span>
+                        <input
+                          type="number"
+                          className="wallet-amount-input"
+                          value={walletAppliedAmount}
+                          onChange={handleWalletInputChange}
+                          disabled={submitting}
+                          min="0"
+                          max={maxWalletApplicable}
+                          aria-label="Wallet amount to apply"
+                        />
+                      </div>
+                      <span className="wallet-max-chip">Max ₹{maxWalletApplicable}</span>
+                    </div>
+                    <span className="wallet-deduction-hint">
+                      <Check size={12} /> ₹{walletAppliedAmount} will be deducted from total payable
+                    </span>
+                  </div>
+                )}
+              </section>
+
+              {/* Payment Summary & Checkout Card */}
+              <section className="review-card review-payment-summary-card">
+                <div>
+                  <div className="review-card-header">
+                    <div className="review-header-left">
+                      <div className="review-header-avatar avatar-teal" aria-hidden="true">
+                        <CreditCard size={17} />
+                      </div>
+                      <div>
+                        <h3 className="review-card-title" style={{ fontSize: '13.6px' }}>Payment Summary</h3>
+                        <p className="review-card-subtitle">Transparent fee breakdown</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="review-payment-breakdown">
+                    <div className="payment-line-item">
+                      <span>{selectedItem?.tests ? "Package Fee" : "Test Fee"}</span>
+                      <span className="payment-line-value">₹{selectedItem?.price?.toLocaleString()}</span>
+                    </div>
+
+                    {applyWallet && walletAppliedAmount > 0 && (
+                      <div className="payment-line-item discount">
+                        <span>Wallet Discount</span>
+                        <span className="payment-line-value">- ₹{walletAppliedAmount.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 'auto' }}>
+                  <div className="payment-total-box">
+                    <span className="payment-total-label">Total Payable</span>
+                    <span className="payment-total-amount">
+                      ₹{Math.max(0, (selectedItem?.price || 0) - (applyWallet ? walletAppliedAmount : 0)).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="review-actions-row">
+                    <button
+                      type="button"
+                      onClick={() => setLabBookingStep(2)}
+                      disabled={submitting}
+                      className="btn-review-back"
+                      style={submitting ? { opacity: 0.6, cursor: 'default' } : undefined}
+                    >
+                      <ChevronLeft size={16} /> Back
+                    </button>
+
+                    {!user ? (
+                      <button
+                        type="button"
+                        onClick={handleLoginToBook}
+                        className="btn-review-confirm"
+                      >
+                        <User size={16} /> Sign in to Continue <ArrowRight size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => confirmBooking(labSelectedSlot)}
+                        disabled={submitting}
+                        className="btn-review-confirm"
+                        aria-busy={submitting}
+                        style={submitting ? { cursor: 'default', boxShadow: 'none' } : undefined}
+                      >
+                        {submitting ? (
+                          <>
+                            <div className="spinner" style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={16} />
+                            <span>
+                              {((selectedItem?.price || 0) - (applyWallet ? walletAppliedAmount : 0)) > 0
+                                ? `Pay ₹${Math.max(0, (selectedItem?.price || 0) - (applyWallet ? walletAppliedAmount : 0)).toLocaleString()} & Confirm`
+                                : "Confirm Booking"}
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                    <ShieldCheck size={12} color="var(--primary)" />
+                    <span>100% Secure Checkout powered by Razorpay. NABH Certified.</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
         )}
       </Modal>
+
+      {/* Floating Lab Cart Button */}
+      {/* COMMENTED: Floating cart button (kept for future use)
+      {labCartCount > 0 && (
+        <button
+          type="button"
+          onClick={() => go("/labs/cart")}
+          className="lab-floating-cart-btn"
+          title="View Lab Cart"
+          aria-label={`View Lab Cart (${labCartCount} items)`}
+        >
+          <ShoppingCart size={16} />
+          <span>Cart ({labCartCount})</span>
+        </button>
+      )}
+      */}
 
     </main>
   );

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
-import { X, MapPin, Phone, User, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, Navigation, HeartPulse, Car, Wind, Baby, Flame, Brain, HelpCircle, Check } from "lucide-react";
+import { X, MapPin, Phone, User, Users, Zap, Calendar, Clock, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, ChevronLeft, ChevronRight, Navigation, HeartPulse, Car, Wind, Baby, Flame, Brain, HelpCircle, Check } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useBooking } from "../../context/BookingContext";
 import { useNavigate } from "react-router-dom";
@@ -231,6 +231,583 @@ function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true
   );
 }
 
+/* ── Custom Date & Time Picker Helpers ───────────────────────────────────── */
+
+function parseDateString(dateStr) {
+  if (!dateStr) return null;
+  const parts = String(dateStr).split("-");
+  if (parts.length === 3) {
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  }
+  return new Date(dateStr);
+}
+
+function formatDateToIso(d) {
+  if (!d) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return "";
+  const d = parseDateString(dateStr);
+  if (!d || isNaN(d.getTime())) return dateStr;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const compare = new Date(d);
+  compare.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((compare - today) / (1000 * 60 * 60 * 24));
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  if (diffDays === 0) return `Today, ${d.getDate()} ${months[d.getMonth()]}`;
+  if (diffDays === 1) return `Tomorrow, ${d.getDate()} ${months[d.getMonth()]}`;
+  return `${weekdays[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+const WEEKDAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+function CustomDatePicker({ value, onChange, hasError, minDate }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
+  const minDateObj = useMemo(() => {
+    if (!minDate) return today;
+    const d = parseDateString(minDate);
+    if (!d || isNaN(d.getTime())) return today;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [minDate, today]);
+
+  const selectedDateObj = useMemo(() => {
+    if (!value) return null;
+    const d = parseDateString(value);
+    if (!d || isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [value]);
+
+  const [viewMonth, setViewMonth] = useState(() => {
+    return selectedDateObj || today;
+  });
+
+  useEffect(() => {
+    if (selectedDateObj) {
+      setViewMonth(new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), 1));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const prevMonth = () => {
+    const prev = new Date(year, month - 1, 1);
+    const minMonthStart = new Date(minDateObj.getFullYear(), minDateObj.getMonth(), 1);
+    if (prev >= minMonthStart) {
+      setViewMonth(prev);
+    }
+  };
+
+  const nextMonth = () => {
+    setViewMonth(new Date(year, month + 1, 1));
+  };
+
+  const isPrevDisabled = useMemo(() => {
+    const minMonthStart = new Date(minDateObj.getFullYear(), minDateObj.getMonth(), 1);
+    const currentMonthStart = new Date(year, month, 1);
+    return currentMonthStart <= minMonthStart;
+  }, [year, month, minDateObj]);
+
+  const days = [];
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    days.push(null);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    days.push(new Date(year, month, d));
+  }
+
+  const handleSelectDate = (date) => {
+    const iso = formatDateToIso(date);
+    onChange(iso);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "8px 12px",
+          minHeight: "40px",
+          border: `1.5px solid ${hasError ? "var(--danger)" : open ? "var(--primary)" : "var(--border)"}`,
+          borderRadius: "9px",
+          background: "#fff",
+          cursor: "pointer",
+          outline: "none",
+          textAlign: "left",
+          fontFamily: "var(--font-sans)",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+          boxShadow: open ? "0 0 0 4px rgba(22,83,92,0.10)" : "none"
+        }}
+      >
+        <div style={{ color: value ? "#16535c" : "var(--text-muted)", display: "flex", alignItems: "center" }}>
+          <Calendar size={16} />
+        </div>
+        <span style={{ flex: 1, fontSize: "13.5px", fontWeight: value ? "600" : "500", color: value ? "var(--text-main)" : "var(--text-muted)" }}>
+          {value ? formatDisplayDate(value) : "Select pickup date"}
+        </span>
+        <ChevronDown size={16} color="var(--text-muted)" style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: "calc(100% + 6px)",
+            width: "260px",
+            maxWidth: "calc(100vw - 32px)",
+            background: "#ffffff",
+            border: "1px solid var(--border)",
+            borderRadius: "10px",
+            boxShadow: "0 10px 25px rgba(15,23,42,0.14), 0 2px 6px rgba(15,23,42,0.06)",
+            padding: "10px",
+            zIndex: 65,
+            animation: "fadeIn 0.15s ease-out"
+          }}
+        >
+          {/* Month / Year header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <button
+              type="button"
+              disabled={isPrevDisabled}
+              onClick={prevMonth}
+              style={{
+                width: "26px",
+                height: "26px",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+                background: isPrevDisabled ? "var(--bg-app)" : "#ffffff",
+                color: isPrevDisabled ? "var(--border)" : "var(--text-main)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: isPrevDisabled ? "not-allowed" : "pointer"
+              }}
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span style={{ fontSize: "13px", fontWeight: "700", color: "var(--text-main)" }}>
+              {MONTH_NAMES[month]} {year}
+            </span>
+            <button
+              type="button"
+              onClick={nextMonth}
+              style={{
+                width: "26px",
+                height: "26px",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+                background: "#ffffff",
+                color: "var(--text-main)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer"
+              }}
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+
+          {/* Weekday headers */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px", textAlign: "center", marginBottom: "4px" }}>
+            {WEEKDAY_NAMES.map((w) => (
+              <span key={w} style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                {w}
+              </span>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px" }}>
+            {days.map((d, idx) => {
+              if (!d) return <div key={`empty-${idx}`} />;
+              const isPast = d < minDateObj;
+              const isSelected = selectedDateObj && d.toDateString() === selectedDateObj.toDateString();
+              const isToday = d.toDateString() === today.toDateString();
+
+              return (
+                <button
+                  key={d.toISOString()}
+                  type="button"
+                  disabled={isPast}
+                  onClick={() => handleSelectDate(d)}
+                  style={{
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: isToday && !isSelected ? "1px solid #16535c" : "none",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    fontWeight: isSelected ? "700" : isToday ? "700" : "500",
+                    cursor: isPast ? "not-allowed" : "pointer",
+                    background: isSelected ? "#16535c" : "transparent",
+                    color: isSelected ? "#ffffff" : isPast ? "#cbd5e1" : isToday ? "#16535c" : "var(--text-main)",
+                    boxShadow: isSelected ? "0 2px 6px rgba(22,83,92,0.3)" : "none",
+                    transition: "all 0.15s"
+                  }}
+                  onMouseEnter={e => {
+                    if (!isSelected && !isPast) e.currentTarget.style.background = "var(--bg-app, #f1f5f9)";
+                  }}
+                  onMouseLeave={e => {
+                    if (!isSelected && !isPast) e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {d.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const HOURS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
+function parseTimeToParts(timeStr) {
+  if (!timeStr) {
+    const now = new Date();
+    return {
+      hour24: now.getHours(),
+      minute: now.getMinutes()
+    };
+  }
+  const s = String(timeStr).trim();
+  const match = s.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm)?$/i);
+  if (match) {
+    let h = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10) || 0;
+    const period = match[3] ? match[3].toUpperCase() : null;
+    if (period === "PM" && h < 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return { hour24: Math.min(Math.max(h, 0), 23), minute: Math.min(Math.max(m, 0), 59) };
+  }
+  return { hour24: 10, minute: 30 };
+}
+
+function formatPartsToTime12(hour24, minute) {
+  const h = parseInt(hour24, 10) || 0;
+  const m = parseInt(minute, 10) || 0;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function CustomTimePicker({ value, onChange, hasError }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const selectedHourRef = useRef(null);
+  const selectedMinuteRef = useRef(null);
+
+  const initialParts = useMemo(() => parseTimeToParts(value), [value]);
+  const [tempHour, setTempHour] = useState(initialParts.hour24);
+  const [tempMinute, setTempMinute] = useState(initialParts.minute);
+
+  useEffect(() => {
+    const p = parseTimeToParts(value);
+    setTempHour(p.hour24);
+    setTempMinute(p.minute);
+  }, [value]);
+
+  // Close on click outside & commit selected time
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        onChange(formatPartsToTime12(tempHour, tempMinute));
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open, tempHour, tempMinute, onChange]);
+
+  // Auto-scroll selected hour & minute to center when opened
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        selectedHourRef.current?.scrollIntoView({ block: "center", behavior: "auto" });
+        selectedMinuteRef.current?.scrollIntoView({ block: "center", behavior: "auto" });
+      }, 30);
+    }
+  }, [open]);
+
+  const handleHourSelect = (hNum) => {
+    setTempHour(hNum);
+    onChange(formatPartsToTime12(hNum, tempMinute));
+  };
+
+  const handleMinuteSelect = (mNum) => {
+    setTempMinute(mNum);
+    onChange(formatPartsToTime12(tempHour, mNum));
+  };
+
+  const handleToggleAmPm = () => {
+    const nextH = (tempHour + 12) % 24;
+    setTempHour(nextH);
+    onChange(formatPartsToTime12(nextH, tempMinute));
+    setTimeout(() => {
+      selectedHourRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 30);
+  };
+
+  const handleConfirm = () => {
+    onChange(formatPartsToTime12(tempHour, tempMinute));
+    setOpen(false);
+  };
+
+  const displayTime = value || formatPartsToTime12(tempHour, tempMinute);
+  const headerTime = formatPartsToTime12(tempHour, tempMinute);
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "8px 12px",
+          minHeight: "40px",
+          border: `1.5px solid ${hasError ? "var(--danger)" : open ? "var(--primary)" : "var(--border)"}`,
+          borderRadius: "9px",
+          background: "#fff",
+          cursor: "pointer",
+          outline: "none",
+          textAlign: "left",
+          fontFamily: "var(--font-sans)",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+          boxShadow: open ? "0 0 0 4px rgba(22,83,92,0.10)" : "none"
+        }}
+      >
+        <div style={{ color: value ? "#16535c" : "var(--text-muted)", display: "flex", alignItems: "center" }}>
+          <Clock size={16} />
+        </div>
+        <span style={{ flex: 1, fontSize: "13.5px", fontWeight: value ? "600" : "500", color: value ? "var(--text-main)" : "var(--text-muted)" }}>
+          {displayTime}
+        </span>
+        <ChevronDown size={16} color="var(--text-muted)" style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+
+      {/* Popover matching user screenshot */}
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "calc(100% + 6px)",
+            width: "152px",
+            background: "#ffffff",
+            border: "1px solid #d9d9d9",
+            borderRadius: "6px",
+            boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)",
+            overflow: "hidden",
+            zIndex: 70,
+            animation: "fadeIn 0.15s ease-out"
+          }}
+        >
+          {/* Header (e.g. 12:57 AM) */}
+          <div
+            onClick={handleToggleAmPm}
+            title="Click to toggle AM / PM"
+            style={{
+              padding: "8px 0",
+              textAlign: "center",
+              fontSize: "14px",
+              fontWeight: "700",
+              color: "var(--primary, #16535c)",
+              borderBottom: "1px solid #f0f0f0",
+              background: "#ffffff",
+              cursor: "pointer",
+              userSelect: "none"
+            }}
+          >
+            {headerTime}
+          </div>
+
+          {/* Two Scrollable Columns: Hours (00-23) & Minutes (00-59) */}
+          <div style={{ display: "flex", height: "140px", background: "#ffffff" }}>
+            {/* Hours Column */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                borderRight: "1px solid #f0f0f0",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}
+            >
+              {HOURS_24.map((hStr) => {
+                const hNum = parseInt(hStr, 10);
+                const isSelected = hNum === tempHour;
+                return (
+                  <div
+                    key={hStr}
+                    ref={isSelected ? selectedHourRef : null}
+                    onClick={() => handleHourSelect(hNum)}
+                    style={{
+                      height: "28px",
+                      lineHeight: "28px",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      fontWeight: isSelected ? "700" : "400",
+                      background: isSelected ? "rgba(22,83,92,0.12)" : "transparent",
+                      color: isSelected ? "var(--primary, #16535c)" : "#262626",
+                      userSelect: "none",
+                      transition: "background-color 0.1s"
+                    }}
+                    onMouseEnter={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "#f5f5f5";
+                    }}
+                    onMouseLeave={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    {hStr}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Minutes Column */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}
+            >
+              {MINUTES_60.map((mStr) => {
+                const mNum = parseInt(mStr, 10);
+                const isSelected = mNum === tempMinute;
+                return (
+                  <div
+                    key={mStr}
+                    ref={isSelected ? selectedMinuteRef : null}
+                    onClick={() => handleMinuteSelect(mNum)}
+                    style={{
+                      height: "28px",
+                      lineHeight: "28px",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      fontWeight: isSelected ? "700" : "400",
+                      background: isSelected ? "rgba(22,83,92,0.12)" : "transparent",
+                      color: isSelected ? "var(--primary, #16535c)" : "#262626",
+                      userSelect: "none",
+                      transition: "background-color 0.1s"
+                    }}
+                    onMouseEnter={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "#f5f5f5";
+                    }}
+                    onMouseLeave={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    {mStr}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Footer with Ok Button */}
+          <div
+            style={{
+              padding: "6px 8px",
+              borderTop: "1px solid #f0f0f0",
+              display: "flex",
+              justifyContent: "flex-end",
+              background: "#ffffff"
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleConfirm}
+              style={{
+                background: "var(--primary, #16535c)",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "5px",
+                padding: "3px 14px",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+                outline: "none",
+                lineHeight: "20px",
+                boxShadow: "0 2px 8px rgba(22,83,92,0.25)",
+                transition: "filter 0.15s"
+              }}
+              onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.12)"}
+              onMouseLeave={e => e.currentTarget.style.filter = "none"}
+            >
+              Ok
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 /* ── Main Modal ──────────────────────────────────────────────────────────── */
 
 export default function AmbulanceRequestModal({ onClose, onSuccess }) {
@@ -239,6 +816,10 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const go = useNavigate();
 
   const [step, setStep]               = useState(1); // 1 = form, 2 = success
+  const [bookedFor, setBookedFor]     = useState("self"); // "self" | "other"
+  const [bookingType, setBookingType] = useState("INSTANT"); // "INSTANT" | "SCHEDULED"
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
   const [patientName, setPatientName] = useState((user?.name || "").replace(/[^a-zA-Z\s]/g, ""));
   const [contactNumber, setContact]   = useState(user?.phone || user?.mobile || "");
   const [pickupAddress, setPickup]    = useState("");
@@ -261,6 +842,30 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
       delete next[field];
       return next;
     });
+  };
+
+  const getTodayStr = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const todayStr = getTodayStr();
+
+  const handleBookedForChange = (val) => {
+    setBookedFor(val);
+    if (val === "self") {
+      const defaultName = (user?.name || "").replace(/[^a-zA-Z\s]/g, "");
+      if (!patientName.trim()) {
+        setPatientName(defaultName);
+      }
+    } else {
+      const defaultName = (user?.name || "").replace(/[^a-zA-Z\s]/g, "");
+      if (patientName.trim() === defaultName) {
+        setPatientName("");
+      }
+    }
   };
 
   const handleMapClick = async (latlng) => {
@@ -310,23 +915,54 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
 
   const handleSubmit = async () => {
     if (submitLockRef.current) return;
-    if (!patientName.trim()) { setErr("Patient name is required."); return; }
+    if (!patientName.trim()) {
+      const msg = "Patient name is required.";
+      if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, patientName: msg }));
+      setErr(msg);
+      return;
+    }
     if (!contactNumber.trim() || contactNumber.length < 10) {
       const msg = "Please enter a valid 10-digit contact number.";
       if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, contactNumber: msg }));
       setErr(msg);
       return;
     }
     if (!/^[6-9]/.test(contactNumber.trim())) {
       const msg = "Please enter a valid mobile number starting with 6, 7, 8, or 9.";
       if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, contactNumber: msg }));
       setErr(msg);
       return;
     }
-    if (!pickupAddress.trim()) { setErr("Pickup address is required."); return; }
+    if (bookingType === "SCHEDULED") {
+      if (!scheduledDate) {
+        const msg = "Please select a scheduled date.";
+        if (showToast) showToast(msg, "error");
+        setFieldErrors(prev => ({ ...prev, scheduledDate: msg }));
+        setErr(msg);
+        return;
+      }
+      if (!scheduledTime || !scheduledTime.trim()) {
+        const msg = "Please enter a scheduled time (e.g. 10:30 AM).";
+        if (showToast) showToast(msg, "error");
+        setFieldErrors(prev => ({ ...prev, scheduledTime: msg }));
+        setErr(msg);
+        return;
+      }
+    }
+    if (!pickupAddress.trim()) {
+      const msg = "Pickup address is required.";
+      if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, pickupAddress: msg }));
+      setErr(msg);
+      return;
+    }
     if (!emergencyType) {
       const msg = "Please select an emergency type.";
       if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, emergencyType: msg }));
       setErr(msg);
       return;
     }
@@ -364,7 +1000,12 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
         pickup_lat: pickupLat,
         pickup_lng: pickupLng,
         pickup_address: pickupAddress.trim(),
-        location_key: locationKey
+        location_key: locationKey,
+        booked_for: bookedFor === "other" ? "other" : "self",
+        booking_type: bookingType,
+        booked_type: bookingType,
+        scheduled_date: bookingType === "SCHEDULED" ? scheduledDate : null,
+        scheduled_time: bookingType === "SCHEDULED" ? (scheduledTime || "").trim() : null
       };
       const res = await requestAmbulance(submitted);
 
@@ -412,32 +1053,280 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
     <div style={{ animation: "fadeIn 0.25s ease" }}>
       <ErrorBanner msg={err} />
 
-      <div className="ambulance-form-row">
-      {/* Patient Name */}
-      <div>
-        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Patient Name <span className="required-star">*</span></label>
-        <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.patientName ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onBlurCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--border)"; }}>
-          <div style={{ padding: "0 10px 0 12px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
-          <input value={patientName} onChange={e => setPatientName(e.target.value.replace(/[^a-zA-Z\s]/g, ""))} placeholder="Full name of patient"
-            style={{ flex: 1, padding: "12px 12px 12px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500" }} />
+      {/* Booking For */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+          Booking For
+        </label>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", background: "var(--bg-app, #f1f5f9)", padding: "3px", borderRadius: "10px" }}>
+          <button
+            type="button"
+            onClick={() => handleBookedForChange("self")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "7px 14px",
+              borderRadius: "8px",
+              fontSize: "13.5px",
+              fontWeight: "600",
+              cursor: "pointer",
+              border: "none",
+              transition: "all 0.2s",
+              fontFamily: "var(--font-sans)",
+              background: bookedFor === "self" ? "#16535c" : "transparent",
+              color: bookedFor === "self" ? "#ffffff" : "var(--text-muted, #64748b)",
+              boxShadow: bookedFor === "self" ? "0 2px 6px rgba(22,83,92,0.25)" : "none"
+            }}
+          >
+            <User size={15} />
+            <span>Myself</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleBookedForChange("other")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "7px 14px",
+              borderRadius: "8px",
+              fontSize: "13.5px",
+              fontWeight: "600",
+              cursor: "pointer",
+              border: "none",
+              transition: "all 0.2s",
+              fontFamily: "var(--font-sans)",
+              background: bookedFor === "other" ? "#16535c" : "transparent",
+              color: bookedFor === "other" ? "#ffffff" : "var(--text-muted, #64748b)",
+              boxShadow: bookedFor === "other" ? "0 2px 6px rgba(22,83,92,0.25)" : "none"
+            }}
+          >
+            <Users size={15} />
+            <span>Someone Else</span>
+          </button>
         </div>
-        <FieldError msg={fieldErrors.patientName} />
       </div>
 
-      {/* Contact Number */}
-      <div>
-        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Contact Number <span className="required-star">*</span></label>
-        <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.contactNumber ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onBlurCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--border)"; }}>
-          <div style={{ padding: "0 10px 0 12px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><Phone size={18} /></div>
-          <input value={contactNumber} onChange={e => { setContact(e.target.value.replace(/\D/g, "").slice(0, 10)); clearFieldError("contactNumber"); }} placeholder="10-digit mobile number" type="tel"
-            style={{ flex: 1, padding: "12px 12px 12px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500", letterSpacing: "0.03em" }} />
+      {/* When do you need it? */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+          When do you need it?
+        </label>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          {/* Book Now Card */}
+          <div
+            onClick={() => { setBookingType("INSTANT"); clearFieldError("scheduledDate"); clearFieldError("scheduledTime"); }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { setBookingType("INSTANT"); clearFieldError("scheduledDate"); clearFieldError("scheduledTime"); } }}
+            style={{
+              position: "relative",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              border: bookingType === "INSTANT" ? "2px solid #ef4444" : "1.5px solid var(--border)",
+              background: bookingType === "INSTANT" ? "#fef2f2" : "#ffffff",
+              transition: "all 0.2s",
+              outline: "none"
+            }}
+          >
+            {bookingType === "INSTANT" && (
+              <span style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                width: "18px",
+                height: "18px",
+                borderRadius: "50%",
+                background: "#dc2626",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 6px rgba(220,38,38,0.35)",
+                zIndex: 2
+              }}>
+                <Check size={11} strokeWidth={3} />
+              </span>
+            )}
+            <div style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "8px",
+              background: "#ef4444",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <Zap size={16} color="#ffffff" fill="#ffffff" />
+            </div>
+            <div style={{ minWidth: 0, textAlign: "left" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-main)", lineHeight: 1.2 }}>
+                Book Now
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "1px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Immediate dispatch
+              </div>
+            </div>
+          </div>
+
+          {/* Book Later Card */}
+          <div
+            onClick={() => {
+              setBookingType("SCHEDULED");
+              if (!scheduledDate) setScheduledDate(getTodayStr());
+              if (!scheduledTime) setScheduledTime("10:30 AM");
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === "Enter" || e.key === " ") {
+                setBookingType("SCHEDULED");
+                if (!scheduledDate) setScheduledDate(getTodayStr());
+                if (!scheduledTime) setScheduledTime("10:30 AM");
+              }
+            }}
+            style={{
+              position: "relative",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              border: bookingType === "SCHEDULED" ? "2px solid #16535c" : "1.5px solid var(--border)",
+              background: bookingType === "SCHEDULED" ? "#f0fdfa" : "#ffffff",
+              transition: "all 0.2s",
+              outline: "none"
+            }}
+          >
+            {bookingType === "SCHEDULED" && (
+              <span style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                width: "18px",
+                height: "18px",
+                borderRadius: "50%",
+                background: "#16535c",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 6px rgba(22,83,92,0.35)",
+                zIndex: 2
+              }}>
+                <Check size={11} strokeWidth={3} />
+              </span>
+            )}
+            <div style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "8px",
+              background: bookingType === "SCHEDULED" ? "rgba(22,83,92,0.12)" : "var(--bg-app, #f1f5f9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <Calendar size={16} color={bookingType === "SCHEDULED" ? "#16535c" : "var(--text-muted)"} />
+            </div>
+            <div style={{ minWidth: 0, textAlign: "left" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-main)", lineHeight: 1.2 }}>
+                Book Later
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "1px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Schedule pickup
+              </div>
+            </div>
+          </div>
         </div>
-        <FieldError msg={fieldErrors.contactNumber} />
       </div>
+
+      {/* Scheduled Date & Time (Book Later only) — Custom Calendar & Timer */}
+      {bookingType === "SCHEDULED" && (
+        <div className="ambulance-form-row" style={{ position: "relative", zIndex: 30, marginBottom: "12px" }}>
+          <div>
+            <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+              Scheduled Date <span className="required-star">*</span>
+            </label>
+            <CustomDatePicker
+              value={scheduledDate}
+              minDate={todayStr}
+              hasError={!!fieldErrors.scheduledDate}
+              onChange={(val) => {
+                setScheduledDate(val);
+                clearFieldError("scheduledDate");
+              }}
+            />
+            <FieldError msg={fieldErrors.scheduledDate} />
+          </div>
+
+          <div>
+            <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+              Scheduled Time <span className="required-star">*</span>
+            </label>
+            <CustomTimePicker
+              value={scheduledTime}
+              hasError={!!fieldErrors.scheduledTime}
+              onChange={(val) => {
+                setScheduledTime(val);
+                clearFieldError("scheduledTime");
+              }}
+            />
+            <FieldError msg={fieldErrors.scheduledTime} />
+          </div>
+        </div>
+      )}
+
+      <div className="ambulance-form-row" style={{ marginBottom: "16px" }}>
+        {/* Patient Name */}
+        <div>
+          <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", minHeight: "18px", marginBottom: "6px", whiteSpace: "nowrap" }}>
+            <span>{bookedFor === "other" ? "Patient's Name" : "Patient Name"}</span>
+            <span className="required-star" style={{ marginLeft: "4px" }}>*</span>
+          </label>
+          <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.patientName ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s", background: "#fff", minHeight: "44px" }}
+            onFocusCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--primary)"; }}
+            onBlurCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--border)"; }}>
+            <div style={{ padding: "0 10px 0 12px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
+            <input
+              value={patientName}
+              onChange={e => { setPatientName(e.target.value.replace(/[^a-zA-Z\s]/g, "")); clearFieldError("patientName"); }}
+              placeholder={bookedFor === "other" ? "Full name of patient" : "Enter your full name"}
+              style={{ flex: 1, padding: "11px 12px 11px 0", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", fontWeight: "500", background: "transparent" }}
+            />
+          </div>
+          <FieldError msg={fieldErrors.patientName} />
+        </div>
+
+        {/* Contact Number */}
+        <div>
+          <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", minHeight: "18px", marginBottom: "6px", whiteSpace: "nowrap" }}>
+            <span>Contact Number</span>
+            <span className="required-star" style={{ marginLeft: "4px" }}>*</span>
+          </label>
+          <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.contactNumber ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s", background: "#fff", minHeight: "44px" }}
+            onFocusCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--primary)"; }}
+            onBlurCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--border)"; }}>
+            <div style={{ padding: "0 10px 0 12px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><Phone size={18} /></div>
+            <input
+              value={contactNumber}
+              onChange={e => { setContact(e.target.value.replace(/\D/g, "").slice(0, 10)); clearFieldError("contactNumber"); }}
+              placeholder="10-digit mobile number"
+              type="tel"
+              style={{ flex: 1, padding: "11px 12px 11px 0", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", fontWeight: "500", letterSpacing: "0.03em", background: "transparent" }}
+            />
+          </div>
+          <FieldError msg={fieldErrors.contactNumber} />
+        </div>
       </div>
 
       {/* Pickup Address */}
@@ -546,8 +1435,25 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
           {/* Submit stays pinned below the scroll area so it's always reachable */}
           {step === 1 && (
             <div className="ambulance-modal-footer">
-              <Btn variant="danger" disabled={busy} onClick={handleSubmit}>
-                {busy ? <><Loader2 size={18} className="animate-spin" /> Requesting…</> : <><Ambulance size={18} /> Call Ambulance</>}
+              <Btn
+                variant={bookingType === "SCHEDULED" ? "primary" : "danger"}
+                disabled={busy}
+                onClick={handleSubmit}
+              >
+                {busy ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    {bookingType === "SCHEDULED" ? "Scheduling…" : "Requesting…"}
+                  </>
+                ) : bookingType === "SCHEDULED" ? (
+                  <>
+                    <Calendar size={18} /> Schedule Ambulance
+                  </>
+                ) : (
+                  <>
+                    <Ambulance size={18} /> Call Ambulance
+                  </>
+                )}
               </Btn>
             </div>
           )}
