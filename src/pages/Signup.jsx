@@ -97,6 +97,13 @@ function SignupSelect({ icon, value, options, onChange, wrapStyle }) {
 
 const BRANCH_MENU_MAX = 300;
 
+// Name validation: letters (incl. Unicode) and spaces only — NO digits or special symbols
+const FULL_NAME_PATTERN = "[A-Za-z\\u00C0-\\u024F\\s]+";
+const FULL_NAME_RE = /^[A-Za-z\u00C0-\u024F\s]+$/;
+function sanitizeNameInput(value) {
+  return String(value || "").replace(/[^A-Za-z\u00C0-\u024F\s]/g, "");
+}
+
 export default function Signup() {
   const [searchParams] = useSearchParams();
   const [title, setTitle] = useState("Mr.");
@@ -158,8 +165,20 @@ export default function Signup() {
       if (showToast) showToast(msg, "error");
       return;
     }
+    if (!FULL_NAME_RE.test(firstName.trim())) {
+      const msg = "First Name must contain only letters and spaces.";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
     if (!lastName.trim()) {
       const msg = "Please enter your Last Name";
+      setError(msg);
+      if (showToast) showToast(msg, "error");
+      return;
+    }
+    if (!FULL_NAME_RE.test(lastName.trim())) {
+      const msg = "Last Name must contain only letters and spaces.";
       setError(msg);
       if (showToast) showToast(msg, "error");
       return;
@@ -321,7 +340,8 @@ export default function Signup() {
               {/* First Name */}
               <div className="signup-field" style={inputWrap}>
                 <User {...iconProps} />
-                <input value={firstName} onChange={e => setFirstName(e.target.value)}
+                <input value={firstName} onChange={e => setFirstName(sanitizeNameInput(e.target.value))}
+                  pattern={FULL_NAME_PATTERN} title="Only letters and spaces are allowed"
                   autoComplete="given-name" autoCapitalize="words"
                   placeholder="First Name" style={inputStyle} />
               </div>
@@ -329,7 +349,8 @@ export default function Signup() {
               {/* Last Name */}
               <div className="signup-field" style={inputWrap}>
                 <User {...iconProps} />
-                <input value={lastName} onChange={e => setLastName(e.target.value)}
+                <input value={lastName} onChange={e => setLastName(sanitizeNameInput(e.target.value))}
+                  pattern={FULL_NAME_PATTERN} title="Only letters and spaces are allowed"
                   autoComplete="family-name" autoCapitalize="words"
                   placeholder="Last Name" style={inputStyle} />
               </div>
