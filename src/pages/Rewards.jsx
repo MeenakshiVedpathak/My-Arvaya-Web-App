@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  Sparkles, 
-  CreditCard, 
-  Calendar, 
-  FileText, 
-  UserPlus, 
-  Upload, 
-  TrendingUp, 
-  Inbox, 
-  CheckCircle2, 
+import {
+  ChevronRight,
+  ChevronDown,
+  Sparkles,
+  CreditCard,
+  Calendar,
+  FileText,
+  UserPlus,
+  Upload,
+  TrendingUp,
+  Inbox,
+  CheckCircle2,
   Award,
   IndianRupee,
   Loader2,
@@ -173,10 +173,10 @@ export default function Rewards() {
             totalAmt = parseFloat(val) || 0;
 
             const maxVal = lData.max_redeem_points ??
-                           lData.maxRedeemPoints ??
-                           lData.max_points ??
-                           lData.max_redeem ??
-                           (lData.data?.max_redeem_points ?? null);
+              lData.maxRedeemPoints ??
+              lData.max_points ??
+              lData.max_redeem ??
+              (lData.data?.max_redeem_points ?? null);
             if (maxVal !== null && maxVal !== undefined) {
               maxRedeem = parseFloat(maxVal);
             }
@@ -200,13 +200,13 @@ export default function Rewards() {
         if (rawHistoryList.length === 0 && loyaltyRes) {
           let lData = Array.isArray(loyaltyRes) ? loyaltyRes[0] : loyaltyRes;
           rawHistoryList = loyaltyRes.history ||
-                           loyaltyRes.activities ||
-                           loyaltyRes.transactions ||
-                           loyaltyRes.logs ||
-                           loyaltyRes.list ||
-                           (lData && typeof lData === 'object' ? (lData.history || lData.activities || lData.transactions || lData.logs || lData.list) : null) ||
-                           (loyaltyRes.data && typeof loyaltyRes.data === 'object' ? (loyaltyRes.data.history || loyaltyRes.data.activities || loyaltyRes.data.transactions || loyaltyRes.data.logs) : null) ||
-                           [];
+            loyaltyRes.activities ||
+            loyaltyRes.transactions ||
+            loyaltyRes.logs ||
+            loyaltyRes.list ||
+            (lData && typeof lData === 'object' ? (lData.history || lData.activities || lData.transactions || lData.logs || lData.list) : null) ||
+            (loyaltyRes.data && typeof loyaltyRes.data === 'object' ? (loyaltyRes.data.history || loyaltyRes.data.activities || loyaltyRes.data.transactions || loyaltyRes.data.logs) : null) ||
+            [];
         }
 
         if (Array.isArray(rawHistoryList) && rawHistoryList.length > 0) {
@@ -314,8 +314,8 @@ export default function Rewards() {
     };
   }, [user]);
 
-  const displayedEarnTasks = showMoreEarn 
-    ? earnTasks 
+  const displayedEarnTasks = showMoreEarn
+    ? earnTasks
     : earnTasks.slice(0, 5);
 
   const showToast = (msg) => {
@@ -452,86 +452,86 @@ export default function Rewards() {
         <div className={`rewards-layout${isLoggedIn ? "" : " is-guest"}`}>
           <section className="rewards-primary-column">
             {!isLoggedIn ? (
-            <section className="wallet-panel wallet-guest-panel">
-              <div className="wallet-guest">
-                <div className="wallet-guest-copy">
-                  <span className="wallet-guest-eyebrow"><Sparkles size={13} /> Members only</span>
-                  <h3>Every visit can earn you something back</h3>
-                  <p>Sign in to see your loyalty points, track your activity and redeem points on your next booking.</p>
+              <section className="wallet-panel wallet-guest-panel">
+                <div className="wallet-guest">
+                  <div className="wallet-guest-copy">
+                    <span className="wallet-guest-eyebrow"><Sparkles size={13} /> Members only</span>
+                    <h3>Every visit can earn you something back</h3>
+                    <p>Sign in to see your loyalty points, track your activity and redeem points on your next booking.</p>
 
-                  <ul className="wallet-guest-list">
-                    <li>
-                      <span className="wallet-guest-list-icon gift"><Award size={16} /></span>
-                      <span><strong>Loyalty points</strong><small>Earn on every booking</small></span>
-                    </li>
-                    <li>
-                      <span className="wallet-guest-list-icon"><FileText size={16} /></span>
-                      <span><strong>Points history</strong><small>Every point, tracked</small></span>
-                    </li>
-                    <li>
-                      <span className="wallet-guest-list-icon ticket"><Gift size={16} /></span>
-                      <span><strong>Redeem rewards</strong><small>On eligible services</small></span>
-                    </li>
-                  </ul>
+                    <ul className="wallet-guest-list">
+                      <li>
+                        <span className="wallet-guest-list-icon gift"><Award size={16} /></span>
+                        <span><strong>Loyalty points</strong><small>Earn on every booking</small></span>
+                      </li>
+                      <li>
+                        <span className="wallet-guest-list-icon"><FileText size={16} /></span>
+                        <span><strong>Points history</strong><small>Every point, tracked</small></span>
+                      </li>
+                      <li>
+                        <span className="wallet-guest-list-icon ticket"><Gift size={16} /></span>
+                        <span><strong>Redeem rewards</strong><small>On eligible services</small></span>
+                      </li>
+                    </ul>
 
-                  <div className="wallet-guest-actions">
-                    <button type="button" className="wallet-guest-btn" onClick={() => openLoginModal && openLoginModal("/rewards")}>
-                      Log In / Sign Up <ArrowRight size={16} />
-                    </button>
-                    <span className="wallet-guest-note"><ShieldCheck size={14} /> Takes less than a minute</span>
+                    <div className="wallet-guest-actions">
+                      <button type="button" className="wallet-guest-btn" onClick={() => openLoginModal && openLoginModal("/rewards")}>
+                        Log In / Sign Up <ArrowRight size={16} />
+                      </button>
+                      <span className="wallet-guest-note"><ShieldCheck size={14} /> Takes less than a minute</span>
+                    </div>
+                  </div>
+
+                  <div className="wallet-guest-visual" aria-hidden="true">
+                    <div className="wallet-guest-card">
+                      <div className="wallet-guest-card-top">
+                        <span>SeCURE Arvaya Rewards</span>
+                        <Star size={16} />
+                      </div>
+                      <small>Loyalty points</small>
+                      <strong>• • • • pts</strong>
+                      <div className="wallet-guest-card-bars">
+                        <span /><span />
+                      </div>
+                      <span className="wallet-guest-coin c1">₹</span>
+                      <span className="wallet-guest-coin c2">₹</span>
+                    </div>
+                    <span className="wallet-guest-lock"><Lock size={20} /></span>
+                    <img src="/images/rewards.png" alt="" className="wallet-guest-gift" />
                   </div>
                 </div>
-
-                <div className="wallet-guest-visual" aria-hidden="true">
-                  <div className="wallet-guest-card">
-                    <div className="wallet-guest-card-top">
-                      <span>SeCURE Arvaya Rewards</span>
-                      <Star size={16} />
-                    </div>
-                    <small>Loyalty points</small>
-                    <strong>• • • • pts</strong>
-                    <div className="wallet-guest-card-bars">
-                      <span /><span />
-                    </div>
-                    <span className="wallet-guest-coin c1">₹</span>
-                    <span className="wallet-guest-coin c2">₹</span>
-                  </div>
-                  <span className="wallet-guest-lock"><Lock size={20} /></span>
-                  <img src="/images/rewards.png" alt="" className="wallet-guest-gift" />
-                </div>
-              </div>
-            </section>
+              </section>
             ) : (
-            <article className="rewards-balance-card new-rewards-card">
-              <span className="rewards-card-sheen" aria-hidden="true" />
-              <div className="rewards-balance-left">
-                <span className="wallet-eyebrow">Available loyalty points</span>
-                <div className="rewards-balance-row">
-                  <div className="rewards-points-value" aria-label={`${points} available points`}>
-                    {loadingPoints ? <Loader2 size={32} className="animate-spin" /> : points.toLocaleString()}
-                    {!loadingPoints && <small>points</small>}
+              <article className="rewards-balance-card new-rewards-card">
+                <span className="rewards-card-sheen" aria-hidden="true" />
+                <div className="rewards-balance-left">
+                  <span className="wallet-eyebrow">Available loyalty points</span>
+                  <div className="rewards-balance-row">
+                    <div className="rewards-points-value" aria-label={`${points} available points`}>
+                      {loadingPoints ? <Loader2 size={32} className="animate-spin" /> : points.toLocaleString()}
+                      {!loadingPoints && <small>points</small>}
+                    </div>
+                  </div>
+                  <p className="rewards-balance-sub">Start using our services to earn points and unlock rewards.</p>
+                </div>
+
+                <div className="rewards-balance-right">
+                  <div className="rewards-gift-container">
+                    <img src="/images/rewards.png" alt="" className="rewards-gift-img" />
+                  </div>
+                  <div className="rewards-balance-action">
+                    {canRedeem ? (
+                      <button type="button" className="rewards-redeem-btn" onClick={handleRedeemTabClick} disabled={isRedeeming}>
+                        {isRedeeming ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
+                        {isRedeeming ? "Redeeming..." : `Redeem ${redeemThreshold} points`}
+                      </button>
+                    ) : (
+                      <span className="rewards-redeem-badge"><TrendingUp size={15} /> {redeemThreshold} points to redeem</span>
+                    )}
+                    <small>Points can be applied to eligible services.</small>
                   </div>
                 </div>
-                <p className="rewards-balance-sub">Start using our services to earn points and unlock rewards.</p>
-              </div>
-
-              <div className="rewards-balance-right">
-                <div className="rewards-gift-container">
-                  <img src="/images/rewards.png" alt="" className="rewards-gift-img" />
-                </div>
-                <div className="rewards-balance-action">
-                  {canRedeem ? (
-                    <button type="button" className="rewards-redeem-btn" onClick={handleRedeemTabClick} disabled={isRedeeming}>
-                      {isRedeeming ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
-                      {isRedeeming ? "Redeeming..." : `Redeem ${redeemThreshold} points`}
-                    </button>
-                  ) : (
-                    <span className="rewards-redeem-badge"><TrendingUp size={15} /> {redeemThreshold} points to redeem</span>
-                  )}
-                  <small>Points can be applied to eligible services.</small>
-                </div>
-              </div>
-            </article>
+              </article>
             )}
 
             <section className="wallet-panel rewards-earn-panel">
@@ -559,7 +559,7 @@ export default function Rewards() {
                   {displayedEarnTasks.map((task, index) => {
                     const IconComp = task.icon || Sparkles;
                     const numAmt = parseFloat(task.points_per_amount || 0);
-                    
+
                     let colorClass = "is-blue";
                     if (index % 3 === 1 || IconComp === CalendarDays) colorClass = "is-orange";
                     if (index % 3 === 2 || IconComp === CalendarClock) colorClass = "is-purple";
@@ -589,53 +589,103 @@ export default function Rewards() {
           </section>
 
           {isLoggedIn && (
-          <aside className="wallet-panel rewards-history-panel">
-            <div className="wallet-panel-heading">
-              <div className="wallet-section-title">
-                <span className="wallet-section-icon accent"><FileText size={20} /></span>
-                <div>
-                  <h2>Recent History</h2>
-                  <p>Your points activity</p>
+            <aside className="wallet-panel rewards-history-panel">
+              <div className="wallet-panel-heading">
+                <div className="wallet-section-title">
+                  <span className="wallet-section-icon accent"><FileText size={20} /></span>
+                  <div>
+                    <h2>Recent History</h2>
+                    <p>Your points activity</p>
+                  </div>
                 </div>
+                <span className="wallet-count-badge">{history.length} activities</span>
               </div>
-              <span className="wallet-count-badge">{history.length} activities</span>
-            </div>
 
-            {history.length === 0 ? (
-              <div className="wallet-empty-state compact rewards-history-empty">
-                <span className="wallet-empty-icon"><Inbox size={22} /></span>
-                <h3>No activity yet</h3>
-                <p>Your earned and redeemed points will appear here.</p>
-              </div>
-            ) : (
-              <div className="rewards-history-list custom-scroller">
-                {history.map(item => (
-                  <article className="rewards-history-item" key={item.id}>
-                    <span className={`rewards-history-icon ${item.type}`}>
-                      {item.type === "earned" ? <TrendingUp size={18} /> : <CreditCard size={18} />}
-                    </span>
-                    <span className="rewards-history-copy">
-                      <strong>{item.title}</strong>
-                      <small>{item.date}</small>
-                    </span>
-                    <span className={`rewards-history-points ${item.type}`}>
-                      <strong>{item.points} pts</strong>
-                      <small>{item.type === "earned" ? "Earned" : "Redeemed"}</small>
-                    </span>
-                  </article>
-                ))}
-              </div>
-            )}
-          </aside>
+              {history.length === 0 ? (
+                <div className="wallet-empty-state compact rewards-history-empty">
+                  <span className="wallet-empty-icon"><Inbox size={22} /></span>
+                  <h3>No activity yet</h3>
+                  <p>Your earned and redeemed points will appear here.</p>
+                </div>
+              ) : (
+                <div className="rewards-history-list custom-scroller">
+                  {history.map(item => (
+                    <article className="rewards-history-item" key={item.id}>
+                      <span className={`rewards-history-icon ${item.type}`}>
+                        {item.type === "earned" ? <TrendingUp size={18} /> : <CreditCard size={18} />}
+                      </span>
+                      <span className="rewards-history-copy">
+                        <strong>{item.title}</strong>
+                        <small>{item.date}</small>
+                      </span>
+                      <span className={`rewards-history-points ${item.type}`}>
+                        <strong>{item.points} pts</strong>
+                        <small>{item.type === "earned" ? "Earned" : "Redeemed"}</small>
+                      </span>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </aside>
           )}
         </div>
       </div>
       <style>{`
+        .new-rewards-card .rewards-balance-action button.rewards-redeem-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-height: 44px;
+          padding: 10px 24px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 750;
+          letter-spacing: 0.01em;
+          color: #78350f !important;
+          background: linear-gradient(180deg, #fff3c4 0%, #fbbf24 55%, #f59e0b 100%) !important;
+          border: 1px solid #d97706 !important;
+          border-bottom: 2.5px solid #b45309 !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 6px 16px rgba(217, 119, 6, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -2px 0 rgba(180, 83, 9, 0.25) !important;
+          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+          cursor: pointer;
+          user-select: none;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+        }
+
+        .new-rewards-card .rewards-balance-action button.rewards-redeem-btn:hover:not(:disabled) {
+          background: linear-gradient(180deg, #fffbeb 0%, #fcd34d 55%, #f59e0b 100%) !important;
+          border-color: #b45309 !important;
+          border-bottom-color: #92400e !important;
+          transform: translateY(-2px);
+          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08), 0 10px 22px rgba(217, 119, 6, 0.45), inset 0 1px 0 #ffffff, inset 0 -2px 0 rgba(180, 83, 9, 0.35) !important;
+        }
+
+        .new-rewards-card .rewards-balance-action button.rewards-redeem-btn:active:not(:disabled) {
+          transform: translateY(1px);
+          border-bottom-width: 1px !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), inset 0 2px 4px rgba(146, 64, 14, 0.3) !important;
+        }
+
+        .new-rewards-card .rewards-balance-action button.rewards-redeem-btn:focus-visible {
+          outline: 2px solid #ffffff;
+          outline-offset: 3px;
+        }
+
         .new-rewards-card .rewards-balance-action button.rewards-redeem-btn:disabled {
-          opacity: 0.6;
-          cursor: default;
+          opacity: 0.65;
+          cursor: not-allowed;
           transform: none !important;
-          box-shadow: none !important;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        .new-rewards-card .rewards-balance-action button.rewards-redeem-btn svg {
+          flex-shrink: 0;
+          color: #78350f;
+          filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5));
         }
       `}</style>
     </main>

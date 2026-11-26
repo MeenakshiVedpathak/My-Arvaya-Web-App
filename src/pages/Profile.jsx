@@ -57,6 +57,19 @@ function getInitials(name) {
   return (first + last).toUpperCase();
 }
 
+// Full Name validation: letters (incl. Unicode) and spaces only — NO digits or special symbols
+const FULL_NAME_PATTERN = "[A-Za-z\\u00C0-\\u024F\\s]+";
+const FULL_NAME_RE = /^[A-Za-z\u00C0-\u024F\s]+$/;
+function sanitizeNameInput(value) {
+  return String(value || "").replace(/[^A-Za-z\u00C0-\u024F\s]/g, "");
+}
+function validateFullName(name) {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return "Full name is required.";
+  if (!FULL_NAME_RE.test(trimmed)) return "Full name must contain only letters and spaces.";
+  return "";
+}
+
 // Colour theme for a family card, keyed off the relation
 function getRelationTone(relation, isPrimary) {
   if (isPrimary) return "primary";
@@ -255,37 +268,47 @@ export default function Profile() {
   const locationDropdownRef = useRef(null);
   const [locationSearch, setLocationSearch] = useState("");
 
-  const [profile, setProfile] = useState(() => ({
-    ...splitTitle((user?.name || user?.full_name || user?.fullName || "").replace(/\.\./g, "."), user?.title),
-    phone: user?.phone || user?.mobile_number || user?.mobile || "",
-    email: (user?.email && user.email !== "john.doe@example.com") ? user.email : "",
-    dob: user?.date_of_birth || user?.dob || "",
-    gender: formatGender(user?.gender),
-    patientId: user?.patientId || user?.user_id || user?.id || `ARV-${Math.floor(1000 + Math.random() * 9000)}`,
-    uhid: user?.external_id || "",
+  const [profile, setProfile] = useState(() => {
+    // Also seed from localStorage so the title survives route changes without waiting for the API
+    let storedUser = {};
+    try { storedUser = JSON.parse(localStorage.getItem("arvaya_user") || "{}"); } catch (e) {}
+    // The API stores the title inside the name string (e.g. "Mr. Kundan …"). Prefer the
+    // explicitly-saved title key; fall back to detecting it from the full name.
+    const nameSource = (user?.name || user?.full_name || user?.fullName || storedUser?.name || storedUser?.full_name || "").replace(/\.\./g, ".");
+    const titleSource = user?.title || storedUser?.title || "";
+    return {
+      ...splitTitle(nameSource, titleSource),
+      phone: user?.phone || user?.mobile_number || user?.mobile || "",
+      email: (user?.email && user.email !== "john.doe@example.com") ? user.email : "",
+      dob: user?.date_of_birth || user?.dob || "",
+      gender: formatGender(user?.gender),
+      patientId: user?.patientId || user?.user_id || user?.id || `ARV-${Math.floor(1000 + Math.random() * 9000)}`,
+      uhid: user?.external_id || "",
 
-    bloodGroup: user?.blood_group || user?.bloodGroup || "O+",
-    height: (user?.height && String(user.height) !== "175") ? String(user.height) : "",
-    weight: (user?.weight && String(user.weight) !== "72") ? String(user.weight) : "",
-    allergies: user?.allergies || "",
-    chronicDiseases: user?.chronicDiseases || "",
-    medications: user?.medications || "",
+      bloodGroup: user?.blood_group || user?.bloodGroup || "O+",
+      height: (user?.height && String(user.height) !== "175") ? String(user.height) : "",
+      weight: (user?.weight && String(user.weight) !== "72") ? String(user.weight) : "",
+      allergies: user?.allergies || "",
+      chronicDiseases: user?.chronicDiseases || "",
+      medications: user?.medications || "",
 
-    insuranceProvider: user?.insuranceProvider || "",
-    policyNumber: user?.policyNumber || "",
-    validity: user?.validity || "",
+      insuranceProvider: user?.insuranceProvider || "",
+      policyNumber: user?.policyNumber || "",
+      validity: user?.validity || "",
 
-    emergencyName: user?.emergencyName || "",
-    emergencyRelation: user?.emergencyRelation || "",
-    emergencyPhone: user?.emergencyPhone || ""
-  }));
+      emergencyName: user?.emergencyName || "",
+      emergencyRelation: user?.emergencyRelation || "",
+      emergencyPhone: user?.emergencyPhone || ""
+    };
+  });
 
   const [editingMemberId, setEditingMemberId] = useState(null);
   const [familyMembers, setFamilyMembers] = useState([]);
 
   const handleMemberFormChange = (e) => {
     const { name, value } = e.target;
-    setMemberForm(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === "name" ? sanitizeNameInput(value) : value;
+    setMemberForm(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleImageUpload = (e) => {
@@ -438,6 +461,11 @@ export default function Profile() {
     }
     if (!memberForm.name.trim()) {
       showToast("Please enter the name.", "error");
+      return;
+    }
+    const memberNameError = validateFullName(memberForm.name);
+    if (memberNameError) {
+      showToast(memberNameError, "error");
       return;
     }
     if (!memberForm.relation) {
@@ -607,27 +635,49 @@ export default function Profile() {
         }
 
         const rawEmail = patientData.email || user?.email || "";
-        const cleanEmail = (rawEmail && rawEmail !== "john.doe@example.com") ? rawEmail : (prev.email !== "john.doe@example.com" ? prev.email : "");
         const rawHeight = parsedHeight ?? user?.height;
-        const cleanHeight = (rawHeight !== null && rawHeight !== undefined && String(rawHeight).trim() !== "" && String(rawHeight) !== "175") ? String(rawHeight) : (prev.height !== "175" ? prev.height : "");
         const rawWeight = parsedWeight ?? user?.weight;
-        const cleanWeight = (rawWeight !== null && rawWeight !== undefined && String(rawWeight).trim() !== "" && String(rawWeight) !== "72") ? String(rawWeight) : (prev.weight !== "72" ? prev.weight : "");
 
-        setProfile(prev => ({
-          ...prev,
-          ...patientData,
-          ...splitTitle((fullName || "").replace(/\.\./g, "."), patientData.title || prev.title),
-          phone: patientData.mobile_number || patientData.phone || patientData.mobile || patientData.mobile_no || prev.phone,
-          email: cleanEmail,
-          dob: patientData.date_of_birth || patientData.dob || prev.dob,
-          gender: formatGender(patientData.gender || prev.gender),
-          patientId: patientData.patientId || patientData.user_id || patientData.id || prev.patientId,
-          uhid: patientData.external_id || prev.uhid,
-          bloodGroup: patientData.blood_group || patientData.bloodGroup || prev.bloodGroup,
-          height: cleanHeight,
-          weight: cleanWeight,
-          profile_image: userImgRaw || prev.profile_image || ""
-        }));
+        setProfile(prev => {
+          const cleanEmail = (rawEmail && rawEmail !== "john.doe@example.com") ? rawEmail : (prev.email !== "john.doe@example.com" ? prev.email : "");
+          const cleanHeight = (rawHeight !== null && rawHeight !== undefined && String(rawHeight).trim() !== "" && String(rawHeight) !== "175") ? String(rawHeight) : (prev.height !== "175" ? prev.height : "");
+          const cleanWeight = (rawWeight !== null && rawWeight !== undefined && String(rawWeight).trim() !== "" && String(rawWeight) !== "72") ? String(rawWeight) : (prev.weight !== "72" ? prev.weight : "");
+
+          return {
+            ...prev,
+            ...patientData,
+            ...splitTitle((fullName || "").replace(/\.\./g, "."), patientData.title || prev.title),
+            phone: patientData.mobile_number || patientData.phone || patientData.mobile || patientData.mobile_no || prev.phone,
+            email: cleanEmail,
+            dob: patientData.date_of_birth || patientData.dob || prev.dob,
+            gender: formatGender(patientData.gender || prev.gender),
+            patientId: patientData.patientId || patientData.user_id || patientData.id || prev.patientId,
+            uhid: patientData.external_id || prev.uhid,
+            bloodGroup: patientData.blood_group || patientData.bloodGroup || prev.bloodGroup,
+            height: cleanHeight,
+            weight: cleanWeight,
+            profile_image: userImgRaw || prev.profile_image || ""
+          };
+        });
+
+        // Persist the extracted title back to localStorage so a fresh page remount
+        // reads the correct value without having to wait for the API response.
+        // The API returns no separate title field — it's embedded in the name string.
+        const { title: extractedTitle } = splitTitle(
+          (fullName || "").replace(/\.\./g, "."),
+          patientData.title || ""
+        );
+        if (extractedTitle) {
+          try {
+            const storedRaw = localStorage.getItem("arvaya_user");
+            if (storedRaw) {
+              const stored = JSON.parse(storedRaw);
+              if (stored.title !== extractedTitle) {
+                localStorage.setItem("arvaya_user", JSON.stringify({ ...stored, title: extractedTitle }));
+              }
+            }
+          } catch (e) { /* non-critical */ }
+        }
       }
     } catch (err) {
       console.error("Error loading patient profile data:", err);
@@ -689,7 +739,9 @@ export default function Profile() {
   useScrollLock(isMemberModalOpen);
 
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const nextValue = name === "name" ? sanitizeNameInput(value) : value;
+    setProfile(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleStartEdit = () => {
@@ -792,6 +844,11 @@ export default function Profile() {
     }
     if (!String(profile.name || "").trim()) {
       showToast("Please enter your full name.", "error");
+      return;
+    }
+    const nameValidationError = validateFullName(profile.name);
+    if (nameValidationError) {
+      showToast(nameValidationError, "error");
       return;
     }
     if (!profile.phone) {
@@ -1131,7 +1188,16 @@ export default function Profile() {
                         </div>
                         <div className="flex flex-col gap-2">
                           <label className="text-muted" style={{ fontSize: '13px', fontWeight: '600' }}>Full Name <span className="required-star">*</span></label>
-                          <input name="name" value={profile.name} onChange={handleChange} readOnly={isFieldLocked} className="input-field" style={inputStyle} />
+                          <input
+                            name="name"
+                            value={profile.name}
+                            onChange={handleChange}
+                            pattern={FULL_NAME_PATTERN}
+                            title="Only letters and spaces are allowed"
+                            readOnly={isFieldLocked}
+                            className="input-field"
+                            style={inputStyle}
+                          />
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
@@ -1499,7 +1565,7 @@ export default function Profile() {
 
                     <div className="flex flex-col family-modal-field">
                       <label className="family-modal-label">Name <span className="required-star">*</span></label>
-                      <input name="name" value={memberForm.name} onChange={handleMemberFormChange} placeholder="Full Name" className="input-field" disabled={savingMember} />
+                      <input name="name" value={memberForm.name} onChange={handleMemberFormChange} pattern={FULL_NAME_PATTERN} title="Only letters and spaces are allowed" placeholder="Full Name" className="input-field" disabled={savingMember} />
                     </div>
                   </div>
 

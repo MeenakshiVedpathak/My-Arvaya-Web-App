@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Calendar as CalendarIcon, Clock, MapPin, Video, User, CheckCircle, XCircle, AlertCircle, ChevronRight, ChevronLeft, Sunrise, Sun, Sunset, Check, Stethoscope, FileText, Loader2, Banknote, CreditCard, RotateCcw } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin, Video, User, CheckCircle, XCircle, AlertCircle, ChevronRight, ChevronLeft, Check, Stethoscope, FileText, Loader2, Banknote, CreditCard, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAppointments, cancelAppointment, rescheduleAppointment, getStoredUserId, getDoctorSlots } from "../services/dataService";
 import { toDisplayTime } from "../utils/formatTime";
@@ -82,7 +82,7 @@ export default function MyAppointments() {
   const [rescheduleDate, setRescheduleDate] = useState(new Date());
   const [rescheduleSlot, setRescheduleSlot] = useState("");
   const [rescheduleSlotError, setRescheduleSlotError] = useState(false);
-  const [availableSlots, setAvailableSlots] = useState({ morning: [], afternoon: [], evening: [] });
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [isRescheduling, setIsRescheduling] = useState(false);
 
@@ -209,9 +209,6 @@ export default function MyAppointments() {
             return;
           }
           const res = await getDoctorSlots(docId, rescheduleDate);
-          const morning = [];
-          const afternoon = [];
-          const evening = [];
 
           let rawSlots = [];
           if (res && res.slots && typeof res.slots === 'object') {
@@ -225,21 +222,13 @@ export default function MyAppointments() {
           } else {
             rawSlots = Array.isArray(res) ? res : (res.data || res.list || []);
           }
-          
-          rawSlots.forEach(s => {
+
+          const validSlots = rawSlots.filter(s => {
             const timeStr = typeof s === 'string' ? s : (s.start_time || s.time || s.slot_time || "");
-            if (!timeStr) return;
-            const hourMatch = timeStr.match(/^\d+/);
-            let hour24 = hourMatch ? parseInt(hourMatch[0]) : 0;
-            if (timeStr.toLowerCase().includes('pm') && hour24 !== 12) hour24 += 12;
-            if (timeStr.toLowerCase().includes('am') && hour24 === 12) hour24 = 0;
-            
-            if (hour24 >= 17) evening.push(s);
-            else if (hour24 >= 12) afternoon.push(s);
-            else morning.push(s);
+            return Boolean(timeStr);
           });
-          
-          setAvailableSlots({ morning, afternoon, evening });
+
+          setAvailableSlots(validSlots);
         } catch (err) {
           console.error(err);
         } finally {
@@ -301,20 +290,42 @@ export default function MyAppointments() {
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch(status) {
-      case 'completed': return (
-        <span style={{ background: 'var(--success-light, #d1fae5)', color: 'var(--success, #059669)', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <CheckCircle size={12} /> Completed
-        </span>
-      );
-      case 'cancelled': return (
-        <span style={{ background: 'var(--danger-light, #fee2e2)', color: 'var(--danger, #dc2626)', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <XCircle size={12} /> Cancelled
-        </span>
-      );
-      default: return null;
+  const getStatusBadge = (status, rescheduledFromId) => {
+    const rescheduledBadge = rescheduledFromId ? (
+      <span
+        style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+      >
+        <RotateCcw size={12} /> Rescheduled
+      </span>
+    ) : null;
+
+    let statusBadge = null;
+    switch (status) {
+      case 'completed':
+        statusBadge = (
+          <span style={{ background: 'var(--success-light, #d1fae5)', color: 'var(--success, #059669)', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <CheckCircle size={12} /> Completed
+          </span>
+        );
+        break;
+      case 'cancelled':
+        statusBadge = (
+          <span style={{ background: 'var(--danger-light, #fee2e2)', color: 'var(--danger, #dc2626)', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <XCircle size={12} /> Cancelled
+          </span>
+        );
+        break;
+      default:
+        break;
     }
+
+    if (!rescheduledBadge && !statusBadge) return null;
+    return (
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+        {rescheduledBadge}
+        {statusBadge}
+      </div>
+    );
   };
 
   const formatTime = (time) => {
@@ -350,7 +361,7 @@ export default function MyAppointments() {
         text: isCash ? "Paid at hospital desk • Cash" : "Paid online",
         icon: <CheckCircle size={12} strokeWidth={2.4} />,
         className: "is-paid",
-        title: isCash ? "Payment collected at the hospital counter" : "Payment verified and completed online"
+        // title: isCash ? "Payment collected at the hospital counter" : "Payment verified and completed online"
       };
     }
 
@@ -365,7 +376,7 @@ export default function MyAppointments() {
         text: "Pay at hospital desk • Cash",
         icon: <Clock size={12} strokeWidth={2.4} />,
         className: "is-pending-cash",
-        title: "Cash payment due on arrival at the hospital reception/desk"
+        // title: "Cash payment due on arrival at the hospital reception/desk"
       };
     }
 
@@ -376,7 +387,7 @@ export default function MyAppointments() {
         text: "Payment pending • Online",
         icon: <AlertCircle size={12} strokeWidth={2.4} />,
         className: "is-pending",
-        title: "Online payment not completed yet"
+        // title: "Online payment not completed yet"
       };
     }
 
@@ -387,7 +398,7 @@ export default function MyAppointments() {
         text: "Refunded to account",
         icon: <RotateCcw size={12} strokeWidth={2.4} />,
         className: "is-refunded",
-        title: "Fee has been refunded to the original payment source"
+        // title: "Fee has been refunded to the original payment source"
       };
     }
 
@@ -398,7 +409,7 @@ export default function MyAppointments() {
         text: "Payment incomplete",
         icon: <XCircle size={12} strokeWidth={2.4} />,
         className: "is-failed",
-        title: "Payment transaction was not successful"
+        // title: "Payment transaction was not successful"
       };
     }
 
@@ -408,7 +419,7 @@ export default function MyAppointments() {
       text: isCash ? "Pay at hospital desk • Cash" : "Paid online",
       icon: isCash ? <Clock size={12} strokeWidth={2.4} /> : <CheckCircle size={12} strokeWidth={2.4} />,
       className: isCash ? "is-pending-cash" : "is-paid",
-      title: isCash ? "Pay in cash at the hospital counter" : "Payment verified"
+      // title: isCash ? "Pay in cash at the hospital counter" : "Payment verified"
     };
   };
 
@@ -615,9 +626,20 @@ export default function MyAppointments() {
             const paymentMode = String(apt.payment_mode || apt.raw?.payment_mode || apt.paymentMode || apt.raw?.paymentMode || "").toLowerCase().trim();
             const paymentStatus = String(apt.payment_status || apt.raw?.payment_status || apt.paymentStatus || apt.raw?.paymentStatus || "").toLowerCase().trim();
             const isCash = paymentMode === "cash" || paymentMode === "cod";
+            const isOnline = paymentMode === "online";
+            const isCancelled = apt.status === "cancelled";
             const isPaid = paymentStatus === "paid";
             const isPaidCash = isCash && isPaid;
             const paymentInfo = getPaymentStatusDetails(apt);
+            const rescheduledFromId = apt.rescheduled_from_id ?? apt.raw?.rescheduled_from_id;
+            const razorpayPaymentId = String(apt.razorpay_payment_id || apt.raw?.razorpay_payment_id || "").trim();
+            const razorpayRefundId = String(apt.razorpay_refund_id || apt.raw?.razorpay_refund_id || "").trim();
+            const refundStatus = String(apt.refund_status || apt.raw?.refund_status || "").trim();
+            const refundAmount = apt.refund_amount ?? apt.raw?.refund_amount;
+            const cancellationReason = String(apt.cancellation_reason || apt.raw?.cancellation_reason || "").trim();
+            const showRefundChip = (isCancelled && isOnline) || Boolean(razorpayRefundId);
+            const showCancelReason = isCancelled && Boolean(cancellationReason);
+            const showInlineSubRow = showRefundChip || showCancelReason;
 
             return (
             <div key={apt.id} className="appointment-card">
@@ -636,61 +658,117 @@ export default function MyAppointments() {
                     </div>
                   </div>
                 </div>
-                <div style={{ flexShrink: 0 }}>{getStatusBadge(apt.status)}</div>
+                <div style={{ flexShrink: 0 }}>{getStatusBadge(apt.status, rescheduledFromId)}</div>
               </div>
 
-              {/* Middle Row: Details Grid */}
-              <div className="appointment-details-grid">
-                <div className="appointment-detail">
-                  <div className="appointment-detail-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
-                    <CalendarIcon size={14} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <span className="appointment-detail-label">Date & Time</span>
-                    <span className="appointment-detail-value">
-                      {new Date(apt.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} • {formatTime(apt.time)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="appointment-detail">
-                  <div className="appointment-detail-icon" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
-                    <MapPin size={14} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <span className="appointment-detail-label">Location</span>
-                    <span className="appointment-detail-value">{apt.hospital || "Sunrise Health Centre"}</span>
-                    {location && <span className="appointment-detail-sub">{location}</span>}
-                  </div>
-                </div>
-
-                <div className="appointment-detail">
-                  <div className="appointment-detail-icon" style={{ background: '#dcfce7', color: '#16a34a', fontWeight: 700, fontSize: '13px' }}>
-                    ₹
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <span className="appointment-detail-label">Fee</span>
-                    <span className="appointment-detail-value">₹ {apt.amount}</span>
-                    <div
-                      className={`appointment-payment-status ${paymentInfo.className}`}
-                      title={paymentInfo.title}
-                    >
-                      {paymentInfo.icon}
-                      <span>{paymentInfo.text}</span>
+              {/* Middle Row: Details Box */}
+              <div className="appointment-details-box">
+                <div className={`appointment-details-grid${razorpayPaymentId ? " appointment-details-grid--5" : ""}`}>
+                  <div className="appointment-detail">
+                    <div className="appointment-detail-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                      <CalendarIcon size={14} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <span className="appointment-detail-label">Date & Time</span>
+                      <span className="appointment-detail-value">
+                        {new Date(apt.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} • {formatTime(apt.time)}
+                      </span>
                     </div>
                   </div>
+
+                  <div className="appointment-detail">
+                    <div className="appointment-detail-icon" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
+                      <MapPin size={14} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <span className="appointment-detail-label">Location</span>
+                      <span className="appointment-detail-value">{apt.hospital || "Sunrise Health Centre"}</span>
+                      {location && <span className="appointment-detail-sub">{location}</span>}
+                    </div>
+                  </div>
+
+                  <div className="appointment-detail">
+                    <div className="appointment-detail-icon" style={{ background: '#dcfce7', color: '#16a34a', fontWeight: 700, fontSize: '13px' }}>
+                      ₹
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <span className="appointment-detail-label">Fee</span>
+                      <span className="appointment-detail-value">₹ {apt.amount}</span>
+                      <div
+                        className={`appointment-payment-status ${paymentInfo.className}`}
+                        title={paymentInfo.title}
+                      >
+                        {paymentInfo.icon}
+                        <span>{paymentInfo.text}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="appointment-detail">
+                    <div className="appointment-detail-icon" style={{ background: '#ffedd5', color: '#ea580c' }}>
+                      <User size={14} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <span className="appointment-detail-label">Patient</span>
+                      <span
+                        className="appointment-detail-value"
+                        title={razorpayPaymentId ? (apt.patientName || "Kundan Bhagat") : undefined}
+                      >
+                        {apt.patientName || "Kundan Bhagat"}
+                      </span>
+                      {patientMeta && <span className="appointment-detail-sub">{patientMeta}</span>}
+                    </div>
+                  </div>
+
+                  {razorpayPaymentId && (
+                    <div className="appointment-detail appointment-detail--payment-id">
+                      <div className="appointment-detail-icon" style={{ background: '#dcfce7', color: '#15803d' }}>
+                        <CreditCard size={14} />
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <span className="appointment-detail-label">Payment ID</span>
+                        <span className="appointment-detail-value appointment-detail-mono" title={razorpayPaymentId}>
+                          {razorpayPaymentId}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="appointment-detail">
-                  <div className="appointment-detail-icon" style={{ background: '#ffedd5', color: '#ea580c' }}>
-                    <User size={14} />
+                {showInlineSubRow && (
+                  <div className="appointment-meta-subrow">
+                    {showRefundChip && (
+                      <div className="appointment-id-chip appointment-id-chip--refund">
+                        <span className="appointment-id-icon appointment-id-icon--refund">
+                          <RotateCcw size={12} />
+                        </span>
+                        <div className="appointment-id-body">
+                          <span className="appointment-id-label">
+                            Refund ID
+                            {refundStatus && (
+                              <span className="appointment-refund-pill">
+                                {refundStatus}{refundAmount ? ` • ₹${refundAmount}` : ""}
+                              </span>
+                            )}
+                          </span>
+                          <span className="appointment-id-value" title={razorpayRefundId || "Not generated"}>
+                            {razorpayRefundId || "Not generated"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {showCancelReason && (
+                      <div className="appointment-cancel-reason-box">
+                        <AlertCircle size={15} className="appointment-cancel-reason-icon" />
+                        <div className="appointment-cancel-reason-text">
+                          <span className="appointment-cancel-reason-label">Cancellation Reason:</span>{" "}
+                          <span>{cancellationReason}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <span className="appointment-detail-label">Patient</span>
-                    <span className="appointment-detail-value">{apt.patientName || "Kundan Bhagat"}</span>
-                    {patientMeta && <span className="appointment-detail-sub">{patientMeta}</span>}
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Bottom Row: Actions */}
@@ -933,48 +1011,33 @@ export default function MyAppointments() {
                 </div>
               ) : (
                 <div className="reschedule-slots custom-scrollbar">
-                  {[
-                    { key: 'morning', label: 'Morning', Icon: Sunrise, color: '#eab308' },
-                    { key: 'afternoon', label: 'Afternoon', Icon: Sun, color: '#f97316' },
-                    { key: 'evening', label: 'Evening', Icon: Sunset, color: '#8b5cf6' },
-                  ].map(({ key, label, Icon, color }) => availableSlots[key].length > 0 && (
-                    <div key={key} className="slot-section-group" style={{ gap: '10px', marginBottom: '20px' }}>
-                      <div className="slot-section-header">
-                        <Icon size={15} color={color} />
-                        <span>{label}</span>
-                        <span className={`slot-section-tag ${key}`}>
-                          {availableSlots[key].length} slots
-                        </span>
-                      </div>
-                      <div className="time-slots-grid schedule-time-grid">
-                        {availableSlots[key].map((slotItem, idx) => {
-                          const isCurrent = appointmentToReschedule?.time === getSlotDisplay(slotItem) && new Date(appointmentToReschedule?.date).toDateString() === rescheduleDate.toDateString();
-                          const isSel = rescheduleSlot === slotItem;
-                          return (
-                            <button
-                              key={`${key}-${idx}`}
-                              type="button"
-                              disabled={isCurrent || isRescheduling}
-                              onClick={() => {
-                                setRescheduleSlot(slotItem);
-                                setRescheduleSlotError(false);
-                              }}
-                              className={`slot-chip ${isSel ? 'selected' : ''}`}
-                              aria-selected={isSel}
-                              title={isCurrent ? 'Your current booking' : undefined}
-                              style={{ opacity: isCurrent ? 0.5 : 1, cursor: isCurrent ? 'not-allowed' : 'pointer' }}
-                            >
-                              <Clock size={11} className="slot-clock-icon" />
-                              <span>{toDisplayTime(getSlotDisplay(slotItem))}</span>
-                              {isSel && <Check size={11} strokeWidth={3} />}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {availableSlots.length > 0 ? (
+                    <div className="time-slots-grid schedule-time-grid">
+                      {availableSlots.map((slotItem, idx) => {
+                        const isCurrent = appointmentToReschedule?.time === getSlotDisplay(slotItem) && new Date(appointmentToReschedule?.date).toDateString() === rescheduleDate.toDateString();
+                        const isSel = rescheduleSlot === slotItem;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            disabled={isCurrent || isRescheduling}
+                            onClick={() => {
+                              setRescheduleSlot(slotItem);
+                              setRescheduleSlotError(false);
+                            }}
+                            className={`slot-chip ${isSel ? 'selected' : ''}`}
+                            aria-selected={isSel}
+                            title={isCurrent ? 'Your current booking' : undefined}
+                            style={{ opacity: isCurrent ? 0.5 : 1, cursor: isCurrent ? 'not-allowed' : 'pointer' }}
+                          >
+                            <Clock size={11} className="slot-clock-icon" />
+                            <span>{toDisplayTime(getSlotDisplay(slotItem))}</span>
+                            {isSel && <Check size={11} strokeWidth={3} />}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ))}
-
-                  {availableSlots.morning.length === 0 && availableSlots.afternoon.length === 0 && availableSlots.evening.length === 0 && (
+                  ) : (
                     <div className="reschedule-empty">
                       <CalendarIcon size={22} />
                       <span>No slots available for this date.</span>
@@ -1332,15 +1395,30 @@ export default function MyAppointments() {
           font-weight: 600;
         }
 
-        /* ── 4-Column Details Grid ── */
-        .appointment-details-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
+        /* ── 4/5-Column Details Box ── */
+        .appointment-details-box {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
           background: #f8fafb;
           padding: 10px 14px;
           border-radius: 10px;
           border: 1px solid #edf2f4;
+        }
+
+        .appointment-details-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+
+        .appointment-details-grid--5 {
+          grid-template-columns: 1fr 1.15fr 0.85fr 1.15fr 1.1fr;
+        }
+
+        .appointment-detail-mono {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 12px;
         }
 
         .appointment-detail {
@@ -1435,6 +1513,120 @@ export default function MyAppointments() {
           flex-shrink: 0;
         }
 
+        /* ── Integrated Refund ID & Cancellation Reason Sub-row ── */
+        .appointment-meta-subrow {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: stretch;
+          gap: 8px;
+          padding-top: 8px;
+          border-top: 1px dashed #e2e8f0;
+        }
+
+        .appointment-id-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 4px 9px;
+          border-radius: 8px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          min-width: 0;
+          max-width: 100%;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .appointment-id-chip:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .appointment-id-chip--refund {
+          background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+          border-color: #bae6fd;
+        }
+
+        .appointment-id-icon {
+          width: 22px;
+          height: 22px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .appointment-id-icon--refund {
+          background: #e0f2fe;
+          color: #0369a1;
+        }
+
+        .appointment-id-body {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          gap: 0;
+        }
+
+        .appointment-id-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #64748b;
+        }
+
+        .appointment-id-value {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 11.5px;
+          font-weight: 600;
+          color: #0f172a;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .appointment-refund-pill {
+          display: inline-flex;
+          align-items: center;
+          padding: 1px 6px;
+          border-radius: 999px;
+          background: #e0f2fe;
+          color: #0369a1;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: capitalize;
+          letter-spacing: 0;
+        }
+
+        .appointment-cancel-reason-box {
+          display: flex;
+          align-items: center;
+          flex: 1;
+          min-width: 220px;
+          gap: 7px;
+          padding: 5px 10px;
+          border-radius: 8px;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #7f1d1d;
+          font-size: 12px;
+          line-height: 1.4;
+        }
+
+        .appointment-cancel-reason-icon {
+          color: #dc2626;
+          flex-shrink: 0;
+        }
+
+        .appointment-cancel-reason-label {
+          font-weight: 700;
+          color: #991b1b;
+        }
+
         /* ── Footer ── */
         .appointment-footer-row {
           display: flex;
@@ -1519,7 +1711,8 @@ export default function MyAppointments() {
 
         /* ── Breakpoints ── */
         @media (max-width: 960px) {
-          .appointment-details-grid {
+          .appointment-details-grid,
+          .appointment-details-grid--5 {
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
           }
@@ -1561,10 +1754,24 @@ export default function MyAppointments() {
         }
 
         @media (max-width: 520px) {
-          .appointment-details-grid {
-            grid-template-columns: 1fr;
+          .appointment-details-box {
             padding: 14px 16px;
+          }
+          .appointment-details-grid,
+          .appointment-details-grid--5 {
+            grid-template-columns: 1fr;
             gap: 14px;
+          }
+          .appointment-id-chip {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .appointment-cancel-reason-box {
+            width: 100%;
+            min-width: 0;
+          }
+          .appointment-id-body {
+            flex: 1;
           }
         }
 
