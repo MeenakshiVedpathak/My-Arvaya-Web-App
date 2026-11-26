@@ -27,7 +27,7 @@ const STATUS_FLOW = ["Requested", "Assigned", "Dispatched", "Arriving", "Complet
 
 function getStoredPatientId() {
   try {
-    const stored = localStorage.getItem("arvaya_user");
+    const stored = localStorage.getItem("arvaya_user") || localStorage.getItem("user");
     if (stored) {
       const user = JSON.parse(stored);
       return user?.patient_id || user?.id || user?.user_id || user?.app_user_id || null;
@@ -41,14 +41,19 @@ function getStoredPatientId() {
  */
 async function requestAmbulance(data) {
   const payload = {
-    patient_id: data.patient_id ?? data.patientId ?? "",
+    patient_id: data.patient_id ?? data.patientId ?? getStoredPatientId() ?? "",
     patient_name: data.patient_name ?? data.patientName ?? "",
     requester_phone: data.requester_phone ?? data.contactNumber ?? "",
     emergency_type: data.emergency_type ?? data.emergencyType ?? "",
     pickup_lat: data.pickup_lat ?? data.lat ?? null,
     pickup_lng: data.pickup_lng ?? data.lng ?? null,
     pickup_address: data.pickup_address ?? data.pickupAddress ?? "",
-    location_key: data.location_key ?? data.locationKey ?? ""
+    location_key: data.location_key ?? data.locationKey ?? "",
+    booked_for: (data.booked_for || data.bookedFor || "self").toLowerCase() === "other" ? "other" : "self",
+    booking_type: data.booking_type || data.booked_type || data.bookingType || "INSTANT",
+    booked_type: data.booked_type || data.booking_type || data.bookingType || "INSTANT",
+    scheduled_date: data.scheduled_date ?? data.scheduledDate ?? null,
+    scheduled_time: data.scheduled_time ?? data.scheduledTime ?? null
   };
 
   let apiRes = null;
@@ -61,7 +66,7 @@ async function requestAmbulance(data) {
 
   try {
     sessionStorage.removeItem(STORAGE_KEY);
-  } catch (e) {}
+  } catch (e) { }
 
   return apiRes;
 }
@@ -70,24 +75,28 @@ async function requestAmbulance(data) {
  * Fetch ambulance requests from /api/ambulance/my-requests with structured filters.
  * @param {object|string|number} [currentUser]
  */
-async function getAmbulanceRequests(currentUser) {
+async function getAmbulanceRequests(currentUser, pageSize, pageIndex = 1) {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
-  } catch (e) {}
+  } catch (e) { }
 
-  let patientId = currentUser?.patient_id || currentUser?.id || currentUser?.user_id || currentUser?.app_user_id;
+  let patientId = typeof currentUser === "object"
+    ? (currentUser?.patient_id || currentUser?.id || currentUser?.user_id || currentUser?.app_user_id)
+    : currentUser;
 
   if (!patientId) {
     patientId = getStoredPatientId();
   }
 
   if (!patientId) {
-    patientId = 107609;
+    return [];
   }
 
+  const initialPageSize = Number(pageSize) || 100;
+
   const payload = {
-    pageIndex: 1,
-    pageSize: 10,
+    pageIndex: Number(pageIndex) || 1,
+    pageSize: initialPageSize,
     sortKey: "id",
     sortValue: "desc",
     filters: [
@@ -147,21 +156,38 @@ async function getAmbulanceRequests(currentUser) {
       ambulanceId: item.ambulance_number || item.ambulance_no || item.ambulance_num || item.ambulance_id || item.ambulanceId || item.vehicle_number || item.vehicle_no || item.vehicle_num || item.vehicleId || "N/A",
       driverName: item.driver_name || item.driverName || item.driver || "Unassigned",
       driverPhone: item.driver_mobile_no || item.driver_phone || item.driverPhone || item.driver_mobile || "",
+      booked_for: item.booked_for ?? item.bookedFor ?? item.booked_for_name ?? "",
+      booking_type: item.booking_type ?? item.bookingType ?? "",
+      scheduled_date: item.scheduled_date ?? item.scheduledDate ?? "",
+      scheduled_time: item.scheduled_time ?? item.scheduledTime ?? "",
       raw: item
     };
   }
 
-   let apiResult = [];
-   try {
-     let res = null;
-     try {
-       res = await api.post("/api/ambulance/my-requests", payload);
-     } catch (e) {
-       console.warn("POST /api/ambulance/my-requests failed, trying GET...", e);
-       res = await api.get(`/api/ambulance/my-requests?filters=${encodeURIComponent(JSON.stringify(payload.filters))}&pageIndex=${payload.pageIndex}&pageSize=${payload.pageSize}`);
-     }
+  let apiResult = [];
+  try {
+    let res = null;
+    try {
+      res = await api.post("/api/ambulance/my-requests", payload);
+    } catch (e) {
+      console.warn("POST /api/ambulance/my-requests failed, trying GET...", e);
+      res = await api.get(`/api/ambulance/my-requests?filters=${encodeURIComponent(JSON.stringify(payload.filters))}&pageIndex=${payload.pageIndex}&pageSize=${payload.pageSize}`);
+    }
 
-    const rawList = res?.data?.data || res?.data || res?.queue || res?.list || res?.requests || res?.result || (Array.isArray(res) ? res : []);
+    let rawList = res?.data?.data || res?.data || res?.queue || res?.list || res?.requests || res?.result || (Array.isArray(res) ? res : []);
+    const totalCount = Number(res?.data?.count ?? res?.count ?? 0);
+
+    // If more data exists than the initial page size and no explicit pageSize was provided,
+    // dynamically fetch all records matching the total count so records are never truncated in the future
+    if (!pageSize && totalCount > (Array.isArray(rawList) ? rawList.length : 0)) {
+      payload.pageSize = totalCount;
+      try {
+        res = await api.post("/api/ambulance/my-requests", payload);
+      } catch (e) {
+        res = await api.get(`/api/ambulance/my-requests?filters=${encodeURIComponent(JSON.stringify(payload.filters))}&pageIndex=1&pageSize=${payload.pageSize}`);
+      }
+      rawList = res?.data?.data || res?.data || res?.queue || res?.list || res?.requests || res?.result || (Array.isArray(res) ? res : []);
+    }
 
     if (Array.isArray(rawList)) {
       const filteredList = rawList.filter(item => {
@@ -249,16 +275,6 @@ function parseLocation(raw) {
  * @returns {Array<{lat:number,lng:number,timestamp:string}>}
  */
 function parseLocationHistory(history) {
-  if (typeof history === "string") {
-    try {
-      const parsed = JSON.parse(history);
-      if (Array.isArray(parsed)) {
-        history = parsed;
-      }
-    } catch (e) {
-      // Might not be JSON, keep as is
-    }
-  }
   if (!Array.isArray(history) || history.length === 0) return [];
   return history.map(h => {
     if (typeof h === "string") {
@@ -286,12 +302,22 @@ function parseLocationHistory(history) {
  * @param {function():void}  [onStop] – optional callback when polling stops
  * @returns {()=>void} stop function that clears the interval
  */
+
 function startAmbulanceTracking(requestId, onUpdate, intervalMs = 10000, onStop) {
   let timerId = null;
+  let isStopped = false;
+  let lastPos = null;
+  let consecutiveStationaryCount = 0;
 
   const TERMINAL_STATUSES = ["completed", "cancelled", "unavailable", "delayed"];
 
+  function scheduleNext(delay) {
+    if (isStopped) return;
+    timerId = setTimeout(fetchOnce, delay);
+  }
+
   async function fetchOnce() {
+    if (isStopped) return;
     const raw = await trackAmbulance(requestId);
 
     let tracking = null;
@@ -334,6 +360,21 @@ function startAmbulanceTracking(requestId, onUpdate, intervalMs = 10000, onStop)
       } else if (!hasMeaningfulData) {
         shouldStop = true;
       }
+
+      // Check whether ambulance is moving or stationary to adapt poll interval
+      if (currentLoc) {
+        if (lastPos) {
+          const dist = distanceMeters(lastPos, currentLoc);
+          if (dist < 15) {
+            consecutiveStationaryCount += 1;
+          } else {
+            consecutiveStationaryCount = 0;
+          }
+        }
+        lastPos = currentLoc;
+      } else {
+        consecutiveStationaryCount += 1;
+      }
     } else {
       shouldStop = true;
     }
@@ -341,22 +382,110 @@ function startAmbulanceTracking(requestId, onUpdate, intervalMs = 10000, onStop)
     onUpdate?.(tracking);
 
     if (shouldStop) {
-      clearInterval(timerId);
+      isStopped = true;
+      if (timerId) clearTimeout(timerId);
       timerId = null;
       onStop?.();
+      return;
     }
+
+    // Adaptive backoff: 10s if moving, 20s if stationary for 1-2 ticks, 30s if stationary 3+ ticks
+    let nextDelay = intervalMs;
+    if (consecutiveStationaryCount >= 3) {
+      nextDelay = 30000;
+    } else if (consecutiveStationaryCount >= 1) {
+      nextDelay = 20000;
+    }
+
+    scheduleNext(nextDelay);
   }
 
   fetchOnce();
-  timerId = setInterval(fetchOnce, intervalMs);
 
   return function stop() {
+    isStopped = true;
     if (timerId) {
-      clearInterval(timerId);
+      clearTimeout(timerId);
       timerId = null;
       onStop?.();
     }
   };
+}
+
+async function updateAmbulanceStatus({ requestId, status = "cancelled", cancellationReason = "" }) {
+  const payload = {
+    status,
+    request_id: requestId,
+    cancellation_reason: cancellationReason,
+  };
+  try {
+    const res = await api.post("/api/ambulance/update-status", payload);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch { }
+    return res?.data || res;
+  } catch (err) {
+    console.error("Error updating ambulance status:", err);
+    throw err;
+  }
+}
+
+/**
+ * Fetch and parse one tracking snapshot for a request.
+ * Returns the same shape as the tracking object inside startAmbulanceTracking,
+ * or null if the request fails or returns no data.
+ * @param {string|number} requestId
+ * @returns {Promise<object|null>}
+ */
+async function fetchTrackingData(requestId) {
+  if (!requestId) return null;
+  const raw = await trackAmbulance(requestId);
+  if (!raw) return null;
+  const rawData = raw?.data ?? raw;
+  const r = (rawData?.data ?? rawData?.result ?? rawData) || {};
+  const locationHistory = parseLocationHistory(r.location_history || r.locationHistory || r.history || []);
+  const currentLoc = parseLocation(r.current_location || r.currentLocation || r.live_location);
+  return {
+    requestId: r?.request_id || r?.id || requestId,
+    status: r?.status || r?.request_status || "",
+    eta: Number(r?.eta_minutes ?? r?.eta ?? r?.eta_mins ?? null) || null,
+    driverName: r?.driver_name || r?.driverName || "",
+    driverPhone: r?.driver_mobile_no || r?.driver_phone || r?.driverPhone || "",
+    ambulanceNo: r?.ambulance_no || r?.ambulance_number || "",
+    pickupLat: Number(r?.pickup_lat ?? r?.pickupLat ?? null) || null,
+    pickupLng: Number(r?.pickup_lng ?? r?.pickupLng ?? null) || null,
+    pickupAddress: r?.pickup_address || r?.address || "",
+    patientName: r?.patient_name || r?.user_name || "",
+    contactNumber: r?.requester_phone || r?.phone || r?.mobile_no || "",
+    latitude: currentLoc ? currentLoc.lat : (locationHistory.length > 0 ? locationHistory[locationHistory.length - 1].lat : null),
+    longitude: currentLoc ? currentLoc.lng : (locationHistory.length > 0 ? locationHistory[locationHistory.length - 1].lng : null),
+    locationHistory,
+    currentLocation: currentLoc,
+    createdAt: r?.created_at || r?.createdAt || null,
+    assignedAt: r?.assigned_at || r?.assignedAt || null,
+    dispatchedAt: r?.dispatched_at || r?.dispatchedAt || null,
+    completedAt: r?.completed_at || r?.completedAt || null,
+    raw: r,
+  };
+}
+
+function distanceMeters(a, b) {
+  if (!a || !b || a.lat == null || a.lng == null || b.lat == null || b.lng == null) return Infinity;
+  const R = 6371e3;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const φ1 = toRad(a.lat);
+  const φ2 = toRad(b.lat);
+  const Δφ = toRad(b.lat - a.lat);
+  const Δλ = toRad(b.lng - a.lng);
+
+  const sinΔφ2 = Math.sin(Δφ / 2);
+  const sinΔλ2 = Math.sin(Δλ / 2);
+
+  const d =
+    2 *
+    R *
+    Math.asin(Math.sqrt(sinΔφ2 * sinΔφ2 + Math.cos(φ1) * Math.cos(φ2) * sinΔλ2 * sinΔλ2));
+  return d;
 }
 
 export {
@@ -367,5 +496,9 @@ export {
   getRequestById,
   reverseGeocode,
   trackAmbulance,
+  fetchTrackingData,
   startAmbulanceTracking,
+  updateAmbulanceStatus,
+  parseLocation,
+  distanceMeters,
 };

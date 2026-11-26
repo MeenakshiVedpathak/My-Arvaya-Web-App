@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
   CheckCircle2, 
-  Sun, 
-  Sunrise, 
-  Sunset, 
   Check, 
   CalendarDays, 
   Clock, 
@@ -16,9 +13,10 @@ import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
 import BookingLayout from "../../components/layout/BookingLayout";
 import Calendar from "../../components/common/Calendar";
-import { getDoctorSlots } from "../../services/dataService";
+import { getDoctorSlots, checkVisitType } from "../../services/dataService";
 import { useAuth } from "../../context/AuthContext";
 import Toast from "../../components/common/Toast";
+import { toDisplayTime } from "../../utils/formatTime";
 
 /**
  * Sanitizes search input to prevent SQL Injection attempts and malicious payload evaluation.
@@ -37,8 +35,8 @@ export function sanitizeSearchQuery(input = "") {
   clean = clean.replace(sqlKeywords, "");
   // Strip SQL boolean bypass tautologies (e.g. OR 1=1, AND '1'='1')
   clean = clean.replace(/\b(OR|AND)\s+['"\w\d]+\s*=\s*['"\w\d]+/gi, "");
-  // Only allow valid search characters: alphanumeric, spaces, hyphens, commas, ampersands, slashes, periods
-  clean = clean.replace(/[^a-zA-Z0-9\s,\-&/.]/g, "");
+  // Only allow valid search characters: alphanumeric, spaces and colons (for times like 1:00 PM)
+  clean = clean.replace(/[^a-zA-Z0-9\s:]/g, "");
   return clean;
 }
 
@@ -47,11 +45,11 @@ export default function ScheduleSelection() {
   const { doctor, bookingHospital, date, setDate, slot, setSlot } = useBooking();
   const { user, openLoginModal } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [periodFilter, setPeriodFilter] = useState("all"); // 'all' | 'morning' | 'afternoon' | 'evening'
   const [searchQ, setSearchQ] = useState("");
-  const [toast, setToast] = useState({ isOpen: false, message: "", type: "error" });
+  const [toast, setToast] = useState({ isOpen: false, message: "", type: "error", duration: 4000 });
+  const [validating, setValidating] = useState(false);
 
-  const [availableSlots, setAvailableSlots] = useState({ morning: [], afternoon: [], evening: [] });
+  const [availableSlots, setAvailableSlots] = useState([]);
 
   useEffect(() => {
     if (!doctor || !date) return;
@@ -60,10 +58,6 @@ export default function ScheduleSelection() {
     setSlot(""); // Reset slot when date changes
 
     getDoctorSlots(doctor.drkey || doctor.id, date).then(res => {
-      const morning = [];
-      const afternoon = [];
-      const evening = [];
-
       let rawSlots = [];
       if (res && res.slots && typeof res.slots === 'object') {
         Object.values(res.slots).forEach(locObj => {
@@ -79,26 +73,28 @@ export default function ScheduleSelection() {
         rawSlots = Array.isArray(res) ? res : (res.data || res.list || []);
       }
       
+      const validSlots = [];
       rawSlots.forEach(s => {
         const timeStr = typeof s === 'string' ? s : (s.start_time || s.time || s.slot_time || "");
         if (!timeStr) return;
-        
-        const hourMatch = timeStr.match(/^\d+/);
-        let hour24 = hourMatch ? parseInt(hourMatch[0]) : 0;
-        
-        if (timeStr.toLowerCase().includes('pm') && hour24 !== 12) hour24 += 12;
-        if (timeStr.toLowerCase().includes('am') && hour24 === 12) hour24 = 0;
-        
-        if (hour24 >= 17) {
-          evening.push(s);
-        } else if (hour24 >= 12) {
-          afternoon.push(s);
-        } else {
-          morning.push(s);
-        }
+        validSlots.push(s);
+      });
+
+      // Sort chronologically
+      validSlots.sort((a, b) => {
+        const getMinutes = (slotItem) => {
+          const str = typeof slotItem === 'string' ? slotItem : (slotItem.start_time || slotItem.time || slotItem.slot_time || "");
+          const match = str.match(/(\d+):(\d+)/);
+          let h = match ? parseInt(match[1], 10) : 0;
+          const m = match ? parseInt(match[2], 10) : 0;
+          if (str.toLowerCase().includes('pm') && h !== 12) h += 12;
+          if (str.toLowerCase().includes('am') && h === 12) h = 0;
+          return h * 60 + m;
+        };
+        return getMinutes(a) - getMinutes(b);
       });
       
-      setAvailableSlots({ morning, afternoon, evening });
+      setAvailableSlots(validSlots);
       setLoading(false);
     }).catch(err => {
       console.error("Error loading doctor slots:", err);
@@ -119,6 +115,7 @@ export default function ScheduleSelection() {
     return str;
   };
 
+
   const handleSearchChange = (e) => {
     const sanitized = sanitizeSearchQuery(e.target.value);
     setSearchQ(sanitized);
@@ -132,24 +129,21 @@ export default function ScheduleSelection() {
     const q = sanitizeSearchQuery(searchQ).trim().toLowerCase();
     if (!q) return availableSlots;
 
-    const filterArr = (arr) => arr.filter(s => {
-      const str = formatSlot(s).toLowerCase();
-      return str.includes(q);
+    return availableSlots.filter(s => {
+      const str = formatSlot(s);
+      return str.toLowerCase().includes(q) || toDisplayTime(str).toLowerCase().includes(q);
     });
-
-    return {
-      morning: filterArr(availableSlots.morning),
-      afternoon: filterArr(availableSlots.afternoon),
-      evening: filterArr(availableSlots.evening)
-    };
   }, [availableSlots, searchQ]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (validating) return;
+
     if (!slot) {
       setToast({
         isOpen: true,
         message: "Please select an available appointment time slot to proceed.",
-        type: "error"
+        type: "error",
+        duration: 3500
       });
       return;
     }
@@ -157,7 +151,8 @@ export default function ScheduleSelection() {
       setToast({
         isOpen: true,
         message: "Please select an appointment date to proceed.",
-        type: "error"
+        type: "error",
+        duration: 3500
       });
       return;
     }
@@ -165,15 +160,85 @@ export default function ScheduleSelection() {
       setToast({
         isOpen: true,
         message: "Please select a doctor first.",
-        type: "error"
+        type: "error",
+        duration: 3500
       });
       return;
     }
 
     if (!user) {
       openLoginModal("/doctors/review");
+      return;
+    }
+
+    // Format parameters for checkVisitType
+    const patient_id = user?.id || user?.patient_id || user?.user_id || 1;
+
+    let dStr = date;
+    if (date instanceof Date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      dStr = `${year}-${month}-${day}`;
+    }
+
+    let start = slot;
+    let end = "";
+    if (slot.includes('-')) {
+      const parts = slot.split('-').map(s => s.trim());
+      start = parts[0];
+      end = parts[1];
     } else {
+      start = slot;
+    }
+    start = start.replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+    end = end.replace(/\s*(AM|PM|am|pm)\s*$/i, '');
+
+    const entitylocation = doctor.locations?.[0]?.location_key || bookingHospital?.location_key || "";
+
+    const payload = {
+      patient_id,
+      drkey: doctor.id || doctor.drkey,
+      date: dStr,
+      entitylocation,
+      start,
+      end
+    };
+
+    setValidating(true);
+
+    try {
+      const visitRes = await checkVisitType(payload);
+
+      // Start the 5-minute slot hold; BookingReview reads this expiry to show the countdown
+      try {
+        sessionStorage.setItem("arvaya_slot_hold_expiry", String(Date.now() + 5 * 60 * 1000));
+        if (visitRes) {
+          sessionStorage.setItem("arvaya_visit_type_data", JSON.stringify(visitRes));
+        }
+      } catch (e) {}
+
       navigate("/doctors/review");
+    } catch (err) {
+      console.error("check-visit-type error:", err);
+      const serverMsg =
+        err?.response?.message ||
+        err?.response?.data?.message ||
+        err?.data?.message ||
+        (typeof err?.response === "string" ? err.response : null) ||
+        (err?.message && err.message !== "Request failed" ? err.message : null);
+
+      const errorText = serverMsg || "You cannot book a follow-up appointment before your initial appointment.";
+
+      setToast({
+        isOpen: true,
+        message: errorText,
+        type: "error",
+        duration: 4000
+      });
+      // Do NOT redirect to review. Stay on same schedule page!
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -194,7 +259,7 @@ export default function ScheduleSelection() {
     return list;
   }, []);
 
-  const totalSlotsCount = availableSlots.morning.length + availableSlots.afternoon.length + availableSlots.evening.length;
+  const totalSlotsCount = availableSlots.length;
 
   if (!doctor) {
     return (
@@ -272,7 +337,7 @@ export default function ScheduleSelection() {
           {/* Right Panel: Available Time Slots Container (Feasible for Large Slot Datasets) */}
           <div className="schedule-slots-panel">
             
-            {/* Header: Title, Slot Counter & Period Filters */}
+            {/* Header: Title, Slot Counter & Search */}
             <div className="schedule-slots-header">
               <div className="schedule-slots-title-group">
                 <h3 className="schedule-slots-title">
@@ -283,45 +348,6 @@ export default function ScheduleSelection() {
                 </span>
               </div>
 
-              {/* Period Filters: All / Morning / Afternoon / Evening */}
-              {totalSlotsCount > 0 && (
-                <div className="schedule-period-filters">
-                  <button
-                    type="button"
-                    className={`period-filter-pill ${periodFilter === "all" ? "active" : ""}`}
-                    onClick={() => setPeriodFilter("all")}
-                  >
-                    All ({totalSlotsCount})
-                  </button>
-                  {availableSlots.morning.length > 0 && (
-                    <button
-                      type="button"
-                      className={`period-filter-pill ${periodFilter === "morning" ? "active" : ""}`}
-                      onClick={() => setPeriodFilter("morning")}
-                    >
-                      <Sunrise size={13} color="#eab308" /> Morning ({availableSlots.morning.length})
-                    </button>
-                  )}
-                  {availableSlots.afternoon.length > 0 && (
-                    <button
-                      type="button"
-                      className={`period-filter-pill ${periodFilter === "afternoon" ? "active" : ""}`}
-                      onClick={() => setPeriodFilter("afternoon")}
-                    >
-                      <Sun size={13} color="#f97316" /> Afternoon ({availableSlots.afternoon.length})
-                    </button>
-                  )}
-                  {availableSlots.evening.length > 0 && (
-                    <button
-                      type="button"
-                      className={`period-filter-pill ${periodFilter === "evening" ? "active" : ""}`}
-                      onClick={() => setPeriodFilter("evening")}
-                    >
-                      <Sunset size={13} color="#8b5cf6" /> Evening ({availableSlots.evening.length})
-                    </button>
-                  )}
-                </div>
-              )}
               {/* SQL Protected Search for Available Slots */}
               {totalSlotsCount > 3 && (
                 <div className="hospital-search-box" style={{ maxWidth: '175px', height: '32px', minHeight: '32px', maxHeight: '32px', padding: '0 8px', borderRadius: '8px' }}>
@@ -329,7 +355,7 @@ export default function ScheduleSelection() {
                   <input
                     type="text"
                     className="hospital-search-input"
-                    placeholder="Search time..."
+                    placeholder="Search time, e.g. 1:00 PM"
                     value={searchQ}
                     onChange={handleSearchChange}
                     maxLength={30}
@@ -376,105 +402,32 @@ export default function ScheduleSelection() {
               ) : (
                 <>
                   {/* Empty state when search yields no slots */}
-                  {searchQ && filteredSlots.morning.length === 0 && filteredSlots.afternoon.length === 0 && filteredSlots.evening.length === 0 && (
+                  {searchQ && filteredSlots.length === 0 && (
                     <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                       No slots matching "{searchQ}". <button type="button" onClick={handleClearSearch} style={{ color: 'var(--primary)', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}>Clear search</button>
                     </div>
                   )}
 
-                  {/* Morning Slots */}
-                  {filteredSlots.morning.length > 0 && (periodFilter === "all" || periodFilter === "morning") && (
-                    <div className="slot-section-group">
-                      <div className="slot-section-header">
-                        <Sunrise size={15} color="#eab308" />
-                        <span>Morning</span>
-                        <span className="slot-section-tag morning">
-                          {filteredSlots.morning.length} slots
-                        </span>
-                      </div>
-                      <div className="time-slots-grid">
-                        {filteredSlots.morning.map(s => {
-                          const slotStr = formatSlot(s);
-                          const isSel = slot === slotStr;
-                          return (
-                            <button
-                              key={slotStr}
-                              type="button"
-                              onClick={() => setSlot(slotStr)}
-                              className={`slot-chip ${isSel ? 'selected' : ''}`}
-                              aria-selected={isSel}
-                            >
-                              <Clock size={11} className="slot-clock-icon" />
-                              <span>{slotStr}</span>
-                              {isSel && <Check size={11} strokeWidth={3} />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Afternoon Slots */}
-                  {filteredSlots.afternoon.length > 0 && (periodFilter === "all" || periodFilter === "afternoon") && (
-                    <div className="slot-section-group">
-                      <div className="slot-section-header">
-                        <Sun size={15} color="#f97316" />
-                        <span>Afternoon</span>
-                        <span className="slot-section-tag afternoon">
-                          {filteredSlots.afternoon.length} slots
-                        </span>
-                      </div>
-                      <div className="time-slots-grid">
-                        {filteredSlots.afternoon.map(s => {
-                          const slotStr = formatSlot(s);
-                          const isSel = slot === slotStr;
-                          return (
-                            <button
-                              key={slotStr}
-                              type="button"
-                              onClick={() => setSlot(slotStr)}
-                              className={`slot-chip ${isSel ? 'selected' : ''}`}
-                              aria-selected={isSel}
-                            >
-                              <Clock size={11} className="slot-clock-icon" />
-                              <span>{slotStr}</span>
-                              {isSel && <Check size={11} strokeWidth={3} />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Evening Slots */}
-                  {filteredSlots.evening.length > 0 && (periodFilter === "all" || periodFilter === "evening") && (
-                    <div className="slot-section-group">
-                      <div className="slot-section-header">
-                        <Sunset size={15} color="#8b5cf6" />
-                        <span>Evening</span>
-                        <span className="slot-section-tag evening">
-                          {filteredSlots.evening.length} slots
-                        </span>
-                      </div>
-                      <div className="time-slots-grid">
-                        {filteredSlots.evening.map(s => {
-                          const slotStr = formatSlot(s);
-                          const isSel = slot === slotStr;
-                          return (
-                            <button
-                              key={slotStr}
-                              type="button"
-                              onClick={() => setSlot(slotStr)}
-                              className={`slot-chip ${isSel ? 'selected' : ''}`}
-                              aria-selected={isSel}
-                            >
-                              <Clock size={11} className="slot-clock-icon" />
-                              <span>{slotStr}</span>
-                              {isSel && <Check size={11} strokeWidth={3} />}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {/* All Available Slots */}
+                  {filteredSlots.length > 0 && (
+                    <div className="time-slots-grid schedule-time-grid">
+                      {filteredSlots.map(s => {
+                        const slotStr = formatSlot(s);
+                        const isSel = slot === slotStr;
+                        return (
+                          <button
+                            key={slotStr}
+                            type="button"
+                            onClick={() => setSlot(slotStr)}
+                            className={`slot-chip ${isSel ? 'selected' : ''}`}
+                            aria-selected={isSel}
+                          >
+                            <Clock size={11} className="slot-clock-icon" />
+                            <span>{toDisplayTime(slotStr)}</span>
+                            {isSel && <Check size={11} strokeWidth={3} />}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </>
@@ -490,7 +443,7 @@ export default function ScheduleSelection() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-main)', minWidth: 0 }}>
                 <CheckCircle2 size={17} color="var(--primary)" style={{ flexShrink: 0 }} />
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
-                  <span>Selected: <strong style={{ color: 'var(--primary-dark)', fontWeight: '750' }}>{slot}</strong> on <strong style={{ color: 'var(--primary-dark)', fontWeight: '750' }}>{date?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong></span>
+                  <span>Selected: <strong style={{ color: 'var(--primary-dark)', fontWeight: '750' }}>{toDisplayTime(slot)}</strong> on <strong style={{ color: 'var(--primary-dark)', fontWeight: '750' }}>{date?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong></span>
                   {doctor?.name && (
                     <span style={{ color: 'var(--text-muted)', fontSize: '11px', background: 'rgba(0,0,0,0.04)', padding: '1.5px 6px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
                       Dr. {doctor.name}
@@ -514,6 +467,7 @@ export default function ScheduleSelection() {
             type="button"
             className="btn btn-primary"
             onClick={handleConfirm}
+            disabled={validating || !slot}
             style={{ 
               padding: '11px 26px', 
               fontSize: '14.5px', 
@@ -522,13 +476,22 @@ export default function ScheduleSelection() {
               display: 'flex', 
               alignItems: 'center', 
               gap: '8px', 
-              opacity: slot ? 1 : 0.65,
-              cursor: 'pointer',
-              boxShadow: slot ? '0 4px 14px rgba(46, 102, 110, 0.25)' : 'none',
+              opacity: (slot && !validating) ? 1 : 0.65,
+              cursor: (validating || !slot) ? 'not-allowed' : 'pointer',
+              boxShadow: (slot && !validating) ? '0 4px 14px rgba(46, 102, 110, 0.25)' : 'none',
               transition: 'all 0.2s ease'
             }}
           >
-            Review Details <ArrowRight size={17} />
+            {validating ? (
+              <>
+                <div className="spinner" style={{ width: '15px', height: '15px', borderWidth: '2px', borderTopColor: '#fff', marginRight: '4px' }} />
+                <span>Checking...</span>
+              </>
+            ) : (
+              <>
+                Review Details <ArrowRight size={17} />
+              </>
+            )}
           </button>
         </div>
 
@@ -538,6 +501,7 @@ export default function ScheduleSelection() {
       isOpen={toast.isOpen} 
       message={toast.message} 
       type={toast.type} 
+      duration={toast.duration || 4000}
       onClose={() => setToast({ ...toast, isOpen: false })} 
     />
     </>

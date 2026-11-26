@@ -1,44 +1,196 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import ReactDOM from "react-dom";
-import { X, MapPin, Phone, User, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, Navigation } from "lucide-react";
+import { X, MapPin, Phone, User, Users, Zap, Calendar, Clock, AlertTriangle, ArrowRight, CheckCircle2, Ambulance, Shield, Loader2, ChevronDown, ChevronLeft, ChevronRight, Navigation, HeartPulse, Car, Wind, Baby, Flame, Brain, HelpCircle, Check } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useBooking } from "../../context/BookingContext";
 import { useNavigate } from "react-router-dom";
-import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode } from "../../services/ambulanceService";
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { EMERGENCY_TYPES, requestAmbulance, reverseGeocode, GOOGLE_MAPS_API_KEY } from "../../services/ambulanceService";
+import useGoogleMapsScript from "./useGoogleMapsScript";
+import useScrollLock from "../../hooks/useScrollLock";
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 };
 
-function LocationMarker({ position, setPosition }) {
-  const map = useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
-    },
-  });
+/* ── Google Maps pickup picker: click the map or drag the pin to set location ── */
 
-  React.useEffect(() => {
-    if (position) {
-      const currentZoom = map.getZoom();
-      map.setView(position, currentZoom < 15 ? 15 : currentZoom);
+function GoogleLocationPicker({ position, onPick }) {
+  const { loaded, error } = useGoogleMapsScript(GOOGLE_MAPS_API_KEY);
+  const containerRef = React.useRef(null);
+  const mapRef = React.useRef(null);
+  const markerRef = React.useRef(null);
+  const onPickRef = React.useRef(onPick);
+  onPickRef.current = onPick;
+
+  // Create the map once the script is ready
+  useEffect(() => {
+    if (!loaded || !containerRef.current || mapRef.current) return;
+    const gm = window.google.maps;
+    const map = new gm.Map(containerRef.current, {
+      center: position || DEFAULT_CENTER,
+      zoom: position ? 15 : 4,
+      disableDefaultUI: true,
+      zoomControl: true,
+      clickableIcons: false,
+      gestureHandling: "greedy",
+    });
+    mapRef.current = map;
+
+    map.addListener("click", (e) => {
+      onPickRef.current({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+
+  // Keep the marker and viewport in sync with the selected position
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !position) return;
+    const gm = window.google.maps;
+
+    if (!markerRef.current) {
+      markerRef.current = new gm.Marker({ position, map, draggable: true, title: "Pickup Location" });
+      markerRef.current.addListener("dragend", (e) => {
+        onPickRef.current({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+      });
+    } else {
+      markerRef.current.setPosition(position);
     }
-  }, [position, map]);
 
-  return position === null ? null : <Marker position={position} />;
+    map.panTo(position);
+    if (map.getZoom() < 15) map.setZoom(15);
+  }, [loaded, position?.lat, position?.lng]);
+
+  // Cleanup listeners on unmount
+  useEffect(() => () => {
+    if (markerRef.current) { window.google?.maps?.event.clearInstanceListeners(markerRef.current); markerRef.current.setMap(null); }
+    if (mapRef.current) window.google?.maps?.event.clearInstanceListeners(mapRef.current);
+  }, []);
+
+  if (error) {
+    return (
+      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "var(--text-muted)", fontSize: "13px", background: "var(--bg-app)" }}>
+        <MapPin size={16} /> Map unavailable — please enter your address below.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
+      {!loaded && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "var(--text-muted)", fontSize: "13px", background: "var(--bg-app)" }}>
+          <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Loading map…
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Emergency type dropdown (custom, since native <select> popups can't be styled) ── */
+
+const EMERGENCY_META = {
+  cardiac:   { icon: HeartPulse, color: "#dc2626", bg: "#fef2f2" },
+  accident:  { icon: Car,        color: "#ea580c", bg: "#fff7ed" },
+  breathing: { icon: Wind,       color: "#0284c7", bg: "#f0f9ff" },
+  pregnancy: { icon: Baby,       color: "#db2777", bg: "#fdf2f8" },
+  burns:     { icon: Flame,      color: "#d97706", bg: "#fffbeb" },
+  stroke:    { icon: Brain,      color: "#7c3aed", bg: "#f5f3ff" },
+  other:     { icon: HelpCircle, color: "#475569", bg: "#f1f5f9" },
+};
+const MENU_MAX_HEIGHT = 300;
+
+function EmergencyTypeSelect({ value, onChange, hasError }) {
+  const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
+  const [active, setActive] = useState(-1);
+  const wrapRef = React.useRef(null);
+  const triggerRef = React.useRef(null);
+
+  const selected = EMERGENCY_TYPES.find(t => t.value === value);
+  const selectedMeta = selected && (EMERGENCY_META[selected.value] || EMERGENCY_META.other);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const onDown = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const toggle = () => {
+    if (!open && triggerRef.current) {
+      // Flip upward when the scroll area doesn't have room below the trigger
+      const rect = triggerRef.current.getBoundingClientRect();
+      const bounds = triggerRef.current.closest(".ambulance-modal-scroll")?.getBoundingClientRect() || { top: 0, bottom: window.innerHeight };
+      const below = bounds.bottom - rect.bottom;
+      const above = rect.top - bounds.top;
+      setOpenUp(below < MENU_MAX_HEIGHT && above > below);
+      setActive(Math.max(0, EMERGENCY_TYPES.findIndex(t => t.value === value)));
+    }
+    setOpen(o => !o);
+  };
+
+  const pick = (v) => { onChange(v); setOpen(false); triggerRef.current?.focus(); };
+
+  const onKeyDown = (e) => {
+    if (!open) {
+      if (["Enter", " ", "ArrowDown", "ArrowUp"].includes(e.key)) { e.preventDefault(); toggle(); }
+      return;
+    }
+    if (e.key === "Escape") { e.preventDefault(); setOpen(false); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); setActive(i => (i + 1) % EMERGENCY_TYPES.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive(i => (i - 1 + EMERGENCY_TYPES.length) % EMERGENCY_TYPES.length); }
+    else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (active >= 0) pick(EMERGENCY_TYPES[active].value); }
+    else if (e.key === "Tab") setOpen(false);
+  };
+
+  const borderColor = hasError ? "var(--danger)" : open ? "var(--primary)" : "var(--border)";
+  const SelectedIcon = selectedMeta?.icon;
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <button ref={triggerRef} type="button" onClick={toggle} onKeyDown={onKeyDown}
+        aria-haspopup="listbox" aria-expanded={open}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px 8px 8px", minHeight: "50px", border: `1.5px solid ${borderColor}`, borderRadius: "10px", background: "#fff", cursor: "pointer", outline: "none", textAlign: "left", fontFamily: "var(--font-sans)", transition: "border-color 0.2s, box-shadow 0.2s", boxShadow: open ? "0 0 0 4px rgba(46,102,110,0.10)" : "none" }}>
+        <span style={{ width: "32px", height: "32px", borderRadius: "8px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: selectedMeta ? selectedMeta.bg : "var(--bg-app)", color: selectedMeta ? selectedMeta.color : "var(--text-muted)", transition: "all 0.2s" }}>
+          {SelectedIcon ? <SelectedIcon size={17} /> : <AlertTriangle size={16} />}
+        </span>
+        <span style={{ flex: 1, fontSize: "15px", fontWeight: selected ? "600" : "500", color: selected ? "var(--text-main)" : "var(--text-muted)" }}>
+          {selected ? selected.label : "Select emergency type"}
+        </span>
+        <ChevronDown size={18} color="var(--text-muted)" style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+
+      {open && (
+        <ul role="listbox" style={{ position: "absolute", left: 0, right: 0, [openUp ? "bottom" : "top"]: "calc(100% + 6px)", margin: 0, padding: "6px", listStyle: "none", background: "#fff", border: "1px solid var(--border)", borderRadius: "12px", boxShadow: "0 12px 32px rgba(15,23,42,0.16), 0 2px 6px rgba(15,23,42,0.06)", maxHeight: `${MENU_MAX_HEIGHT}px`, overflowY: "auto", zIndex: 50, animation: "emgMenuIn 0.15s ease-out", transformOrigin: openUp ? "bottom" : "top" }}>
+          {EMERGENCY_TYPES.map((t, i) => {
+            const meta = EMERGENCY_META[t.value] || EMERGENCY_META.other;
+            const Icon = meta.icon;
+            const isSel = t.value === value;
+            const isActive = i === active;
+            return (
+              <li key={t.value} role="option" aria-selected={isSel}
+                onMouseEnter={() => setActive(i)} onMouseDown={e => e.preventDefault()} onClick={() => pick(t.value)}
+                style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", borderRadius: "8px", cursor: "pointer", background: isSel ? meta.bg : isActive ? "var(--bg-app)" : "transparent", transition: "background 0.12s" }}>
+                <span style={{ width: "30px", height: "30px", borderRadius: "8px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: meta.bg, color: meta.color }}>
+                  <Icon size={16} />
+                </span>
+                <span style={{ flex: 1, fontSize: "14.5px", fontWeight: isSel ? "700" : "500", color: isSel ? meta.color : "var(--text-main)" }}>{t.label}</span>
+                {isSel && <Check size={16} color={meta.color} strokeWidth={2.5} />}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 /* ── Small shared atoms ──────────────────────────────────────────────────── */
 
-function Overlay({ children, onClose }) {
+function Overlay({ children }) {
   const content = (
-    <div className="ambulance-modal-overlay" onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "860px", margin: "auto" }}>{children}</div>
+    <div className="ambulance-modal-overlay">
+      <div style={{ width: "100%", maxWidth: "860px", margin: "auto", position: "relative" }}>{children}</div>
     </div>
   );
   if (typeof window === "undefined") return content;
@@ -64,7 +216,7 @@ function FieldError({ msg }) {
 }
 
 function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true, type = "button" }) {
-  const base = { width: fullWidth ? "100%" : "auto", padding: "14px 24px", borderRadius: "10px", fontSize: "15px", fontWeight: "600", cursor: disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", border: "none", fontFamily: "var(--font-sans)" };
+  const base = { width: fullWidth ? "100%" : "auto", padding: "14px 24px", borderRadius: "10px", fontSize: "15px", fontWeight: "600", cursor: disabled ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", border: "none", fontFamily: "var(--font-sans)" };
   const styles = {
     accent: { background: disabled ? "var(--border)" : "var(--accent)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(251,145,63,0.25)" },
     primary: { background: disabled ? "var(--border)" : "var(--primary)", color: disabled ? "var(--text-muted)" : "#fff", boxShadow: disabled ? "none" : "0 2px 12px rgba(46,102,110,0.25)" },
@@ -79,6 +231,583 @@ function Btn({ children, onClick, disabled, variant = "accent", fullWidth = true
   );
 }
 
+/* ── Custom Date & Time Picker Helpers ───────────────────────────────────── */
+
+function parseDateString(dateStr) {
+  if (!dateStr) return null;
+  const parts = String(dateStr).split("-");
+  if (parts.length === 3) {
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  }
+  return new Date(dateStr);
+}
+
+function formatDateToIso(d) {
+  if (!d) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return "";
+  const d = parseDateString(dateStr);
+  if (!d || isNaN(d.getTime())) return dateStr;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const compare = new Date(d);
+  compare.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((compare - today) / (1000 * 60 * 60 * 24));
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  if (diffDays === 0) return `Today, ${d.getDate()} ${months[d.getMonth()]}`;
+  if (diffDays === 1) return `Tomorrow, ${d.getDate()} ${months[d.getMonth()]}`;
+  return `${weekdays[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+const WEEKDAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+function CustomDatePicker({ value, onChange, hasError, minDate }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
+  const minDateObj = useMemo(() => {
+    if (!minDate) return today;
+    const d = parseDateString(minDate);
+    if (!d || isNaN(d.getTime())) return today;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [minDate, today]);
+
+  const selectedDateObj = useMemo(() => {
+    if (!value) return null;
+    const d = parseDateString(value);
+    if (!d || isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, [value]);
+
+  const [viewMonth, setViewMonth] = useState(() => {
+    return selectedDateObj || today;
+  });
+
+  useEffect(() => {
+    if (selectedDateObj) {
+      setViewMonth(new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), 1));
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const prevMonth = () => {
+    const prev = new Date(year, month - 1, 1);
+    const minMonthStart = new Date(minDateObj.getFullYear(), minDateObj.getMonth(), 1);
+    if (prev >= minMonthStart) {
+      setViewMonth(prev);
+    }
+  };
+
+  const nextMonth = () => {
+    setViewMonth(new Date(year, month + 1, 1));
+  };
+
+  const isPrevDisabled = useMemo(() => {
+    const minMonthStart = new Date(minDateObj.getFullYear(), minDateObj.getMonth(), 1);
+    const currentMonthStart = new Date(year, month, 1);
+    return currentMonthStart <= minMonthStart;
+  }, [year, month, minDateObj]);
+
+  const days = [];
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    days.push(null);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    days.push(new Date(year, month, d));
+  }
+
+  const handleSelectDate = (date) => {
+    const iso = formatDateToIso(date);
+    onChange(iso);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "8px 12px",
+          minHeight: "40px",
+          border: `1.5px solid ${hasError ? "var(--danger)" : open ? "var(--primary)" : "var(--border)"}`,
+          borderRadius: "9px",
+          background: "#fff",
+          cursor: "pointer",
+          outline: "none",
+          textAlign: "left",
+          fontFamily: "var(--font-sans)",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+          boxShadow: open ? "0 0 0 4px rgba(22,83,92,0.10)" : "none"
+        }}
+      >
+        <div style={{ color: value ? "#16535c" : "var(--text-muted)", display: "flex", alignItems: "center" }}>
+          <Calendar size={16} />
+        </div>
+        <span style={{ flex: 1, fontSize: "13.5px", fontWeight: value ? "600" : "500", color: value ? "var(--text-main)" : "var(--text-muted)" }}>
+          {value ? formatDisplayDate(value) : "Select pickup date"}
+        </span>
+        <ChevronDown size={16} color="var(--text-muted)" style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: "calc(100% + 6px)",
+            width: "260px",
+            maxWidth: "calc(100vw - 32px)",
+            background: "#ffffff",
+            border: "1px solid var(--border)",
+            borderRadius: "10px",
+            boxShadow: "0 10px 25px rgba(15,23,42,0.14), 0 2px 6px rgba(15,23,42,0.06)",
+            padding: "10px",
+            zIndex: 65,
+            animation: "fadeIn 0.15s ease-out"
+          }}
+        >
+          {/* Month / Year header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <button
+              type="button"
+              disabled={isPrevDisabled}
+              onClick={prevMonth}
+              style={{
+                width: "26px",
+                height: "26px",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+                background: isPrevDisabled ? "var(--bg-app)" : "#ffffff",
+                color: isPrevDisabled ? "var(--border)" : "var(--text-main)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: isPrevDisabled ? "not-allowed" : "pointer"
+              }}
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span style={{ fontSize: "13px", fontWeight: "700", color: "var(--text-main)" }}>
+              {MONTH_NAMES[month]} {year}
+            </span>
+            <button
+              type="button"
+              onClick={nextMonth}
+              style={{
+                width: "26px",
+                height: "26px",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+                background: "#ffffff",
+                color: "var(--text-main)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer"
+              }}
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+
+          {/* Weekday headers */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px", textAlign: "center", marginBottom: "4px" }}>
+            {WEEKDAY_NAMES.map((w) => (
+              <span key={w} style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                {w}
+              </span>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px" }}>
+            {days.map((d, idx) => {
+              if (!d) return <div key={`empty-${idx}`} />;
+              const isPast = d < minDateObj;
+              const isSelected = selectedDateObj && d.toDateString() === selectedDateObj.toDateString();
+              const isToday = d.toDateString() === today.toDateString();
+
+              return (
+                <button
+                  key={d.toISOString()}
+                  type="button"
+                  disabled={isPast}
+                  onClick={() => handleSelectDate(d)}
+                  style={{
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: isToday && !isSelected ? "1px solid #16535c" : "none",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    fontWeight: isSelected ? "700" : isToday ? "700" : "500",
+                    cursor: isPast ? "not-allowed" : "pointer",
+                    background: isSelected ? "#16535c" : "transparent",
+                    color: isSelected ? "#ffffff" : isPast ? "#cbd5e1" : isToday ? "#16535c" : "var(--text-main)",
+                    boxShadow: isSelected ? "0 2px 6px rgba(22,83,92,0.3)" : "none",
+                    transition: "all 0.15s"
+                  }}
+                  onMouseEnter={e => {
+                    if (!isSelected && !isPast) e.currentTarget.style.background = "var(--bg-app, #f1f5f9)";
+                  }}
+                  onMouseLeave={e => {
+                    if (!isSelected && !isPast) e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {d.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const HOURS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
+function parseTimeToParts(timeStr) {
+  if (!timeStr) {
+    const now = new Date();
+    return {
+      hour24: now.getHours(),
+      minute: now.getMinutes()
+    };
+  }
+  const s = String(timeStr).trim();
+  const match = s.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm)?$/i);
+  if (match) {
+    let h = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10) || 0;
+    const period = match[3] ? match[3].toUpperCase() : null;
+    if (period === "PM" && h < 12) h += 12;
+    if (period === "AM" && h === 12) h = 0;
+    return { hour24: Math.min(Math.max(h, 0), 23), minute: Math.min(Math.max(m, 0), 59) };
+  }
+  return { hour24: 10, minute: 30 };
+}
+
+function formatPartsToTime12(hour24, minute) {
+  const h = parseInt(hour24, 10) || 0;
+  const m = parseInt(minute, 10) || 0;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function CustomTimePicker({ value, onChange, hasError }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const selectedHourRef = useRef(null);
+  const selectedMinuteRef = useRef(null);
+
+  const initialParts = useMemo(() => parseTimeToParts(value), [value]);
+  const [tempHour, setTempHour] = useState(initialParts.hour24);
+  const [tempMinute, setTempMinute] = useState(initialParts.minute);
+
+  useEffect(() => {
+    const p = parseTimeToParts(value);
+    setTempHour(p.hour24);
+    setTempMinute(p.minute);
+  }, [value]);
+
+  // Close on click outside & commit selected time
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        onChange(formatPartsToTime12(tempHour, tempMinute));
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open, tempHour, tempMinute, onChange]);
+
+  // Auto-scroll selected hour & minute to center when opened
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        selectedHourRef.current?.scrollIntoView({ block: "center", behavior: "auto" });
+        selectedMinuteRef.current?.scrollIntoView({ block: "center", behavior: "auto" });
+      }, 30);
+    }
+  }, [open]);
+
+  const handleHourSelect = (hNum) => {
+    setTempHour(hNum);
+    onChange(formatPartsToTime12(hNum, tempMinute));
+  };
+
+  const handleMinuteSelect = (mNum) => {
+    setTempMinute(mNum);
+    onChange(formatPartsToTime12(tempHour, mNum));
+  };
+
+  const handleToggleAmPm = () => {
+    const nextH = (tempHour + 12) % 24;
+    setTempHour(nextH);
+    onChange(formatPartsToTime12(nextH, tempMinute));
+    setTimeout(() => {
+      selectedHourRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 30);
+  };
+
+  const handleConfirm = () => {
+    onChange(formatPartsToTime12(tempHour, tempMinute));
+    setOpen(false);
+  };
+
+  const displayTime = value || formatPartsToTime12(tempHour, tempMinute);
+  const headerTime = formatPartsToTime12(tempHour, tempMinute);
+
+  return (
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "8px 12px",
+          minHeight: "40px",
+          border: `1.5px solid ${hasError ? "var(--danger)" : open ? "var(--primary)" : "var(--border)"}`,
+          borderRadius: "9px",
+          background: "#fff",
+          cursor: "pointer",
+          outline: "none",
+          textAlign: "left",
+          fontFamily: "var(--font-sans)",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+          boxShadow: open ? "0 0 0 4px rgba(22,83,92,0.10)" : "none"
+        }}
+      >
+        <div style={{ color: value ? "#16535c" : "var(--text-muted)", display: "flex", alignItems: "center" }}>
+          <Clock size={16} />
+        </div>
+        <span style={{ flex: 1, fontSize: "13.5px", fontWeight: value ? "600" : "500", color: value ? "var(--text-main)" : "var(--text-muted)" }}>
+          {displayTime}
+        </span>
+        <ChevronDown size={16} color="var(--text-muted)" style={{ transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+
+      {/* Popover matching user screenshot */}
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "calc(100% + 6px)",
+            width: "152px",
+            background: "#ffffff",
+            border: "1px solid #d9d9d9",
+            borderRadius: "6px",
+            boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12), 0 6px 16px 0 rgba(0,0,0,0.08), 0 9px 28px 8px rgba(0,0,0,0.05)",
+            overflow: "hidden",
+            zIndex: 70,
+            animation: "fadeIn 0.15s ease-out"
+          }}
+        >
+          {/* Header (e.g. 12:57 AM) */}
+          <div
+            onClick={handleToggleAmPm}
+            title="Click to toggle AM / PM"
+            style={{
+              padding: "8px 0",
+              textAlign: "center",
+              fontSize: "14px",
+              fontWeight: "700",
+              color: "var(--primary, #16535c)",
+              borderBottom: "1px solid #f0f0f0",
+              background: "#ffffff",
+              cursor: "pointer",
+              userSelect: "none"
+            }}
+          >
+            {headerTime}
+          </div>
+
+          {/* Two Scrollable Columns: Hours (00-23) & Minutes (00-59) */}
+          <div style={{ display: "flex", height: "140px", background: "#ffffff" }}>
+            {/* Hours Column */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                borderRight: "1px solid #f0f0f0",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}
+            >
+              {HOURS_24.map((hStr) => {
+                const hNum = parseInt(hStr, 10);
+                const isSelected = hNum === tempHour;
+                return (
+                  <div
+                    key={hStr}
+                    ref={isSelected ? selectedHourRef : null}
+                    onClick={() => handleHourSelect(hNum)}
+                    style={{
+                      height: "28px",
+                      lineHeight: "28px",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      fontWeight: isSelected ? "700" : "400",
+                      background: isSelected ? "rgba(22,83,92,0.12)" : "transparent",
+                      color: isSelected ? "var(--primary, #16535c)" : "#262626",
+                      userSelect: "none",
+                      transition: "background-color 0.1s"
+                    }}
+                    onMouseEnter={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "#f5f5f5";
+                    }}
+                    onMouseLeave={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    {hStr}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Minutes Column */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}
+            >
+              {MINUTES_60.map((mStr) => {
+                const mNum = parseInt(mStr, 10);
+                const isSelected = mNum === tempMinute;
+                return (
+                  <div
+                    key={mStr}
+                    ref={isSelected ? selectedMinuteRef : null}
+                    onClick={() => handleMinuteSelect(mNum)}
+                    style={{
+                      height: "28px",
+                      lineHeight: "28px",
+                      textAlign: "center",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      fontWeight: isSelected ? "700" : "400",
+                      background: isSelected ? "rgba(22,83,92,0.12)" : "transparent",
+                      color: isSelected ? "var(--primary, #16535c)" : "#262626",
+                      userSelect: "none",
+                      transition: "background-color 0.1s"
+                    }}
+                    onMouseEnter={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "#f5f5f5";
+                    }}
+                    onMouseLeave={e => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    {mStr}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Footer with Ok Button */}
+          <div
+            style={{
+              padding: "6px 8px",
+              borderTop: "1px solid #f0f0f0",
+              display: "flex",
+              justifyContent: "flex-end",
+              background: "#ffffff"
+            }}
+          >
+            <button
+              type="button"
+              onClick={handleConfirm}
+              style={{
+                background: "var(--primary, #16535c)",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "5px",
+                padding: "3px 14px",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+                outline: "none",
+                lineHeight: "20px",
+                boxShadow: "0 2px 8px rgba(22,83,92,0.25)",
+                transition: "filter 0.15s"
+              }}
+              onMouseEnter={e => e.currentTarget.style.filter = "brightness(1.12)"}
+              onMouseLeave={e => e.currentTarget.style.filter = "none"}
+            >
+              Ok
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 /* ── Main Modal ──────────────────────────────────────────────────────────── */
 
 export default function AmbulanceRequestModal({ onClose, onSuccess }) {
@@ -87,6 +816,10 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const go = useNavigate();
 
   const [step, setStep]               = useState(1); // 1 = form, 2 = success
+  const [bookedFor, setBookedFor]     = useState("self"); // "self" | "other"
+  const [bookingType, setBookingType] = useState("INSTANT"); // "INSTANT" | "SCHEDULED"
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
   const [patientName, setPatientName] = useState((user?.name || "").replace(/[^a-zA-Z\s]/g, ""));
   const [contactNumber, setContact]   = useState(user?.phone || user?.mobile || "");
   const [pickupAddress, setPickup]    = useState("");
@@ -98,6 +831,9 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   const [err, setErr]                 = useState("");
   const [result, setResult]           = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  // Synchronous locks so a fast double-click can't fire duplicate requests
+  const submitLockRef = useRef(false);
+  const locateLockRef = useRef(false);
 
   const clearFieldError = (field) => {
     setFieldErrors(prev => {
@@ -106,6 +842,30 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
       delete next[field];
       return next;
     });
+  };
+
+  const getTodayStr = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const todayStr = getTodayStr();
+
+  const handleBookedForChange = (val) => {
+    setBookedFor(val);
+    if (val === "self") {
+      const defaultName = (user?.name || "").replace(/[^a-zA-Z\s]/g, "");
+      if (!patientName.trim()) {
+        setPatientName(defaultName);
+      }
+    } else {
+      const defaultName = (user?.name || "").replace(/[^a-zA-Z\s]/g, "");
+      if (patientName.trim() === defaultName) {
+        setPatientName("");
+      }
+    }
   };
 
   const handleMapClick = async (latlng) => {
@@ -123,22 +883,30 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   };
 
   const handleLocate = () => {
+    if (locateLockRef.current) return;
     if (!navigator.geolocation) { setErr("Geolocation is not supported by your browser."); return; }
+    locateLockRef.current = true;
     setLocating(true); setErr("");
     navigator.geolocation.getCurrentPosition(
       async pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setPickupLat(lat);
-        setPickupLng(lng);
-        const addr = await reverseGeocode(lat, lng);
-        setPickup(addr);
-        setLocating(false);
+        try {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setPickupLat(lat);
+          setPickupLng(lng);
+          const addr = await reverseGeocode(lat, lng);
+          setPickup(addr);
+        } finally {
+          locateLockRef.current = false;
+          setLocating(false);
+        }
       },
-      () => { setErr("Unable to fetch location. Please enter manually."); setLocating(false); },
+      () => { setErr("Unable to fetch location. Please enter manually."); locateLockRef.current = false; setLocating(false); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
+
+  useScrollLock();
 
   useEffect(() => {
     handleLocate();
@@ -146,26 +914,59 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   }, []);
 
   const handleSubmit = async () => {
-    if (!patientName.trim()) { setErr("Patient name is required."); return; }
+    if (submitLockRef.current) return;
+    if (!patientName.trim()) {
+      const msg = "Patient name is required.";
+      if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, patientName: msg }));
+      setErr(msg);
+      return;
+    }
     if (!contactNumber.trim() || contactNumber.length < 10) {
       const msg = "Please enter a valid 10-digit contact number.";
       if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, contactNumber: msg }));
       setErr(msg);
       return;
     }
     if (!/^[6-9]/.test(contactNumber.trim())) {
       const msg = "Please enter a valid mobile number starting with 6, 7, 8, or 9.";
       if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, contactNumber: msg }));
       setErr(msg);
       return;
     }
-    if (!pickupAddress.trim()) { setErr("Pickup address is required."); return; }
+    if (bookingType === "SCHEDULED") {
+      if (!scheduledDate) {
+        const msg = "Please select a scheduled date.";
+        if (showToast) showToast(msg, "error");
+        setFieldErrors(prev => ({ ...prev, scheduledDate: msg }));
+        setErr(msg);
+        return;
+      }
+      if (!scheduledTime || !scheduledTime.trim()) {
+        const msg = "Please enter a scheduled time (e.g. 10:30 AM).";
+        if (showToast) showToast(msg, "error");
+        setFieldErrors(prev => ({ ...prev, scheduledTime: msg }));
+        setErr(msg);
+        return;
+      }
+    }
+    if (!pickupAddress.trim()) {
+      const msg = "Pickup address is required.";
+      if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, pickupAddress: msg }));
+      setErr(msg);
+      return;
+    }
     if (!emergencyType) {
       const msg = "Please select an emergency type.";
       if (showToast) showToast(msg, "error");
+      setFieldErrors(prev => ({ ...prev, emergencyType: msg }));
       setErr(msg);
       return;
     }
+    submitLockRef.current = true;
     setErr(""); setBusy(true);
 
     let locationKey = globalLocation?.entitylocation || globalLocation?.location_key || "";
@@ -191,7 +992,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
     }
 
     try {
-      const res = await requestAmbulance({
+      const submitted = {
         patient_id: patientId,
         patient_name: patientName.trim(),
         requester_phone: contactNumber.trim(),
@@ -199,21 +1000,30 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
         pickup_lat: pickupLat,
         pickup_lng: pickupLng,
         pickup_address: pickupAddress.trim(),
-        location_key: locationKey
-      });
-      window.alert("Opening dialer for dummy call to 108...");
-      window.location.href = "tel:108";
-      
-      if (onSuccess) onSuccess(res);
+        location_key: locationKey,
+        booked_for: bookedFor === "other" ? "other" : "self",
+        booking_type: bookingType,
+        booked_type: bookingType,
+        scheduled_date: bookingType === "SCHEDULED" ? scheduledDate : null,
+        scheduled_time: bookingType === "SCHEDULED" ? (scheduledTime || "").trim() : null
+      };
+      const res = await requestAmbulance(submitted);
+
+      if (onSuccess) onSuccess(res, submitted);
       onClose();
-      go("/ambulance");
+      // The modal is opened from Header/Home/Ambulance; hand the booking to the
+      // Ambulance page via route state so it can show it immediately
+      go("/ambulance", { state: { bookedRequest: { res, submitted, at: Date.now() } } });
     } catch (e) { setErr(e.message || "Failed to submit request. Please try again."); }
-    finally { setBusy(false); }
+    finally { submitLockRef.current = false; setBusy(false); }
   };
+
+  // Don't let the modal be dismissed mid-request
+  const handleClose = () => { if (!busy) onClose(); };
 
   /* ── Left Panel ──────────────────────────────────────────────────────── */
   const leftPanel = (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
+    <div className="ambulance-modal-left-content" style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
       {/* Icon */}
       <div className="ambulance-modal-left-icon" style={{ width: "60px", height: "60px", borderRadius: "18px", background: "rgba(220,38,38,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", border: "1px solid rgba(220,38,38,0.3)" }}>
         <Ambulance size={28} color="#ef4444" />
@@ -241,84 +1051,319 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   /* ── Right Panel — Form ──────────────────────────────────────────────── */
   const formPanel = (
     <div style={{ animation: "fadeIn 0.25s ease" }}>
-      <h3 style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-main)", margin: "0 0 6px", fontFamily: "var(--font-display)" }}>Request Details</h3>
-      <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "0 0 24px" }}>All fields marked with * are required</p>
-      <div style={{ height: "1px", background: "var(--border)", margin: "0 0 24px" }} />
       <ErrorBanner msg={err} />
 
-      {/* Patient Name */}
-      <div style={{ marginBottom: "20px" }}>
-        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Patient Name *</label>
-        <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.patientName ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onBlurCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--border)"; }}>
-          <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
-          <input value={patientName} onChange={e => setPatientName(e.target.value.replace(/[^a-zA-Z\s]/g, ""))} placeholder="Full name of patient"
-            style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500" }} />
+      {/* Booking For */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+          Booking For
+        </label>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", background: "var(--bg-app, #f1f5f9)", padding: "3px", borderRadius: "10px" }}>
+          <button
+            type="button"
+            onClick={() => handleBookedForChange("self")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "7px 14px",
+              borderRadius: "8px",
+              fontSize: "13.5px",
+              fontWeight: "600",
+              cursor: "pointer",
+              border: "none",
+              transition: "all 0.2s",
+              fontFamily: "var(--font-sans)",
+              background: bookedFor === "self" ? "#16535c" : "transparent",
+              color: bookedFor === "self" ? "#ffffff" : "var(--text-muted, #64748b)",
+              boxShadow: bookedFor === "self" ? "0 2px 6px rgba(22,83,92,0.25)" : "none"
+            }}
+          >
+            <User size={15} />
+            <span>Myself</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleBookedForChange("other")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "7px 14px",
+              borderRadius: "8px",
+              fontSize: "13.5px",
+              fontWeight: "600",
+              cursor: "pointer",
+              border: "none",
+              transition: "all 0.2s",
+              fontFamily: "var(--font-sans)",
+              background: bookedFor === "other" ? "#16535c" : "transparent",
+              color: bookedFor === "other" ? "#ffffff" : "var(--text-muted, #64748b)",
+              boxShadow: bookedFor === "other" ? "0 2px 6px rgba(22,83,92,0.25)" : "none"
+            }}
+          >
+            <Users size={15} />
+            <span>Someone Else</span>
+          </button>
         </div>
-        <FieldError msg={fieldErrors.patientName} />
       </div>
 
-      {/* Contact Number */}
-      <div style={{ marginBottom: "20px" }}>
-        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Contact Number *</label>
-        <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.contactNumber ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
-          onFocusCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--primary)"; }}
-          onBlurCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--border)"; }}>
-          <div style={{ padding: "0 14px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><Phone size={18} /></div>
-          <input value={contactNumber} onChange={e => { setContact(e.target.value.replace(/\D/g, "").slice(0, 10)); clearFieldError("contactNumber"); }} placeholder="10-digit mobile number" type="tel"
-            style={{ flex: 1, padding: "14px 14px 14px 0", border: "none", outline: "none", fontSize: "15px", color: "var(--text-main)", fontWeight: "500", letterSpacing: "0.03em" }} />
+      {/* When do you need it? */}
+      <div style={{ marginBottom: "12px" }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+          When do you need it?
+        </label>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          {/* Book Now Card */}
+          <div
+            onClick={() => { setBookingType("INSTANT"); clearFieldError("scheduledDate"); clearFieldError("scheduledTime"); }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { setBookingType("INSTANT"); clearFieldError("scheduledDate"); clearFieldError("scheduledTime"); } }}
+            style={{
+              position: "relative",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              border: bookingType === "INSTANT" ? "2px solid #ef4444" : "1.5px solid var(--border)",
+              background: bookingType === "INSTANT" ? "#fef2f2" : "#ffffff",
+              transition: "all 0.2s",
+              outline: "none"
+            }}
+          >
+            {bookingType === "INSTANT" && (
+              <span style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                width: "18px",
+                height: "18px",
+                borderRadius: "50%",
+                background: "#dc2626",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 6px rgba(220,38,38,0.35)",
+                zIndex: 2
+              }}>
+                <Check size={11} strokeWidth={3} />
+              </span>
+            )}
+            <div style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "8px",
+              background: "#ef4444",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <Zap size={16} color="#ffffff" fill="#ffffff" />
+            </div>
+            <div style={{ minWidth: 0, textAlign: "left" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-main)", lineHeight: 1.2 }}>
+                Book Now
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "1px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Immediate dispatch
+              </div>
+            </div>
+          </div>
+
+          {/* Book Later Card */}
+          <div
+            onClick={() => {
+              setBookingType("SCHEDULED");
+              if (!scheduledDate) setScheduledDate(getTodayStr());
+              if (!scheduledTime) setScheduledTime("10:30 AM");
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => {
+              if (e.key === "Enter" || e.key === " ") {
+                setBookingType("SCHEDULED");
+                if (!scheduledDate) setScheduledDate(getTodayStr());
+                if (!scheduledTime) setScheduledTime("10:30 AM");
+              }
+            }}
+            style={{
+              position: "relative",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "8px 12px",
+              borderRadius: "10px",
+              border: bookingType === "SCHEDULED" ? "2px solid #16535c" : "1.5px solid var(--border)",
+              background: bookingType === "SCHEDULED" ? "#f0fdfa" : "#ffffff",
+              transition: "all 0.2s",
+              outline: "none"
+            }}
+          >
+            {bookingType === "SCHEDULED" && (
+              <span style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                width: "18px",
+                height: "18px",
+                borderRadius: "50%",
+                background: "#16535c",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 6px rgba(22,83,92,0.35)",
+                zIndex: 2
+              }}>
+                <Check size={11} strokeWidth={3} />
+              </span>
+            )}
+            <div style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "8px",
+              background: bookingType === "SCHEDULED" ? "rgba(22,83,92,0.12)" : "var(--bg-app, #f1f5f9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <Calendar size={16} color={bookingType === "SCHEDULED" ? "#16535c" : "var(--text-muted)"} />
+            </div>
+            <div style={{ minWidth: 0, textAlign: "left" }}>
+              <div style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-main)", lineHeight: 1.2 }}>
+                Book Later
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "1px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Schedule pickup
+              </div>
+            </div>
+          </div>
         </div>
-        <FieldError msg={fieldErrors.contactNumber} />
+      </div>
+
+      {/* Scheduled Date & Time (Book Later only) — Custom Calendar & Timer */}
+      {bookingType === "SCHEDULED" && (
+        <div className="ambulance-form-row" style={{ position: "relative", zIndex: 30, marginBottom: "12px" }}>
+          <div>
+            <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+              Scheduled Date <span className="required-star">*</span>
+            </label>
+            <CustomDatePicker
+              value={scheduledDate}
+              minDate={todayStr}
+              hasError={!!fieldErrors.scheduledDate}
+              onChange={(val) => {
+                setScheduledDate(val);
+                clearFieldError("scheduledDate");
+              }}
+            />
+            <FieldError msg={fieldErrors.scheduledDate} />
+          </div>
+
+          <div>
+            <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "6px" }}>
+              Scheduled Time <span className="required-star">*</span>
+            </label>
+            <CustomTimePicker
+              value={scheduledTime}
+              hasError={!!fieldErrors.scheduledTime}
+              onChange={(val) => {
+                setScheduledTime(val);
+                clearFieldError("scheduledTime");
+              }}
+            />
+            <FieldError msg={fieldErrors.scheduledTime} />
+          </div>
+        </div>
+      )}
+
+      <div className="ambulance-form-row" style={{ marginBottom: "16px" }}>
+        {/* Patient Name */}
+        <div>
+          <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", minHeight: "18px", marginBottom: "6px", whiteSpace: "nowrap" }}>
+            <span>{bookedFor === "other" ? "Patient's Name" : "Patient Name"}</span>
+            <span className="required-star" style={{ marginLeft: "4px" }}>*</span>
+          </label>
+          <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.patientName ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s", background: "#fff", minHeight: "44px" }}
+            onFocusCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--primary)"; }}
+            onBlurCapture={e => { if (!fieldErrors.patientName) e.currentTarget.style.borderColor = "var(--border)"; }}>
+            <div style={{ padding: "0 10px 0 12px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><User size={18} /></div>
+            <input
+              value={patientName}
+              onChange={e => { setPatientName(e.target.value.replace(/[^a-zA-Z\s]/g, "")); clearFieldError("patientName"); }}
+              placeholder={bookedFor === "other" ? "Full name of patient" : "Enter your full name"}
+              style={{ flex: 1, padding: "11px 12px 11px 0", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", fontWeight: "500", background: "transparent" }}
+            />
+          </div>
+          <FieldError msg={fieldErrors.patientName} />
+        </div>
+
+        {/* Contact Number */}
+        <div>
+          <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", minHeight: "18px", marginBottom: "6px", whiteSpace: "nowrap" }}>
+            <span>Contact Number</span>
+            <span className="required-star" style={{ marginLeft: "4px" }}>*</span>
+          </label>
+          <div style={{ display: "flex", alignItems: "center", border: `1.5px solid ${fieldErrors.contactNumber ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s", background: "#fff", minHeight: "44px" }}
+            onFocusCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--primary)"; }}
+            onBlurCapture={e => { if (!fieldErrors.contactNumber) e.currentTarget.style.borderColor = "var(--border)"; }}>
+            <div style={{ padding: "0 10px 0 12px", color: "var(--text-muted)", display: "flex", alignItems: "center" }}><Phone size={18} /></div>
+            <input
+              value={contactNumber}
+              onChange={e => { setContact(e.target.value.replace(/\D/g, "").slice(0, 10)); clearFieldError("contactNumber"); }}
+              placeholder="10-digit mobile number"
+              type="tel"
+              style={{ flex: 1, padding: "11px 12px 11px 0", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", fontWeight: "500", letterSpacing: "0.03em", background: "transparent" }}
+            />
+          </div>
+          <FieldError msg={fieldErrors.contactNumber} />
+        </div>
       </div>
 
       {/* Pickup Address */}
-      <div style={{ marginBottom: "20px" }}>
+      <div style={{ marginBottom: "18px" }}>
         <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
-          <span>Pickup Location *</span>
-          <button type="button" onClick={handleLocate} disabled={locating}
-            style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary-soft)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: "700", cursor: locating ? "wait" : "pointer", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.2s" }}
-            onMouseEnter={e => { if (!locating) e.currentTarget.style.background = "var(--primary-soft)"; }}
+          <span>Pickup Location <span className="required-star">*</span></span>
+          <button type="button" onClick={handleLocate} disabled={locating || busy}
+            style={{ background: "var(--primary-light)", color: "var(--primary)", border: "1px solid var(--primary-soft)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: "700", cursor: locating || busy ? "default" : "pointer", opacity: locating || busy ? 0.6 : 1, display: "flex", alignItems: "center", gap: "4px", transition: "all 0.2s" }}
+            onMouseEnter={e => { if (!locating && !busy) e.currentTarget.style.background = "var(--primary-soft)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "var(--primary-light)"; }}>
-            {locating ? <><Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> Locating…</> : <><Navigation size={12} /> Use My Location</>}
+            {locating ? <><Loader2 size={12} className="animate-spin" /> Locating…</> : <><Navigation size={12} /> Use My Location</>}
           </button>
         </label>
 
-        <div style={{ height: "200px", borderRadius: "10px", overflow: "hidden", marginBottom: "12px", border: "1px solid var(--border)", position: "relative", zIndex: 0, isolation: "isolate" }}>
-          <MapContainer center={pickupLat && pickupLng ? [pickupLat, pickupLng] : [20.5937, 78.9629]} zoom={pickupLat && pickupLng ? 15 : 4} style={{ height: "100%", width: "100%" }}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <LocationMarker position={pickupLat && pickupLng ? {lat: pickupLat, lng: pickupLng} : null} setPosition={handleMapClick} />
-          </MapContainer>
+        <div style={{ height: "170px", borderRadius: "10px", overflow: "hidden", marginBottom: "10px", border: "1px solid var(--border)", position: "relative", zIndex: 0, isolation: "isolate" }}>
+          <GoogleLocationPicker position={pickupLat && pickupLng ? { lat: pickupLat, lng: pickupLng } : null} onPick={handleMapClick} />
         </div>
 
         <div style={{ border: `1.5px solid ${fieldErrors.pickupAddress ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", overflow: "hidden", transition: "border-color 0.2s" }}
           onFocusCapture={e => { if (!fieldErrors.pickupAddress) e.currentTarget.style.borderColor = "var(--primary)"; }}
           onBlurCapture={e => { if (!fieldErrors.pickupAddress) e.currentTarget.style.borderColor = "var(--border)"; }}>
-          <textarea value={pickupAddress} onChange={e => { setPickup(e.target.value); clearFieldError("pickupAddress"); }} placeholder="Enter or select your pickup address on map" rows={3}
-            style={{ width: "100%", padding: "14px", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", resize: "none", lineHeight: 1.5, fontFamily: "var(--font-sans)" }} />
+          <textarea value={pickupAddress} onChange={e => { setPickup(e.target.value); clearFieldError("pickupAddress"); }} placeholder="Enter or select your pickup address on map" rows={2}
+            style={{ width: "100%", padding: "12px 14px", border: "none", outline: "none", fontSize: "14px", color: "var(--text-main)", resize: "none", lineHeight: 1.5, fontFamily: "var(--font-sans)" }} />
         </div>
         <FieldError msg={fieldErrors.pickupAddress} />
       </div>
 
       {/* Emergency Type */}
-      <div style={{ marginBottom: "32px", position: "relative", zIndex: 20 }}>
-        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Emergency Type *</label>
-        <div data-field-error style={{ position: "relative" }}>
-          <select value={emergencyType} onChange={e => { setEmergency(e.target.value); clearFieldError("emergencyType"); }}
-            style={{ width: "100%", padding: "14px 40px 14px 14px", border: `1.5px solid ${fieldErrors.emergencyType ? "var(--danger)" : "var(--border)"}`, borderRadius: "10px", fontSize: "15px", color: emergencyType ? "var(--text-main)" : "var(--text-muted)", fontWeight: "500", background: "#fff", outline: "none", appearance: "none", cursor: "pointer", transition: "border-color 0.2s", fontFamily: "var(--font-sans)" }}
-            onFocus={e => { if (!fieldErrors.emergencyType) e.target.style.borderColor = "var(--primary)"; }}
-            onBlur={e => { if (!fieldErrors.emergencyType) e.target.style.borderColor = "var(--border)"; }}>
-            <option value="" disabled>Select emergency type</option>
-            {EMERGENCY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-          <ChevronDown size={18} color="var(--text-muted)" style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+      <div style={{ marginBottom: "8px", position: "relative", zIndex: 20 }}>
+        <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.07em", display: "block", marginBottom: "8px" }}>Emergency Type <span className="required-star">*</span></label>
+        <div data-field-error>
+          <EmergencyTypeSelect value={emergencyType} hasError={!!fieldErrors.emergencyType}
+            onChange={v => { setEmergency(v); clearFieldError("emergencyType"); }} />
         </div>
         <FieldError msg={fieldErrors.emergencyType} />
       </div>
 
-      <Btn variant="danger" disabled={busy} onClick={handleSubmit}>
-        {busy ? <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Submitting…</> : <><Ambulance size={18} /> Call Ambulance</>}
-      </Btn>
     </div>
   );
 
@@ -360,7 +1405,7 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
   );
 
   return (
-    <Overlay onClose={onClose}>
+    <Overlay>
       <div className="ambulance-modal-card">
 
         {/* Left Panel */}
@@ -374,17 +1419,50 @@ export default function AmbulanceRequestModal({ onClose, onSuccess }) {
 
         {/* Right Panel */}
         <div className="ambulance-modal-right">
-          <button onClick={onClose} style={{ position: "absolute", top: "16px", right: "16px", background: "var(--bg-app)", border: "1px solid var(--border)", width: "34px", height: "34px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", zIndex: 10 }} onMouseEnter={e => e.currentTarget.style.background="var(--border)"} onMouseLeave={e => e.currentTarget.style.background="var(--bg-app)"}>
-            <X size={16} color="var(--text-muted)" />
-          </button>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: step === 2 ? "center" : "flex-start", overflowY: "auto", maxHeight: "80vh", paddingRight: "10px" }}>
+          {/* Header strip stays fixed above the scrolling form */}
+          <div className="ambulance-modal-header">
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-main)", margin: "0 0 4px", fontFamily: "var(--font-display)" }}>{step === 1 && "Request Details"}</h3>
+              {step === 1 && <p style={{ fontSize: "13.5px", color: "var(--text-muted)", margin: 0 }}>All fields marked with * are required</p>}
+            </div>
+            <button className="ambulance-modal-close" onClick={handleClose} disabled={busy} aria-label="Close">
+              <X size={18} />
+            </button>
+          </div>
+          <div className="ambulance-modal-scroll" style={{ justifyContent: step === 2 ? "center" : "flex-start" }}>
             {step === 1 ? formPanel : successPanel}
           </div>
+          {/* Submit stays pinned below the scroll area so it's always reachable */}
+          {step === 1 && (
+            <div className="ambulance-modal-footer">
+              <Btn
+                variant={bookingType === "SCHEDULED" ? "primary" : "danger"}
+                disabled={busy}
+                onClick={handleSubmit}
+              >
+                {busy ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    {bookingType === "SCHEDULED" ? "Scheduling…" : "Requesting…"}
+                  </>
+                ) : bookingType === "SCHEDULED" ? (
+                  <>
+                    <Calendar size={18} /> Schedule Ambulance
+                  </>
+                ) : (
+                  <>
+                    <Ambulance size={18} /> Call Ambulance
+                  </>
+                )}
+              </Btn>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Inline keyframes for spinner */}
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes emgMenuIn { from { opacity: 0; transform: scaleY(0.96); } to { opacity: 1; transform: scaleY(1); } }`}</style>
     </Overlay>
   );
 }

@@ -1,7 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, startTransition } from "react";
 import * as authService from "../services/authService";
 import { getPatients } from "../services/dataService";
 import Toast from "../components/common/Toast";
+import { removeFcmToken } from "../services/firebase";
+import { useNavigate } from "react-router-dom";
 
 function setCookie(name, value, days = 365) {
   if (typeof document === "undefined" || !value) return;
@@ -27,6 +29,7 @@ function deleteCookie(name) {
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("arvaya_user");
     try {
@@ -55,8 +58,9 @@ export function AuthProvider({ children }) {
   });
 
 
-  const showToast = useCallback((message, type = "success") => {
-    setToast({ isOpen: true, message, type });
+  // options: { title, duration } - title renders bold above the message
+  const showToast = useCallback((message, type = "success", options = {}) => {
+    setToast({ id: Date.now(), isOpen: true, message, type, title: options.title, duration: options.duration });
   }, []);
 
   async function fetchUserProfile(currentUser) {
@@ -68,7 +72,7 @@ export function AuthProvider({ children }) {
         try {
           const parsed = JSON.parse(storedUser);
           storedUserId = parsed?.id || parsed?.user_id || parsed?.app_user_id;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const mobile = currentUser.phone || currentUser.mobile_number || currentUser.mobile;
@@ -77,11 +81,11 @@ export function AuthProvider({ children }) {
         ...(mobile ? [{ column: "mobile_number", operator: "=", value: mobile }] : [])
       ];
       const res = await getPatients(filters);
-      
+
       let patientData = null;
       if (Array.isArray(res) && res.length > 0) {
-        patientData = res.find(p => String(p.id || p.user_id || p.app_user_id) === String(storedUserId)) 
-          || res.find(p => (p.mobile_number || p.phone || p.mobile) === mobile) 
+        patientData = res.find(p => String(p.id || p.user_id || p.app_user_id) === String(storedUserId))
+          || res.find(p => (p.mobile_number || p.phone || p.mobile) === mobile)
           || res[0];
       } else if (res && typeof res === "object" && !Array.isArray(res) && (res.name || res.full_name || res.first_name || res.mobile_number || res.phone || res.id || res.user_id)) {
         patientData = res;
@@ -93,7 +97,7 @@ export function AuthProvider({ children }) {
           const title = patientData.title ? patientData.title.trim() + " " : "";
           fullName = `${title}${patientData.first_name || ""} ${patientData.last_name || ""}`.trim();
         }
-        
+
         const phone = patientData.mobile_number || patientData.phone || patientData.mobile || patientData.mobile_no || mobile;
 
         let rawGender = patientData.gender || currentUser.gender;
@@ -240,19 +244,28 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.error("Logout API error:", e);
     } finally {
+      removeFcmToken();
       localStorage.removeItem("token");
       localStorage.removeItem("arvaya_token");
       localStorage.removeItem("arvaya_user");
       localStorage.removeItem("arvaya_login_method");
       localStorage.removeItem("abha_user_token");
       localStorage.removeItem("abha_token");
-      localStorage.removeItem("arvaya_linked_profiles");      
+      localStorage.removeItem("arvaya_linked_profiles");
+
       deleteCookie("token");
       deleteCookie("arvaya_token");
-      setToken(null);
-      setUser(null);
-      setLinkedProfiles([]);
-      setLoginMethod("user_verify_otp");
+      // Go home in the same render batch as clearing the user, so ProtectedRoute
+      // never sees a guest on a protected page and pops the login modal.
+      // React Router v7 applies navigate() as a transition, so the auth reset must
+      // be a transition too or it renders first.
+      startTransition(() => {
+        navigate("/", { replace: true });
+        setToken(null);
+        setUser(null);
+        setLinkedProfiles([]);
+        setLoginMethod("user_verify_otp");
+      });
       showToast("Logged out successfully!", "success");
     }
   }
@@ -271,18 +284,18 @@ export function AuthProvider({ children }) {
         external_id: targetProfile.external_id || "",
         referred_by_code: null,
       };
- 
+
       let res = null;
       try {
         res = await authService.selectProfile(selectPayload);
       } catch (err) {
         console.warn("selectProfile API warning:", err);
       }
- 
+
       const newToken = res?.token || res?.accessToken || token;
       let derivedName = targetProfile.name || res?.UserData?.name || "User";
       derivedName = derivedName.replace(/\.\./g, ".");
- 
+
       const updatedUser = {
         ...user,
         ...res?.UserData,
@@ -295,7 +308,7 @@ export function AuthProvider({ children }) {
         phone: mobile,
         mobile_number: mobile,
       };
- 
+
       saveSession({ token: newToken, user: updatedUser, loginMethod: "user_verify_otp" }, false);
       showToast(`Switched account to ${derivedName}`, "success");
       return true;
@@ -307,11 +320,11 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   }
- 
+
 
   return (
-    <AuthContext.Provider value={{ 
-      user, token, loading, error, 
+    <AuthContext.Provider value={{
+      user, token, loading, error,
       login, register, logout, setError,
       isLoginModalOpen, pendingRedirect, openLoginModal, closeLoginModal,
       saveSession, loginMethod, setLoginMethod, loginModalScreen, loginModalExtraState,
@@ -319,8 +332,11 @@ export function AuthProvider({ children }) {
     }}>
       {children}
       <Toast
+        key={toast.id}
         isOpen={toast.isOpen}
+        title={toast.title}
         message={toast.message}
+        duration={toast.duration}
         type={toast.type}
         onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
       />

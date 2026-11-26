@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import Signup from "../pages/Signup";
 import Home from "../pages/Home";
@@ -13,6 +14,7 @@ import Records from "../pages/Records";
 import Labs from "../pages/Labs";
 import AllLabTests from "../pages/AllLabTests";
 import AllHealthPackages from "../pages/AllHealthPackages";
+import LabCart from "../pages/LabCart";
 import Wallet from "../pages/Wallet";
 import Rewards from "../pages/Rewards";
 import Ambulance from "../pages/Ambulance";
@@ -36,19 +38,78 @@ import BookingReview from "../pages/booking/BookingReview";
 import BookingConfirmed from "../pages/booking/BookingConfirmed";
 
 import PackageDetails from "../pages/PackageDetails";
-import Login from "../pages/Login";
 import AccountDeletion from "../pages/AccountDeletion";
+import About from "../pages/About";
+import Terms from "../pages/Terms";
+
+const DEFAULT_TITLE = "SeCURE ARVAYA | Your Health, Our Priority";
+
+const PAGE_TITLES = {
+  "/signup": "Create Account",
+  "/account-deletion": "Account Deletion",
+  "/doctor": "Doctor Profile",
+  "/pharmacy": "Pharmacy",
+  "/labs": "Lab Tests",
+  "/labs/all-tests": "All Lab Tests",
+  "/labs/all-packages": "Health Packages",
+  "/labs/package-details": "Package Details",
+  "/labs/cart": "Lab Tests Cart",
+  "/lab-cart": "Lab Tests Cart",
+  "/abha": "ABHA Health ID",
+  "/records": "Health Records",
+  "/wallet": "Wallet",
+  "/rewards": "Rewards",
+  "/ambulance": "Ambulance",
+  "/support": "Help & Support",
+  "/care-journey": "Care Journey",
+  "/doctors": "Select Hospital",
+  "/doctors/specialty": "Select Specialty",
+  "/doctors/list": "Select Doctor",
+  "/doctors/visit-type": "Select Visit Type",
+  "/doctors/schedule": "Select Schedule",
+  "/slot": "Select Slot",
+  "/review": "Review Appointment",
+  "/confirmed": "Appointment Confirmed",
+  "/profile": "Patient Profile",
+  "/settings": "Settings",
+  "/notifications": "Notifications",
+  "/my-appointments": "My Appointments",
+  "/prescriptions": "Prescriptions",
+  "/orders": "My Orders",
+  "/payments": "Payments",
+  "/referrals": "Referrals",
+  "/ai-assistant": "AI Assistant",
+  "/doctors/review": "Review Booking",
+  "/doctors/confirmed": "Booking Confirmed",
+  "/about": "About Us",
+  "/terms-and-conditions": "Terms & Conditions",
+};
+
+function getPageTitle(pathname) {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  const title =
+    PAGE_TITLES[path] ||
+    (path.startsWith("/labs/package-details/") && PAGE_TITLES["/labs/package-details"]);
+  return title ? `${title} | SeCURE ARVAYA` : DEFAULT_TITLE;
+}
 
 function P({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>;
 }
 
 export default function AppRoutes() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    document.title = getPageTitle(pathname);
+  }, [pathname]);
+
   return (
     <Routes>
       {/* Public */}
       <Route path="/signup" element={<Signup />} />
-      <Route path="/login" element={<Login />} />
+      {/* Login is shown as a modal only — block direct access to /login */}
+      <Route path="/login" element={<Navigate to="/" replace />} />
 
       {/* Public Pages */}
       <Route path="/" element={<Home />} />
@@ -60,6 +121,8 @@ export default function AppRoutes() {
       <Route path="/labs/all-packages" element={<AllHealthPackages />} />
       <Route path="/labs/package-details" element={<PackageDetails />} />
       <Route path="/labs/package-details/:id" element={<PackageDetails />} />
+      <Route path="/labs/cart" element={<LabCart />} />
+      <Route path="/lab-cart" element={<Navigate to="/labs/cart" replace />} />
       <Route path="/abha" element={<ABHA />} />
       <Route path="/records" element={<Records />} />
       <Route path="/wallet" element={<Wallet />} />
@@ -90,6 +153,9 @@ export default function AppRoutes() {
       <Route path="/ai-assistant" element={<P><AIAssistant /></P>} />
       <Route path="/doctors/review" element={<P><BookingReview /></P>} />
       <Route path="/doctors/confirmed" element={<P><BookingConfirmed /></P>} />
+      <Route path="/about" element={<About />} />
+      <Route path="/terms-and-conditions" element={<Terms />} />
+      <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
     </Routes>
   );
 }
