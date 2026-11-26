@@ -13545,7 +13545,11 @@ schedule-calendar-card {
 
   overflow-y: auto;
 
-  padding-right: 4px;
+  /* Breathing room so hover-lifted chips (translateY + shadow) aren't clipped
+     by the scroll container; negative margin keeps the visual alignment unchanged. */
+  padding: 6px 8px 8px 6px;
+
+  margin: -6px -4px -8px -6px;
 
   display: flex;
 

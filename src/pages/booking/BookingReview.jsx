@@ -23,7 +23,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useBooking } from "../../context/BookingContext";
 import { useAuth } from "../../context/AuthContext";
-import { bookAppointment, getWalletAmount, checkVisitType, verifyPayment, releaseSlot } from "../../services/dataService";
+import { bookAppointment, getWalletAmount, checkVisitType, verifyPayment, releaseSlot, loadRazorpayScript } from "../../services/dataService";
 import { stripTitle } from "../../utils/formatName";
 import BookingLayout from "../../components/layout/BookingLayout";
 import Toast from "../../components/common/Toast";
@@ -60,13 +60,14 @@ function getScrollLockStyles() {
   };
 }
 
-// rzp.close() is unreliable once checkout is open, so also remove Razorpay's overlay from the DOM
-// and undo the scroll lock it applied.
+// Close checkout and undo the scroll lock it applied.
+// Never remove Razorpay's .razorpay-container / iframe from the DOM: checkout.js keeps a single
+// cached frame and reuses it for every later `new Razorpay().open()`. If that node is deleted, the
+// next checkout can't reach its iframe and Razorpay shows "This browser is not supported".
 function forceCloseRazorpay(rzp, savedStyles) {
   if (rzp) {
     try { rzp.close(); } catch (e) { }
   }
-  document.querySelectorAll('.razorpay-container, .razorpay-backdrop').forEach(el => el.remove());
 
   const s = savedStyles || { htmlOverflow: '', htmlContain: '', bodyOverflow: '', bodyContain: '' };
   const html = document.documentElement.style;
@@ -391,19 +392,6 @@ export default function BookingReview() {
     if (val > maxWalletApplicable) val = maxWalletApplicable;
     if (val < 0) val = 0;
     setWalletAppliedAmount(val);
-  };
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
   };
 
   const confirm = async () => {
